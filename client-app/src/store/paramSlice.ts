@@ -9,11 +9,7 @@ type State = {
   seller?: string;
   winner?: string;
   imageValue?: any;
-};
-
-type Action = {
-  setParams: (params: Partial<State>) => void;
-  reset: () => void;
+  searchTerm: string;
 };
 
 const initialState: State = {
@@ -25,6 +21,7 @@ const initialState: State = {
   seller: undefined,
   winner: undefined,
   imageValue: undefined,
+  searchTerm: "",
 };
 
 export const paramSlice = createSlice({
@@ -32,14 +29,32 @@ export const paramSlice = createSlice({
   initialState: initialState,
   reducers: {
     setParams: (state, action) => {
-      if (action.payload.pageNumber) {
-        state = { ...state, pageNumber: action.payload.pageNumber };
-      } else {
-        state = { ...state, ...action.payload, pageNumber: 1 };
+      if (action.payload.pageNumber)
+        state.pageNumber = action.payload.pageNumber;
+      if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
+      if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
+      if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
+      if (action.payload.filterBy) state.filterBy = action.payload.filterBy;
+      if (action.payload.seller) state.seller = action.payload.seller;
+      if (action.payload.winner) state.winner = action.payload.winner;
+      if (action.payload.imageValue)
+        state.imageValue = action.payload.imageValue;
+      if (action.payload.searchTerm || action.payload?.searchTerm == "")
+        state.searchTerm = action.payload.searchTerm;
+      if (!action.payload.pageNumber) {
+        state.pageNumber = 1;
       }
     },
     reset: (state, action) => {
-      state = { ...initialState };
+      state.pageNumber = 1;
+      state.pageSize = 4;
+      state.pageCount = 1;
+      state.orderBy = "new";
+      state.filterBy = "live";
+      state.seller = undefined;
+      state.winner = undefined;
+      state.imageValue = undefined;
+      state.searchTerm = "";
     },
   },
 });

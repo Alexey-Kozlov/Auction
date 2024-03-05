@@ -33,7 +33,8 @@ public class SeedData
             }
 
             result = userMgr.AddClaimsAsync(alice, new Claim[]{
-                            new Claim("name", "Alice Smith")
+                            new Claim("Name", "Alice Smith"),
+                            new Claim("Login", "alice")
                         }).Result;
             if (!result.Succeeded)
             {
@@ -62,7 +63,8 @@ public class SeedData
             }
 
             result = userMgr.AddClaimsAsync(bob, new Claim[]{
-                            new Claim("name", "Bob Smith")
+                            new Claim("name", "Bob Smith"),
+                            new Claim("Login", "bob")
                         }).Result;
             if (!result.Succeeded)
             {

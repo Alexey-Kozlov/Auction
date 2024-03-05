@@ -4,6 +4,8 @@ import NavBar from "./components/nav/NavBar";
 import ToasterProvider from "./providers/ToasterProvider";
 import Register from "./components/auth/Register";
 import Login from "./components/auth/Login";
+import Detail from "./components/auctionDetail/Detail";
+import AuctionForm from "./components/auctionEdit/AuctionForm";
 
 function App() {
   return (
@@ -15,6 +17,9 @@ function App() {
           <Route path="/" element={<Listings />}></Route>
           <Route path="/register" element={<Register />}></Route>
           <Route path="/login" element={<Login />}></Route>
+          <Route path="/auctions/edit/:id" element={<AuctionForm />}></Route>
+          <Route path="/auctions/:id" element={<Detail />}></Route>
+
         </Routes>
 
       </div>

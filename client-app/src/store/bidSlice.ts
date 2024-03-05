@@ -19,9 +19,7 @@ export const bidSlice = createSlice({
       state.bids = action.payload;
     },
     addBid: (state, action) => {
-      state.bids = state.bids.find((p) => p.id === action.payload.id)
-        ? [action.payload, ...state.bids]
-        : [...state.bids];
+      state.bids = [...state.bids, action.payload];
     },
     setOpen: (state, action) => {
       state.open = action.payload;

@@ -16,7 +16,8 @@ public class SearchController: ControllerBase
 
         if(!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
-            query.Match(Search.Full, searchParams.SearchTerm).SortByTextScore();
+            query.Match(p => p.Make.ToLower().Contains(searchParams.SearchTerm.ToLower()) || 
+            p.Model.ToLower().Contains(searchParams.SearchTerm.ToLower()));
         }
 
         //сортировка в зависимости от текстового параметра OrderBy

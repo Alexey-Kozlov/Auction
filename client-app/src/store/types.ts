@@ -56,7 +56,7 @@ export type LoginUser = {
 export type User = {
   name: string;
   login: string;
-  id: string;
+  id?: string;
 };
 
 export type PagedResult<T> = {
@@ -73,4 +73,14 @@ export type ApiResponse<T> = {
     result: T;
   };
   error?: any;
+};
+
+export type PlaceBidParams = {
+  amount: number;
+  auctionId: string;
+};
+
+export type CreateUpdateAuctionParams = {
+  id?: string;
+  data: string;
 };

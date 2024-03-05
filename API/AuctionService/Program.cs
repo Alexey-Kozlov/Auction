@@ -1,9 +1,11 @@
+using System.Text;
 using AuctionService.Consumers;
 using AuctionService.Data;
 using AuctionService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,15 +37,23 @@ builder.Services.AddMassTransit(p =>
     });
 });
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["IdentityServiceUrl"];
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters.ValidateAudience = false;
-        options.TokenValidationParameters.NameClaimType = "login";
-    });
-
+builder.Services.AddAuthentication(p => 
+{
+   p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+   p.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; 
+}).AddJwtBearer(p =>
+{
+   p.RequireHttpsMetadata = false;
+   p.SaveToken = true; 
+   p.TokenValidationParameters = new TokenValidationParameters
+   {
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("ApiSettings:Secret"))),
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    NameClaimType="Name"
+   };
+});
 builder.Services.AddGrpc();
 
 builder.Services.AddSwaggerGen(opt =>

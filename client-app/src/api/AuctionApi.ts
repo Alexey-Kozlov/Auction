@@ -1,34 +1,74 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Auction, PagedResult } from "../store/types";
-import { jwtDecode } from "jwt-decode";
+import {
+  Auction,
+  PagedResult,
+  CreateUpdateAuctionParams,
+} from "../store/types";
+import AddTokenHeader from "./AddTokenHeader";
 
 const auctionApi = createApi({
   reducerPath: "auctionApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL + "/search",
+    baseUrl: process.env.REACT_APP_API_URL,
     prepareHeaders: (headers: Headers, api) => {
-      let token = localStorage.getItem("Auction");
+      const token = AddTokenHeader();
       if (token) {
-        const decode: { exp: number } = jwtDecode(token);
-        if (decode.exp * 1000 <= Date.now()) {
-          localStorage.removeItem("Auction");
-          token = null;
-        }
-        token && headers.append("Authorization", "Bearer " + token);
+        headers.append("Authorization", token);
       }
     },
   }),
   tagTypes: ["auctions"],
   endpoints: (builder) => ({
-    getAuctions: builder.query<PagedResult<Auction>, string>({
-      query: (url) => ({
-        url: url,
+    getDetailedViewData: builder.query<Auction, string>({
+      query: (id) => ({
+        url: `/auctions/${id}`,
       }),
       providesTags: ["auctions"],
     }),
-    
+    getAuctions: builder.query<PagedResult<Auction>, string>({
+      query: (url) => ({
+        url: "/search" + url,
+      }),
+      providesTags: ["auctions"],
+    }),
+    deleteAuction: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/auctions/${id}`,
+        method: "delete",
+        body: null,
+      }),
+      invalidatesTags: ["auctions"],
+    }),
+    updateAuction: builder.mutation<any, CreateUpdateAuctionParams>({
+      query: (params) => ({
+        url: `/auctions/${params.id}`,
+        method: "put",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: params.data,
+      }),
+      invalidatesTags: ["auctions"],
+    }),
+    createAuction: builder.mutation<Auction, CreateUpdateAuctionParams>({
+      query: (params) => ({
+        url: "/auctions",
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: params.data,
+      }),
+      invalidatesTags: ["auctions"],
+    }),
   }),
 });
 
-export const { useGetAuctionsQuery } = auctionApi;
+export const {
+  useGetAuctionsQuery,
+  useGetDetailedViewDataQuery,
+  useDeleteAuctionMutation,
+  useUpdateAuctionMutation,
+  useCreateAuctionMutation,
+} = auctionApi;
 export default auctionApi;

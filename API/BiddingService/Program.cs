@@ -4,6 +4,8 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using MongoDB.Driver;
 using MongoDB.Entities;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -22,14 +24,23 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["IdentityServiceUrl"];
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters.ValidateAudience = false;
-        options.TokenValidationParameters.NameClaimType = "login";
-    });
+builder.Services.AddAuthentication(p => 
+{
+   p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+   p.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; 
+}).AddJwtBearer(p =>
+{
+   p.RequireHttpsMetadata = false;
+   p.SaveToken = true; 
+   p.TokenValidationParameters = new TokenValidationParameters
+   {
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("ApiSettings:Secret"))),
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    NameClaimType="Name"
+   };
+});
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHostedService<CheckAuctionFinished>();
@@ -38,7 +49,9 @@ builder.Services.AddScoped<GrpcAuctionClient>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 await DB.InitAsync("BidDb", MongoClientSettings.FromConnectionString(

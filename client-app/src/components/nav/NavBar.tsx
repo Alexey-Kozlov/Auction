@@ -6,15 +6,24 @@ import { User } from '../../store/types'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../store/store'
 import { useNavigate } from 'react-router-dom'
-import { setAuthUser } from '../../store/authSlice';
+import { emptyUserState, setAuthUser } from '../../store/authSlice';
+import AddTokenHeader from '../../api/AddTokenHeader';
+import { useEffect } from 'react';
 
 export default function NavBar() {
     let user: User = useSelector((state: RootState) => state.authStore);
     const dispatch = useDispatch();
-    if (!user.id && localStorage.getItem('Auction')) {
-        user = JSON.parse(localStorage.getItem('Auction')!);
-        dispatch(setAuthUser(user));
+    if (!AddTokenHeader() && user.id) {
+        dispatch(setAuthUser(emptyUserState));
     }
+
+    useEffect(() => {
+        if (localStorage.getItem('Auction')) {
+            user = JSON.parse(localStorage.getItem('Auction')!);
+            dispatch(setAuthUser(user));
+        }
+    }, [user]);
+
     const navigate = useNavigate();
     return (
         <header className='sticky top-0 z-50 flex justify-between bg-white p-5 

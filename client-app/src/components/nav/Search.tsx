@@ -1,27 +1,37 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { setSearchValue } from '../../store/searchSlice';
+import { setParams } from '../../store/paramSlice';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function Search() {
+    const [search, setSearch] = useState('');
     const dispatch = useDispatch();
-    const searchValue = useSelector((state: RootState) => state.searchStore.searchValue);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const searchTerm = useSelector((state: RootState) => state.paramStore.searchTerm);
 
     const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch(setSearchValue(event.target.value));
+        setSearch(event.target.value);
     };
 
     const Search = () => {
-        console.log(searchValue);
+        if (location.pathname != '/') navigate('/');
+        dispatch(setParams({ searchTerm: search }));
     }
+
+    useEffect(() => {
+        setSearch(searchTerm);
+    }, [searchTerm])
+
     return (
         <div className='flex items-center border-2 rounded-full py-2 shadow-sm' style={{ width: '600px' }}>
             <input
                 type='text'
                 placeholder='Поиск предложения по производителю, модели или цвету'
                 className='input-custom text-sm text-gray-600'
-                value={searchValue}
+                value={search}
                 onChange={e => onSearchChange(e)}
                 onKeyDown={(e: any) => {
                     if (e.key === 'Enter') Search();

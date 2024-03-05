@@ -99,7 +99,8 @@ public class AuthController : ControllerBase
         {
             Subject = new ClaimsIdentity(new Claim[]
             {
-                new Claim("Something", user.UserName),
+                new Claim("Name", user.UserName),
+                new Claim("Login", user.Email),
             }),
             Expires = DateTime.UtcNow.AddDays(1),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

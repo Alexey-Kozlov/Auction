@@ -4,7 +4,7 @@ import { User } from "./types";
 export const emptyUserState: User = {
   name: "",
   login: "",
-  id: "",
+  id: undefined,
 };
 
 export const authSlice = createSlice({

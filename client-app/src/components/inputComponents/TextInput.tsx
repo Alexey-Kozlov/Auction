@@ -7,6 +7,7 @@ interface TI {
     type?: string;
     labellWidth?: string;
     inputWidth?: string;
+    inputDescr?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -22,8 +23,14 @@ export default function TextInput(props: TI) {
                     className={`border-gray-400 border ml-2 pl-2
                 ${props.inputWidth ? props.inputWidth : 'w-6/12'}`}
                     {...field}
-                    {...props}
-                    onChange={(e) => { setValue(e.currentTarget.value); props.onChange!(e) }} />
+                    placeholder={props.placeholder}
+                    name={props.name}
+                    type={props.type}
+                    onChange={(e) => { setValue(e.currentTarget.value); props.onChange!(e) }}
+                />
+                {props.inputDescr && (
+                    <label className="ml-3">{props.inputDescr}</label>
+                )}
             </div>
             <div className="text-left">
                 {
