@@ -51,7 +51,7 @@ builder.Services.AddAuthentication(p =>
     IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("ApiSettings:Secret"))),
     ValidateIssuer = false,
     ValidateAudience = false,
-    NameClaimType="Name"
+    NameClaimType="Login"
    };
 });
 builder.Services.AddGrpc();

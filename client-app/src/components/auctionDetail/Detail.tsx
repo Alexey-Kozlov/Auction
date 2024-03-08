@@ -5,16 +5,27 @@ import { User } from '../../store/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { Button } from 'flowbite-react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import CarImage from '../auctionList/CarImage';
 import BidList from './BidList';
 import DetailedSpecs from './DetailedSpec';
-import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useDeleteAuctionMutation, useGetAuctionsQuery, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import toast from 'react-hot-toast';
 
 export default function Detail() {
     const { id } = useParams();
     const { data, isLoading } = useGetDetailedViewDataQuery(id!);
     const user: User = useSelector((state: RootState) => state.authStore);
+    const [deleteAuction] = useDeleteAuctionMutation();
+    const navigate = useNavigate();
+    const handleDeleteAuction = async () => {
+        const result: any = await deleteAuction(id!);
+        if (result.data) {
+            navigate('/');
+        } else {
+            toast.error('Ошибка удаления - ' + result.error.message);
+        }
+    }
 
     if (isLoading) return 'Загрузка...';
 
@@ -29,17 +40,17 @@ export default function Detail() {
                             <Button outline>
                                 <NavLink to={`/auctions/edit/${id}`}>Редактировать аукцион</NavLink>
                             </Button>
-                            <Button outline>
+                            <Button outline onClick={handleDeleteAuction}>
                                 Удалить аукцион
                             </Button>
                         </>
                     )}
                 </div>
 
-                {/* <div className='flex gap-3'>
+                <div className='flex gap-3'>
                     <h3 className='text-2xl font-semibold'>Осталось времени:</h3>
                     <CountdownTimer auctionEnd={data!.auctionEnd} />
-                </div> */}
+                </div>
             </div>
             <div className='grid grid-cols-2 gap-6 mt-3'>
                 <div className='w-full bg-gray-200 aspect-h-10 aspect-w-16 rounded-lg overflow-hidden'>

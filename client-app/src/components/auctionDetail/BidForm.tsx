@@ -34,6 +34,7 @@ export default function BidForm({ auctionId, highBid }: Props) {
                             return;
                         }
                         dispatch(addBid(response.data));
+                        values.amount = 0;
                     } catch (e: any) {
                         toast.error(e.message);
                     }

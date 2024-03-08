@@ -62,7 +62,10 @@ export default function Login() {
                                     placeholder='Логин'
                                     labellWidth='w-40'
                                     inputWidth='w-52'
-                                    onChange={() => { }} />
+                                    onChange={() => { }}
+                                    controlsAlign='justify-center'
+                                    required
+                                />
                             </div>
                             <div className='mt-5'>
                                 <TextInput
@@ -72,7 +75,10 @@ export default function Login() {
                                     type='password'
                                     labellWidth='w-40'
                                     inputWidth='w-52'
-                                    onChange={() => { }} />
+                                    onChange={() => { }}
+                                    controlsAlign='justify-center'
+                                    required
+                                />
                             </div>
                             <ErrorMessage name='error' render={() =>
                                 <p className='text-red-500'>{errors.error}</p>

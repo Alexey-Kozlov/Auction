@@ -36,7 +36,10 @@ public class MappingProfiles : Profile
                     Color = s.Color,
                     Description = s.Description,
                     Image = s.Image != null ? 
-                        Convert.FromBase64String(s.Image.Replace("data:image/jpeg;base64,", "")) :
+                        Convert.FromBase64String(s.Image
+                        .Replace("data:image/png;base64,", "")
+                        .Replace("data:image/jpeg;base64,", "")
+                        .Replace("data:image/jpg;base64,", "")) :
                         null
                 }
             }));
@@ -72,7 +75,10 @@ public class MappingProfiles : Profile
                     Color = src.Color ?? dest.Item.First().Color,
                     Description = src.Description ?? dest.Item.First().Description,
                     Image = (src != null && src.Image != null && src.Image.Length > 0) ? 
-                        Convert.FromBase64String(src.Image.Replace("data:image/jpeg;base64,", "")) :
+                        Convert.FromBase64String(src.Image
+                        .Replace("data:image/png;base64,", "")
+                        .Replace("data:image/jpeg;base64,", "")
+                        .Replace("data:image/jpg;base64,", "")) :
                         dest.Item?.First()?.Image
                 }
                 };

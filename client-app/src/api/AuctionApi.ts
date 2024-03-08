@@ -7,6 +7,7 @@ import {
 import AddTokenHeader from "./AddTokenHeader";
 
 const auctionApi = createApi({
+  refetchOnMountOrArgChange: true,
   reducerPath: "auctionApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL,
@@ -23,6 +24,13 @@ const auctionApi = createApi({
       query: (id) => ({
         url: `/auctions/${id}`,
       }),
+      transformResponse: (auction: Auction, meta: any) => {
+        if (auction.auctionEnd)
+          auction.auctionEnd = new Date(auction.auctionEnd);
+        if (auction.createAt) auction.createAt = new Date(auction.createAt);
+        if (auction.updatedAt) auction.updatedAt = new Date(auction.updatedAt);
+        return auction;
+      },
       providesTags: ["auctions"],
     }),
     getAuctions: builder.query<PagedResult<Auction>, string>({
@@ -35,11 +43,14 @@ const auctionApi = createApi({
       query: (id) => ({
         url: `/auctions/${id}`,
         method: "delete",
-        body: null,
+        headers: {
+          "content-type": "application/json",
+        },
+        body: "",
       }),
       invalidatesTags: ["auctions"],
     }),
-    updateAuction: builder.mutation<any, CreateUpdateAuctionParams>({
+    updateAuction: builder.mutation<Auction, CreateUpdateAuctionParams>({
       query: (params) => ({
         url: `/auctions/${params.id}`,
         method: "put",

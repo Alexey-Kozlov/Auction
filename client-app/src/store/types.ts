@@ -4,9 +4,9 @@ export type Auction = {
   winner?: string;
   soldAmount: number;
   currentHighBid: number;
-  createAt: string;
-  updatedAt: string;
-  auctionEnd: string;
+  createAt: Date;
+  updatedAt: Date;
+  auctionEnd: Date;
   status: string;
   make: string;
   model: string;
@@ -16,6 +16,7 @@ export type Auction = {
   description?: string;
   image?: string;
   id: string;
+  error?: string;
 };
 
 export type Bid = {
@@ -72,6 +73,11 @@ export type ApiResponse<T> = {
     errorMessages: Array<string>;
     result: T;
   };
+  error?: any;
+};
+
+export type ObjectResponse<T> = {
+  data?: T;
   error?: any;
 };
 

@@ -4,7 +4,7 @@ import { setBids } from '../../store/bidSlice';
 import { useLocation } from 'react-router-dom';
 
 type Props = {
-    auctionEnd: string;
+    auctionEnd: Date;
 }
 const renderer = ({ days, hours, minutes, seconds, completed }:
     { days: number, hours: number, minutes: number, seconds: number, completed: boolean }) => {

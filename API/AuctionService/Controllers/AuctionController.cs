@@ -74,7 +74,7 @@ public class AuctionController : ControllerBase
 
     [Authorize]
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateAuction(Guid id,[FromBody] UpdateAuctionDTO updateAuctionDTO)
+    public async Task<ActionResult<AuctionDTO>> UpdateAuction(Guid id,[FromBody] UpdateAuctionDTO updateAuctionDTO)
     {
         var auction = await _context.Auctions.Include(p => p.Item)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -86,7 +86,7 @@ public class AuctionController : ControllerBase
         await _publishEndpoint.Publish(transferAuction);
 
         var result = await _context.SaveChangesAsync() > 0;
-        if(result) return Ok();
+        if(result) return _mapper.Map<AuctionDTO>(auction);
         return BadRequest("Ошибка обновления записи");
     }
 
@@ -104,7 +104,7 @@ public class AuctionController : ControllerBase
         await _publishEndpoint.Publish<AuctionDeleted>(new {Id = id.ToString()});
 
         var result = await _context.SaveChangesAsync() > 0;
-        if(result) return Ok();
+        if(result) return Ok(new {data="Ok"});
         return BadRequest("Ошибка удаления записи");
     }
 

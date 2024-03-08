@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-.react-datepicker-wrapper {
-  width: 100%;
+.datepicker {
+  border: 1px solid rgb(156 163 175) !important;
+  margin-left: 26px;
 }
 
 @layer components {

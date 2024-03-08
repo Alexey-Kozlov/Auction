@@ -9,33 +9,37 @@ import { setParams } from '../../store/paramSlice';
 import { RootState } from '../../store/store';
 import { setData } from '../../store/auctionSlice';
 import Filters from './Filters';
+import { Auction } from '../../store/types';
 
 export default function Listings() {
     const dispatch = useDispatch();
     const params = useSelector((state: RootState) => state.paramStore);
+    const auctions: Auction[] = useSelector((state: RootState) => state.auctionStore).auctions;
     const url = qs.stringifyUrl({ url: '', query: params });
-    const { data, isLoading } = useGetAuctionsQuery(url);
+    const auctionsData = useGetAuctionsQuery(url);
+
     useEffect(() => {
-        if (!isLoading) {
-            dispatch(setData(data));
+        if (!auctionsData.isLoading) {
+            dispatch(setData(auctionsData.data));
         }
-    }, [isLoading, url]);
+    }, [auctionsData.isLoading, url, auctionsData.data]);
+
 
     function setPageNumber(pageNumber: number) {
         dispatch(setParams({ pageNumber: pageNumber }));
     }
 
-    if (isLoading) return <h3>Загрузка...</h3>
+    if (auctionsData.isLoading) return <h3>Загрузка...</h3>
 
     return (
         <div>
             <Filters />
             {
-                data?.totalCount == 0 ? (
+                auctions.length == 0 ? (
                     <EmptyFilter showReset />
                 ) : (<>
                     <div className='grid grid-cols-4 gap-6'>
-                        {data?.results.map((auction, index: number) => {
+                        {auctions.map((auction: Auction, index: number) => {
                             return (
                                 <AuctionCard auction={auction} key={index} />
                             )
@@ -43,7 +47,7 @@ export default function Listings() {
                     </div>
                     <div className='flex justify-center mt-4'>
                         <AppPagination pageChanged={setPageNumber}
-                            currentPage={params.pageNumber} totalPages={data?.pageCount!} />
+                            currentPage={params.pageNumber} totalPages={auctionsData.data?.pageCount!} />
                     </div>
                 </>
                 )}

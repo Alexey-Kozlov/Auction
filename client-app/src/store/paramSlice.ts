@@ -8,7 +8,6 @@ type State = {
   filterBy: string;
   seller?: string;
   winner?: string;
-  imageValue?: any;
   searchTerm: string;
 };
 
@@ -20,7 +19,6 @@ const initialState: State = {
   filterBy: "live",
   seller: undefined,
   winner: undefined,
-  imageValue: undefined,
   searchTerm: "",
 };
 
@@ -37,9 +35,7 @@ export const paramSlice = createSlice({
       if (action.payload.filterBy) state.filterBy = action.payload.filterBy;
       if (action.payload.seller) state.seller = action.payload.seller;
       if (action.payload.winner) state.winner = action.payload.winner;
-      if (action.payload.imageValue)
-        state.imageValue = action.payload.imageValue;
-      if (action.payload.searchTerm || action.payload?.searchTerm == "")
+      if (action.payload.searchTerm || action.payload?.searchTerm === "")
         state.searchTerm = action.payload.searchTerm;
       if (!action.payload.pageNumber) {
         state.pageNumber = 1;
@@ -53,7 +49,6 @@ export const paramSlice = createSlice({
       state.filterBy = "live";
       state.seller = undefined;
       state.winner = undefined;
-      state.imageValue = undefined;
       state.searchTerm = "";
     },
   },

@@ -15,7 +15,7 @@ export default function AuctionCard({ auction }: Props) {
                 <div>
                     <CarImage image={auction.image} />
                     <div className='absolute bottom-2 left-2'>
-                        <CountdownTimer auctionEnd={auction.auctionEnd} />
+                        <CountdownTimer auctionEnd={auction.auctionEnd.toLocaleString()} />
                     </div>
                     <div className='absolute top-2 right-2'>
                         <CurrentBid reservePrice={auction.reservePrice} amount={auction.currentHighBid} />

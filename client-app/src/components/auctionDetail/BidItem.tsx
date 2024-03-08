@@ -10,7 +10,7 @@ export default function BidItem({ bid }: Props) {
     const getBidInfo = () => {
         let bgColor = '';
         let text = '';
-        switch (bid.bidStatus) {
+        switch (bid?.bidStatus) {
             case "Принято":
                 bgColor = 'bg-green-200';
                 text = 'Предложение принято';
@@ -37,11 +37,11 @@ export default function BidItem({ bid }: Props) {
             items-center mb-2 ${getBidInfo().bgColor}
         `}>
             <div className='flex flex-col'>
-                <span>Покупатель: {bid.bidder}</span>
-                <span className='text-gray-700 text-sm'>Время: {format(new Date(bid.bidTime), 'dd.MM.yyyy HH:mm')}</span>
+                <span>Покупатель: {bid?.bidder}</span>
+                <span className='text-gray-700 text-sm'>Время: {format(new Date(bid?.bidTime), 'dd.MM.yyyy HH:mm')}</span>
             </div>
             <div className='flex flex-col text-right'>
-                <div className='text-xl font-semibold'>{NumberWithSpaces(bid.amount)} руб</div>
+                <div className='text-xl font-semibold'>{NumberWithSpaces(bid?.amount)} руб</div>
                 <div className='flex flex-row items-center'>
                     <span>{getBidInfo().text}</span>
                 </div>

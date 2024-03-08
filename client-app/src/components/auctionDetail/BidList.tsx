@@ -26,9 +26,9 @@ export default function BidList({ user, auction }: Props) {
 
     //вычисляем самую большую ставку
     const highBid = bids?.reduce((prev, current) => {
-        return prev > current.amount
+        return prev > current?.amount
             ? prev
-            : current.bidStatus.includes('Принято') ? current.amount : prev
+            : current?.bidStatus?.includes('Принято') ? current?.amount : prev
     }, 0);
 
     const itemsRef = useRef<null | HTMLLIElement>(null);
@@ -37,10 +37,16 @@ export default function BidList({ user, auction }: Props) {
     //списка заявок вверх (если заявок много)
     useEffect(() => {
         if (bids && bids.length > 0) {
-            const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
-                return Date.parse(b.bidTime) - Date.parse(a.bidTime);
-            })[0];
-            setLastBidId(maxBidId.id);
+            try {
+                const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
+                    return Date.parse(b.bidTime) - Date.parse(a.bidTime);
+                })[0];
+                setLastBidId(maxBidId.id);
+            } catch (e) {
+                console.log(e);
+            }
+
+
         }
     }, [bids])
 
@@ -49,7 +55,7 @@ export default function BidList({ user, auction }: Props) {
         if (!isLoading) {
             dispatch(setBids(data));
         }
-    }, [auction?.id, isLoading]);
+    }, [auction?.id, isLoading, data]);
 
     //закрытие аукциона
     useEffect(() => {
@@ -82,12 +88,12 @@ export default function BidList({ user, auction }: Props) {
                 ) : (
                     <>
                         {bids?.map(bid => (
-                            <li key={bid.id} className='list-none'
-                                ref={bid.id === lastBidId ? itemsRef : null}>
+                            <li key={bid?.id} className='list-none'
+                                ref={bid?.id === lastBidId ? itemsRef : null}>
                                 <BidItem key={bid?.id} bid={bid} />
                             </li>
-
-                        ))}
+                        )
+                        )}
                     </>
                 )}
             </div>

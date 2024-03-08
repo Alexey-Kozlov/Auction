@@ -47,7 +47,10 @@ export default function Register() {
                                 label='Имя пользователя'
                                 labellWidth='w-40'
                                 inputWidth='w-52'
-                                onChange={() => { }} />
+                                onChange={() => { }}
+                                controlsAlign='justify-start'
+                                required
+                            />
                         </div>
                         <div className='mt-5'>
                             <TextInput
@@ -56,7 +59,10 @@ export default function Register() {
                                 placeholder='Логин'
                                 labellWidth='w-40'
                                 inputWidth='w-52'
-                                onChange={() => { }} />
+                                onChange={() => { }}
+                                controlsAlign='justify-start'
+                                required
+                            />
                         </div>
                         <div className='mt-5'>
                             <TextInput
@@ -66,7 +72,10 @@ export default function Register() {
                                 type='password'
                                 labellWidth='w-40'
                                 inputWidth='w-52'
-                                onChange={() => { }} />
+                                onChange={() => { }}
+                                controlsAlign='justify-start'
+                                required
+                            />
                         </div>
                         <ErrorMessage name='error' render={() =>
                             <p>{errors.error}</p>

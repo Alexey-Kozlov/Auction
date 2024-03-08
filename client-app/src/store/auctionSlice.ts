@@ -1,15 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { Auction, PagedResult } from "./types";
+import { Auction } from "./types";
 
 type State = {
   auctions: Auction[];
   totalCount: number;
   pageCount: number;
-};
-
-type Actions = {
-  setData: (data: PagedResult<Auction>) => void;
-  setCurrentPrice: (auctionId: string, amount: number) => void;
 };
 
 const initialState: State = {
@@ -23,9 +18,10 @@ export const auctionSlice = createSlice({
   initialState: initialState,
   reducers: {
     setData: (state, action) => {
-      state.auctions = action.payload.auctions;
-      state.pageCount = action.payload.pageCount;
-      state.totalCount = action.payload.totalCount;
+      if (action.payload.results) state.auctions = action.payload.results;
+      if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
+      if (action.payload.totalCount)
+        state.totalCount = action.payload.totalCount;
     },
     setCurrentPrice: (state, action) => {
       state.auctions = state.auctions.map((auction) =>
