@@ -4,16 +4,21 @@ using NotificationService.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMassTransit(p => 
+builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("nt", false));
-    p.UsingRabbitMq((context, config) => 
+    p.UsingRabbitMq((context, config) =>
     {
+        config.UseMessageRetry(p =>
+        {
+            p.Handle<RabbitMqConnectionException>();
+            p.Interval(5, TimeSpan.FromSeconds(10));
+        });
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
         {
-            p.Username(builder.Configuration.GetValue("RabbitMq:UserName","guest"));
-            p.Password(builder.Configuration.GetValue("RabbitMq:Password","guest"));
+            p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
+            p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
         config.ConfigureEndpoints(context);
     });

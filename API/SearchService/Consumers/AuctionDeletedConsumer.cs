@@ -1,19 +1,31 @@
 ﻿using Contracts;
 using MassTransit;
-using MongoDB.Entities;
-using SearchService.Models;
+using Microsoft.EntityFrameworkCore;
+using SearchService.Data;
 
 namespace SearchService.Consumers;
 
 public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
 {
-    public async Task Consume(ConsumeContext<AuctionDeleted> context)
+    private readonly SearchDbContext _context;
+
+    public AuctionDeletedConsumer(SearchDbContext context)
     {
-        var result = await DB.DeleteAsync<Item>(context.Message.Id);
-        if (!result.IsAcknowledged)
-        {
-            throw new MessageException(typeof(AuctionDeleted), "Ошибка удаления записи в MongoDb");
-        }
+        _context = context;
+    }
+    public async Task Consume(ConsumeContext<AuctionDeleted> consumeContext)
+    {
         Console.WriteLine("--> Получение сообщения удалить аукцион");
+        var item = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumeContext.Message.Id);
+        if (item != null)
+        {
+            _context.Items.Remove(item);
+            var result = await _context.SaveChangesAsync();
+            if (result <= 0)
+            {
+                throw new MessageException(typeof(AuctionUpdated), "Ошибка удаления записи");
+            }
+            return;
+        }
     }
 }

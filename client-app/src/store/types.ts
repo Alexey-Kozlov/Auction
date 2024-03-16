@@ -90,3 +90,8 @@ export type CreateUpdateAuctionParams = {
   id?: string;
   data: string;
 };
+
+export type AuctionImage = {
+  id: string;
+  image: string;
+};

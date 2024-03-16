@@ -1,39 +1,33 @@
 ﻿using AutoMapper;
 using Contracts;
 using MassTransit;
-using MongoDB.Entities;
-using SearchService.Models;
+using Microsoft.EntityFrameworkCore;
+using SearchService.Data;
+using SearchService.Entities;
 
 namespace SearchService.Consumers;
 
 public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
 {
     private readonly IMapper _mapper;
+    private readonly SearchDbContext _context;
 
-    public AuctionUpdatedConsumer(IMapper mapper)
+    public AuctionUpdatedConsumer(IMapper mapper, SearchDbContext context)
     {
         _mapper = mapper;
+        _context = context;
     }
-    public async Task Consume(ConsumeContext<AuctionUpdated> context)
+    public async Task Consume(ConsumeContext<AuctionUpdated> consumeContext)
     {
-        var item = _mapper.Map<Item>(context.Message);
-        var result = await DB.Update<Item>()
-            .Match(p => p.ID == context.Message.Id)
-            .ModifyOnly(p => new
-            {
-                p.Color,
-                p.Make,
-                p.Model,
-                p.Year,
-                p.Mileage,
-                p.Image
-            }, item)
-            .ExecuteAsync();
-            
-        if(!result.IsAcknowledged)
-        {
-            throw new MessageException(typeof(AuctionUpdated), "Ошибка обновления записи в MongoDb");
-        }
         Console.WriteLine("--> Получение сообщения обновить аукцион");
+        var updatedItem = _mapper.Map<Item>(consumeContext.Message);
+        var item = await _context.Items.FirstOrDefaultAsync(p => p.Id == updatedItem.Id);
+        if (item != null)
+        {
+            _mapper.Map(updatedItem, item);
+            await _context.SaveChangesAsync();
+            return;
+        }
+        Console.WriteLine("Ошибка обновления записи - запись " + updatedItem.Id + " не найдена.");
     }
 }

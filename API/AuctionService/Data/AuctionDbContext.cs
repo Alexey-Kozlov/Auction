@@ -11,7 +11,7 @@ public class AuctionDbContext : DbContext
     {
     }
 
-    public DbSet<Auction> Auctions {get; set;}
+    public DbSet<Auction> Auctions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,11 +53,10 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
         builder.Property(p => p.Make).HasColumnType("text").HasColumnName("Make").IsRequired(false);
         builder.Property(p => p.Model).HasColumnType("text").HasColumnName("Model").IsRequired(false);
-        builder.Property(p => p.Year).HasColumnType("integer").HasColumnName("Yesr").IsRequired(true);
+        builder.Property(p => p.Year).HasColumnType("integer").HasColumnName("Year").IsRequired(true);
         builder.Property(p => p.Color).HasColumnType("text").HasColumnName("Color").IsRequired(false);
         builder.Property(p => p.Mileage).HasColumnType("integer").HasColumnName("Mileage").IsRequired(true);
         builder.Property(p => p.Description).HasColumnType("text").HasColumnName("Description").IsRequired(false);
-        builder.Property(p => p.Image).HasColumnType("bytea").HasColumnName("Image").IsRequired(false);
 
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(true);
         builder.HasOne(p => p.Auction).WithMany(p => p.Item).HasForeignKey(p => p.AuctionId);

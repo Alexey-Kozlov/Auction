@@ -54,7 +54,7 @@ export default function Detail() {
             </div>
             <div className='grid grid-cols-2 gap-6 mt-3'>
                 <div className='w-full bg-gray-200 aspect-h-10 aspect-w-16 rounded-lg overflow-hidden'>
-                    <CarImage image={data?.image} />
+                    <CarImage id={data?.id} />
                 </div>
                 <BidList user={user} auction={data!} />
             </div>

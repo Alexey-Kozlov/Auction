@@ -93,10 +93,6 @@ namespace AuctionService.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Description");
 
-                    b.Property<byte[]>("Image")
-                        .HasColumnType("bytea")
-                        .HasColumnName("Image");
-
                     b.Property<string>("Make")
                         .HasColumnType("text")
                         .HasColumnName("Make");
@@ -111,7 +107,7 @@ namespace AuctionService.Migrations
 
                     b.Property<int>("Year")
                         .HasColumnType("integer")
-                        .HasColumnName("Yesr");
+                        .HasColumnName("Year");
 
                     b.HasKey("Id")
                         .HasName("PK_Id");

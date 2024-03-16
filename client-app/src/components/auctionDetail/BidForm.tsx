@@ -2,11 +2,9 @@
 import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import toast from 'react-hot-toast';
-import { useDispatch } from 'react-redux';
 import TextInput from '../inputComponents/TextInput';
 import { usePlaceBidForAuctionMutation } from '../../api/BidApi';
 import { Bid } from '../../store/types';
-import { addBid } from '../../store/bidSlice';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
 
 type Props = {
@@ -16,7 +14,6 @@ type Props = {
 
 
 export default function BidForm({ auctionId, highBid }: Props) {
-    const dispatch = useDispatch();
     const [placeBid] = usePlaceBidForAuctionMutation();
 
     return (
@@ -33,7 +30,6 @@ export default function BidForm({ auctionId, highBid }: Props) {
                             toast.error(response.error.message);
                             return;
                         }
-                        dispatch(addBid(response.data));
                         values.amount = 0;
                     } catch (e: any) {
                         toast.error(e.message);

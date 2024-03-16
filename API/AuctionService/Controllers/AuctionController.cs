@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using AuctionService.Data;
+﻿using AuctionService.Data;
 using AuctionService.DTO;
 using AuctionService.Entities;
 using AutoMapper;
@@ -20,7 +18,7 @@ public class AuctionController : ControllerBase
     private readonly IMapper _mapper;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionController(AuctionDbContext context, IMapper mapper, 
+    public AuctionController(AuctionDbContext context, IMapper mapper,
         IPublishEndpoint publishEndpoint)
     {
         _context = context;
@@ -34,7 +32,7 @@ public class AuctionController : ControllerBase
         var query = _context.Auctions
             .Include(p => p.Item)
             .OrderBy(p => p.Item.First().Make).AsQueryable();
-        if(!string.IsNullOrEmpty(date))
+        if (!string.IsNullOrEmpty(date))
         {
             query = query.Where(p => p.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
         }
@@ -49,44 +47,52 @@ public class AuctionController : ControllerBase
             .Include(p => p.Item)
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        if(auction == null) return NotFound();
+        if (auction == null) return NotFound();
 
         return _mapper.Map<AuctionDTO>(auction);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<AuctionDTO>> CreateAuction([FromBody]CreateAuctionDTO auctionDto)
+    public async Task<ActionResult<AuctionDTO>> CreateAuction([FromBody] CreateAuctionDTO auctionDto)
     {
         var auction = _mapper.Map<Auction>(auctionDto);
         auction.Seller = User.Identity.Name;
         _context.Auctions.Add(auction);
 
         var newAuction = _mapper.Map<AuctionDTO>(auction);
-        
+        if (!string.IsNullOrEmpty(auctionDto.Image))
+        {
+            newAuction.Image = auctionDto.Image;
+        }
+
         await _publishEndpoint.Publish(_mapper.Map<AuctionCreated>(newAuction));
 
         var result = await _context.SaveChangesAsync() > 0;
 
-        if(!result) return BadRequest("Error save auction");
-        return CreatedAtAction(nameof(GetAuctionById), new {auction.Id}, newAuction);
+        if (!result) return BadRequest("Error save auction");
+        return CreatedAtAction(nameof(GetAuctionById), new { auction.Id }, newAuction);
     }
 
     [Authorize]
     [HttpPut("{id}")]
-    public async Task<ActionResult<AuctionDTO>> UpdateAuction(Guid id,[FromBody] UpdateAuctionDTO updateAuctionDTO)
+    public async Task<ActionResult<AuctionDTO>> UpdateAuction(Guid id, [FromBody] UpdateAuctionDTO updateAuctionDTO)
     {
         var auction = await _context.Auctions.Include(p => p.Item)
             .FirstOrDefaultAsync(p => p.Id == id);
-        if(auction == null) return BadRequest("Запись не найдена");
-        if(auction.Seller != User.Identity.Name) return Forbid();
+        if (auction == null) return BadRequest("Запись не найдена");
+        if (auction.Seller != User.Identity.Name) return Forbid();
 
         _mapper.Map(updateAuctionDTO, auction);
         var transferAuction = _mapper.Map<AuctionUpdated>(auction);
+        if (!string.IsNullOrEmpty(updateAuctionDTO.Image))
+        {
+            transferAuction.Image = updateAuctionDTO.Image;
+        }
         await _publishEndpoint.Publish(transferAuction);
 
         var result = await _context.SaveChangesAsync() > 0;
-        if(result) return _mapper.Map<AuctionDTO>(auction);
+        if (result) return _mapper.Map<AuctionDTO>(auction);
         return BadRequest("Ошибка обновления записи");
     }
 
@@ -96,15 +102,15 @@ public class AuctionController : ControllerBase
     public async Task<ActionResult> DeleteAuction(Guid id)
     {
         var auction = await _context.Auctions.FindAsync(id);
-        if(auction == null) return BadRequest("Запись не найдена");
+        if (auction == null) return BadRequest("Запись не найдена");
 
-        if(auction.Seller != User.Identity.Name) return Forbid();
+        if (auction.Seller != User.Identity.Name) return Forbid();
         _context.Auctions.Remove(auction);
 
-        await _publishEndpoint.Publish<AuctionDeleted>(new {Id = id.ToString()});
+        await _publishEndpoint.Publish<AuctionDeleted>(new { Id = id.ToString() });
 
         var result = await _context.SaveChangesAsync() > 0;
-        if(result) return Ok(new {data="Ok"});
+        if (result) return Ok(new { data = "Ok" });
         return BadRequest("Ошибка удаления записи");
     }
 

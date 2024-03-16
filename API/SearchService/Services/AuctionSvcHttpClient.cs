@@ -1,5 +1,4 @@
-﻿using MongoDB.Entities;
-using SearchService.Models;
+﻿using SearchService.Entities;
 
 namespace SearchService.Services;
 
@@ -16,12 +15,6 @@ public class AuctionSvcHttpClient
 
     public async Task<List<Item>> GetItemsForSearchDb()
     {
-        var lastUpdated = await DB.Find<Item, string>()
-            .Sort(p => p.Descending(a => a.UpdatedAt))
-            .Project(p => p.UpdatedAt.ToString())
-            .ExecuteFirstAsync();
-
-        return await _client.GetFromJsonAsync<List<Item>>(_config["AuctionServiceUrl"] + 
-            "/api/auctions?date=" + lastUpdated);
+        return await _client.GetFromJsonAsync<List<Item>>(_config["AuctionServiceUrl"] + "/api/auctions");
     }
 }

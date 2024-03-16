@@ -1,22 +1,33 @@
 ﻿using Contracts;
 using MassTransit;
-using MongoDB.Entities;
-using SearchService.Models;
+using Microsoft.EntityFrameworkCore;
+using SearchService.Data;
 
 namespace SearchService.Consumers;
 
 public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
 {
-    public async Task Consume(ConsumeContext<AuctionFinished> context)
+    private readonly SearchDbContext _context;
+
+    public AuctionFinishedConsumer(SearchDbContext context)
     {
-        var auction = await DB.Find<Item>().OneAsync(context.Message.AuctionId);
-        if (context.Message.ItemSold)
+        _context = context;
+    }
+    public async Task Consume(ConsumeContext<AuctionFinished> consumeContext)
+    {
+        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumeContext.Message.AuctionId);
+        if (auction != null)
         {
-            auction.Winner = context.Message.Winner;
-            auction.SoldAmount = context.Message.Amount ?? 0;
+            if (consumeContext.Message.ItemSold)
+            {
+                auction.Winner = consumeContext.Message.Winner;
+                auction.SoldAmount = consumeContext.Message.Amount ?? 0;
+            }
+            auction.Status = "Finished";
+            await _context.SaveChangesAsync();
+            Console.WriteLine("--> Получение сообщения - аукцион завершен");
+            return;
         }
-        auction.Status = "Finished";
-        await auction.SaveAsync();
-        Console.WriteLine("--> Получение сообщения - аукцион завершен");
+        Console.WriteLine("Ошибка завершения аукциона " + auction.Id);
     }
 }

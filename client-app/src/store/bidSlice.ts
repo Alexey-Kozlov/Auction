@@ -19,7 +19,7 @@ export const bidSlice = createSlice({
       state.bids = action.payload;
     },
     addBid: (state, action) => {
-      if (!action.payload.bid) state.bids = [...state.bids, action.payload];
+      state.bids = [...state.bids, action.payload.bid];
     },
     setOpen: (state, action) => {
       state.open = action.payload;

@@ -11,6 +11,7 @@ import ImageFileInput from '../inputComponents/ImageFileInput';
 import TextAreaInput from '../inputComponents/TextAreaInput';
 import { Button } from 'flowbite-react';
 import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
+import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 
 type Props = {
     auction?: Auction;
@@ -23,6 +24,7 @@ export default function AuctionForm({ auction }: Props) {
     const { data, isLoading } = useGetDetailedViewDataQuery(id!, {
         skip: id === 'empty'
     });
+
     const [createAuction] = useCreateAuctionMutation();
     const [updateAuction] = useUpdateAuctionMutation();
     const [image, setImage] = useState('');
@@ -41,15 +43,18 @@ export default function AuctionForm({ auction }: Props) {
         } as Auction
     )
     const navigate = useNavigate();
+    const auctionImage = useGetImageForAuctionQuery(newAuction.id);
 
     useEffect(() => {
         if (!isLoading) {
             if (data) {
                 setNewAuction(data!);
-                setImage('data:image/png;base64, ' + data?.image);
+                if (!auctionImage.isLoading) {
+                    setImage('data:image/png;base64, ' + auctionImage?.data?.image);
+                }
             }
         }
-    }, [data, isLoading])
+    }, [data, isLoading, auctionImage.isLoading])
 
     if (isLoading) return 'Загрузка...';
 

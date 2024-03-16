@@ -1,20 +1,28 @@
 ﻿using Contracts;
 using MassTransit;
-using MongoDB.Entities;
-using SearchService.Models;
+using Microsoft.EntityFrameworkCore;
+using SearchService.Data;
 
 namespace SearchService.Consumers;
 
 public class BidPlacedConsumer : IConsumer<BidPlaced>
 {
-    public async Task Consume(ConsumeContext<BidPlaced> context)
+    private readonly SearchDbContext _context;
+
+    public BidPlacedConsumer(SearchDbContext context)
+    {
+        _context = context;
+    }
+    public async Task Consume(ConsumeContext<BidPlaced> consumerContext)
     {
         Console.WriteLine("--> Получение сообщения разместить заявку");
-        var auction = await DB.Find<Item>().OneAsync(context.Message.AuctionId);
-        if(context.Message.BidStatus.Contains("Принято") && context.Message.Amount > auction.CurrentHighBid)
-            {
-                auction.CurrentHighBid = context.Message.Amount;
-                await auction.SaveAsync();
-            }
+
+        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumerContext.Message.Id);
+        if (consumerContext.Message.BidStatus.Contains("Принято") &&
+            consumerContext.Message.Amount > auction.CurrentHighBid)
+        {
+            auction.CurrentHighBid = consumerContext.Message.Amount;
+            await _context.SaveChangesAsync();
+        }
     }
 }

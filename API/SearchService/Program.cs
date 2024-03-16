@@ -1,35 +1,48 @@
 
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Polly;
 using Polly.Extensions.Http;
 using SearchService;
 using SearchService.Consumers;
+using SearchService.Data;
 using SearchService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddDbContext<SearchDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>{
+builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
+{
     config.Timeout = TimeSpan.FromSeconds(300);
-    }).AddPolicyHandler(GetPolicy());
+}).AddPolicyHandler(GetPolicy());
 
-builder.Services.AddMassTransit(p => 
+builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
-    p.UsingRabbitMq((context, config) => 
+    p.UsingRabbitMq((context, config) =>
     {
+        config.UseMessageRetry(p =>
+        {
+            p.Handle<RabbitMqConnectionException>();
+            p.Interval(5, TimeSpan.FromSeconds(10));
+        });
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
         {
-            p.Username(builder.Configuration.GetValue("RabbitMq:UserName","guest"));
-            p.Password(builder.Configuration.GetValue("RabbitMq:Password","guest"));
+            p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
+            p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
         config.ReceiveEndpoint("search-auction-created", e =>
         {
-            e.UseMessageRetry(t => t.Interval(5,5));
+            e.UseMessageRetry(t => t.Interval(5, 5));
             e.ConfigureConsumer<AuctionCreatedConsumer>(context);
         });
         config.ConfigureEndpoints(context);
@@ -45,14 +58,9 @@ app.MapControllers();
 //инициализация БД поиска из сервиса Auction
 app.Lifetime.ApplicationStarted.Register(async () =>
 {
-    try
-    {
-        await DbInitializer.InitDb(app);
-    }
-    catch (Exception e)
-    {
-        Console.WriteLine(e);
-    }
+    await Policy.Handle<NpgsqlException>()
+    .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(10))
+    .ExecuteAndCaptureAsync(async () => await DbInitializer.InitDb(app));
 });
 
 app.Run();

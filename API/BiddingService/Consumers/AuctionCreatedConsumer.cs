@@ -1,22 +1,25 @@
-﻿using BiddingService.Models;
+﻿using AutoMapper;
+using BiddingService.Data;
+using BiddingService.Models;
 using Contracts;
 using MassTransit;
-using MongoDB.Entities;
 
 namespace BiddingService.Consumers;
 
 public class AuctionCreatedConsumer : IConsumer<AuctionCreated>
 {
-    public async Task Consume(ConsumeContext<AuctionCreated> context)
-    {
-        var auction = new Auction
-        {
-            ID = context.Message.Id.ToString(),
-            Seller = context.Message.Seller,
-            AuctionEnd = context.Message.AuctionEnd,
-            ReservePrice = context.Message.ReservePrice
-        };
+    private readonly BidDbContext _context;
+    private readonly IMapper _mapper;
 
-        await auction.SaveAsync();
+    public AuctionCreatedConsumer(BidDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
+    public async Task Consume(ConsumeContext<AuctionCreated> consumeContext)
+    {
+        var auction = _mapper.Map<Auction>(consumeContext.Message);
+        _context.Auctions.Add(auction);
+        await _context.SaveChangesAsync();
     }
 }

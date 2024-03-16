@@ -1,25 +1,27 @@
 ﻿using AutoMapper;
 using Contracts;
 using MassTransit;
-using MongoDB.Entities;
-using SearchService.Models;
+using SearchService.Data;
+using SearchService.Entities;
 
 namespace SearchService.Consumers;
 
 public class AuctionCreatedConsumer : IConsumer<AuctionCreated>
 {
     private readonly IMapper _mapper;
+    private readonly SearchDbContext _context;
 
-    public AuctionCreatedConsumer(IMapper mapper)
+    public AuctionCreatedConsumer(IMapper mapper, SearchDbContext context)
     {
         _mapper = mapper;
+        _context = context;
     }
-    public async Task Consume(ConsumeContext<AuctionCreated> context)
+    public async Task Consume(ConsumeContext<AuctionCreated> consumeContext)
     {
-        var item = _mapper.Map<Item>(context.Message);
-        //для тестирования обработки ошибок из очереди
-        if(item.Model == "Error") throw new ArgumentException("Ошибка машины!");
-        await item.SaveAsync();
+        var newItem = _mapper.Map<Item>(consumeContext.Message);
+        var item = _mapper.Map<Item>(newItem);
+        await _context.AddAsync(item);
+        await _context.SaveChangesAsync();
         Console.WriteLine("--> Получение сообщения создать аукцион");
     }
 }

@@ -1,62 +1,74 @@
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Entities;
-using SearchService.Models;
+using Microsoft.EntityFrameworkCore;
+using SearchService.Data;
+using SearchService.Entities;
 
 namespace SearchService.Controllers;
 
 [ApiController]
 [Route("api/search")]
-public class SearchController: ControllerBase
+public class SearchController : ControllerBase
 {
+    private readonly SearchDbContext _context;
 
+    public SearchController(SearchDbContext context)
+    {
+        _context = context;
+    }
     [HttpGet]
     public async Task<ActionResult<List<Item>>> SearchItems([FromQuery] SearchParams searchParams)
     {
-        var query = DB.PagedSearch<Item, Item>();
-
-        if(!string.IsNullOrEmpty(searchParams.SearchTerm))
+        var query = _context.Items.AsQueryable();
+        if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
-            query.Match(p => p.Make.ToLower().Contains(searchParams.SearchTerm.ToLower()) || 
+            query = query.Where(p => p.Make.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||
             p.Model.ToLower().Contains(searchParams.SearchTerm.ToLower()));
         }
-
         //сортировка в зависимости от текстового параметра OrderBy
         query = searchParams.OrderBy switch
         {
-            "make" => query.Sort(p => p.Ascending(a => a.Make)).Sort(p => p.Ascending(a => a.Model)),
-            "new" => query.Sort(p => p.Descending(a => a.CreateAt)).Sort(p => p.Ascending(a => a.Model)),
-            _ => query.Sort(p => p.Ascending(a => a.AuctionEnd))
+            "make" => query.OrderBy(p => p.Make).ThenBy(p => p.Model),
+            "new" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.Model),
+            _ => query.OrderBy(p => p.AuctionEnd)
         };
+
 
         //отбор в зависимости от текстового параметра FilterBy
         query = searchParams.FilterBy switch
         {
-            "finished" => query.Match(p => p.AuctionEnd < DateTime.UtcNow),
-            "endingSoon" => query.Match(p => p.AuctionEnd < DateTime.UtcNow.AddHours(6)
+            "finished" => query.Where(p => p.AuctionEnd < DateTime.UtcNow),
+            "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(6)
                 && p.AuctionEnd > DateTime.UtcNow),
-            _ => query.Match(p => p.AuctionEnd > DateTime.UtcNow)
+            _ => query.Where(p => p.AuctionEnd > DateTime.UtcNow)
         };
 
-        if(!string.IsNullOrEmpty(searchParams.Seller))
+        //если ищем свои аукционы
+        if (!string.IsNullOrEmpty(searchParams.Seller))
         {
-            query.Match(p => p.Seller == searchParams.Seller);
+            query = query.Where(p => p.Seller == searchParams.Seller);
         }
 
-        if(!string.IsNullOrEmpty(searchParams.Winner))
+        //если ищем выигранные аукционы
+        if (!string.IsNullOrEmpty(searchParams.Winner))
         {
-            query.Match(p => p.Winner == searchParams.Winner);
+            query = query.Where(p => p.Winner == searchParams.Winner);
         }
-
-        query.PageNumber(searchParams.PageNumber);
-        query.PageSize(searchParams.PageSize);
-        
-        var result = await query.ExecuteAsync();
+        var result = await query.Skip((searchParams.PageNumber - 1) * searchParams.PageSize)
+            .Take(searchParams.PageSize)
+            .ToListAsync();
+        var pageCount = 0;
+        var pageNumber = searchParams.PageNumber;
+        if (result.Count > 0)
+        {
+            pageCount = result.Count / searchParams.PageSize;
+        }
 
         return Ok(
-            new {
-                results = result.Results,
-                pageCount = result.PageCount,
-                totalCount = result.TotalCount
+            new
+            {
+                results = result,
+                pageCount = pageCount,
+                totalCount = result.Count
             }
         );
     }
