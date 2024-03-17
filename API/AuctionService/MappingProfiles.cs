@@ -17,25 +17,25 @@ public class MappingProfiles : Profile
             .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.FirstOrDefault().Color))
             .ForMember(dest => dest.Mileage, opt => opt.MapFrom(src => src.FirstOrDefault().Mileage))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.FirstOrDefault().Description));
-            // .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
-            // {
-            //     if (src != null && src.FirstOrDefault()?.Image != null && src.FirstOrDefault()?.Image.Length > 0)
-            //     {
-            //         dest.Image = Convert.ToBase64String(src.FirstOrDefault().Image);
-            //     }
-            //     return dest?.Image;
-            // })
-            // );
+        // .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
+        // {
+        //     if (src != null && src.FirstOrDefault()?.Image != null && src.FirstOrDefault()?.Image.Length > 0)
+        //     {
+        //         dest.Image = Convert.ToBase64String(src.FirstOrDefault().Image);
+        //     }
+        //     return dest?.Image;
+        // })
+        // );
 
-        CreateMap<CreateAuctionDTO, Auction>().ForMember(d => d.Item, 
-            o => o.MapFrom(s => new List<Item>{
+        CreateMap<CreateAuctionDTO, Auction>().ForMember(dest => dest.Item,
+            dest => dest.MapFrom(src => new List<Item>{
                 new() {
-                    Make = s.Make,
-                    Model = s.Model,
-                    Mileage = s.Mileage,
-                    Year = s.Year,
-                    Color = s.Color,
-                    Description = s.Description,
+                    Make = src.Make,
+                    Model = src.Model,
+                    Mileage = src.Mileage,
+                    Year = src.Year,
+                    Color = src.Color,
+                    Description = src.Description,
                     // Image = s.Image != null ? 
                     //     Convert.FromBase64String(s.Image
                     //     .Replace("data:image/png;base64,", "")
@@ -54,17 +54,17 @@ public class MappingProfiles : Profile
             .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.First().Color))
             .ForMember(dest => dest.Mileage, opt => opt.MapFrom(src => src.First().Mileage))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.First().Description));
-            // .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
-            // {
-            //     if (src != null && src.First()?.Image != null && src.First()?.Image.Length > 0)
-            //     {
-            //         dest.Image = Convert.ToBase64String(src.First().Image);
-            //     }
-            //     return dest?.Image;
-            // }));
+        // .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
+        // {
+        //     if (src != null && src.First()?.Image != null && src.First()?.Image.Length > 0)
+        //     {
+        //         dest.Image = Convert.ToBase64String(src.First().Image);
+        //     }
+        //     return dest?.Image;
+        // }));
 
-        CreateMap<UpdateAuctionDTO, Auction>().ForMember(d => d.Item, 
-            o => o.MapFrom((src, dest) => 
+        CreateMap<UpdateAuctionDTO, Auction>().ForMember(dest => dest.Item,
+            opt => opt.MapFrom((src, dest) =>
             {
                 return new List<Item>
                 {
@@ -74,7 +74,7 @@ public class MappingProfiles : Profile
                     Mileage = src.Mileage ?? dest.Item.First().Mileage,
                     Year = src.Year ?? dest.Item.First().Year,
                     Color = src.Color ?? dest.Item.First().Color,
-                    Description = src.Description ?? dest.Item.First().Description,
+                    Description = src.Description ?? dest.Item.First().Description
                     // Image = (src != null && src.Image != null && src.Image.Length > 0) ? 
                     //     Convert.FromBase64String(src.Image
                     //     .Replace("data:image/png;base64,", "")
@@ -84,5 +84,5 @@ public class MappingProfiles : Profile
                 }
                 };
             }));
-     }
+    }
 }

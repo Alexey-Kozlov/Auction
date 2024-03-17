@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Heading from '../auctionList/Heading';
 import CountdownTimer from '../auctionList/CountDownTimer';
 import { User } from '../../store/types';
@@ -14,14 +14,20 @@ import toast from 'react-hot-toast';
 
 export default function Detail() {
     const { id } = useParams();
+    const [isDeleting, setIsDeleting] = useState(false);
     const { data, isLoading } = useGetDetailedViewDataQuery(id!);
     const user: User = useSelector((state: RootState) => state.authStore);
     const [deleteAuction] = useDeleteAuctionMutation();
+    const auctions = useGetAuctionsQuery('');
     const navigate = useNavigate();
     const handleDeleteAuction = async () => {
+        setIsDeleting(true);
         const result: any = await deleteAuction(id!);
         if (result.data) {
-            navigate('/');
+            setTimeout(() => {
+                auctions.refetch();
+                navigate('/');
+            }, 1000);
         } else {
             toast.error('Ошибка удаления - ' + result.error.message);
         }
@@ -40,7 +46,7 @@ export default function Detail() {
                             <Button outline>
                                 <NavLink to={`/auctions/edit/${id}`}>Редактировать аукцион</NavLink>
                             </Button>
-                            <Button outline onClick={handleDeleteAuction}>
+                            <Button isProcessing={isDeleting} outline onClick={handleDeleteAuction}>
                                 Удалить аукцион
                             </Button>
                         </>

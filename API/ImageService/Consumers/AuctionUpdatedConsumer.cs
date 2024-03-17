@@ -20,6 +20,7 @@ public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
     public async Task Consume(ConsumeContext<AuctionUpdated> consumeContext)
     {
         Console.WriteLine("--> Получение сообщения обновить аукцион");
+        if (string.IsNullOrEmpty(consumeContext.Message.Image)) return;
         var updatedItem = _mapper.Map<ImageItem>(consumeContext.Message);
         var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == updatedItem.Id);
         if (item != null)

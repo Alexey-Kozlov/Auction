@@ -17,7 +17,10 @@ type Props = {
 
 export default function SignalRProvider({ children, user }: Props) {
     const [finishedAuction, setFinishedAuction] = useState<any>();
-    const auction = useGetAuctionQuery(finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty');
+    const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
+    const auction = useGetAuctionQuery(finishedAuctionId, {
+        skip: finishedAuctionId == 'empty'
+    });
     const dispatch = useDispatch();
     const [connection, setConnection] = useState<HubConnection | null>(null);
     const apiUrl = process.env.NODE_ENV === 'production'

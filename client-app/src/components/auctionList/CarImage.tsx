@@ -8,6 +8,7 @@ type Props = {
 
 export default function CarImage({ id, style }: Props) {
     const { isLoading, data } = useGetImageForAuctionQuery(id!);
+
     if (isLoading) return;
     return (
         <img src={data?.image ? `data:image/png;base64 , ${data.image}` : empty}

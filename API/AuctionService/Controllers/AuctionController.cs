@@ -67,10 +67,8 @@ public class AuctionController : ControllerBase
         }
 
         await _publishEndpoint.Publish(_mapper.Map<AuctionCreated>(newAuction));
-
-        var result = await _context.SaveChangesAsync() > 0;
-
-        if (!result) return BadRequest("Error save auction");
+        await _context.SaveChangesAsync();
+        //await Task.Delay(1000);
         return CreatedAtAction(nameof(GetAuctionById), new { auction.Id }, newAuction);
     }
 
@@ -91,9 +89,10 @@ public class AuctionController : ControllerBase
         }
         await _publishEndpoint.Publish(transferAuction);
 
-        var result = await _context.SaveChangesAsync() > 0;
-        if (result) return _mapper.Map<AuctionDTO>(auction);
-        return BadRequest("Ошибка обновления записи");
+        await _context.SaveChangesAsync();
+        //await Task.Delay(1000);
+        return _mapper.Map<AuctionDTO>(auction);
+
     }
 
 
@@ -109,9 +108,9 @@ public class AuctionController : ControllerBase
 
         await _publishEndpoint.Publish<AuctionDeleted>(new { Id = id.ToString() });
 
-        var result = await _context.SaveChangesAsync() > 0;
-        if (result) return Ok(new { data = "Ok" });
-        return BadRequest("Ошибка удаления записи");
+        await _context.SaveChangesAsync();
+        //await Task.Delay(1000);
+        return Ok(new { data = "Ok" });
     }
 
 }

@@ -13,11 +13,7 @@ import { Button } from 'flowbite-react';
 import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 
-type Props = {
-    auction?: Auction;
-}
-
-export default function AuctionForm({ auction }: Props) {
+export default function AuctionForm() {
 
     let { id } = useParams();
     if (!id) id = 'empty';
@@ -28,6 +24,7 @@ export default function AuctionForm({ auction }: Props) {
     const [createAuction] = useCreateAuctionMutation();
     const [updateAuction] = useUpdateAuctionMutation();
     const [image, setImage] = useState('');
+    const [isWaiting, setIsWaiting] = useState(false);
     const [newAuction, setNewAuction] = useState<Auction>(
         {
             make: '',
@@ -43,18 +40,23 @@ export default function AuctionForm({ auction }: Props) {
         } as Auction
     )
     const navigate = useNavigate();
-    const auctionImage = useGetImageForAuctionQuery(newAuction.id);
+    const auctionImage = useGetImageForAuctionQuery(newAuction.id, {
+        skip: newAuction.id == undefined
+    });
 
     useEffect(() => {
         if (!isLoading) {
             if (data) {
                 setNewAuction(data!);
-                if (!auctionImage.isLoading) {
-                    setImage('data:image/png;base64, ' + auctionImage?.data?.image);
-                }
             }
         }
-    }, [data, isLoading, auctionImage.isLoading])
+    }, [data, isLoading])
+
+    useEffect(() => {
+        if (!auctionImage.isLoading && auctionImage.data?.image) {
+            setImage('data:image/png;base64, ' + auctionImage?.data?.image);
+        }
+    }, [auctionImage.isLoading, auctionImage.data?.image])
 
     if (isLoading) return 'Загрузка...';
 
@@ -67,17 +69,18 @@ export default function AuctionForm({ auction }: Props) {
                     initialValues={newAuction}
                     enableReinitialize
                     onSubmit={async (values, { setErrors }) => {
+                        setIsWaiting(true);
                         if (id !== 'empty') {
                             //обновление аукциона
-                            //const response: ApiResponse<{ data: Auction, error: any }> = await updateAuction({
                             const response: ObjectResponse<Auction> = await updateAuction({
                                 id: id,
                                 data: JSON.stringify(values)
                             });
                             if (response.data) {
                                 toast.success(`Аукцион "${values.model}" успешно обновлен!`);
-                                //обновляем аукцион в списке аукцинов       
-                                navigate('/');
+                                setTimeout(() => {
+                                    navigate('/');
+                                }, 1000);
                             } else {
                                 setErrors({ error: (response.error.data) });
                                 toast.error(response.error.data.errorMessages[0]);
@@ -89,9 +92,10 @@ export default function AuctionForm({ auction }: Props) {
                             });
                             if (response.data) {
                                 toast.success(`Новый аукцион "${values.model}" успешно создан!`);
-                                //добавляем аукцион в список аукционов
-                                // список аукционов будет автоматически обновлен из-за invalidateTags
-                                navigate('/');
+                                setTimeout(() => {
+                                    navigate('/');
+                                }, 1000);
+
                             } else {
                                 setErrors({ error: (response.error.data) });
                                 toast.error(response.error.data.errorMessages[0]);
@@ -99,7 +103,6 @@ export default function AuctionForm({ auction }: Props) {
                         }
 
                     }
-
                     }
                     validationSchema={Yup.object({
                         make: Yup.string().required('Необходимо указать производителя товара'),
@@ -218,7 +221,7 @@ export default function AuctionForm({ auction }: Props) {
                             } />
                             <div className='flex justify-around mt-5'>
                                 <Button disabled={!isValid || !dirty || isSubmitting}
-                                    isProcessing={isSubmitting}
+                                    isProcessing={isSubmitting || isWaiting}
                                     type='submit'>
                                     {id ? 'Сохранить' : 'Создать'}
                                 </Button>

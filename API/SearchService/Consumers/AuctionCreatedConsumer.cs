@@ -19,8 +19,8 @@ public class AuctionCreatedConsumer : IConsumer<AuctionCreated>
     public async Task Consume(ConsumeContext<AuctionCreated> consumeContext)
     {
         var newItem = _mapper.Map<Item>(consumeContext.Message);
-        var item = _mapper.Map<Item>(newItem);
-        await _context.AddAsync(item);
+        //var item = _mapper.Map<Item>(newItem);
+        await _context.AddAsync(newItem);
         await _context.SaveChangesAsync();
         Console.WriteLine("--> Получение сообщения создать аукцион");
     }
