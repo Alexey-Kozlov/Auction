@@ -3,28 +3,19 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
 WORKDIR /app
 EXPOSE 80
 
-#копируем все файлы из проекта и восстанавливаем как отдельный слой
-COPY Carsties.sln Carsties.sln
-COPY src/AuctionService/AuctionService.csproj src/AuctionService/AuctionService.csproj
-COPY src/SearchService/SearchService.csproj src/SearchService/SearchService.csproj
-COPY src/GatewayService/GatewayService.csproj src/GatewayService/GatewayService.csproj
-COPY src/Contracts/Contracts.csproj src/Contracts/Contracts.csproj
-COPY src/IdentityService/IdentityService.csproj src/IdentityService/IdentityService.csproj
-COPY src/BiddingService/BiddingService.csproj src/BiddingService/BiddingService.csproj
-COPY src/NotificationService/NotificationService.csproj src/NotificationService/NotificationService.csproj
-
-#Восстанавливаем пакеты проекта
-RUN dotnet restore Carsties.sln
+COPY API/Contracts/Contracts.csproj API/Contracts/Contracts.csproj
+COPY API/SearchService/SearchService.csproj API/SearchService/SearchService.csproj
+RUN dotnet restore API/SearchService/SearchService.csproj
 
 #копируем остальные файлы проекта Auction
-COPY src/SearchService src/SearchService
-COPY src/Contracts src/Contracts
+COPY API/SearchService API/SearchService
+COPY API/Contracts API/Contracts
 
-WORKDIR /app/src/SearchService
-RUN dotnet publish -c Release -o /app/src/out
+WORKDIR /app/API/SearchService
+RUN dotnet publish -c Release -o /app/API/out
 
 #создание образа
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/src/out .
+COPY --from=build /app/API/out .
 ENTRYPOINT [ "dotnet", "SearchService.dll" ]

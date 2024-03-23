@@ -17,7 +17,7 @@ public class BidPlacedConsumer : IConsumer<BidPlaced>
     {
         Console.WriteLine("--> Получение сообщения разместить заявку");
 
-        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumerContext.Message.Id);
+        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumerContext.Message.AuctionId);
         if (consumerContext.Message.BidStatus.Contains("Принято") &&
             consumerContext.Message.Amount > auction.CurrentHighBid)
         {

@@ -23,8 +23,9 @@ export default function SignalRProvider({ children, user }: Props) {
     });
     const dispatch = useDispatch();
     const [connection, setConnection] = useState<HubConnection | null>(null);
+
     const apiUrl = process.env.NODE_ENV === 'production'
-        ? 'http://api.carsties.com/notifications'
+        ? process.env.REACT_APP_PROD_NOTIFY_URL
         : process.env.REACT_APP_NOTIFY_URL
 
     useEffect(() => {
