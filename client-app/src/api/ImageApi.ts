@@ -5,7 +5,7 @@ const imageApi = createApi({
   refetchOnMountOrArgChange: true,
   reducerPath: "imageApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL + `/images`,
+    baseUrl: process.env.REACT_APP_API_URL + `/api/images`,
   }),
   tagTypes: ["images"],
   endpoints: (builder) => ({

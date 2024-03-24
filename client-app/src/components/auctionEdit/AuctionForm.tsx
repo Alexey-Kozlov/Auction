@@ -14,10 +14,9 @@ import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuction
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 
 export default function AuctionForm() {
-
     let { id } = useParams();
     if (!id) id = 'empty';
-    const { data, isLoading } = useGetDetailedViewDataQuery(id!, {
+    const { data, isLoading, isError } = useGetDetailedViewDataQuery(id!, {
         skip: id === 'empty'
     });
 
@@ -59,6 +58,9 @@ export default function AuctionForm() {
     }, [auctionImage.isLoading, auctionImage.data?.image])
 
     if (isLoading) return 'Загрузка...';
+    if (isError) {
+        navigate('/not-found');
+    }
 
     return (
 
@@ -219,11 +221,15 @@ export default function AuctionForm() {
                             <ErrorMessage name='error' render={() =>
                                 <p>{errors.error}</p>
                             } />
-                            <div className='flex justify-around mt-5'>
+                            <div className='flex justify-center m-5'>
                                 <Button disabled={!isValid || !dirty || isSubmitting}
                                     isProcessing={isSubmitting || isWaiting}
                                     type='submit'>
                                     {id ? 'Сохранить' : 'Создать'}
+                                </Button>
+                                <Button className='ml-5'
+                                    onClick={() => { navigate(-1) }}>
+                                    Отмена
                                 </Button>
                             </div>
                         </Form>

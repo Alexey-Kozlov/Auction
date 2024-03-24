@@ -1,6 +1,7 @@
 import toast from 'react-hot-toast';
-import { Auction, AuctionFinished } from '../../store/types';
+import { Auction, AuctionFinished, AuctionImage } from '../../store/types';
 import { NavLink } from 'react-router-dom';
+import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 const empty = require('../../assets/Empty.png');
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
 }
 
 export default function AuctionFinishedToast({ finishedAuction, auction }: Props) {
+    const { isLoading, data } = useGetImageForAuctionQuery(auction.id);
     return (
         <div>
             <div className='flex flex-row-reverse' >
@@ -16,8 +18,7 @@ export default function AuctionFinishedToast({ finishedAuction, auction }: Props
             </div>
             <NavLink to={`/auctions/${auction.id}`} className='flex flex-col items-center'>
                 <div className='flex flex-row items-center gap-2'>
-                    <img
-                        src={auction.image ? `data:image/png;base64 , ${auction.image}` : empty}
+                    <img src={!isLoading && data && (data as AuctionImage)!.image ? (`data:image/png;base64 , ${data['image']}`) : empty}
                         alt=''
                         height={80}
                         width={80}

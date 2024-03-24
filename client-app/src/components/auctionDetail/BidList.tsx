@@ -25,11 +25,18 @@ export default function BidList({ user, auction }: Props) {
     const openForBids = new Date(auction?.auctionEnd) > new Date();
 
     //вычисляем самую большую ставку
-    const highBid = bids?.reduce((prev, current) => {
-        return prev > current?.amount
-            ? prev
-            : current?.bidStatus?.includes('Принято') ? current?.amount : prev
-    }, 0);
+    const bidRestriction = () => {
+        let result = bids?.reduce((prev, current) => {
+            return prev > current?.amount
+                ? prev
+                : current?.bidStatus?.includes('Принято') ? current?.amount : prev
+        }, 0);
+        if (auction.reservePrice && auction.reservePrice > result) {
+            result = auction.reservePrice;
+        }
+        return result;
+    }
+
 
     const itemsRef = useRef<null | HTMLLIElement>(null);
 
@@ -77,7 +84,7 @@ export default function BidList({ user, auction }: Props) {
         <div className='rounded-lg shadow-md'>
             <div className='py-2 px-4 bg-white'>
                 <div className='sticky top-0 bg-white p-2'>
-                    <Heading title={`Текущее лучшее предложение - ${NumberWithSpaces(highBid)} руб`} />
+                    <Heading title={`Текущее лучшее предложение - ${NumberWithSpaces(bidRestriction())} руб`} />
                 </div>
             </div>
 
@@ -113,7 +120,7 @@ export default function BidList({ user, auction }: Props) {
                         Невозможно сделать заявку для собственного аукциона
                     </div>
                 ) : (
-                    <BidForm auctionId={auction?.id} highBid={highBid} />
+                    <BidForm auctionId={auction?.id} highBid={bidRestriction()} />
                 )}
             </div>
         </div>

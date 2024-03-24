@@ -26,3 +26,8 @@ docker push kozlovas/auction-image-api
 docker push kozlovas/auction-notification-api
 docker push kozlovas/auction-search-api
 docker push kozlovas/auction-front
+
+прочие команды
+
+kubectl delete deployment auction-front
+kubectl apply -f front.yml

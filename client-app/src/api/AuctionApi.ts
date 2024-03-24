@@ -10,7 +10,7 @@ const auctionApi = createApi({
   refetchOnMountOrArgChange: true,
   reducerPath: "auctionApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL,
+    baseUrl: process.env.REACT_APP_API_URL + "/api",
     prepareHeaders: (headers: Headers, api) => {
       const token = AddTokenHeader();
       if (token) {

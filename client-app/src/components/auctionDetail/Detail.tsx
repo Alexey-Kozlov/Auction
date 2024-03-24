@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 export default function Detail() {
     const { id } = useParams();
     const [isDeleting, setIsDeleting] = useState(false);
-    const { data, isLoading } = useGetDetailedViewDataQuery(id!);
+    const { data, isLoading, isError } = useGetDetailedViewDataQuery(id!);
     const user: User = useSelector((state: RootState) => state.authStore);
     const [deleteAuction] = useDeleteAuctionMutation();
     const auctions = useGetAuctionsQuery('');
@@ -34,10 +34,12 @@ export default function Detail() {
     }
 
     if (isLoading) return 'Загрузка...';
+    if (isError && !isDeleting) {
+        navigate('/not-found');
+    }
 
     return (
         <div>
-
             <div className='flex justify-between'>
                 <div className='flex items-center gap-3'>
                     <Heading title={`${data?.make} ${data?.model}`} />
@@ -67,7 +69,9 @@ export default function Detail() {
             <div className='mt-3 grid grid-cols-1 rounded-lg'>
                 <DetailedSpecs auction={data!} />
             </div>
-
+            <div className='flex justify-center mt-2'>
+                <Button onClick={() => navigate(-1)}>Назад</Button>
+            </div>
         </div>
 
     )

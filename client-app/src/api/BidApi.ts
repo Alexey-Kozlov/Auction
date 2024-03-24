@@ -5,7 +5,7 @@ import AddTokenHeader from "./AddTokenHeader";
 const bidApi = createApi({
   reducerPath: "bidApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL + `/bids`,
+    baseUrl: process.env.REACT_APP_API_URL + `/api/bids`,
     prepareHeaders: (headers: Headers, api) => {
       const token = AddTokenHeader();
       if (token) {
