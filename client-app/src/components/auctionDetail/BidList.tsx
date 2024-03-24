@@ -99,7 +99,7 @@ export default function BidList({ user, auction }: Props) {
                                 key={bid?.id} className='list-none'
                                 ref={bid?.id === lastBidId ? itemsRef : null}
                             >
-                                <BidItem key={bid?.id} bid={bid} />
+                                <BidItem bid={bid} />
                             </li>
                         )
                         )}
