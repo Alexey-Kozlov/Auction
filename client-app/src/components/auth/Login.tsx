@@ -54,7 +54,7 @@ export default function Login() {
                 {({ handleSubmit, isSubmitting, errors, isValid, dirty }) => (
                     <Form onSubmit={handleSubmit} autoComplete='off'>
                         <div className='text-center'>
-                            <h2 className='text-xl mt-5'>Вход пользователя</h2>
+                            <h1 className='text-xl mt-5'>Вход пользователя</h1>
                             <div className='mt-5'>
                                 <TextInput
                                     name='login'

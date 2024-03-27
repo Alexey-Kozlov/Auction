@@ -39,51 +39,53 @@ export default function Register() {
             >
                 {({ handleSubmit, isSubmitting, errors, isValid, dirty }) => (
                     <Form onSubmit={handleSubmit} autoComplete='off'>
-                        <h1 className='text-xl mt-5 text-center'>Регистрация пользователя</h1>
-                        <div className='mt-5'>
-                            <TextInput
-                                name='displayName'
-                                placeholder='Имя пользователя'
-                                label='Имя пользователя'
-                                labellWidth='w-40'
-                                inputWidth='w-52'
-                                onChange={() => { }}
-                                controlsAlign='justify-start'
-                                required
-                            />
-                        </div>
-                        <div className='mt-5'>
-                            <TextInput
-                                name='login'
-                                label='Логин'
-                                placeholder='Логин'
-                                labellWidth='w-40'
-                                inputWidth='w-52'
-                                onChange={() => { }}
-                                controlsAlign='justify-start'
-                                required
-                            />
-                        </div>
-                        <div className='mt-5'>
-                            <TextInput
-                                name='password'
-                                label='Пароль'
-                                placeholder='Пароль'
-                                type='password'
-                                labellWidth='w-40'
-                                inputWidth='w-52'
-                                onChange={() => { }}
-                                controlsAlign='justify-start'
-                                required
-                            />
-                        </div>
-                        <ErrorMessage name='error' render={() =>
-                            <p>{errors.error}</p>
-                        } />
-                        <div className='flex justify-around mt-5'>
-                            <Button disabled={!isValid || !dirty || isSubmitting}
-                                isProcessing={isSubmitting}
-                                type='submit'>Регистрация</Button>
+                        <div className='text-center'>
+                            <h1 className='text-xl mt-5'>Регистрация пользователя</h1>
+                            <div className='mt-5'>
+                                <TextInput
+                                    name='displayName'
+                                    placeholder='Имя пользователя'
+                                    label='Имя пользователя'
+                                    labellWidth='w-40'
+                                    inputWidth='w-52'
+                                    onChange={() => { }}
+                                    controlsAlign='justify-center'
+                                    required
+                                />
+                            </div>
+                            <div className='mt-5'>
+                                <TextInput
+                                    name='login'
+                                    label='Логин'
+                                    placeholder='Логин'
+                                    labellWidth='w-40'
+                                    inputWidth='w-52'
+                                    onChange={() => { }}
+                                    controlsAlign='justify-center'
+                                    required
+                                />
+                            </div>
+                            <div className='mt-5'>
+                                <TextInput
+                                    name='password'
+                                    label='Пароль'
+                                    placeholder='Пароль'
+                                    type='password'
+                                    labellWidth='w-40'
+                                    inputWidth='w-52'
+                                    onChange={() => { }}
+                                    controlsAlign='justify-center'
+                                    required
+                                />
+                            </div>
+                            <ErrorMessage name='error' render={() =>
+                                <p>{errors.error}</p>
+                            } />
+                            <div className='flex justify-around mt-5'>
+                                <Button disabled={!isValid || !dirty || isSubmitting}
+                                    isProcessing={isSubmitting}
+                                    type='submit'>Регистрация</Button>
+                            </div>
                         </div>
                     </Form>
                 )}

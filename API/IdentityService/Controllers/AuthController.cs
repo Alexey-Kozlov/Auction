@@ -60,7 +60,7 @@ public class AuthController : ControllerBase
             }
             response.StatusCode = HttpStatusCode.BadRequest;
             response.IsSuccess = false;
-            response.ErrorMessages.Add("Ошибка регистрации нового пользователя");
+            response.ErrorMessages.Add("Ошибка регистрации нового пользователя - " + result.Errors.First().Description);
             return BadRequest(response);
         }
         catch (Exception ex)
