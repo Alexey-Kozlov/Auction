@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import toast from 'react-hot-toast';
 import TextInput from '../inputComponents/TextInput';
 import { usePlaceBidForAuctionMutation } from '../../api/BidApi';
-import { Bid } from '../../store/types';
+import { ApiResponse, Bid } from '../../store/types';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
 
 type Props = {
@@ -25,9 +25,11 @@ export default function BidForm({ auctionId, highBid }: Props) {
                         return toast.error('Предложение должно быть больше ' + highBid + ' руб');
                     }
                     try {
-                        const response: { data?: Bid, error?: any } = await placeBid({ amount: values.amount, auctionId: auctionId });
-                        if (response.error) {
-                            toast.error(response.error.message);
+                        //const response: { data?: Bid, error?: any } = await placeBid({ amount: values.amount, auctionId: auctionId });
+                        const response: ApiResponse<{}> = await placeBid({ amount: values.amount, auctionId: auctionId });
+                        if (!response.error) {
+                            toast.error(response.error.data?.errorMessages[0]);
+                            console.log(response.error.data.errorMessages.join(','));
                             return;
                         }
                         values.amount = 0;

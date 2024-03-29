@@ -1,4 +1,5 @@
-﻿using AuctionService.Data;
+﻿using System.Security.Claims;
+using AuctionService.Data;
 using AuctionService.DTO;
 using AuctionService.Entities;
 using AutoMapper;
@@ -7,6 +8,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Common.Utils;
 
 namespace AuctionService.Controllers;
 
@@ -27,37 +29,51 @@ public class AuctionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<AuctionDTO>>> GetAllAuctions(string date)
+    public async Task<ApiResponse<List<AuctionDTO>>> GetAllAuctions(string date)
     {
         var query = _context.Auctions
             .Include(p => p.Item)
-            .OrderBy(p => p.Item.First().Make).AsQueryable();
+            .OrderBy(p => p.Item.First().Title).AsQueryable();
         if (!string.IsNullOrEmpty(date))
         {
             query = query.Where(p => p.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
         }
-        return _mapper.Map<List<AuctionDTO>>(await query.ToListAsync());
-        //return await query.ProjectTo<AuctionDTO>(_mapper.ConfigurationProvider).ToListAsync();
+        return new ApiResponse<List<AuctionDTO>>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = _mapper.Map<List<AuctionDTO>>(await query.ToListAsync())
+        };
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<AuctionDTO>> GetAuctionById(Guid id)
+    public async Task<ApiResponse<AuctionDTO>> GetAuctionById(Guid id)
     {
         var auction = await _context.Auctions
             .Include(p => p.Item)
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (auction == null) return NotFound();
+        if (auction == null) return new ApiResponse<AuctionDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.NotFound,
+            IsSuccess = true,
+            Result = new AuctionDTO()
+        };
 
-        return _mapper.Map<AuctionDTO>(auction);
+        return new ApiResponse<AuctionDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = _mapper.Map<AuctionDTO>(auction)
+        };
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<AuctionDTO>> CreateAuction([FromBody] CreateAuctionDTO auctionDto)
+    public async Task<ApiResponse<AuctionDTO>> CreateAuction([FromBody] CreateAuctionDTO auctionDto)
     {
         var auction = _mapper.Map<Auction>(auctionDto);
-        auction.Seller = User.Identity.Name;
+        auction.Seller = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Name").Select(p => p.Value).FirstOrDefault();
         _context.Auctions.Add(auction);
 
         var newAuction = _mapper.Map<AuctionDTO>(auction);
@@ -68,18 +84,35 @@ public class AuctionController : ControllerBase
 
         await _publishEndpoint.Publish(_mapper.Map<AuctionCreated>(newAuction));
         await _context.SaveChangesAsync();
-        //await Task.Delay(1000);
-        return CreatedAtAction(nameof(GetAuctionById), new { auction.Id }, newAuction);
+
+        return new ApiResponse<AuctionDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = newAuction
+        };
     }
 
     [Authorize]
     [HttpPut("{id}")]
-    public async Task<ActionResult<AuctionDTO>> UpdateAuction(Guid id, [FromBody] UpdateAuctionDTO updateAuctionDTO)
+    public async Task<ApiResponse<AuctionDTO>> UpdateAuction(Guid id, [FromBody] UpdateAuctionDTO updateAuctionDTO)
     {
-        var auction = await _context.Auctions.Include(p => p.Item)
-            .FirstOrDefaultAsync(p => p.Id == id);
-        if (auction == null) return BadRequest("Запись не найдена");
-        if (auction.Seller != User.Identity.Name) return Forbid();
+        var auction = await _context.Auctions.Include(p => p.Item).FirstOrDefaultAsync(p => p.Id == id);
+        if (auction == null)
+            return new ApiResponse<AuctionDTO>()
+            {
+                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                Result = new AuctionDTO(),
+                ErrorMessages = ["Запись не найдена"]
+            };
+        if (auction.Seller != ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Name").Select(p => p.Value).FirstOrDefault())
+            return new ApiResponse<AuctionDTO>()
+            {
+                StatusCode = System.Net.HttpStatusCode.Forbidden,
+                IsSuccess = false,
+                Result = null
+            };
 
         _mapper.Map(updateAuctionDTO, auction);
         var transferAuction = _mapper.Map<AuctionUpdated>(auction);
@@ -90,27 +123,47 @@ public class AuctionController : ControllerBase
         await _publishEndpoint.Publish(transferAuction);
 
         await _context.SaveChangesAsync();
-        //await Task.Delay(1000);
-        return _mapper.Map<AuctionDTO>(auction);
+        return new ApiResponse<AuctionDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = _mapper.Map<AuctionDTO>(auction)
+        };
 
     }
 
 
     [Authorize]
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteAuction(Guid id)
+    public async Task<ApiResponse<object>> DeleteAuction(Guid id)
     {
         var auction = await _context.Auctions.FindAsync(id);
-        if (auction == null) return BadRequest("Запись не найдена");
+        if (auction == null) return new ApiResponse<object>()
+        {
+            StatusCode = System.Net.HttpStatusCode.BadRequest,
+            IsSuccess = false,
+            ErrorMessages = ["Запись не найдена"],
+            Result = null
+        };
 
-        if (auction.Seller != User.Identity.Name) return Forbid();
+        if (auction.Seller != ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Name").Select(p => p.Value).FirstOrDefault())
+            return new ApiResponse<object>()
+            {
+                StatusCode = System.Net.HttpStatusCode.Forbidden,
+                IsSuccess = false,
+                Result = null
+            };
         _context.Auctions.Remove(auction);
 
         await _publishEndpoint.Publish<AuctionDeleted>(new { Id = id.ToString() });
 
         await _context.SaveChangesAsync();
-        //await Task.Delay(1000);
-        return Ok(new { data = "Ok" });
+        return new ApiResponse<object>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = new { data = "Ok" }
+        };
     }
 
 }

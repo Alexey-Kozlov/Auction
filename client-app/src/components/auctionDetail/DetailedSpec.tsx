@@ -1,4 +1,4 @@
-import { Table } from "flowbite-react";
+import { Table, Textarea } from "flowbite-react";
 import { Auction } from "../../store/types";
 
 type Props = {
@@ -18,34 +18,21 @@ export default function DetailedSpecs({ auction }: Props) {
                 </Table.Row>
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                        Производитель
+                        Наименование
                     </Table.Cell>
                     <Table.Cell>
-                        {auction?.make}
+                        {auction.title}
                     </Table.Cell>
                 </Table.Row>
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                        Модель
+                        Описание
+
                     </Table.Cell>
                     <Table.Cell>
-                        {auction?.model}
-                    </Table.Cell>
-                </Table.Row>
-                <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                        Год выпуска
-                    </Table.Cell>
-                    <Table.Cell>
-                        {auction?.year}
-                    </Table.Cell>
-                </Table.Row>
-                <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                        Пройденное расстояние
-                    </Table.Cell>
-                    <Table.Cell>
-                        {auction?.mileage}
+                        {auction?.properties && auction.properties.split('\n').map((line, index) => {
+                            return <p key={index}>{line}</p>;
+                        })}
                     </Table.Cell>
                 </Table.Row>
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -61,7 +48,9 @@ export default function DetailedSpecs({ auction }: Props) {
                         Примечание
                     </Table.Cell>
                     <Table.Cell>
-                        {auction?.description}
+                        {auction?.description && auction.description.split('\n').map((line, index) => {
+                            return <p key={index}>{line}</p>;
+                        })}
                     </Table.Cell>
                 </Table.Row>
             </Table.Body>

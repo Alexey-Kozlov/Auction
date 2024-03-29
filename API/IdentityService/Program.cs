@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using IdentityService;
 using IdentityService.Data;
+using Common.Utils;
 using IdentityService.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -46,6 +47,7 @@ builder.Services.AddAuthentication(p =>
 builder.Services.AddControllers();
 builder.Services.AddCors();
 var app = builder.Build();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
 app.UseDefaultFiles();
 app.UseStaticFiles();

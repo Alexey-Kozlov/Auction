@@ -5,6 +5,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Polly;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,7 @@ builder.Services.AddMassTransit(p =>
 });
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 
 app.UseAuthorization();

@@ -1,4 +1,6 @@
-﻿namespace Contracts;
+﻿using System;
+
+namespace Contracts;
 
 public class BidPlaced
 {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +36,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("customPolicy");
 
 app.MapReverseProxy();

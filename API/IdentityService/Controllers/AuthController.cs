@@ -2,8 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using IdentityService.Data;
 using IdentityService.Models;
 
-namespace RedMangoShop.Controllers;
+namespace IdentityService.Controllers;
 
 [ApiController]
 [Route("auth")]
@@ -30,68 +28,64 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerRequestDTO)
+    public async Task<ApiResponse<object>> Register([FromBody] RegisterRequestDTO registerRequestDTO)
     {
-        var response = new ApiResponse<object>();
-        try
+        var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.UserName.ToLower() == registerRequestDTO.Login.ToLower());
+        if (user != null)
         {
-            var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.UserName.ToLower() == registerRequestDTO.Login.ToLower());
-            if (user != null)
+            return new ApiResponse<object>()
             {
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.IsSuccess = false;
-                response.ErrorMessages.Add("Такой пользователь уже есть в БД");
-                return BadRequest(response);
-            }
-
-            var newUser = new ApplicationUser
-            {
-                Id = Guid.NewGuid().ToString(),
-                Email = registerRequestDTO.Login,
-                UserName = registerRequestDTO.Name
+                StatusCode = HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Такой пользователь уже есть в БД"],
+                Result = null
             };
-
-            var result = await _userManager.CreateAsync(newUser, registerRequestDTO.Password);
-            if (result.Succeeded)
-            {
-                response.StatusCode = HttpStatusCode.OK;
-                response.IsSuccess = true;
-                return Ok(response);
-            }
-            response.StatusCode = HttpStatusCode.BadRequest;
-            response.IsSuccess = false;
-            response.ErrorMessages.Add("Ошибка регистрации нового пользователя - " + result.Errors.First().Description);
-            return BadRequest(response);
         }
-        catch (Exception ex)
+
+        var newUser = new ApplicationUser
         {
-            response.StatusCode = HttpStatusCode.BadRequest;
-            response.IsSuccess = false;
-            response.ErrorMessages.Add("Ошибка регистрации нового пользователя - " + ex.Message);
-            return BadRequest(response);
-        }
+            Id = Guid.NewGuid().ToString(),
+            Email = registerRequestDTO.Login,
+            UserName = registerRequestDTO.Name
+        };
 
+        var result = await _userManager.CreateAsync(newUser, registerRequestDTO.Password);
+        if (result.Succeeded)
+        {
+            return new ApiResponse<object>()
+            {
+                StatusCode = HttpStatusCode.OK,
+                IsSuccess = true,
+                Result = new { data = "Ok" }
+            };
+        }
+        throw new Exception("Ошибка регистрации нового пользователя - " + result.Errors.First().Description);
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequestDTO)
+    public async Task<ApiResponse<LoginResponseDTO>> Login([FromBody] LoginRequestDTO loginRequestDTO)
     {
-        var response = new ApiResponse<LoginResponseDTO>();
         var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.Email.ToLower() == loginRequestDTO.Login.ToLower());
         if (user == null)
         {
-            response.StatusCode = HttpStatusCode.BadRequest;
-            response.IsSuccess = false;
-            response.ErrorMessages.Add("Ошибка пользователя или пароля");
-            return BadRequest(response);
+            return new ApiResponse<LoginResponseDTO>()
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Ошибка пользователя или пароля"],
+                Result = new LoginResponseDTO()
+            };
         }
         var isValidUser = await _userManager.CheckPasswordAsync(user, loginRequestDTO.Password);
         if (!isValidUser)
         {
-            response.StatusCode = HttpStatusCode.BadRequest;
-            response.IsSuccess = false;
-            response.ErrorMessages.Add("Ошибка пользователя или пароля");
-            return BadRequest(response);
+            return new ApiResponse<LoginResponseDTO>()
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Ошибка пользователя или пароля"],
+                Result = new LoginResponseDTO()
+            };
         }
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_secretKey);
@@ -116,15 +110,20 @@ public class AuthController : ControllerBase
         };
         if (string.IsNullOrEmpty(loginResponse.Token))
         {
-            response.StatusCode = HttpStatusCode.BadRequest;
-            response.IsSuccess = false;
-            response.ErrorMessages.Add("Ошибка пользователя или пароля");
-            return BadRequest(response);
+            return new ApiResponse<LoginResponseDTO>()
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Ошибка пользователя или пароля"],
+                Result = new LoginResponseDTO()
+            };
         }
-        response.StatusCode = HttpStatusCode.OK;
-        response.IsSuccess = true;
-        response.Result = loginResponse;
-        return Ok(response);
+        return new ApiResponse<LoginResponseDTO>()
+        {
+            StatusCode = HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = loginResponse
+        };
     }
 
 }

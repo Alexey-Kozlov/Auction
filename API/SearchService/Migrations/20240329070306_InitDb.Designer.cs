@@ -12,7 +12,7 @@ using SearchService.Data;
 namespace SearchService.Migrations
 {
     [DbContext(typeof(SearchDbContext))]
-    [Migration("20240316105357_InitDb")]
+    [Migration("20240329070306_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -36,10 +36,6 @@ namespace SearchService.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("AuctionEnd");
 
-                    b.Property<string>("Color")
-                        .HasColumnType("text")
-                        .HasColumnName("Color");
-
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreateAt");
@@ -52,17 +48,9 @@ namespace SearchService.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Description");
 
-                    b.Property<string>("Make")
+                    b.Property<string>("Properties")
                         .HasColumnType("text")
-                        .HasColumnName("Make");
-
-                    b.Property<int>("Mileage")
-                        .HasColumnType("integer")
-                        .HasColumnName("Mileage");
-
-                    b.Property<string>("Model")
-                        .HasColumnType("text")
-                        .HasColumnName("Model");
+                        .HasColumnName("Properties");
 
                     b.Property<int>("ReservePrice")
                         .HasColumnType("integer")
@@ -81,6 +69,11 @@ namespace SearchService.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Status");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Title");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("UpdatedAt");
@@ -88,10 +81,6 @@ namespace SearchService.Migrations
                     b.Property<string>("Winner")
                         .HasColumnType("text")
                         .HasColumnName("Winner");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("integer")
-                        .HasColumnName("Year");
 
                     b.HasKey("Id")
                         .HasName("PK_Id");

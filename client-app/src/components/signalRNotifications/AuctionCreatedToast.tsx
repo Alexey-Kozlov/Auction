@@ -24,7 +24,7 @@ export default function AuctionCreatedToast({ auction, toastId }: Props) {
                         width={80}
                         className='rounded-lg'
                     />
-                    <span>Новый аукцион {auction.make} {auction.model} был создан</span>
+                    <span>Новый аукцион {auction.title} был создан</span>
                 </div>
             </NavLink>
         </div>

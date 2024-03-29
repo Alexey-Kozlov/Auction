@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using Polly;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,7 +96,7 @@ builder.Services.AddSwaggerGen(opt =>
 });
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 
 if (app.Environment.IsDevelopment())

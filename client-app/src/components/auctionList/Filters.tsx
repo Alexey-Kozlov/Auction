@@ -11,7 +11,7 @@ const orderButtons = [
     {
         label: 'По наименованию',
         icon: AiOutlineSortAscending,
-        value: 'make'
+        value: 'title'
     },
     {
         label: 'По окончанию аукционов',

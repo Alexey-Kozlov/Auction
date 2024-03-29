@@ -5,11 +5,8 @@ namespace AuctionService.Entities;
 public class Item
 {
     public Guid Id { get; set; }
-    public string Make { get; set; }
-    public string Model { get; set; }
-    public int Year { get; set; } = 0;
-    public string Color { get; set; }
-    public int Mileage { get; set; } = 0;
+    public string Title { get; set; }
+    public string Properties { get; set; }
     public string Description { get; set; }
 
     //nav properties

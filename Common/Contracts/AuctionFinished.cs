@@ -1,4 +1,6 @@
-﻿namespace Contracts;
+﻿using System;
+
+namespace Contracts;
 
 public class AuctionFinished
 {
@@ -6,5 +8,5 @@ public class AuctionFinished
     public Guid AuctionId { get; set; }
     public string Winner { get; set; }
     public string Seller { get; set; }
-    public int? Amount { get; set; }
+    public int Amount { get; set; }
 }

@@ -8,11 +8,8 @@ export type Auction = {
   updatedAt: Date;
   auctionEnd: Date;
   status: string;
-  make: string;
-  model: string;
-  year: number;
-  color: string;
-  mileage: number;
+  title: string;
+  properties: string;
   description?: string;
   image?: string;
   id: string;

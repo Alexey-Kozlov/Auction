@@ -25,11 +25,8 @@ namespace SearchService.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     AuctionEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
-                    Make = table.Column<string>(type: "text", nullable: true),
-                    Model = table.Column<string>(type: "text", nullable: true),
-                    Year = table.Column<int>(type: "integer", nullable: false),
-                    Color = table.Column<string>(type: "text", nullable: true),
-                    Mileage = table.Column<int>(type: "integer", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Properties = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>

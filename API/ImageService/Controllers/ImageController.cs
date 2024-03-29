@@ -1,5 +1,6 @@
 ﻿using AuctionService.Data;
 using AutoMapper;
+using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,20 +20,34 @@ public class ImageController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ImageDTO>>> GetAllAuctions()
+    public async Task<ApiResponse<List<ImageDTO>>> GetAllAuctions()
     {
-        var dd = await _context.Images.ToListAsync();
-        return _mapper.Map<List<ImageDTO>>(await _context.Images.ToListAsync());
+        return new ApiResponse<List<ImageDTO>>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = _mapper.Map<List<ImageDTO>>(await _context.Images.ToListAsync())
+        };
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ImageDTO>> GetAuctionById(Guid id)
+    public async Task<ApiResponse<ImageDTO>> GetAuctionById(Guid id)
     {
         var image = await _context.Images.FirstOrDefaultAsync(p => p.Id == id);
 
-        if (image == null) return new ImageDTO { Id = "", Image = "" };
+        if (image == null) return new ApiResponse<ImageDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.NotFound,
+            IsSuccess = true,
+            Result = new ImageDTO()
+        };
 
-        return _mapper.Map<ImageDTO>(image);
+        return new ApiResponse<ImageDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = _mapper.Map<ImageDTO>(image)
+        };
     }
 
 }

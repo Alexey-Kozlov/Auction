@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuctionService.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    [Migration("20240316092638_InitDb")]
+    [Migration("20240329064224_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -40,7 +40,7 @@ namespace AuctionService.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("CreateAt");
 
-                    b.Property<int?>("CurrentHighBid")
+                    b.Property<int>("CurrentHighBid")
                         .HasColumnType("integer")
                         .HasColumnName("CurrentHighBid");
 
@@ -52,7 +52,7 @@ namespace AuctionService.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Seller");
 
-                    b.Property<int?>("SoldAmount")
+                    b.Property<int>("SoldAmount")
                         .HasColumnType("integer")
                         .HasColumnName("SoldAmount");
 
@@ -88,29 +88,18 @@ namespace AuctionService.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("AuctionId");
 
-                    b.Property<string>("Color")
-                        .HasColumnType("text")
-                        .HasColumnName("Color");
-
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("Description");
 
-                    b.Property<string>("Make")
+                    b.Property<string>("Properties")
                         .HasColumnType("text")
-                        .HasColumnName("Make");
+                        .HasColumnName("Properties");
 
-                    b.Property<int>("Mileage")
-                        .HasColumnType("integer")
-                        .HasColumnName("Mileage");
-
-                    b.Property<string>("Model")
+                    b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("Model");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("integer")
-                        .HasColumnName("Year");
+                        .HasColumnName("Title");
 
                     b.HasKey("Id")
                         .HasName("PK_Id");

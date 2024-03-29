@@ -26,13 +26,10 @@ export default function AuctionForm() {
     const [isWaiting, setIsWaiting] = useState(false);
     const [newAuction, setNewAuction] = useState<Auction>(
         {
-            make: '',
-            model: '',
+            title: '',
+            properties: '',
             auctionEnd: new Date(),
             image: '',
-            color: '',
-            year: 0,
-            mileage: 0,
             reservePrice: 0,
             description: '',
             error: ''
@@ -79,7 +76,7 @@ export default function AuctionForm() {
                                 data: JSON.stringify(values)
                             });
                             if (response.data) {
-                                toast.success(`Аукцион "${values.model}" успешно обновлен!`);
+                                toast.success(`Аукцион "${values.title}" успешно обновлен!`);
                                 setTimeout(() => {
                                     navigate('/');
                                 }, 1000);
@@ -93,7 +90,7 @@ export default function AuctionForm() {
                                 data: JSON.stringify(values)
                             });
                             if (response.data) {
-                                toast.success(`Новый аукцион "${values.model}" успешно создан!`);
+                                toast.success(`Новый аукцион "${values.title}" успешно создан!`);
                                 setTimeout(() => {
                                     navigate('/');
                                 }, 1000);
@@ -107,8 +104,7 @@ export default function AuctionForm() {
                     }
                     }
                     validationSchema={Yup.object({
-                        make: Yup.string().required('Необходимо указать производителя товара'),
-                        model: Yup.string().required('Необходимо указать наименование товара'),
+                        title: Yup.string().required('Необходимо указать наименование товара'),
                         auctionEnd: Yup.date().required('Необходимо указать дату и время окончания акциона')
                     })}
                 >
@@ -116,9 +112,9 @@ export default function AuctionForm() {
                         <Form onSubmit={handleSubmit} autoComplete='off'>
                             <div className='mt-5'>
                                 <TextInput
-                                    name='make'
-                                    placeholder='Производитель'
-                                    label='Производитель'
+                                    name='title'
+                                    placeholder='Наименование'
+                                    label='Наименование'
                                     labellWidth='w-[250px]'
                                     inputWidth='w-[237px]'
                                     onChange={() => { }}
@@ -126,14 +122,13 @@ export default function AuctionForm() {
                                 />
                             </div>
                             <div className='mt-5'>
-                                <TextInput
-                                    name='model'
-                                    label='Наименование'
-                                    placeholder='Наименование'
+                                <TextAreaInput
+                                    name='properties'
+                                    label='Описание'
+                                    placeholder='Описание'
+                                    rows={5}
                                     labellWidth='w-[250px]'
-                                    inputWidth='w-[237px]'
-                                    onChange={() => { }}
-                                    required
+                                    inputWidth='w-[400px]'
                                 />
                             </div>
                             <div className='mt-5'>
@@ -165,36 +160,7 @@ export default function AuctionForm() {
                                     }}
                                 />
                             </div>
-                            <div className='mt-5'>
-                                <TextInput
-                                    name='color'
-                                    label='Цвет'
-                                    placeholder='Цвет'
-                                    labellWidth='w-[250px]'
-                                    inputWidth='w-[237px]'
-                                    onChange={() => { }}
-                                />
-                            </div>
-                            <div className='mt-5'>
-                                <TextInput
-                                    name='year'
-                                    label='Год выпуска'
-                                    placeholder='Год выпуска'
-                                    labellWidth='w-[250px]'
-                                    inputWidth='w-[237px]'
-                                    onChange={() => { }}
-                                />
-                            </div>
-                            <div className='mt-5'>
-                                <TextInput
-                                    name='mileage'
-                                    label='Пробег'
-                                    placeholder='Пробег'
-                                    labellWidth='w-[250px]'
-                                    inputWidth='w-[237px]'
-                                    onChange={() => { }}
-                                />
-                            </div>
+
                             {id === 'empty' &&
                                 <div className='mt-5'>
                                     <TextInput

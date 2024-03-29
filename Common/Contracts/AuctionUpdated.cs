@@ -1,11 +1,13 @@
-﻿namespace AuctionService.DTO;
+﻿using System;
 
-public class UpdateAuctionDTO
+namespace Contracts;
+
+public class AuctionUpdated
 {
+    public string Id { get; set; }
     public string Title { get; set; }
     public string Properties { get; set; }
-    public string Description { get; set; }
     public string Image { get; set; }
-    public int ReservePrice { get; set; }
+    public string Description { get; set; }
     public DateTime AuctionEnd { get; set; }
 }

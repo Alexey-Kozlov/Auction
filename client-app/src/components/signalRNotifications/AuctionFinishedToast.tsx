@@ -25,7 +25,7 @@ export default function AuctionFinishedToast({ finishedAuction, auction }: Props
                         className='rounded-lg'
                     />
                     <div className='flex flex-col'>
-                        <span>Аукцион {auction.make} {auction.model} был завершен!</span>
+                        <span>Аукцион {auction.title} был завершен!</span>
                         {finishedAuction.itemSold && finishedAuction.amount ? (
                             <p>Поздравления для победителя аукциона {finishedAuction.winner},
                                 итоговая стоимость лота - ${finishedAuction.amount} руб</p>

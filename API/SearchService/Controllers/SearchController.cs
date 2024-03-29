@@ -1,3 +1,4 @@
+using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
@@ -16,28 +17,27 @@ public class SearchController : ControllerBase
         _context = context;
     }
     [HttpGet]
-    public async Task<ActionResult<List<Item>>> SearchItems([FromQuery] SearchParams searchParams)
+    public async Task<ApiResponse<SearchType<List<Item>>>> SearchItems([FromQuery] SearchParams searchParams)
     {
         var query = _context.Items.AsQueryable();
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
-            query = query.Where(p => p.Make.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||
-            p.Model.ToLower().Contains(searchParams.SearchTerm.ToLower()));
+            query = query.Where(p => p.Title.Contains(searchParams.SearchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+            p.Properties.Contains(searchParams.SearchTerm, StringComparison.CurrentCultureIgnoreCase));
         }
         //сортировка в зависимости от текстового параметра OrderBy
         query = searchParams.OrderBy switch
         {
-            "make" => query.OrderBy(p => p.Make).ThenBy(p => p.Model),
-            "new" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.Model),
+            "title" => query.OrderBy(p => p.Title).ThenBy(p => p.Title),
+            "new" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.Title),
             _ => query.OrderBy(p => p.AuctionEnd)
         };
-
 
         //отбор в зависимости от текстового параметра FilterBy
         query = searchParams.FilterBy switch
         {
             "finished" => query.Where(p => p.AuctionEnd < DateTime.UtcNow),
-            "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(6)
+            "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(24)
                 && p.AuctionEnd > DateTime.UtcNow),
             _ => query.Where(p => p.AuctionEnd > DateTime.UtcNow)
         };
@@ -63,13 +63,23 @@ public class SearchController : ControllerBase
             pageCount = result.Count / searchParams.PageSize;
         }
 
-        return Ok(
-            new
+        return new ApiResponse<SearchType<List<Item>>>
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = new SearchType<List<Item>>()
             {
-                results = result,
-                pageCount = pageCount,
-                totalCount = result.Count
+                Results = result,
+                PageCount = pageCount,
+                TotalCount = result.Count
             }
-        );
+        };
+    }
+
+    public class SearchType<T>
+    {
+        public T Results { get; set; }
+        public int PageCount { get; set; }
+        public int TotalCount { get; set; }
     }
 }

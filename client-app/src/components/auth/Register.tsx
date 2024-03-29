@@ -25,7 +25,7 @@ export default function Register() {
                         toast.success(`Пользователь ${values.displayName} успешно зарегистрирован! Войдите в систему для продолжения.`);
                         navigate('/');
                     } else if (response.error) {
-                        setErrors({ error: (response.error.data) })
+                        console.log(response.error.data.errorMessages.join(','));
                         toast.error(response.error.data.errorMessages[0]);
                     }
                 }

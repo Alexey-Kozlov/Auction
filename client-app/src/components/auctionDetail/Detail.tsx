@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Heading from '../auctionList/Heading';
 import CountdownTimer from '../auctionList/CountDownTimer';
-import { User } from '../../store/types';
+import { ApiResponse, User } from '../../store/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { Button } from 'flowbite-react';
@@ -22,14 +22,15 @@ export default function Detail() {
     const navigate = useNavigate();
     const handleDeleteAuction = async () => {
         setIsDeleting(true);
-        const result: any = await deleteAuction(id!);
-        if (result.data) {
+        const result: ApiResponse<{}> = await deleteAuction(id!);
+        if (result.data && result.data.isSuccess) {
             setTimeout(() => {
                 auctions.refetch();
                 navigate('/');
             }, 1000);
-        } else {
-            toast.error('Ошибка удаления - ' + result.error.message);
+        } else if (result.error) {
+            console.log(result.error.data.errorMessages.join(','));
+            toast.error('Ошибка удаления - ' + result.error.data.errorMessages[0]);
         }
     }
 
@@ -42,8 +43,8 @@ export default function Detail() {
         <div>
             <div className='flex justify-between'>
                 <div className='flex items-center gap-3'>
-                    <Heading title={`${data?.make} ${data?.model}`} />
-                    {user?.login === data?.seller && (
+                    <Heading title={`${data?.title}`} />
+                    {user?.name === data?.seller && (
                         <>
                             <Button outline>
                                 <NavLink to={`/auctions/edit/${id}`}>Редактировать аукцион</NavLink>

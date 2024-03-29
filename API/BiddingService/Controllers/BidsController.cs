@@ -3,6 +3,7 @@ using BiddingService.Data;
 using BiddingService.DTO;
 using BiddingService.Models;
 using BiddingService.Services;
+using Common.Utils;
 using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
@@ -31,18 +32,30 @@ public class BidsController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<BidDTO>> PlaceBid([FromBody] PlaceBidDTO par)
+    public async Task<ApiResponse<BidDTO>> PlaceBid([FromBody] PlaceBidDTO par)
     {
         var auction = await _context.Auctions.FirstOrDefaultAsync(p => p.Id == par.auctionId);
         if (auction == null)
         {
             auction = _grpcClient.GetAuction(par.auctionId.ToString());
-            if (auction == null) return BadRequest("Невозможно назначить заявку на этот аукцион - аукцион не найден!");
+            if (auction == null) return new ApiResponse<BidDTO>()
+            {
+                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Невозможно назначить заявку на этот аукцион - аукцион не найден!"],
+                Result = null
+            };
         }
 
         if (auction.Seller == User.Identity.Name)
         {
-            return BadRequest("Невозможно подать предложение для собственного аукциона");
+            return new ApiResponse<BidDTO>()
+            {
+                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Невозможно подать предложение для собственного аукциона"],
+                Result = null
+            };
         }
 
         var bid = new Bid
@@ -61,21 +74,9 @@ public class BidsController : ControllerBase
             var highBid = await _context.Bids.Where(p => p.AuctionId == par.auctionId)
                 .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
 
-            // await DB.Find<Bid>()
-            //     .Match(p => p.AuctionId == par.auctionId)
-            //     .Sort(p => p.Descending(x => x.Amount))
-            //     .ExecuteFirstAsync();
-
             if (highBid != null && par.amount > highBid.Amount || highBid == null)
             {
-                bid.BidStatus = par.amount > auction.ReservePrice ?
-                BidStatus.Принято :
-                BidStatus.ПринятоНижеНачальнойСтавки;
-            }
-
-            if (highBid != null && bid.Amount <= highBid.Amount)
-            {
-                bid.BidStatus = BidStatus.СлишкомНизкая;
+                bid.BidStatus = BidStatus.Принято;
             }
         }
         await _context.Bids.AddAsync(bid);
@@ -83,20 +84,25 @@ public class BidsController : ControllerBase
 
         await _publishEndpoint.Publish(_mapper.Map<BidPlaced>(bid));
 
-        return Ok(_mapper.Map<BidDTO>(bid));
+        return new ApiResponse<BidDTO>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = _mapper.Map<BidDTO>(bid)
+        };
     }
 
     [HttpGet("{auctionId}")]
-    public async Task<ActionResult<List<BidDTO>>> GetBidsForAuction(string auctionId)
+    public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(string auctionId)
     {
         var highBid = await _context.Bids.Where(p => p.AuctionId == Guid.Parse(auctionId))
                 .OrderBy(p => p.BidTime).ToListAsync();
 
-        // var bids = await DB.Find<Bid>()
-        //     .Match(p => p.AuctionId == auctionId)
-        //     .Sort(p => p.Ascending(x => x.BidTime))
-        //     .ExecuteAsync();
-
-        return highBid.Select(_mapper.Map<BidDTO>).ToList();
+        return new ApiResponse<List<BidDTO>>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = highBid.Select(_mapper.Map<BidDTO>).ToList()
+        };
     }
 }

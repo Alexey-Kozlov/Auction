@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Polly;
 using System.Text;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BidDbContext>(options =>
@@ -58,7 +59,7 @@ builder.Services.AddHostedService<CheckAuctionFinished>();
 builder.Services.AddScoped<GrpcAuctionClient>();
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
