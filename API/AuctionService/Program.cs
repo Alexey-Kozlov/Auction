@@ -12,7 +12,6 @@ using Polly;
 using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AuctionDbContext>(options =>
 {

@@ -14,9 +14,9 @@ public class DbInitializer
         var items = await httpClient.GetItemsForSearchDb();
         var _context = scope.ServiceProvider.GetRequiredService<SearchDbContext>();
         var isSearchItems = await _context.Items.AnyAsync();
-        if (items.Count > 0 && !isSearchItems)
+        if (items.Result.Count > 0 && !isSearchItems)
         {
-            await _context.Items.AddRangeAsync(items);
+            await _context.Items.AddRangeAsync(items.Result);
             await _context.SaveChangesAsync();
         }
     }

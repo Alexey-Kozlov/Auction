@@ -7,7 +7,7 @@ import { useLoginUserMutation } from '../../api/AuthApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
-import { ApiResponse, LoginResponse, User } from '../../store/types';
+import { ApiResponse, LoginResponse } from '../../store/types';
 import { setAuthUser } from '../../store/authSlice';
 
 export default function Login() {
@@ -38,11 +38,7 @@ export default function Login() {
                                 id: response.data.result.id
                             }))
                             toast.success(`Успешный вход в систему пользователя ${response.data.result.name}`);
-
                             navigate('/');
-                        } else if (response.error) {
-                            setErrors({ error: (response.error.data.errorMessages[0]) })
-                            toast.error(response.error.data.errorMessages[0]);
                         }
                     }
                 }

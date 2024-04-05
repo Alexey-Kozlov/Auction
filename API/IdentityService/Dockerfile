@@ -1,11 +1,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
-#эта папка внутри докерного образа
+ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
+ARG TARGETARCH
 WORKDIR /app
 EXPOSE 80
 
-#копируем все файлы из проекта и восстанавливаем как отдельный слой
+COPY /Packages /Packages
 COPY API/IdentityService/IdentityService.csproj API/IdentityService/IdentityService.csproj
-RUN dotnet restore -v diag API/IdentityService/IdentityService.csproj
+RUN dotnet restore API/IdentityService/IdentityService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
 
 #копируем остальные файлы проекта Auction
 COPY API/IdentityService API/IdentityService

@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using IdentityService.Data;
 using IdentityService.Models;
+using Common.Utils;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.Controllers;
 
@@ -123,6 +125,18 @@ public class AuthController : ControllerBase
             StatusCode = HttpStatusCode.OK,
             IsSuccess = true,
             Result = loginResponse
+        };
+    }
+
+    [HttpPost]
+    public async Task<ApiResponse<string>> GetUserName([FromBody] GetUserNameDTO dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.login);
+        return new ApiResponse<string>()
+        {
+            StatusCode = HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = user == null ? "" : user.UserName
         };
     }
 

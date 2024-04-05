@@ -1,10 +1,8 @@
 
 import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import toast from 'react-hot-toast';
 import TextInput from '../inputComponents/TextInput';
 import { usePlaceBidForAuctionMutation } from '../../api/BidApi';
-import { ApiResponse, Bid } from '../../store/types';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
 
 type Props = {
@@ -21,29 +19,15 @@ export default function BidForm({ auctionId, highBid }: Props) {
             initialValues={{ amount: 0, error: null }}
             onSubmit={
                 async (values, { setErrors }) => {
-                    if (values.amount <= highBid) {
-                        return toast.error('Предложение должно быть больше ' + highBid + ' руб');
-                    }
-                    try {
-                        //const response: { data?: Bid, error?: any } = await placeBid({ amount: values.amount, auctionId: auctionId });
-                        const response: ApiResponse<{}> = await placeBid({ amount: values.amount, auctionId: auctionId });
-                        if (!response.error) {
-                            toast.error(response.error.data?.errorMessages[0]);
-                            console.log(response.error.data.errorMessages.join(','));
-                            return;
-                        }
-                        values.amount = 0;
-                    } catch (e: any) {
-                        toast.error(e.message);
-                    }
-
+                    await placeBid({ amount: values.amount, auctionId: auctionId });
+                    values.amount = 0;
                 }
             }
             validationSchema={Yup.object({
                 amount: Yup.number()
                     .required('Необходимо указать предложение')
                     .positive('Предложение должно быть больше 0')
-                    .min(highBid + 1, 'Предложение должно быть больше ' + (NumberWithSpaces(highBid)))
+                    .min(highBid + 1, 'Предложение должно быть не меньше ' + (highBid + 1) + ' руб.')
             })}
         >
             {({ handleSubmit, errors }) => (

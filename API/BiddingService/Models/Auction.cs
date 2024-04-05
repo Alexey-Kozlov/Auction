@@ -7,4 +7,5 @@ public class Auction
     public string Seller { get; set; }
     public int ReservePrice { get; set; }
     public bool Finished { get; set; }
+    public ICollection<Bid> Bids { get; set; }
 }

@@ -37,45 +37,44 @@ export default function BidList({ user, auction }: Props) {
         return result;
     }
 
-
     const itemsRef = useRef<null | HTMLLIElement>(null);
 
     //при каждом обновлении заявок - вычисление последней заявки для прокрутки
     //списка заявок вверх (если заявок много)
     useEffect(() => {
-        if (bids && bids.length > 0) {
-            try {
-                const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
-                    return Date.parse(b.bidTime) - Date.parse(a.bidTime);
-                })[0];
-                setLastBidId(maxBidId.id);
-            } catch (e) {
-                console.log(e);
-            }
-
-
+        if (!isLoading && bids && bids.length > 0) {
+            const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
+                return Date.parse(b.bidTime) - Date.parse(a.bidTime);
+            })[0];
+            setLastBidId(maxBidId.id);
         }
-    }, [bids])
+    }, [isLoading, bids])
 
     //первоначальное заполнение списка заявок
     useEffect(() => {
         if (!isLoading) {
-            dispatch(setBids(data));
+            dispatch(setBids(data?.result));
         }
-    }, [auction?.id, isLoading, data]);
+    }, [auction?.id, isLoading, data?.result, dispatch]);
 
     //закрытие аукциона
     useEffect(() => {
         dispatch(setOpen(openForBids));
-    }, [openForBids, setOpen]);
+    }, [openForBids, dispatch]);
 
-    //перемотка списка завок - самые послелние - в самом верху
+    //перемотка списка завок - самые послелние - в самом верху, 
+    //и потом перемотка всей странички вверх - чтобы были видны последние изменения
     useEffect(() => {
-        itemsRef.current?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-            inline: 'nearest',
-        });
+        if (itemsRef && itemsRef.current) {
+            itemsRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+                inline: 'nearest',
+            });
+        }
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 1000);
     }, [lastBidId])
 
     if (isLoading) return <span>Загрузка предложений...</span>
@@ -84,7 +83,9 @@ export default function BidList({ user, auction }: Props) {
         <div className='rounded-lg shadow-md'>
             <div className='py-2 px-4 bg-white'>
                 <div className='sticky top-0 bg-white p-2'>
-                    <Heading title={`Текущее лучшее предложение - ${NumberWithSpaces(bidRestriction())} руб`} />
+                    {bids?.length !== 0 && (
+                        <Heading title={`Текущее лучшее предложение - ${NumberWithSpaces(bidRestriction())} руб`} />
+                    )}
                 </div>
             </div>
 
@@ -94,7 +95,7 @@ export default function BidList({ user, auction }: Props) {
                         subtitle='Сделайте предложение' />
                 ) : (
                     <>
-                        {bids?.map(bid => (
+                        {bids?.map((bid, index) => (
                             <li
                                 key={bid?.id} className='list-none'
                                 ref={bid?.id === lastBidId ? itemsRef : null}

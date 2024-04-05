@@ -18,7 +18,7 @@ export default function AuctionFinishedToast({ finishedAuction, auction }: Props
             </div>
             <NavLink to={`/auctions/${auction.id}`} className='flex flex-col items-center'>
                 <div className='flex flex-row items-center gap-2'>
-                    <img src={!isLoading && data && (data as AuctionImage)!.image ? (`data:image/png;base64 , ${data['image']}`) : empty}
+                    <img src={!isLoading && (data?.result as AuctionImage)!.image ? (`data:image/png;base64 , ${data?.result['image']}`) : empty}
                         alt=''
                         height={80}
                         width={80}
@@ -27,8 +27,8 @@ export default function AuctionFinishedToast({ finishedAuction, auction }: Props
                     <div className='flex flex-col'>
                         <span>Аукцион {auction.title} был завершен!</span>
                         {finishedAuction.itemSold && finishedAuction.amount ? (
-                            <p>Поздравления для победителя аукциона {finishedAuction.winner},
-                                итоговая стоимость лота - ${finishedAuction.amount} руб</p>
+                            <p>{`Поздравления для победителя аукциона "${finishedAuction.winner}",
+                                итоговая стоимость лота - ${finishedAuction.amount} руб.`}</p>
                         ) : (
                             <p>Лот не был продан</p>
                         )}

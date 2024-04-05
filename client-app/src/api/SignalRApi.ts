@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Auction } from "../store/types";
+import { ApiResponseNet, Auction } from "../store/types";
+import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const signalRApi = createApi({
   reducerPath: "signalRApi",
@@ -8,10 +9,17 @@ const signalRApi = createApi({
   }),
   tagTypes: ["signalR"],
   endpoints: (builder) => ({
-    getAuction: builder.query<Auction, string>({
+    getAuction: builder.query<ApiResponseNet<Auction>, string>({
       query: (id) => ({
         url: `/auctions/${id}`,
       }),
+      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       providesTags: ["signalR"],
     }),
   }),

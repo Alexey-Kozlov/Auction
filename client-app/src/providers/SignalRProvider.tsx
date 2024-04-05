@@ -1,26 +1,26 @@
 
 import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr'
-import { ReactNode, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
 import { Auction, AuctionFinished, Bid, User } from '../store/types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentPrice } from '../store/auctionSlice';
 import { addBid } from '../store/bidSlice';
 import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
+import { RootState } from '../store/store';
+import BidCreatedToast from '../components/signalRNotifications/BidCreatedToast';
 
-type Props = {
-    children: ReactNode;
-    user: User | null;
-}
+export default function SignalRProvider() {
+    const user: User = useSelector((state: RootState) => state.authStore);
 
-export default function SignalRProvider({ children, user }: Props) {
     const [finishedAuction, setFinishedAuction] = useState<any>();
     const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
     const auction = useGetAuctionQuery(finishedAuctionId, {
-        skip: finishedAuctionId == 'empty'
+        skip: finishedAuctionId === 'empty'
     });
+    const [auctionId, setAuctionId] = useState('');
     const dispatch = useDispatch();
     const [connection, setConnection] = useState<HubConnection | null>(null);
 
@@ -29,8 +29,12 @@ export default function SignalRProvider({ children, user }: Props) {
         : process.env.REACT_APP_NOTIFY_URL
 
     useEffect(() => {
+        const tokenData = localStorage.getItem("Auction");
+        const token = JSON.parse(tokenData!).token;
         const newConnection = new HubConnectionBuilder()
-            .withUrl(apiUrl!)
+            .withUrl(apiUrl!, {
+                accessTokenFactory: () => token
+            })
             .withAutomaticReconnect()
             .build();
         setConnection(newConnection);
@@ -41,24 +45,35 @@ export default function SignalRProvider({ children, user }: Props) {
             toast((p) => (
                 <AuctionFinishedToast
                     finishedAuction={finishedAuction}
-                    auction={auction.data!}
+                    auction={auction.data!.result}
                 />
             ),
                 { duration: 10000 });
             setFinishedAuction(null);
         }
-    }, [finishedAuction, auction.data, auction.isLoading]);
+    }, [finishedAuction, auction.data, auction.data?.result, auction.isLoading]);
+
+    useEffect(() => {
+        if (auctionId) {
+            toast((p) => (
+                <BidCreatedToast auctionId={auctionId} toastId={p.id} />
+            ), { duration: 10000 });
+            setAuctionId('');
+        }
+    }, [auctionId]);
 
     useEffect(() => {
         if (connection) {
             connection.start()
                 .then(() => {
                     console.log('Коннект установлен с хабом уведомлений');
+
                     connection.on('BidPlaced', (bid: Bid) => {
-                        if (bid.bidStatus.includes('Принято')) {
+                        if (bid.bidStatus.includes('Принято') && bid.bidder !== user.login) {
                             dispatch(setCurrentPrice({ auctionId: bid.auctionId, amount: bid.amount }));
+                            dispatch(addBid({ bid: bid }));
+                            setAuctionId(bid.auctionId);
                         }
-                        dispatch(addBid({ bid: bid }));
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
@@ -80,9 +95,9 @@ export default function SignalRProvider({ children, user }: Props) {
         return () => {
             connection?.stop();
         }
-    }, [connection, setCurrentPrice, addBid, user?.login]);
+    }, [connection, user.login, dispatch]);
 
     return (
-        children
+        <></>
     )
 }

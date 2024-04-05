@@ -6,7 +6,7 @@ import { Button } from 'flowbite-react';
 import { useRegisterUserMutation } from '../../api/AuthApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ApiResponse, PagedResult } from '../../store/types';
+import { ApiResponse } from '../../store/types';
 
 export default function Register() {
     const [registerUser] = useRegisterUserMutation();
@@ -16,7 +16,7 @@ export default function Register() {
             <Formik
                 initialValues={{ displayName: '', login: '', password: '', error: null }}
                 onSubmit={async (values, { setErrors }) => {
-                    const response: ApiResponse<{}> = await registerUser({
+                    const response: ApiResponse<object> = await registerUser({
                         login: values.login,
                         name: values.displayName,
                         password: values.password
@@ -24,9 +24,6 @@ export default function Register() {
                     if (response.data && response.data.isSuccess) {
                         toast.success(`Пользователь ${values.displayName} успешно зарегистрирован! Войдите в систему для продолжения.`);
                         navigate('/');
-                    } else if (response.error) {
-                        console.log(response.error.data.errorMessages.join(','));
-                        toast.error(response.error.data.errorMessages[0]);
                     }
                 }
 

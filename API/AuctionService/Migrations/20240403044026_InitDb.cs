@@ -29,7 +29,7 @@ namespace AuctionService.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("Id", x => x.Id);
+                    table.PrimaryKey("PK_AuctionId", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -115,7 +115,7 @@ namespace AuctionService.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Id", x => x.Id);
+                    table.PrimaryKey("PK_ItemId", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Items_Auction_AuctionId",
                         column: x => x.AuctionId,

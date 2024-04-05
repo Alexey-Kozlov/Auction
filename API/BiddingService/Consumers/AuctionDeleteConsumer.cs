@@ -8,10 +8,12 @@ namespace BiddingService.Consumers;
 public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
 {
     private readonly BidDbContext _context;
+    private readonly ILogger<AuctionDeletedConsumer> _logger;
 
-    public AuctionDeletedConsumer(BidDbContext context)
+    public AuctionDeletedConsumer(BidDbContext context, ILogger<AuctionDeletedConsumer> logger)
     {
         _context = context;
+        _logger = logger;
     }
     public async Task Consume(ConsumeContext<AuctionDeleted> consumeContext)
     {
@@ -27,5 +29,10 @@ public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
             _context.Auctions.Remove(auction);
         }
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Удален аукцион - " + auction.Id + ", продавец - " + auction.Seller);
+        if (bids.Count > 0)
+        {
+            _logger.LogInformation("Удалены " + bids.Count.ToString() + " ставок для этого аукциона");
+        }
     }
 }

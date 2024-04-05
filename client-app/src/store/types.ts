@@ -63,13 +63,15 @@ export type PagedResult<T> = {
   totalCount: number;
 };
 
+export type ApiResponseNet<T> = {
+  statusCode: number;
+  isSuccess: boolean;
+  errorMessages: Array<string>;
+  result: T;
+};
+
 export type ApiResponse<T> = {
-  data?: {
-    statusCode: number;
-    isSuccess: boolean;
-    errorMessages: Array<string>;
-    result: T;
-  };
+  data?: ApiResponseNet<T>;
   error?: any;
 };
 
@@ -91,4 +93,9 @@ export type CreateUpdateAuctionParams = {
 export type AuctionImage = {
   id: string;
   image: string;
+};
+
+export type NotifyUser = {
+  auctionId: string;
+  enable: boolean;
 };

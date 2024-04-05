@@ -22,8 +22,8 @@ public class SearchController : ControllerBase
         var query = _context.Items.AsQueryable();
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
-            query = query.Where(p => p.Title.Contains(searchParams.SearchTerm, StringComparison.CurrentCultureIgnoreCase) ||
-            p.Properties.Contains(searchParams.SearchTerm, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(p => p.Title.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||
+            p.Properties.ToLower().Contains(searchParams.SearchTerm.ToLower()));
         }
         //сортировка в зависимости от текстового параметра OrderBy
         query = searchParams.OrderBy switch
@@ -32,7 +32,6 @@ public class SearchController : ControllerBase
             "new" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.Title),
             _ => query.OrderBy(p => p.AuctionEnd)
         };
-
         //отбор в зависимости от текстового параметра FilterBy
         query = searchParams.FilterBy switch
         {

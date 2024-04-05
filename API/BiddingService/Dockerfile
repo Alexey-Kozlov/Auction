@@ -1,14 +1,15 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
+ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
+ARG TARGETARCH
 WORKDIR /app
 EXPOSE 80
 
-COPY API/Contracts/Contracts.csproj API/Contracts/Contracts.csproj
+COPY /Packages /Packages
 COPY API/BiddingService/BiddingService.csproj API/BiddingService/BiddingService.csproj
-RUN dotnet restore API/BiddingService/BiddingService.csproj
+RUN dotnet restore API/BiddingService/BiddingService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
 
 #копируем остальные файлы проекта Auction
 COPY API/BiddingService API/BiddingService
-COPY API/Contracts API/Contracts
 
 WORKDIR /app/API/BiddingService
 RUN dotnet publish -c Release -o /app/API/out

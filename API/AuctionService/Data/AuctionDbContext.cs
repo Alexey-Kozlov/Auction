@@ -29,7 +29,7 @@ public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
 {
     public void Configure(EntityTypeBuilder<Auction> builder)
     {
-        builder.ToTable("Auction").HasKey(p => p.Id).HasName("Id");
+        builder.ToTable("Auction").HasKey(p => p.Id).HasName("PK_AuctionId");
         builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
         builder.Property(p => p.ReservePrice).HasColumnType("integer").HasColumnName("ReservePrice").IsRequired(true);
         builder.Property(p => p.Seller).HasColumnType("text").HasColumnName("Seller").IsRequired(false);
@@ -48,7 +48,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
 {
     public void Configure(EntityTypeBuilder<Item> builder)
     {
-        builder.ToTable("Items").HasKey(p => p.Id).HasName("PK_Id");
+        builder.ToTable("Items").HasKey(p => p.Id).HasName("PK_ItemId");
         builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
         builder.Property(p => p.Title).HasColumnType("text").HasColumnName("Title").IsRequired(true);
         builder.Property(p => p.Properties).HasColumnType("text").HasColumnName("Properties").IsRequired(false);

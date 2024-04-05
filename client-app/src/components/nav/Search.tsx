@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
@@ -17,7 +17,7 @@ export default function Search() {
     };
 
     const Search = () => {
-        if (location.pathname != '/') navigate('/');
+        if (location.pathname !== '/') navigate('/');
         dispatch(setParams({ searchTerm: search }));
     }
 

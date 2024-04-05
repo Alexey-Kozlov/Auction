@@ -56,7 +56,8 @@ public class AuctionController : ControllerBase
         if (auction == null) return new ApiResponse<AuctionDTO>()
         {
             StatusCode = System.Net.HttpStatusCode.NotFound,
-            IsSuccess = true,
+            IsSuccess = false,
+            ErrorMessages = ["Аукцион не найден"],
             Result = new AuctionDTO()
         };
 
@@ -73,7 +74,7 @@ public class AuctionController : ControllerBase
     public async Task<ApiResponse<AuctionDTO>> CreateAuction([FromBody] CreateAuctionDTO auctionDto)
     {
         var auction = _mapper.Map<Auction>(auctionDto);
-        auction.Seller = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Name").Select(p => p.Value).FirstOrDefault();
+        auction.Seller = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         _context.Auctions.Add(auction);
 
         var newAuction = _mapper.Map<AuctionDTO>(auction);
@@ -106,7 +107,7 @@ public class AuctionController : ControllerBase
                 Result = new AuctionDTO(),
                 ErrorMessages = ["Запись не найдена"]
             };
-        if (auction.Seller != ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Name").Select(p => p.Value).FirstOrDefault())
+        if (auction.Seller != ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault())
             return new ApiResponse<AuctionDTO>()
             {
                 StatusCode = System.Net.HttpStatusCode.Forbidden,
@@ -146,7 +147,7 @@ public class AuctionController : ControllerBase
             Result = null
         };
 
-        if (auction.Seller != ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Name").Select(p => p.Value).FirstOrDefault())
+        if (auction.Seller != ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault())
             return new ApiResponse<object>()
             {
                 StatusCode = System.Net.HttpStatusCode.Forbidden,
@@ -165,5 +166,4 @@ public class AuctionController : ControllerBase
             Result = new { data = "Ok" }
         };
     }
-
 }

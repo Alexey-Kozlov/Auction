@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using BiddingService.Data;
 using BiddingService.DTO;
@@ -47,7 +48,7 @@ public class BidsController : ControllerBase
             };
         }
 
-        if (auction.Seller == User.Identity.Name)
+        if (auction.Seller == ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault())
         {
             return new ApiResponse<BidDTO>()
             {

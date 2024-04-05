@@ -1,15 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
-#эта папка внутри докерного образа
+ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
+ARG TARGETARCH
 WORKDIR /app
 EXPOSE 80
 
-COPY API/Contracts/Contracts.csproj API/Contracts/Contracts.csproj
+COPY /Packages /Packages
 COPY API/SearchService/SearchService.csproj API/SearchService/SearchService.csproj
-RUN dotnet restore API/SearchService/SearchService.csproj
+RUN dotnet restore API/SearchService/SearchService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
 
-#копируем остальные файлы проекта Auction
 COPY API/SearchService API/SearchService
-COPY API/Contracts API/Contracts
 
 WORKDIR /app/API/SearchService
 RUN dotnet publish -c Release -o /app/API/out

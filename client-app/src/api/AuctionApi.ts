@@ -3,8 +3,10 @@ import {
   Auction,
   PagedResult,
   CreateUpdateAuctionParams,
+  ApiResponseNet,
 } from "../store/types";
 import AddTokenHeader from "./AddTokenHeader";
+import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const auctionApi = createApi({
   refetchOnMountOrArgChange: true,
@@ -20,26 +22,44 @@ const auctionApi = createApi({
   }),
   tagTypes: ["auctions"],
   endpoints: (builder) => ({
-    getDetailedViewData: builder.query<Auction, string>({
+    getDetailedViewData: builder.query<ApiResponseNet<Auction>, string>({
       query: (id) => ({
         url: `/auctions/${id}`,
       }),
-      transformResponse: (auction: Auction, meta: any) => {
-        if (auction.auctionEnd)
-          auction.auctionEnd = new Date(auction.auctionEnd);
-        if (auction.createAt) auction.createAt = new Date(auction.createAt);
-        if (auction.updatedAt) auction.updatedAt = new Date(auction.updatedAt);
-        return auction;
+      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
+        PostApiProcess(response);
+        if (response.isSuccess) {
+          if (response.result.auctionEnd)
+            response.result.auctionEnd = new Date(response.result.auctionEnd);
+          if (response.result.createAt)
+            response.result.createAt = new Date(response.result.createAt);
+          if (response.result.updatedAt)
+            response.result.updatedAt = new Date(response.result.updatedAt);
+        }
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
       },
       providesTags: ["auctions"],
     }),
-    getAuctions: builder.query<PagedResult<Auction>, string>({
+    getAuctions: builder.query<ApiResponseNet<PagedResult<Auction>>, string>({
       query: (url) => ({
         url: "/search" + url,
       }),
+      transformResponse: (
+        response: ApiResponseNet<PagedResult<Auction>>,
+        meta: any
+      ) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       providesTags: ["auctions"],
     }),
-    deleteAuction: builder.mutation<any, string>({
+    deleteAuction: builder.mutation<ApiResponseNet<{}>, string>({
       query: (id) => ({
         url: `/auctions/${id}`,
         method: "delete",
@@ -48,9 +68,19 @@ const auctionApi = createApi({
         },
         body: "",
       }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       invalidatesTags: ["auctions"],
     }),
-    updateAuction: builder.mutation<Auction, CreateUpdateAuctionParams>({
+    updateAuction: builder.mutation<
+      ApiResponseNet<Auction>,
+      CreateUpdateAuctionParams
+    >({
       query: (params) => ({
         url: `/auctions/${params.id}`,
         method: "put",
@@ -59,9 +89,19 @@ const auctionApi = createApi({
         },
         body: params.data,
       }),
+      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       invalidatesTags: ["auctions"],
     }),
-    createAuction: builder.mutation<Auction, CreateUpdateAuctionParams>({
+    createAuction: builder.mutation<
+      ApiResponseNet<Auction>,
+      CreateUpdateAuctionParams
+    >({
       query: (params) => ({
         url: "/auctions",
         method: "post",
@@ -70,6 +110,13 @@ const auctionApi = createApi({
         },
         body: params.data,
       }),
+      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       invalidatesTags: ["auctions"],
     }),
   }),

@@ -5,7 +5,7 @@ import { Formik, Form, ErrorMessage } from 'formik';
 import TextInput from '../inputComponents/TextInput';
 import * as Yup from 'yup';
 import toast from 'react-hot-toast';
-import { Auction, ObjectResponse } from '../../store/types';
+import { ApiResponse, Auction } from '../../store/types';
 import DatePickerInput from '../inputComponents/DatePickerInput';
 import ImageFileInput from '../inputComponents/ImageFileInput';
 import TextAreaInput from '../inputComponents/TextAreaInput';
@@ -37,22 +37,22 @@ export default function AuctionForm() {
     )
     const navigate = useNavigate();
     const auctionImage = useGetImageForAuctionQuery(newAuction.id, {
-        skip: newAuction.id == undefined
+        skip: newAuction.id === undefined
     });
 
     useEffect(() => {
         if (!isLoading) {
             if (data) {
-                setNewAuction(data!);
+                setNewAuction(data!.result);
             }
         }
     }, [data, isLoading])
 
     useEffect(() => {
-        if (!auctionImage.isLoading && auctionImage.data?.image) {
-            setImage('data:image/png;base64, ' + auctionImage?.data?.image);
+        if (!auctionImage.isLoading && auctionImage.data?.result?.image) {
+            setImage('data:image/png;base64, ' + auctionImage?.data?.result?.image);
         }
-    }, [auctionImage.isLoading, auctionImage.data?.image])
+    }, [auctionImage.isLoading, auctionImage.data?.result?.image])
 
     if (isLoading) return 'Загрузка...';
     if (isError) {
@@ -71,36 +71,28 @@ export default function AuctionForm() {
                         setIsWaiting(true);
                         if (id !== 'empty') {
                             //обновление аукциона
-                            const response: ObjectResponse<Auction> = await updateAuction({
+                            const response: ApiResponse<Auction> = await updateAuction({
                                 id: id,
                                 data: JSON.stringify(values)
                             });
-                            if (response.data) {
+                            if (response.data!.isSuccess) {
                                 toast.success(`Аукцион "${values.title}" успешно обновлен!`);
                                 setTimeout(() => {
                                     navigate('/');
                                 }, 1000);
-                            } else {
-                                setErrors({ error: (response.error.data) });
-                                toast.error(response.error.data.errorMessages[0]);
                             }
                         } else {
                             //создание аукциона
-                            const response: ObjectResponse<Auction> = await createAuction({
+                            const response: ApiResponse<Auction> = await createAuction({
                                 data: JSON.stringify(values)
                             });
-                            if (response.data) {
+                            if (response.data!.isSuccess) {
                                 toast.success(`Новый аукцион "${values.title}" успешно создан!`);
                                 setTimeout(() => {
                                     navigate('/');
                                 }, 1000);
-
-                            } else {
-                                setErrors({ error: (response.error.data) });
-                                toast.error(response.error.data.errorMessages[0]);
                             }
                         }
-
                     }
                     }
                     validationSchema={Yup.object({

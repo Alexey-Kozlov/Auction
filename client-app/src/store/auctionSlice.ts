@@ -18,9 +18,9 @@ export const auctionSlice = createSlice({
   initialState: initialState,
   reducers: {
     setData: (state, action) => {
-      if (action.payload.results) state.auctions = action.payload.results;
-      if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
-      if (action.payload.totalCount)
+      if (action.payload?.results) state.auctions = action.payload.results;
+      if (action.payload?.pageCount) state.pageCount = action.payload.pageCount;
+      if (action.payload?.totalCount)
         state.totalCount = action.payload.totalCount;
     },
     setCurrentPrice: (state, action) => {

@@ -20,9 +20,9 @@ export default function Listings() {
 
     useEffect(() => {
         if (!auctionsData.isLoading) {
-            dispatch(setData(auctionsData.data));
+            dispatch(setData(auctionsData.data?.result));
         }
-    }, [auctionsData.isLoading, url, auctionsData.data]);
+    }, [auctionsData.isLoading, auctionsData.data?.result, dispatch]);
 
 
     function setPageNumber(pageNumber: number) {
@@ -35,7 +35,7 @@ export default function Listings() {
         <div>
             <Filters />
             {
-                auctions.length == 0 ? (
+                auctions.length === 0 ? (
                     <EmptyFilter showReset />
                 ) : (<>
                     <div className='grid grid-cols-4 gap-6'>
@@ -47,7 +47,7 @@ export default function Listings() {
                     </div>
                     <div className='flex justify-center mt-4'>
                         <AppPagination pageChanged={setPageNumber}
-                            currentPage={params.pageNumber} totalPages={auctionsData.data?.pageCount!} />
+                            currentPage={params.pageNumber} totalPages={auctionsData.data?.result.pageCount!} />
                     </div>
                 </>
                 )}

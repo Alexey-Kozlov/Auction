@@ -1,11 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {
-  ApiResponse,
-  CreateUser,
-  LoginResponse,
-  LoginUser,
-  PagedResult,
-} from "../store/types";
+import { ApiResponseNet, CreateUser, LoginUser } from "../store/types";
+import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const authApi = createApi({
   reducerPath: "authApi",
@@ -22,6 +17,13 @@ const authApi = createApi({
         },
         body: userData,
       }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
     }),
     loginUser: builder.mutation<any, LoginUser>({
       query: (userCredentials) => ({
@@ -32,9 +34,37 @@ const authApi = createApi({
         },
         body: userCredentials,
       }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+    }),
+    getUserName: builder.query<ApiResponseNet<string>, string>({
+      query: (login) => ({
+        url: "",
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: { login: login },
+      }),
+      transformResponse: (response: ApiResponseNet<string>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
     }),
   }),
 });
 
-export const { useRegisterUserMutation, useLoginUserMutation } = authApi;
+export const {
+  useRegisterUserMutation,
+  useLoginUserMutation,
+  useGetUserNameQuery,
+} = authApi;
 export default authApi;

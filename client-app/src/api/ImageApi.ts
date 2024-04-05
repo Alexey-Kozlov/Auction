@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { AuctionImage } from "../store/types";
+import { ApiResponseNet, AuctionImage } from "../store/types";
+import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const imageApi = createApi({
   refetchOnMountOrArgChange: true,
@@ -9,10 +10,20 @@ const imageApi = createApi({
   }),
   tagTypes: ["images"],
   endpoints: (builder) => ({
-    getImageForAuction: builder.query<AuctionImage, string>({
+    getImageForAuction: builder.query<ApiResponseNet<AuctionImage>, string>({
       query: (id) => ({
         url: `/${id}`,
       }),
+      transformResponse: (
+        response: ApiResponseNet<AuctionImage>,
+        meta: any
+      ) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       providesTags: ["images"],
     }),
   }),

@@ -1,8 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Bid, PlaceBidParams } from "../store/types";
+import { ApiResponseNet, Bid, PlaceBidParams } from "../store/types";
 import AddTokenHeader from "./AddTokenHeader";
+import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const bidApi = createApi({
+  refetchOnMountOrArgChange: true,
   reducerPath: "bidApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + `/api/bids`,
@@ -24,12 +26,26 @@ const bidApi = createApi({
         },
         body: JSON.stringify(params),
       }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       invalidatesTags: ["bids"],
     }),
-    getBidsForAuction: builder.query<Bid[], string>({
+    getBidsForAuction: builder.query<ApiResponseNet<Bid[]>, string>({
       query: (id) => ({
         url: `/${id}`,
       }),
+      transformResponse: (response: ApiResponseNet<Bid[]>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
       providesTags: ["bids"],
     }),
   }),

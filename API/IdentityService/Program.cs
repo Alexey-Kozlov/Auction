@@ -25,6 +25,7 @@ builder.Services.Configure<IdentityOptions>(opt =>
     opt.Password.RequireUppercase = false;
     opt.Password.RequireNonAlphanumeric = false;
     opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮйцукенгшщзхъфывапролджэячсмитьбю";
+    //opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 });
 
 //конфигурация конвейера для работы с JWT-аутентификацией

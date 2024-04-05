@@ -21,7 +21,7 @@ export default function ImageFileInput({ labellWidth, inputWidth, inputDescr, re
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
-
+        console.log(field.name);
         if (file) {
             const reader = new FileReader();
             reader.readAsDataURL(file);

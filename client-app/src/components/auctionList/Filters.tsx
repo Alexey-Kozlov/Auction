@@ -1,4 +1,4 @@
-import { Button, ButtonGroup } from 'flowbite-react';
+import { Button } from 'flowbite-react';
 import { AiOutlineClockCircle, AiOutlineSortAscending } from 'react-icons/ai';
 import { BsFillStopCircleFill, BsStopwatchFill } from 'react-icons/bs';
 import { GiFinishLine, GiFlame } from 'react-icons/gi';
@@ -9,29 +9,29 @@ import { setParams } from '../../store/paramSlice';
 const pageSizeButtons = [4, 8, 16];
 const orderButtons = [
     {
-        label: 'По наименованию',
+        label: 'Наименование',
         icon: AiOutlineSortAscending,
         value: 'title'
     },
     {
-        label: 'По окончанию аукционов',
+        label: 'Окончание',
         icon: AiOutlineClockCircle,
         value: 'other'
     },
     {
-        label: 'Недавно добавленные',
+        label: 'Недавние',
         icon: BsFillStopCircleFill,
         value: 'new'
     }
 ];
 const filterButtons = [
     {
-        label: 'Текущие аукционы',
+        label: 'Текущие',
         icon: GiFlame,
         value: 'live'
     },
     {
-        label: 'Закончились < 6 часов',
+        label: 'Заканчивающиеся',
         icon: GiFinishLine,
         value: 'endingSoon'
     },
@@ -61,7 +61,8 @@ export default function Filters() {
                             <Button
                                 key={value}
                                 onClick={() => dispatch(setParams({ filterBy: value }))}
-                                color={`${filterBy == value ? 'red' : 'gray'}`}
+                                color={`${filterBy === value ? 'blue' : 'gray'}`}
+
                                 className='focus:ring-0'
                             >
                                 <Icon className='mr-3 h-4 w-4' />
@@ -84,7 +85,7 @@ export default function Filters() {
                             <Button
                                 key={value}
                                 onClick={() => dispatch(setParams({ orderBy: value }))}
-                                color={`${orderBy == value ? 'red' : 'gray'}`}
+                                color={`${orderBy === value ? 'blue' : 'gray'}`}
                                 className='focus:ring-0'
                             >
                                 <Icon className='mr-3 h-4 w-4' />
@@ -103,7 +104,7 @@ export default function Filters() {
                         return (
                             <Button key={index}
                                 onClick={() => dispatch(setParams({ pageSize: value }))}
-                                color={`${pageSize == value ? 'red' : 'gray'}`}
+                                color={`${pageSize === value ? 'blue' : 'gray'}`}
                                 className='focus:ring-0'
                             >
                                 {value}

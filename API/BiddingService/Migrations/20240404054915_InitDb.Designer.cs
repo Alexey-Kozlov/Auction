@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BiddingService.Migrations
 {
     [DbContext(typeof(BidDbContext))]
-    [Migration("20240316131955_InitDb")]
+    [Migration("20240404054915_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -89,10 +89,29 @@ namespace BiddingService.Migrations
                     b.HasKey("Id")
                         .HasName("PK_BidId");
 
+                    b.HasIndex("AuctionId")
+                        .HasDatabaseName("IX_Bids_AuctionId");
+
                     b.HasIndex("Id")
                         .HasDatabaseName("IX_Bids");
 
                     b.ToTable("Bids", (string)null);
+                });
+
+            modelBuilder.Entity("BiddingService.Models.Bid", b =>
+                {
+                    b.HasOne("BiddingService.Models.Auction", "Auction")
+                        .WithMany("Bids")
+                        .HasForeignKey("AuctionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Auction");
+                });
+
+            modelBuilder.Entity("BiddingService.Models.Auction", b =>
+                {
+                    b.Navigation("Bids");
                 });
 #pragma warning restore 612, 618
         }

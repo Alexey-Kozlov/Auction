@@ -22,8 +22,8 @@ public class DbInit
                 Id = Guid.Parse("afbee524-5972-4075-8800-7d1f9d7b0a0c"),
                 Status = Status.Начался,
                 ReservePrice = 1000,
-                Seller = "BobSmith",
-                AuctionEnd = DateTime.UtcNow.AddDays(10),
+                Seller = "bob",
+                AuctionEnd = DateTime.UtcNow.AddDays(100),
                 Item = [new Item
                 {
                     Title = "Ford GT",

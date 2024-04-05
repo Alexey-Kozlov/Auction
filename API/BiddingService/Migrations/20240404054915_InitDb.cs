@@ -40,6 +40,12 @@ namespace BiddingService.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BidId", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Bids_Auctions_AuctionId",
+                        column: x => x.AuctionId,
+                        principalTable: "Auctions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -51,16 +57,21 @@ namespace BiddingService.Migrations
                 name: "IX_Bids",
                 table: "Bids",
                 column: "Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bids_AuctionId",
+                table: "Bids",
+                column: "AuctionId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Auctions");
+                name: "Bids");
 
             migrationBuilder.DropTable(
-                name: "Bids");
+                name: "Auctions");
         }
     }
 }

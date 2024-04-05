@@ -47,6 +47,8 @@ public class BidConfiguration : IEntityTypeConfiguration<Bid>
         builder.Property(p => p.Bidder).HasColumnType("text").HasColumnName("Bidder").IsRequired(true);
         builder.Property(p => p.Amount).HasColumnType("integer").HasColumnName("Amount").IsRequired(true);
         builder.Property(p => p.BidStatus).HasColumnType("integer").HasColumnName("BidStatus").IsRequired(true);
+        builder.HasOne(p => p.Auction).WithMany(p => p.Bids).HasForeignKey(p => p.AuctionId);
         builder.HasIndex(p => p.Id).HasDatabaseName("IX_Bids");
+        builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_Bids_AuctionId");
     }
 }

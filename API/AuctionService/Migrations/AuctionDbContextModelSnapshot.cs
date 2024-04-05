@@ -66,7 +66,7 @@ namespace AuctionService.Migrations
                         .HasColumnName("Winner");
 
                     b.HasKey("Id")
-                        .HasName("Id");
+                        .HasName("PK_AuctionId");
 
                     b.HasIndex("Id")
                         .HasDatabaseName("PK_Auctions");
@@ -99,7 +99,7 @@ namespace AuctionService.Migrations
                         .HasColumnName("Title");
 
                     b.HasKey("Id")
-                        .HasName("PK_Id");
+                        .HasName("PK_ItemId");
 
                     b.HasIndex("AuctionId")
                         .HasDatabaseName("FK_Items_Auctions_AuctionId");

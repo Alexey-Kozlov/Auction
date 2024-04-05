@@ -18,13 +18,13 @@ export default function AuctionCreatedToast({ auction, toastId }: Props) {
             </div>
             <NavLink to={`/auctions/${auction.id}`} className='flex flex-col items-center'>
                 <div className='flex flex-row items-center gap-2'>
-                    <img src={!isLoading && data && (data as AuctionImage)!.image ? (`data:image/png;base64 , ${data['image']}`) : empty}
+                    <img src={!isLoading && (data?.result as AuctionImage)!.image ? (`data:image/png;base64 , ${data?.result['image']}`) : empty}
                         alt=''
                         height={80}
                         width={80}
                         className='rounded-lg'
                     />
-                    <span>Новый аукцион {auction.title} был создан</span>
+                    <span>{`Создан новый аукцион - "${auction.title}"`}</span>
                 </div>
             </NavLink>
         </div>

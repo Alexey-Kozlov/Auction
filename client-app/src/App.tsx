@@ -19,17 +19,16 @@ function App() {
       <ToasterProvider />
       <NavBar />
       <div className="container mx-auto px-5 pt-10">
-        <SignalRProvider user={user}>
-          <Routes>
-            <Route path="/" element={<Listings />}></Route>
-            <Route path="/register" element={<Register />}></Route>
-            <Route path="/login" element={<Login />}></Route>
-            <Route path="/auctions/create" element={<AuctionForm />}></Route>
-            <Route path="/auctions/edit/:id" element={<AuctionForm />}></Route>
-            <Route path="/auctions/:id" element={<Detail />}></Route>
-            <Route path="/not-found" element={<NotFound />}></Route>
-          </Routes>
-        </SignalRProvider>
+        <Routes>
+          <Route path="/" element={<Listings />}></Route>
+          <Route path="/register" element={<Register />}></Route>
+          <Route path="/login" element={<Login />}></Route>
+          <Route path="/auctions/create" element={<AuctionForm />}></Route>
+          <Route path="/auctions/edit/:id" element={<AuctionForm />}></Route>
+          <Route path="/auctions/:id" element={<Detail />}></Route>
+          <Route path="/not-found" element={<NotFound />}></Route>
+        </Routes>
+        {user?.name ? <SignalRProvider /> : <></>}
       </div>
     </div>
   );

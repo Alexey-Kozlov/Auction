@@ -1,4 +1,4 @@
-import { AiOutlineCar } from 'react-icons/ai';
+import { RiAuctionLine } from "react-icons/ri";
 import { NavLink } from 'react-router-dom';
 
 export default function Logo() {
@@ -7,7 +7,7 @@ export default function Logo() {
             className='flex items-center gap-2 text-3xl font-semibold text-red-500'
             to='/'
         >
-            <AiOutlineCar size={34} />
+            <RiAuctionLine size={34} />
             <div>Аукцион</div>
         </NavLink>
     )
