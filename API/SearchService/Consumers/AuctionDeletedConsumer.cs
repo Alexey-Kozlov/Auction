@@ -20,11 +20,8 @@ public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
         if (item != null)
         {
             _context.Items.Remove(item);
-            var result = await _context.SaveChangesAsync();
-            if (result <= 0)
-            {
-                throw new MessageException(typeof(AuctionUpdated), "Ошибка удаления записи");
-            }
+            //await Task.Delay(TimeSpan.FromSeconds(5));
+            await _context.SaveChangesAsync();
             return;
         }
     }

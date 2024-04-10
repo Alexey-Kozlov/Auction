@@ -1,12 +1,16 @@
 import { format } from 'date-fns'
 import { Bid } from '../../store/types';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
+import { useGetUserNameQuery } from '../../api/AuthApi';
 
 type Props = {
     bid: Bid
 }
 
 export default function BidItem({ bid }: Props) {
+    const { data, isLoading } = useGetUserNameQuery(bid.bidder, {
+        skip: !bid.bidder
+    });
     const getBidInfo = () => {
         let bgColor = '';
         let text = '';
@@ -37,7 +41,7 @@ export default function BidItem({ bid }: Props) {
             items-center mb-2 ${getBidInfo().bgColor}
         `}>
             <div className='flex flex-col'>
-                <span>Покупатель: {bid?.bidder}</span>
+                <span>Покупатель: {!isLoading && data?.result}</span>
                 <span className='text-gray-700 text-sm'>Время: {format(new Date(bid?.bidTime), 'dd.MM.yyyy HH:mm')}</span>
             </div>
             <div className='flex flex-col text-right'>

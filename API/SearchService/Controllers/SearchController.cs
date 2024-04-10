@@ -2,6 +2,7 @@ using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
+using SearchService.DTO;
 using SearchService.Entities;
 
 namespace SearchService.Controllers;
@@ -16,8 +17,21 @@ public class SearchController : ControllerBase
     {
         _context = context;
     }
+
+    [HttpGet("{id}")]
+    public async Task<ApiResponse<Item>> SearchItemById(string id)
+    {
+        var item = await _context.Items.Where(p => p.Id == Guid.Parse(id)).FirstOrDefaultAsync();
+        return new ApiResponse<Item>
+        {
+            IsSuccess = true,
+            StatusCode = System.Net.HttpStatusCode.OK,
+            Result = item
+        };
+    }
+
     [HttpGet]
-    public async Task<ApiResponse<SearchType<List<Item>>>> SearchItems([FromQuery] SearchParams searchParams)
+    public async Task<ApiResponse<SearchType<List<Item>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
     {
         var query = _context.Items.AsQueryable();
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
@@ -52,14 +66,14 @@ public class SearchController : ControllerBase
         {
             query = query.Where(p => p.Winner == searchParams.Winner);
         }
+        var itemsCount = await query.CountAsync();
         var result = await query.Skip((searchParams.PageNumber - 1) * searchParams.PageSize)
             .Take(searchParams.PageSize)
             .ToListAsync();
         var pageCount = 0;
-        var pageNumber = searchParams.PageNumber;
-        if (result.Count > 0)
+        if (itemsCount > 0)
         {
-            pageCount = result.Count / searchParams.PageSize;
+            pageCount = (itemsCount + searchParams.PageSize - 1) / searchParams.PageSize;
         }
 
         return new ApiResponse<SearchType<List<Item>>>
@@ -70,7 +84,7 @@ public class SearchController : ControllerBase
             {
                 Results = result,
                 PageCount = pageCount,
-                TotalCount = result.Count
+                TotalCount = itemsCount
             }
         };
     }

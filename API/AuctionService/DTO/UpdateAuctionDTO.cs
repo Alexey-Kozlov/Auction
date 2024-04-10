@@ -1,11 +1,11 @@
 ﻿namespace AuctionService.DTO;
 
-public class UpdateAuctionDTO
-{
-    public string Title { get; set; }
-    public string Properties { get; set; }
-    public string Description { get; set; }
-    public string Image { get; set; }
-    public int ReservePrice { get; set; }
-    public DateTime AuctionEnd { get; set; }
-}
+public record UpdateAuctionDTO
+(
+    string Title,
+    string Properties,
+    string Description,
+    string Image,
+    int ReservePrice,
+    DateTime AuctionEnd
+);

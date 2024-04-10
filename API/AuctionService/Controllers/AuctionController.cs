@@ -53,19 +53,11 @@ public class AuctionController : ControllerBase
             .Include(p => p.Item)
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (auction == null) return new ApiResponse<AuctionDTO>()
-        {
-            StatusCode = System.Net.HttpStatusCode.NotFound,
-            IsSuccess = false,
-            ErrorMessages = ["Аукцион не найден"],
-            Result = new AuctionDTO()
-        };
-
         return new ApiResponse<AuctionDTO>()
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
-            Result = _mapper.Map<AuctionDTO>(auction)
+            Result = _mapper.Map<AuctionDTO>(auction ?? new Auction())
         };
     }
 
@@ -112,6 +104,7 @@ public class AuctionController : ControllerBase
             {
                 StatusCode = System.Net.HttpStatusCode.Forbidden,
                 IsSuccess = false,
+                ErrorMessages = ["Обновить аукцион может только автор аукциона"],
                 Result = null
             };
 
@@ -152,6 +145,7 @@ public class AuctionController : ControllerBase
             {
                 StatusCode = System.Net.HttpStatusCode.Forbidden,
                 IsSuccess = false,
+                ErrorMessages = ["Удалить аукцион может только автор аукциона"],
                 Result = null
             };
         _context.Auctions.Remove(auction);

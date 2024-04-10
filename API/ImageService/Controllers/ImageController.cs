@@ -38,7 +38,8 @@ public class ImageController : ControllerBase
         if (image == null) return new ApiResponse<ImageDTO>()
         {
             StatusCode = System.Net.HttpStatusCode.NotFound,
-            IsSuccess = true,
+            IsSuccess = false,
+            ErrorMessages = ["Изображение не найдено"],
             Result = new ImageDTO()
         };
 

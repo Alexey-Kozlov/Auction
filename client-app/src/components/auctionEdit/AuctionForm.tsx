@@ -10,18 +10,23 @@ import DatePickerInput from '../inputComponents/DatePickerInput';
 import ImageFileInput from '../inputComponents/ImageFileInput';
 import TextAreaInput from '../inputComponents/TextAreaInput';
 import { Button } from 'flowbite-react';
-import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
+import { useCreateAuctionMutation, useGetAuctionByIdQuery, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
+import ConvertUTCDate from '../../utils/ConvertUTCDate';
 
 export default function AuctionForm() {
     let { id } = useParams();
     if (!id) id = 'empty';
-    const { data, isLoading, isError } = useGetDetailedViewDataQuery(id!, {
+    const { data, isLoading } = useGetDetailedViewDataQuery(id!, {
         skip: id === 'empty'
     });
 
     const [createAuction] = useCreateAuctionMutation();
     const [updateAuction] = useUpdateAuctionMutation();
+    const [createAuctionId, setCreateAuctionId] = useState('');
+    const createdAuctionItem = useGetAuctionByIdQuery(createAuctionId, {
+        skip: createAuctionId === ''
+    });
     const [image, setImage] = useState('');
     const [isWaiting, setIsWaiting] = useState(false);
     const [newAuction, setNewAuction] = useState<Auction>(
@@ -41,10 +46,8 @@ export default function AuctionForm() {
     });
 
     useEffect(() => {
-        if (!isLoading) {
-            if (data) {
-                setNewAuction(data!.result);
-            }
+        if (!isLoading && data) {
+            setNewAuction(data!.result);
         }
     }, [data, isLoading])
 
@@ -54,13 +57,17 @@ export default function AuctionForm() {
         }
     }, [auctionImage.isLoading, auctionImage.data?.result?.image])
 
+
+    useEffect(() => {
+        if (id !== 'empty' && !isLoading && data?.isSuccess && data?.result && !data?.result.title) {
+            navigate('/not-found');
+        }
+    }, [isLoading, data, id, navigate]);
+
+
     if (isLoading) return 'Загрузка...';
-    if (isError) {
-        navigate('/not-found');
-    }
 
     return (
-
         <div className='mx-auto max-w-[75%] shadow-lg p-10 bg-white rounded-lg'>
             <>
                 <Heading title='Редактирование аукциона' subtitle='Отредактируйте данные ниже' />
@@ -76,10 +83,35 @@ export default function AuctionForm() {
                                 data: JSON.stringify(values)
                             });
                             if (response.data!.isSuccess) {
-                                toast.success(`Аукцион "${values.title}" успешно обновлен!`);
-                                setTimeout(() => {
-                                    navigate('/');
-                                }, 1000);
+                                setCreateAuctionId(response.data!.result.id!);
+                                //если запись аукциона еще присутствует в Search, делаем задержку и повторяем проверку
+                                let attemptCounter = 10;
+                                const refInterval = setInterval(() => {
+                                    if (attemptCounter === 0) {
+                                        //не удалось найти запись в Search после 10 попыток - ошибка
+                                        clearInterval(refInterval);
+                                        toast.error(`Ошибка обновления аукциона "${values?.title}".`, { duration: 15000 });
+                                        navigate('/');
+                                    }
+                                    attemptCounter--;
+                                    try {
+                                        createdAuctionItem.refetch()
+                                            .then(rez => {
+                                                let currentTime = ConvertUTCDate(null);
+                                                currentTime!.setSeconds(currentTime!.getSeconds() - 5);
+                                                let updatedTime = new Date(rez.data!.result.updatedAt);
+                                                if (rez.data && rez.data.result &&
+                                                    updatedTime!.getTime() > currentTime!.getTime()
+                                                ) {
+                                                    clearInterval(refInterval);
+                                                    toast.success(`Аукцион "${rez.data!.result.title}" успешно обновлен!`);
+                                                    navigate('/');
+                                                }
+                                            })
+                                    } catch (e) {
+                                        clearInterval(refInterval);
+                                    }
+                                }, 500);
                             }
                         } else {
                             //создание аукциона
@@ -87,10 +119,30 @@ export default function AuctionForm() {
                                 data: JSON.stringify(values)
                             });
                             if (response.data!.isSuccess) {
-                                toast.success(`Новый аукцион "${values.title}" успешно создан!`);
-                                setTimeout(() => {
-                                    navigate('/');
-                                }, 1000);
+                                setCreateAuctionId(response.data!.result.id!);
+                                //если запись аукциона еще присутствует в Search, делаем задержку и повторяем проверку
+                                let attemptCounter = 10;
+                                const refInterval = setInterval(() => {
+                                    if (attemptCounter === 0) {
+                                        //не удалось найти запись в Search после 10 попыток - ошибка
+                                        clearInterval(refInterval);
+                                        toast.error(`Ошибка создания аукциона "${values?.title}".`, { duration: 15000 });
+                                        navigate('/');
+                                    }
+                                    attemptCounter--;
+                                    try {
+                                        createdAuctionItem.refetch()
+                                            .then(rez => {
+                                                if (rez.data && rez.data.result) {
+                                                    clearInterval(refInterval);
+                                                    toast.success(`Новый аукцион "${rez.data!.result.title}" успешно создан!`);
+                                                    navigate('/');
+                                                }
+                                            })
+                                    } catch (e) {
+                                        clearInterval(refInterval);
+                                    }
+                                }, 500);
                             }
                         }
                     }

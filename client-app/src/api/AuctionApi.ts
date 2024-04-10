@@ -59,6 +59,19 @@ const auctionApi = createApi({
       },
       providesTags: ["auctions"],
     }),
+    getAuctionById: builder.query<ApiResponseNet<Auction>, string>({
+      query: (id) => ({
+        url: "/search/" + id,
+      }),
+      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      providesTags: ["auctions"],
+    }),
     deleteAuction: builder.mutation<ApiResponseNet<{}>, string>({
       query: (id) => ({
         url: `/auctions/${id}`,
@@ -124,6 +137,7 @@ const auctionApi = createApi({
 
 export const {
   useGetAuctionsQuery,
+  useGetAuctionByIdQuery,
   useGetDetailedViewDataQuery,
   useDeleteAuctionMutation,
   useUpdateAuctionMutation,

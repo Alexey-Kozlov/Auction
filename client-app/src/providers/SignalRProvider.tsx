@@ -69,26 +69,34 @@ export default function SignalRProvider() {
                     console.log('Коннект установлен с хабом уведомлений');
 
                     connection.on('BidPlaced', (bid: Bid) => {
-                        if (bid.bidStatus.includes('Принято') && bid.bidder !== user.login) {
-                            dispatch(setCurrentPrice({ auctionId: bid.auctionId, amount: bid.amount }));
-                            dispatch(addBid({ bid: bid }));
-                            setAuctionId(bid.auctionId);
-                        }
+                        //задержка в 1 секунду - чтобы обновились данные
+                        setTimeout(() => {
+                            if (bid.bidStatus.includes('Принято') && bid.bidder !== user.login) {
+                                dispatch(setCurrentPrice({ auctionId: bid.auctionId, amount: bid.amount }));
+                                dispatch(addBid({ bid: bid }));
+                                setAuctionId(bid.auctionId);
+                            }
+                        }, 1000);
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
-                        if (user?.login !== auction.seller) {
-                            return toast((p) => (
-                                <AuctionCreatedToast auction={auction} toastId={p.id} />
-                            ),
-                                { duration: 10000 });
-                        }
+                        //задержка в 1 секунду - чтобы обновились данные
+                        setTimeout(() => {
+                            if (user?.login !== auction.seller) {
+                                return toast((p) => (
+                                    <AuctionCreatedToast auction={auction} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+                            }
+                        }, 1000);
                     })
 
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
-                        setFinishedAuction(finishedAuction);
-                    })
+                        setTimeout(() => {
+                            setFinishedAuction(finishedAuction);
+                        }, 1000);
 
+                    })
                 }).catch(err => console.log(err));
         }
 
