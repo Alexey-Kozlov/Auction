@@ -3,12 +3,16 @@ const ConvertUTCDate = (
 ): Date | null => {
   let date: Date = new Date();
 
-  if (convertDate) {
-    if (convertDate instanceof String) {
-      date = new Date(convertDate);
-    } else if (convertDate instanceof Date) {
-      date = convertDate;
-    } else return null;
+  try {
+    if (convertDate) {
+      if (convertDate instanceof String) {
+        date = new Date(convertDate);
+      } else if (convertDate instanceof Date) {
+        date = convertDate;
+      } else return null;
+    }
+  } catch (e) {
+    return null;
   }
 
   return new Date(

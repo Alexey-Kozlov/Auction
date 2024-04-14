@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using IdentityService.Data;
 using IdentityService.Models;
 using Common.Utils;
-using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityService.Controllers;
 

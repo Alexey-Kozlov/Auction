@@ -42,9 +42,12 @@ public class SearchController : ControllerBase
         //сортировка в зависимости от текстового параметра OrderBy
         query = searchParams.OrderBy switch
         {
-            "title" => query.OrderBy(p => p.Title).ThenBy(p => p.Title),
-            "new" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.Title),
-            _ => query.OrderBy(p => p.AuctionEnd)
+            "titleAsc" => query.OrderBy(p => p.Title).ThenBy(p => p.Title),
+            "titleDesc" => query.OrderByDescending(p => p.Title).ThenByDescending(p => p.Title),
+            "newAsc" => query.OrderBy(p => p.CreateAt).ThenBy(p => p.Title),
+            "newDesc" => query.OrderByDescending(p => p.CreateAt).ThenByDescending(p => p.Title),
+            "endAsc" => query.OrderBy(p => p.AuctionEnd),
+            _ => query.OrderByDescending(p => p.AuctionEnd)
         };
         //отбор в зависимости от текстового параметра FilterBy
         query = searchParams.FilterBy switch

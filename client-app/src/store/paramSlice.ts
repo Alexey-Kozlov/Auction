@@ -15,7 +15,7 @@ const initialState: State = {
   pageNumber: 1,
   pageSize: 4,
   pageCount: 1,
-  orderBy: "new",
+  orderBy: "newDesc",
   filterBy: "live",
   seller: undefined,
   winner: undefined,
@@ -45,7 +45,7 @@ export const paramSlice = createSlice({
       state.pageNumber = 1;
       state.pageSize = 4;
       state.pageCount = 1;
-      state.orderBy = "new";
+      state.orderBy = "newDesc";
       state.filterBy = "live";
       state.seller = undefined;
       state.winner = undefined;

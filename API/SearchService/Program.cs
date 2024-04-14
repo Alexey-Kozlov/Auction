@@ -53,7 +53,7 @@ builder.Services.AddMassTransit(p =>
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
-
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 //инициализация БД поиска из сервиса Auction

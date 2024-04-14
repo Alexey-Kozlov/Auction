@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IdentityService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240301192349_InitDb")]
+    [Migration("20240414192740_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -87,6 +87,53 @@ namespace IdentityService.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("IdentityService.Models.UserFinance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id");
+
+                    b.Property<DateTimeOffset>("ActionDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ActionDate");
+
+                    b.Property<decimal>("Credit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric")
+                        .HasColumnName("Credit");
+
+                    b.Property<decimal>("Debit")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric")
+                        .HasColumnName("Debit");
+
+                    b.Property<decimal>("LastBalance")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("тгьукшс")
+                        .HasColumnName("LastBalance");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("Status");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id")
+                        .HasName("PK_UserFinanceId");
+
+                    b.HasIndex("Id")
+                        .HasDatabaseName("PK_UserFinance");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("FK_UserFinance_ApplicationUser_UserId");
+
+                    b.ToTable("UserFinance", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -221,6 +268,17 @@ namespace IdentityService.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("IdentityService.Models.UserFinance", b =>
+                {
+                    b.HasOne("IdentityService.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany("UserFinance")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -270,6 +328,11 @@ namespace IdentityService.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("IdentityService.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("UserFinance");
                 });
 #pragma warning restore 612, 618
         }

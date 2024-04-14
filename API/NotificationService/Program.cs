@@ -67,6 +67,7 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notifications");
