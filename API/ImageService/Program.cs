@@ -1,11 +1,11 @@
 
-using AuctionService.Data;
 using ImageService.Consumers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Polly;
 using Common.Utils;
+using ImageService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

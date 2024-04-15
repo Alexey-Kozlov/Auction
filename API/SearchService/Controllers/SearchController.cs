@@ -31,7 +31,7 @@ public class SearchController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ApiResponse<SearchType<List<Item>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
+    public async Task<ApiResponse<PagedResult<List<Item>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
     {
         var query = _context.Items.AsQueryable();
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
@@ -79,11 +79,11 @@ public class SearchController : ControllerBase
             pageCount = (itemsCount + searchParams.PageSize - 1) / searchParams.PageSize;
         }
 
-        return new ApiResponse<SearchType<List<Item>>>
+        return new ApiResponse<PagedResult<List<Item>>>
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
-            Result = new SearchType<List<Item>>()
+            Result = new PagedResult<List<Item>>()
             {
                 Results = result,
                 PageCount = pageCount,
@@ -92,7 +92,7 @@ public class SearchController : ControllerBase
         };
     }
 
-    public class SearchType<T>
+    public class PagedResult<T>
     {
         public T Results { get; set; }
         public int PageCount { get; set; }

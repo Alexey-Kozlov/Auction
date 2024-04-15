@@ -1,9 +1,8 @@
 using ImageService.Entities;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AuctionService.Data;
+namespace ImageService.Data;
 
 public class ImageDbContext : DbContext
 {

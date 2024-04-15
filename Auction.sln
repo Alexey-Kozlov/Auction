@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Common\Contrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Common\Utils\Utils.csproj", "{F8307018-C9D3-447A-9CE5-1560C9CD03AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceService", "API\FinanceService\FinanceService.csproj", "{4C43C03B-7BE7-4F6D-BDB5-2F9A11089C65}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{F8307018-C9D3-447A-9CE5-1560C9CD03AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8307018-C9D3-447A-9CE5-1560C9CD03AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8307018-C9D3-447A-9CE5-1560C9CD03AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C43C03B-7BE7-4F6D-BDB5-2F9A11089C65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C43C03B-7BE7-4F6D-BDB5-2F9A11089C65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C43C03B-7BE7-4F6D-BDB5-2F9A11089C65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C43C03B-7BE7-4F6D-BDB5-2F9A11089C65}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -81,5 +87,6 @@ Global
 		{C68673AF-0170-4D12-8E01-1C74D006A245} = {C7B7F817-2E49-4A94-B34C-ED8AB2ECD4A4}
 		{C8D41E1B-CA26-4B7B-A7EA-002696672D0A} = {D20F5E5C-1633-4313-9E20-9C03C318978D}
 		{F8307018-C9D3-447A-9CE5-1560C9CD03AA} = {D20F5E5C-1633-4313-9E20-9C03C318978D}
+		{4C43C03B-7BE7-4F6D-BDB5-2F9A11089C65} = {C7B7F817-2E49-4A94-B34C-ED8AB2ECD4A4}
 	EndGlobalSection
 EndGlobal
