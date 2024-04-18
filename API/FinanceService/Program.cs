@@ -41,11 +41,6 @@ builder.Services.AddAuthentication(p =>
 //     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("image", false));
 //     p.UsingRabbitMq((context, config) =>
 //     {
-//         config.UseMessageRetry(p =>
-//         {
-//             p.Handle<RabbitMqConnectionException>();
-//             p.Interval(5, TimeSpan.FromSeconds(10));
-//         });
 //         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
 //         {
 //             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
@@ -53,7 +48,6 @@ builder.Services.AddAuthentication(p =>
 //         });
 //         config.ReceiveEndpoint("image-auction-created", e =>
 //         {
-//             e.UseMessageRetry(t => t.Interval(5, 5));
 //             e.ConfigureConsumer<AuctionCreatedConsumer>(context);
 //         });
 //         config.ConfigureEndpoints(context);
@@ -66,6 +60,5 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-//Policy.Handle<NpgsqlException>().WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(10));
 
 app.Run();

@@ -28,6 +28,7 @@ docker push kozlovas/auction-front
 
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts
+из папки Projects/Auction/Common/Utils
 dotnet pack -o ~/Projects/Auctions/Packages/
 
 команды добавления пакетов в проекты

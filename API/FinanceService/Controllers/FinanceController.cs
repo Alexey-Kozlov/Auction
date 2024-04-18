@@ -1,10 +1,8 @@
-﻿using System.Linq.Expressions;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Common.Utils;
 using FinanceService.Data;
 using FinanceService.DTO;
 using FinanceService.Entities;
-using MassTransit.SagaStateMachine;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -95,13 +93,6 @@ public class FinanceController : ControllerBase
             Result = credit.Balance
         };
 
-    }
-
-    public class PagedResult<T>
-    {
-        public T Results { get; set; }
-        public int PageCount { get; set; }
-        public int TotalCount { get; set; }
     }
 
 }

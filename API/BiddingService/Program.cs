@@ -5,8 +5,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Npgsql;
-using Polly;
 using System.Text;
 using Common.Utils;
 
@@ -23,11 +21,6 @@ builder.Services.AddMassTransit(p =>
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("bids", false));
     p.UsingRabbitMq((context, config) =>
     {
-        config.UseMessageRetry(p =>
-        {
-            p.Handle<RabbitMqConnectionException>();
-            p.Interval(5, TimeSpan.FromSeconds(10));
-        });
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
         {
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
@@ -65,7 +58,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-Policy.Handle<NpgsqlException>().WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(10));
 
 app.Run();

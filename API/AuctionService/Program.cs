@@ -6,9 +6,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using Npgsql;
-using Polly;
 using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,21 +17,10 @@ builder.Services.AddDbContext<AuctionDbContext>(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(p =>
 {
-    p.AddEntityFrameworkOutbox<AuctionDbContext>(config =>
-    {
-        config.QueryDelay = TimeSpan.FromSeconds(10);
-        config.UsePostgres();
-        config.UseBusOutbox();
-    });
     p.AddConsumersFromNamespaceContaining<AuctionCreatedFaultConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
     p.UsingRabbitMq((context, config) =>
     {
-        config.UseMessageRetry(p =>
-        {
-            p.Handle<RabbitMqConnectionException>();
-            p.Interval(5, TimeSpan.FromSeconds(10));
-        });
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
         {
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
@@ -63,46 +49,9 @@ builder.Services.AddAuthentication(p =>
 });
 builder.Services.AddGrpc();
 
-builder.Services.AddSwaggerGen(opt =>
-{
-    //здесь конфиг для сваггера - чтобы можно было проверять JWT-аутентификацию
-    opt.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme,
-    new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization" +
-        "Введите 'Bearer' [space] and token, например -> \"Bearer 12345kjhgkhgkj\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Scheme = JwtBearerDefaults.AuthenticationScheme
-    });
-    opt.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header
-            },
-            new List<string>()
-        }
-    });
-});
-
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -110,9 +59,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<GrpcAuctionService>();
 
-var retryPolicy = Policy
-.Handle<NpgsqlException>()
-.WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(10));
-retryPolicy.ExecuteAndCapture(() => DbInit.InitDb(app));
+DbInit.InitDb(app);
 
 app.Run();
