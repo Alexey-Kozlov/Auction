@@ -99,3 +99,12 @@ export type NotifyUser = {
   auctionId: string;
   enable: boolean;
 };
+
+export type FinanceItem = {
+  auctionId: string;
+  debit: number;
+  credit: number;
+  actionDate: Date;
+  reserved: boolean;
+  balance: number;
+};

@@ -48,7 +48,6 @@ builder.Services.AddCors();
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
-//app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));

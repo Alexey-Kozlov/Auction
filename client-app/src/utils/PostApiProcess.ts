@@ -4,7 +4,7 @@ import { ApiResponseNet } from "../store/types";
 export const PostApiProcess = (response: ApiResponseNet<any>) => {
   if (response && !response.isSuccess) {
     console.log(response.errorMessages.join(","));
-    //toast.error(response.errorMessages[0]);
+    toast.error(response.errorMessages[0]);
   }
 };
 

@@ -9,6 +9,8 @@ import bidApi from "../api/BidApi";
 import signalRApi from "../api/SignalRApi";
 import imageApi from "../api/ImageApi";
 import notificationApi from "../api/NotificationApi";
+import financeApi from "../api/FinanceApi";
+import { financeReducer } from "./financeSlice";
 
 const store = configureStore({
   reducer: {
@@ -16,12 +18,14 @@ const store = configureStore({
     bidStore: bidReducer,
     auctionStore: auctionReducer,
     paramStore: paramReducer,
+    financeStore: financeReducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [bidApi.reducerPath]: bidApi.reducer,
     [signalRApi.reducerPath]: signalRApi.reducer,
     [imageApi.reducerPath]: imageApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
+    [financeApi.reducerPath]: financeApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -32,7 +36,8 @@ const store = configureStore({
       .concat(bidApi.middleware)
       .concat(signalRApi.middleware)
       .concat(imageApi.middleware)
-      .concat(notificationApi.middleware),
+      .concat(notificationApi.middleware)
+      .concat(financeApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

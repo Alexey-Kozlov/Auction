@@ -35,14 +35,6 @@ public class ImageController : ControllerBase
     {
         var image = await _context.Images.FirstOrDefaultAsync(p => p.Id == id);
 
-        if (image == null) return new ApiResponse<ImageDTO>()
-        {
-            StatusCode = System.Net.HttpStatusCode.NotFound,
-            IsSuccess = false,
-            ErrorMessages = ["Изображение не найдено"],
-            Result = new ImageDTO()
-        };
-
         return new ApiResponse<ImageDTO>()
         {
             StatusCode = System.Net.HttpStatusCode.OK,

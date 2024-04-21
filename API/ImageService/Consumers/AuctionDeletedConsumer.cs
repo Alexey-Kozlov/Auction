@@ -1,4 +1,4 @@
-﻿using AuctionService.Data;
+﻿using ImageService.Data;
 using Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

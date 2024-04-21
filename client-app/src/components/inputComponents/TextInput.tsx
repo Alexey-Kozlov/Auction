@@ -20,11 +20,11 @@ export default function TextInput({ labellWidth, inputWidth, inputDescr, require
     const { setValue } = helpers;
     return (
         <>
-            <div className={`flex col-sm-6 offset-sm-3 col-xs-12 mt-4 ${controlsAlign}`}>
-                <label className={labellWidth ? labellWidth : 'w-6/12'}>
+            <div className={`flex items-center col-sm-6 offset-sm-3 col-xs-12  ${controlsAlign}`}>
+                <div className={`${labellWidth ? labellWidth : 'w-6/12'}`}>
                     {rest.label}
                     {required && (<span>*</span>)}
-                </label>
+                </div>
                 <input
                     className={`border-gray-400 border ml-[5px] pl-[5px]
                 ${inputWidth ? inputWidth : 'w-6/12'}`}
@@ -36,7 +36,7 @@ export default function TextInput({ labellWidth, inputWidth, inputDescr, require
                     <label className="ml-3">{inputDescr}</label>
                 )}
             </div>
-            <div className="text-left">
+            <div className={` ${controlsAlign} `}>
                 {
                     meta.touched && meta.error ?
                         <p className="text-red-500">{meta.error}</p>

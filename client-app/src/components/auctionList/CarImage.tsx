@@ -11,7 +11,7 @@ export default function CarImage({ id, style }: Props) {
 
     if (isLoading) return;
     return (
-        <img src={data?.result.image ? `data:image/png;base64 , ${data.result.image}` : empty}
+        <img src={data?.result?.image ? `data:image/png;base64 , ${data.result.image}` : empty}
             alt=''
             className={`object-cover group-hover:opacity-75 duration-700 ease-in-out
             ${isLoading ? 'grayscale blur-2xl scale-110' : 'grayscale-0 blur-0 scale-100'}`}

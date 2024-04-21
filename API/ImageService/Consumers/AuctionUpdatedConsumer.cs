@@ -1,4 +1,4 @@
-﻿using AuctionService.Data;
+﻿using ImageService.Data;
 using AutoMapper;
 using Contracts;
 using ImageService.Entities;

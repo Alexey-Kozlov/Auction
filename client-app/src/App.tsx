@@ -11,6 +11,7 @@ import { User } from "./store/types";
 import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import NotFound from "./components/nav/NotFound";
+import FinListings from "./components/finance/FinListings";
 
 function App() {
   const user: User = useSelector((state: RootState) => state.authStore);
@@ -26,6 +27,7 @@ function App() {
           <Route path="/auctions/create" element={<AuctionForm />}></Route>
           <Route path="/auctions/edit/:id" element={<AuctionForm />}></Route>
           <Route path="/auctions/:id" element={<Detail />}></Route>
+          <Route path="/finance/list" element={<FinListings />}></Route>
           <Route path="/not-found" element={<NotFound />}></Route>
         </Routes>
         {user?.name ? <SignalRProvider /> : <></>}

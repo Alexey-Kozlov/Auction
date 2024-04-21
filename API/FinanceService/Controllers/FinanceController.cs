@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ImageService.Controllers;
 
+
+[Authorize]
 [ApiController]
 [Route("api/finance")]
 public class FinanceController : ControllerBase
@@ -20,7 +22,6 @@ public class FinanceController : ControllerBase
         _context = context;
     }
 
-    [Authorize]
     [HttpGet("GetBalance")]
     public async Task<ApiResponse<decimal>> GetBalance()
     {
@@ -35,7 +36,6 @@ public class FinanceController : ControllerBase
         };
     }
 
-    [Authorize]
     [HttpGet("GetHistory")]
     public async Task<ApiResponse<PagedResult<List<BalanceItem>>>> GetHistory([FromQuery] PagedParamsDTO pagedParams)
     {
@@ -64,7 +64,6 @@ public class FinanceController : ControllerBase
 
     }
 
-    [Authorize]
     [HttpPost("AddCredit")]
     public async Task<ApiResponse<decimal>> AddCredit([FromBody] AddCreditDTO creditDTO)
     {

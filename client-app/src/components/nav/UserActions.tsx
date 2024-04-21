@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { emptyUserState, setAuthUser } from '../../store/authSlice';
 import { setParams } from '../../store/paramSlice';
+import { GrMoney } from "react-icons/gr";
 
 export default function UserActions() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -41,6 +42,10 @@ export default function UserActions() {
             </Dropdown.Item>
             <Dropdown.Item icon={RiAuctionFill}>
                 <NavLink to='/auctions/create'>Создать аукцион</NavLink>
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item icon={GrMoney}>
+                <NavLink to='/finance/list'>Финансы</NavLink>
             </Dropdown.Item>
             <Dropdown.Divider />
             <Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>
