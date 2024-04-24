@@ -1,54 +1,43 @@
-﻿using Common.Utils;
+﻿using Contracts;
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using ProcessingService.DTO;
+using ProcessingService.StateMachines;
 
-namespace ProcessiungService.Controllers;
+namespace ProcessingService.Controllers;
 
-
-[Authorize]
 [ApiController]
-[Route("api/finance")]
-public class FinanceController : ControllerBase
+[Route("api/[controller]")]
+public class ProcessingController : ControllerBase
 {
+    private readonly IPublishEndpoint _publishEndpoint;
 
+    private readonly IRequestClient<GetProcessingBidState> _processingClient;
 
-    public FinanceController()
+    public ProcessingController(IPublishEndpoint publishEndpoint, IRequestClient<GetProcessingBidState> processingClient)
     {
-
+        _publishEndpoint = publishEndpoint;
+        _processingClient = processingClient;
     }
 
-
-
-    [HttpPost("AddCredit")]
-    public async Task<ApiResponse<decimal>> AddCredit()
+    [HttpGet("status/{correlationId}")]
+    public async Task<ActionResult<ProcessingState>> GetStatusAsync(Guid correlationId)
     {
-        // var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        // using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
-        // var balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == userLogin).OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
-        // var credit = new BalanceItem
-        // {
-        //     ActionDate = DateTime.UtcNow,
-        //     AuctionId = null,
-        //     Balance = (balanceItem?.Balance ?? 0) + creditDTO.amount,
-        //     Credit = creditDTO.amount,
-        //     Debit = 0,
-        //     Reserved = false,
-        //     UserLogin = userLogin
-        // };
+        var response = await _processingClient.GetResponse<ProcessingState>(
+            new GetProcessingBidState(correlationId));
 
-        // await _context.BalanceItems.AddAsync(credit);
-        // await _context.SaveChangesAsync();
-        // await transaction.CommitAsync();
-
-        // return new ApiResponse<decimal>()
-        // {
-        //     StatusCode = System.Net.HttpStatusCode.OK,
-        //     IsSuccess = true,
-        //     Result = credit.Balance
-        // };
-        return null;
-
+        return Ok(response.Message);
     }
 
+    [Authorize]
+    [HttpPost("placebid")]
+    public async Task<ActionResult> PlaceBid([FromBody] PlaceBidDTO par)
+    {
+        var bid = new RequestProcessingBidStart(par.auctionId, User.Identity.Name, par.amount, par.correlationId);
+
+        await _publishEndpoint.Publish(bid);
+
+        return Accepted();
+    }
 }

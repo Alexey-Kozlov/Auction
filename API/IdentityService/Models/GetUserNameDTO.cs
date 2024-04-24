@@ -1,5 +1,5 @@
 namespace IdentityService.Models;
-public class GetUserNameDTO
-{
-    public string login { get; set; }
-}
+public record GetUserNameDTO
+(
+    string login
+);

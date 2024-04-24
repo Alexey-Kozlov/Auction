@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { Button } from 'flowbite-react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
-import CarImage from '../auctionList/CarImage';
+import ImageCard from '../auctionList/ImageCard';
 import BidList from './BidList';
 import DetailedSpecs from './DetailedSpec';
 import { useDeleteAuctionMutation, useGetAuctionByIdQuery, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
@@ -128,8 +128,8 @@ export default function Detail() {
 
                 </div>
                 <div className='grid grid-cols-2 gap-6 mt-3'>
-                    <div className='w-full bg-gray-200 aspect-h-10 aspect-w-16 rounded-lg overflow-hidden'>
-                        <CarImage id={auctionDetail!.id} />
+                    <div className='flex items-center justify-center rounded-lg'>
+                        <ImageCard id={auctionDetail!.id} dopStyle=' max-h-96' />
                     </div>
                     <BidList user={user} auction={auctionDetail!} />
                 </div>

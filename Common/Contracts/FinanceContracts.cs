@@ -1,12 +1,15 @@
 namespace Contracts;
 
 public record FinanceCreditAdd(
-     decimal Credit,
+     int Credit,
      string UserLogin
 );
 
-public record FinanceDebitAdd(
-    decimal Debit,
+public record RequestFinanceDebitAdd(
+    int Debit,
     Guid AuctionId,
-    string UserLogin
+    string UserLogin,
+    Guid CorrelationId
 );
+
+public record FinanceGranted(Guid CorrelationId);

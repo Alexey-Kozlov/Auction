@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceService.Migrations
 {
     [DbContext(typeof(FinanceDbContext))]
-    [Migration("20240415160715_InitDb")]
+    [Migration("20240424132615_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -32,7 +32,7 @@ namespace FinanceService.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("Id");
 
-                    b.Property<DateTimeOffset>("ActionDate")
+                    b.Property<DateTime>("ActionDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ActionDate");
 
@@ -40,19 +40,19 @@ namespace FinanceService.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("AuctionId");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<int>("Balance")
                         .HasPrecision(14, 2)
-                        .HasColumnType("numeric")
+                        .HasColumnType("integer")
                         .HasColumnName("Balance");
 
-                    b.Property<decimal>("Credit")
+                    b.Property<int>("Credit")
                         .HasPrecision(14, 2)
-                        .HasColumnType("numeric")
+                        .HasColumnType("integer")
                         .HasColumnName("Credit");
 
-                    b.Property<decimal>("Debit")
+                    b.Property<int>("Debit")
                         .HasPrecision(14, 2)
-                        .HasColumnType("numeric")
+                        .HasColumnType("integer")
                         .HasColumnName("Debit");
 
                     b.Property<bool>("Reserved")

@@ -1,2 +1,2 @@
 namespace FinanceService.DTO;
-public record AddCreditDTO(decimal amount);
+public record AddCreditDTO(int amount);

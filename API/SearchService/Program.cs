@@ -1,7 +1,6 @@
 
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using SearchService;
 using SearchService.Consumers;
 using SearchService.Data;

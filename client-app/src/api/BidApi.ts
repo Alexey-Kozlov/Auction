@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiResponseNet, Bid, PlaceBidParams } from "../store/types";
+import { ApiResponseNet, Bid } from "../store/types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
@@ -17,24 +17,6 @@ const bidApi = createApi({
   }),
   tagTypes: ["bids"],
   endpoints: (builder) => ({
-    placeBidForAuction: builder.mutation<any, PlaceBidParams>({
-      query: (params) => ({
-        url: "",
-        method: "post",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(params),
-      }),
-      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["bids"],
-    }),
     getBidsForAuction: builder.query<ApiResponseNet<Bid[]>, string>({
       query: (id) => ({
         url: `/${id}`,
@@ -51,6 +33,5 @@ const bidApi = createApi({
   }),
 });
 
-export const { useGetBidsForAuctionQuery, usePlaceBidForAuctionMutation } =
-  bidApi;
+export const { useGetBidsForAuctionQuery } = bidApi;
 export default bidApi;

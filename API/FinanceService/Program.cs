@@ -1,4 +1,3 @@
-
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Common.Utils;
@@ -36,7 +35,7 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<BidPlacedConsumer>();
+    p.AddConsumersFromNamespaceContaining<FinanceDebitAddConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("finance", false));
     p.UsingRabbitMq((context, config) =>
     {

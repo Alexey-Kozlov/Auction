@@ -1,10 +1,18 @@
 namespace Contracts;
 
-public record BidPlaced(
-     Guid Id,
+public record RequestProcessingBidStart(
      Guid AuctionId,
      string Bidder,
-    DateTime BidTime,
      int Amount,
-     string BidStatus
+     Guid CorrelationId
 );
+
+public record RequestBidPlace(
+     Guid AuctionId,
+     string Bidder,
+     int Amount,
+     Guid CorrelationId
+);
+
+public record BidPlaced(Guid CorrelationId, Guid AuctionId, int Amount);
+public record GetProcessingBidState(Guid CorrelationId);

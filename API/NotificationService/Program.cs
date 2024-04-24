@@ -46,7 +46,7 @@ builder.Services.AddAuthentication(p =>
 builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
-    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("nt", false));
+    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("notification", false));
     p.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>

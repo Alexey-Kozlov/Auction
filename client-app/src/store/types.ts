@@ -83,6 +83,7 @@ export type ObjectResponse<T> = {
 export type PlaceBidParams = {
   amount: number;
   auctionId: string;
+  correlationId: string;
 };
 
 export type CreateUpdateAuctionParams = {

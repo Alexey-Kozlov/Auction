@@ -2,15 +2,15 @@
 
 namespace AuctionService.DTO;
 
-public class CreateAuctionDTO
-{
+public record CreateAuctionDTO
+(
     [Required]
-    public string Title { get; set; }
+     string Title,
     [Required]
-    public string Properties { get; set; }
-    public string Description { get; set; }
-    public string Image { get; set; }
-    public int ReservePrice { get; set; }
+     string Properties,
+     string Description,
+     string Image,
+     int ReservePrice,
     [Required]
-    public DateTime AuctionEnd { get; set; }
-}
+     DateTime AuctionEnd
+);

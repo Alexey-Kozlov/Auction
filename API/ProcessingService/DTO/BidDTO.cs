@@ -1,7 +1,7 @@
-﻿namespace BiddingService.DTO;
+﻿namespace ProcessingService.DTO;
 
-public record BidDTO
-(
+public record BidDTO(
+
      string Id,
      string AuctionId,
      string Bidder,

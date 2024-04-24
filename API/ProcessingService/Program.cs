@@ -5,7 +5,9 @@ using Common.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using ProcessiungService.Data;
+using ProcessingService.Data;
+using ProcessingService.StateMachines;
+using Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,20 +35,29 @@ builder.Services.AddAuthentication(p =>
     };
 });
 
-// builder.Services.AddMassTransit(p =>
-// {
-//     p.AddConsumersFromNamespaceContaining<BidPlacedConsumer>();
-//     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("finance", false));
-//     p.UsingRabbitMq((context, config) =>
-//     {
-//         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
-//         {
-//             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
-//             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
-//         });
-//         config.ConfigureEndpoints(context);
-//     });
-// });
+builder.Services.AddMassTransit(p =>
+{
+    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
+    p.AddSagaStateMachine<ProcessiungStateMachine, ProcessingState>()
+    .InMemoryRepository()
+    .EntityFrameworkRepository(p =>
+    {
+        p.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+        p.ExistingDbContext<ProcessingDbContext>();
+        p.UsePostgres();
+    });
+    p.UsingRabbitMq((context, config) =>
+    {
+        config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
+        {
+            p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
+            p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
+        });
+        config.ConfigureEndpoints(context);
+    });
+});
+EndpointConvention.Map<RequestFinanceDebitAdd>(new Uri("queue:finance-finance-debit-add"));
+EndpointConvention.Map<RequestBidPlace>(new Uri("queue:bids-bid-placed"));
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

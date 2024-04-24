@@ -27,10 +27,10 @@ public class ItemConfiguration : IEntityTypeConfiguration<BalanceItem>
         builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
         builder.Property(p => p.UserLogin).HasColumnType("text").HasColumnName("UserLogin").IsRequired(true);
-        builder.Property(p => p.Credit).HasColumnType("numeric").HasColumnName("Credit").HasPrecision(14, 2).IsRequired(true);
-        builder.Property(p => p.Debit).HasColumnType("numeric").HasColumnName("Debit").HasPrecision(14, 2).IsRequired(true);
+        builder.Property(p => p.Credit).HasColumnType("integer").HasColumnName("Credit").HasPrecision(14, 2).IsRequired(true);
+        builder.Property(p => p.Debit).HasColumnType("integer").HasColumnName("Debit").HasPrecision(14, 2).IsRequired(true);
         builder.Property(p => p.ActionDate).HasColumnType("timestamp with time zone").HasColumnName("ActionDate").IsRequired(true);
-        builder.Property(p => p.Balance).HasColumnType("numeric").HasColumnName("Balance").HasPrecision(14, 2).IsRequired(true);
+        builder.Property(p => p.Balance).HasColumnType("integer").HasColumnName("Balance").HasPrecision(14, 2).IsRequired(true);
         builder.Property(p => p.Reserved).HasColumnType("boolean").HasColumnName("Reserved").IsRequired(true);
         builder.HasIndex(p => p.Id).HasDatabaseName("PK_Items");
         builder.HasIndex(p => p.UserLogin).HasDatabaseName("IX_FinanceService_UserLogin");

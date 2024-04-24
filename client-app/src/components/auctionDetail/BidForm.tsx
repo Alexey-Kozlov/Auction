@@ -1,9 +1,9 @@
-
 import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
-import { usePlaceBidForAuctionMutation } from '../../api/BidApi';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
+import { usePlaceBidForAuctionMutation } from '../../api/ProcessingApi';
+import uuid from 'react-uuid';
 
 type Props = {
     auctionId: string;
@@ -19,7 +19,7 @@ export default function BidForm({ auctionId, highBid }: Props) {
             initialValues={{ amount: 0, error: null }}
             onSubmit={
                 async (values, { setErrors }) => {
-                    await placeBid({ amount: values.amount, auctionId: auctionId });
+                    await placeBid({ amount: values.amount, auctionId: auctionId, correlationId: uuid() });
                     values.amount = 0;
                 }
             }

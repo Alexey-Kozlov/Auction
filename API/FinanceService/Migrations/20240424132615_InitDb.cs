@@ -18,11 +18,11 @@ namespace FinanceService.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     AuctionId = table.Column<Guid>(type: "uuid", nullable: true),
                     UserLogin = table.Column<string>(type: "text", nullable: false),
-                    Credit = table.Column<decimal>(type: "numeric(14,2)", precision: 14, scale: 2, nullable: false),
-                    Debit = table.Column<decimal>(type: "numeric(14,2)", precision: 14, scale: 2, nullable: false),
-                    ActionDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Credit = table.Column<int>(type: "integer", precision: 14, scale: 2, nullable: false),
+                    Debit = table.Column<int>(type: "integer", precision: 14, scale: 2, nullable: false),
+                    ActionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Reserved = table.Column<bool>(type: "boolean", nullable: false),
-                    Balance = table.Column<decimal>(type: "numeric(14,2)", precision: 14, scale: 2, nullable: false)
+                    Balance = table.Column<int>(type: "integer", precision: 14, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {

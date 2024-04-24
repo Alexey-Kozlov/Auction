@@ -8,7 +8,7 @@ import { useAddCreditMutation, useGetFinanceItemQuery } from '../../api/FinanceA
 import { setFinanceItems } from '../../store/financeSlice';
 import AppPagination from '../auctionList/AddPagination';
 import { Button } from 'flowbite-react';
-import { ErrorMessage, Form, Formik } from 'formik';
+import { Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
 import ConvertUTCDate from '../../utils/ConvertUTCDate';
@@ -33,7 +33,7 @@ export default function FinListings() {
         return () => {
             dispatch(reset(null));
         }
-    }, [])
+    }, [dispatch])
 
     function setPageNumber(pageNumber: number) {
         dispatch(setParams({ pageNumber: pageNumber }));

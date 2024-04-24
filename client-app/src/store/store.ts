@@ -11,6 +11,7 @@ import imageApi from "../api/ImageApi";
 import notificationApi from "../api/NotificationApi";
 import financeApi from "../api/FinanceApi";
 import { financeReducer } from "./financeSlice";
+import processingApi from "../api/ProcessingApi";
 
 const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ const store = configureStore({
     [imageApi.reducerPath]: imageApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
     [financeApi.reducerPath]: financeApi.reducer,
+    [processingApi.reducerPath]: processingApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -37,7 +39,8 @@ const store = configureStore({
       .concat(signalRApi.middleware)
       .concat(imageApi.middleware)
       .concat(notificationApi.middleware)
-      .concat(financeApi.middleware),
+      .concat(financeApi.middleware)
+      .concat(processingApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

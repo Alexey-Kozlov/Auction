@@ -51,14 +51,8 @@ public class CheckAuctionFinished : BackgroundService
                 .OrderByDescending(p => p.Amount)
                 .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
 
-                await endpoint.Publish(new AuctionFinished
-                {
-                    ItemSold = winningBid != null,
-                    AuctionId = auction.Id,
-                    Winner = winningBid?.Bidder,
-                    Amount = winningBid == null ? 0 : winningBid.Amount,
-                    Seller = auction.Seller
-                }, stoppingToken);
+                await endpoint.Publish(new AuctionFinished(winningBid != null, auction.Id, winningBid?.Bidder,
+                    auction.Seller, (winningBid == null ? 0 : winningBid.Amount)), stoppingToken);
             }
         }
         catch (Exception ex)
