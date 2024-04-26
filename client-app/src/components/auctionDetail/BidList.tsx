@@ -18,7 +18,7 @@ type Props = {
 export default function BidList({ user, auction }: Props) {
     const dispatch = useDispatch();
     const [lastBidId, setLastBidId] = useState('');
-    const { isLoading, data } = useGetBidsForAuctionQuery(auction?.id);
+    const bidList = useGetBidsForAuctionQuery(auction?.id);
     const bidStore = useSelector((state: RootState) => state.bidStore);
     const bids = bidStore.bids;
     const open = bidStore.open;
@@ -42,20 +42,20 @@ export default function BidList({ user, auction }: Props) {
     //при каждом обновлении заявок - вычисление последней заявки для прокрутки
     //списка заявок вверх (если заявок много)
     useEffect(() => {
-        if (!isLoading && bids && bids.length > 0) {
+        if (!bidList.isLoading && bids && bids.length > 0) {
             const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
                 return Date.parse(b.bidTime) - Date.parse(a.bidTime);
             })[0];
             setLastBidId(maxBidId.id);
         }
-    }, [isLoading, bids])
+    }, [bidList.isLoading, bids])
 
     //первоначальное заполнение списка заявок
     useEffect(() => {
-        if (!isLoading) {
-            dispatch(setBids(data?.result));
+        if (!bidList.isLoading) {
+            dispatch(setBids(bidList.data?.result));
         }
-    }, [auction?.id, isLoading, data?.result, dispatch]);
+    }, [auction?.id, bidList.isLoading, bidList.data?.result, dispatch]);
 
     //закрытие аукциона
     useEffect(() => {
@@ -77,7 +77,7 @@ export default function BidList({ user, auction }: Props) {
         }, 1000);
     }, [lastBidId])
 
-    if (isLoading) return <span>Загрузка предложений...</span>
+    if (bidList.isLoading) return <span>Загрузка предложений...</span>
 
     return (
         <div className='rounded-lg shadow-md'>
@@ -121,7 +121,7 @@ export default function BidList({ user, auction }: Props) {
                         Невозможно сделать заявку для собственного аукциона
                     </div>
                 ) : (
-                    <BidForm auctionId={auction?.id} highBid={bidRestriction()} />
+                    <BidForm auctionId={auction?.id} highBid={bidRestriction()} bidList={bidList} />
                 )}
             </div>
         </div>

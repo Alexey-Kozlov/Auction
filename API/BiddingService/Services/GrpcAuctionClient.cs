@@ -1,5 +1,5 @@
 ﻿using AuctionService;
-using BiddingService.Models;
+using BiddingService.Entities;
 using Grpc.Net.Client;
 
 namespace BiddingService.Services;

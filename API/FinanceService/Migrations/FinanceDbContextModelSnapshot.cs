@@ -52,9 +52,9 @@ namespace FinanceService.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("Debit");
 
-                    b.Property<bool>("Reserved")
-                        .HasColumnType("boolean")
-                        .HasColumnName("Reserved");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("Status");
 
                     b.Property<string>("UserLogin")
                         .IsRequired()

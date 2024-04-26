@@ -1,4 +1,4 @@
-using BiddingService.Models;
+using BiddingService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

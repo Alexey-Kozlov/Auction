@@ -23,12 +23,12 @@ public class FinanceController : ControllerBase
     }
 
     [HttpGet("GetBalance")]
-    public async Task<ApiResponse<decimal>> GetBalance()
+    public async Task<ApiResponse<int>> GetBalance()
     {
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         var balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == userLogin).OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
 
-        return new ApiResponse<decimal>()
+        return new ApiResponse<int>()
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
@@ -40,7 +40,8 @@ public class FinanceController : ControllerBase
     public async Task<ApiResponse<PagedResult<List<BalanceItem>>>> GetHistory([FromQuery] PagedParamsDTO pagedParams)
     {
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var balanceItemList = _context.BalanceItems.Where(p => p.UserLogin == userLogin).OrderByDescending(p => p.ActionDate) as IQueryable<BalanceItem>;
+        var balanceItemList = _context.BalanceItems.Where(p => p.UserLogin == userLogin && p.Status != RecordStatus.Откат)
+            .OrderByDescending(p => p.ActionDate) as IQueryable<BalanceItem>;
         var pageCount = 0;
         var itemsCount = await balanceItemList.CountAsync();
         var result = await balanceItemList.Skip((pagedParams.PageNumber - 1) * pagedParams.PageSize)
@@ -77,7 +78,7 @@ public class FinanceController : ControllerBase
             Balance = (balanceItem?.Balance ?? 0) + creditDTO.amount,
             Credit = creditDTO.amount,
             Debit = 0,
-            Reserved = false,
+            Status = RecordStatus.Подтверждено,
             UserLogin = userLogin
         };
 

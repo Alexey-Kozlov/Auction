@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceService.Migrations
 {
     [DbContext(typeof(FinanceDbContext))]
-    [Migration("20240424132615_InitDb")]
+    [Migration("20240425105857_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -55,9 +55,9 @@ namespace FinanceService.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("Debit");
 
-                    b.Property<bool>("Reserved")
-                        .HasColumnType("boolean")
-                        .HasColumnName("Reserved");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("Status");
 
                     b.Property<string>("UserLogin")
                         .IsRequired()

@@ -38,7 +38,7 @@ builder.Services.AddAuthentication(p =>
 builder.Services.AddMassTransit(p =>
 {
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
-    p.AddSagaStateMachine<ProcessiungStateMachine, ProcessingState>()
+    p.AddSagaStateMachine<ProcessingStateMachine, ProcessingState>()
     .InMemoryRepository()
     .EntityFrameworkRepository(p =>
     {
@@ -56,8 +56,11 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
-EndpointConvention.Map<RequestFinanceDebitAdd>(new Uri("queue:finance-finance-debit-add"));
+EndpointConvention.Map<RequestFinanceDebitAdd>(new Uri("queue:finance-debit-add"));
 EndpointConvention.Map<RequestBidPlace>(new Uri("queue:bids-bid-placed"));
+EndpointConvention.Map<RollbackFinanceDebitAdd>(new Uri("queue:finance-rollback-debit-add"));
+EndpointConvention.Map<Fault<RequestFinanceDebitAdd>>(new Uri("queue:finance-debit-add_error"));
+EndpointConvention.Map<Fault<RequestBidPlace>>(new Uri("queue:bids-bid-placed_error"));
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

@@ -1,6 +1,6 @@
 ﻿
 using BiddingService.Data;
-using BiddingService.Models;
+using BiddingService.Entities;
 using Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

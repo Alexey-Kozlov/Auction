@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using BiddingService.Data;
-using BiddingService.Models;
+using BiddingService.Entities;
 using Contracts;
 using MassTransit;
 

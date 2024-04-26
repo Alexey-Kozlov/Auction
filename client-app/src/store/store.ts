@@ -12,6 +12,7 @@ import notificationApi from "../api/NotificationApi";
 import financeApi from "../api/FinanceApi";
 import { financeReducer } from "./financeSlice";
 import processingApi from "../api/ProcessingApi";
+import { processinhReducer } from "./processingSlice";
 
 const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ const store = configureStore({
     auctionStore: auctionReducer,
     paramStore: paramReducer,
     financeStore: financeReducer,
+    processingStore: processinhReducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [bidApi.reducerPath]: bidApi.reducer,

@@ -21,7 +21,7 @@ namespace FinanceService.Migrations
                     Credit = table.Column<int>(type: "integer", precision: 14, scale: 2, nullable: false),
                     Debit = table.Column<int>(type: "integer", precision: 14, scale: 2, nullable: false),
                     ActionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Reserved = table.Column<bool>(type: "boolean", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     Balance = table.Column<int>(type: "integer", precision: 14, scale: 2, nullable: false)
                 },
                 constraints: table =>

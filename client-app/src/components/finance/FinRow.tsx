@@ -15,7 +15,7 @@ export default function FinRow({ item }: Props) {
             <div>{item.credit === 0 ? '' : NumberWithSpaces(item.credit)}</div>
             <div>{item.debit === 0 ? '' : NumberWithSpaces(item.debit)}</div>
             <div>
-                <Checkbox defaultChecked={item.reserved} disabled />
+                <Checkbox checked={item.status === 1} disabled />
             </div>
         </>
     )

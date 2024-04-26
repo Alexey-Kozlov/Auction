@@ -2,7 +2,7 @@ using Contracts;
 using MassTransit;
 
 namespace ProcessingService.StateMachines;
-public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
+public class ProcessingStateMachine : MassTransitStateMachine<ProcessingState>
 {
     public State AcceptedState { get; }
     public State FinanceGrantedState { get; }
@@ -13,8 +13,10 @@ public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
     public Event<FinanceGranted> FinanceGrantedEvent { get; }
     public Event<BidPlaced> BidPlacedEvent { get; }
     public Event<GetProcessingBidState> GetProcessingBidStateEvent { get; }
+    public Event<Fault<RequestFinanceDebitAdd>> FinanceGrantedFaulted { get; }
+    public Event<Fault<RequestBidPlace>> BidPlacedFaulted { get; }
 
-    public ProcessiungStateMachine()
+    public ProcessingStateMachine()
     {
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
@@ -23,6 +25,7 @@ public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
         ConfigureFinanceGranted();
         ConfigureCompleted();
         ConfigureAny();
+        ConfigureFaulted();
     }
     private void ConfigureEvents()
     {
@@ -30,6 +33,10 @@ public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
         Event(() => FinanceGrantedEvent);
         Event(() => BidPlacedEvent);
         Event(() => GetProcessingBidStateEvent);
+        Event(() => FinanceGrantedFaulted, x => x.CorrelateById(
+            context => context.Message.Message.CorrelationId));
+        Event(() => BidPlacedFaulted, x => x.CorrelateById(
+            context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -57,17 +64,24 @@ public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
     {
         During(AcceptedState,
         When(FinanceGrantedEvent)
-        .Then(context =>
-        {
-            context.Saga.LastUpdated = DateTime.UtcNow;
-        })
-        .Send(context => new RequestBidPlace(
-            context.Saga.AuctionId,
-            context.Saga.Bidder,
-            context.Saga.Amount,
-            context.Saga.CorrelationId
-        ))
-        .TransitionTo(FinanceGrantedState)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Send(context => new RequestBidPlace(
+                context.Saga.AuctionId,
+                context.Saga.Bidder,
+                context.Saga.Amount,
+                context.Saga.CorrelationId
+            ))
+            .TransitionTo(FinanceGrantedState),
+        When(FinanceGrantedFaulted)
+            .Then(context =>
+            {
+                context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .TransitionTo(CompletedState)
         );
     }
 
@@ -75,11 +89,24 @@ public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
     {
         During(FinanceGrantedState,
         When(BidPlacedEvent)
-        .Then(context =>
-        {
-            context.Saga.LastUpdated = DateTime.UtcNow;
-        })
-        .TransitionTo(CompletedState)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .TransitionTo(CompletedState),
+        When(BidPlacedFaulted)
+            .Then(context =>
+            {
+                context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Send(context => new RollbackFinanceDebitAdd(
+                context.Saga.Amount,
+                context.Saga.AuctionId,
+                context.Saga.Bidder,
+                context.Saga.CorrelationId
+            ))
+            .TransitionTo(CompletedState)
         );
     }
 
@@ -96,4 +123,10 @@ public class ProcessiungStateMachine : MassTransitStateMachine<ProcessingState>
                 .Respond(x => x.Saga)
         );
     }
+
+    private void ConfigureFaulted()
+    {
+        During(FaultedState);
+    }
+
 }

@@ -106,6 +106,18 @@ export type FinanceItem = {
   debit: number;
   credit: number;
   actionDate: Date;
-  reserved: boolean;
+  status: number;
   balance: number;
+};
+
+export type SagaErrorType = {
+  debit: number;
+  auctionId: string;
+  userLogin: string;
+  correlationId: string;
+};
+
+export type ProcessingState = {
+  userLogin: string;
+  ready: boolean;
 };

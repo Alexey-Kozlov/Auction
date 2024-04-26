@@ -1,5 +1,6 @@
 ﻿using BiddingService.Data;
-using BiddingService.Models;
+using BiddingService.Entities;
+using BiddingService.Exceptions;
 using BiddingService.Services;
 using Contracts;
 using MassTransit;
@@ -25,25 +26,20 @@ public class BidPlacedConsumer : IConsumer<RequestBidPlace>
         if (auction == null)
         {
             auction = _grpcClient.GetAuction(context.Message.AuctionId.ToString());
-            // if (auction == null) return new ApiResponse<BidDTO>()
-            // {
-            //     StatusCode = System.Net.HttpStatusCode.BadRequest,
-            //     IsSuccess = false,
-            //     ErrorMessages = ["Невозможно назначить заявку на этот аукцион - аукцион не найден!"],
-            //     Result = null
-            // };
+            if (auction == null) throw new PlaceBidException(
+                context.Message.Bidder,
+                context.Message.Amount,
+                context.Message.AuctionId.ToString(),
+                "Невозможно назначить заявку на этот аукцион - аукцион не найден!"
+            );
         }
 
-        // if (auction.Seller == context.Message.Bidder)
-        // {
-        //     return new ApiResponse<BidDTO>()
-        //     {
-        //         StatusCode = System.Net.HttpStatusCode.BadRequest,
-        //         IsSuccess = false,
-        //         ErrorMessages = ["Невозможно подать предложение для собственного аукциона"],
-        //         Result = null
-        //     };
-        // }
+        if (auction.Seller == context.Message.Bidder) throw new PlaceBidException(
+            context.Message.Bidder,
+            context.Message.Amount,
+            context.Message.AuctionId.ToString(),
+            "Невозможно подать предложение для собственного аукциона"
+        );
 
         var bid = new Bid
         {
@@ -61,7 +57,7 @@ public class BidPlacedConsumer : IConsumer<RequestBidPlace>
             var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.AuctionId)
                 .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
 
-            if (highBid != null && context.Message.Amount > highBid.Amount || highBid == null)
+            if ((highBid != null && context.Message.Amount > highBid.Amount) || highBid == null)
             {
                 bid.BidStatus = BidStatus.Принято;
             }

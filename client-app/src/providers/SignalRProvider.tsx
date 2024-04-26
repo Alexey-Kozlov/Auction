@@ -3,14 +3,14 @@ import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
-import { Auction, AuctionFinished, Bid, User } from '../store/types';
+import { Auction, AuctionFinished, Bid, SagaErrorType, User } from '../store/types';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCurrentPrice } from '../store/auctionSlice';
-import { addBid } from '../store/bidSlice';
 import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
 import { RootState } from '../store/store';
 import BidCreatedToast from '../components/signalRNotifications/BidCreatedToast';
+import ErrorBidCreatedToast from '../components/signalRNotifications/ErrorBidCreatedToast';
+import { setProcessFlag } from '../store/processingSlice';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -69,14 +69,8 @@ export default function SignalRProvider() {
                     console.log('Коннект установлен с хабом уведомлений');
 
                     connection.on('BidPlaced', (bid: Bid) => {
-                        //задержка в 1 секунду - чтобы обновились данные
-                        setTimeout(() => {
-                            if (bid.bidStatus.includes('Принято') && bid.bidder !== user.login) {
-                                dispatch(setCurrentPrice({ auctionId: bid.auctionId, amount: bid.amount }));
-                                dispatch(addBid({ bid: bid }));
-                                setAuctionId(bid.auctionId);
-                            }
-                        }, 1000);
+                        //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
+                        dispatch(setProcessFlag({ userLogin: user.login, ready: true }));
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
@@ -96,6 +90,17 @@ export default function SignalRProvider() {
                             setFinishedAuction(finishedAuction);
                         }, 1000);
 
+                    })
+
+                    connection.on('FaultRequestFinanceDebitAdd', (debitError: SagaErrorType) => {
+                        setTimeout(() => {
+                            if (user?.login === debitError.userLogin) {
+                                return toast((p) => (
+                                    <ErrorBidCreatedToast auctionId={debitError.auctionId} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+                            }
+                        }, 1000);
                     })
                 }).catch(err => console.log(err));
         }

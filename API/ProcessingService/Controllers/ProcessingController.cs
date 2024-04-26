@@ -1,4 +1,6 @@
-﻿using Contracts;
+﻿using System.Net;
+using Common.Utils;
+using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,22 +24,32 @@ public class ProcessingController : ControllerBase
     }
 
     [HttpGet("status/{correlationId}")]
-    public async Task<ActionResult<ProcessingState>> GetStatusAsync(Guid correlationId)
+    public async Task<ApiResponse<ProcessingState>> GetStatusAsync(Guid correlationId)
     {
         var response = await _processingClient.GetResponse<ProcessingState>(
             new GetProcessingBidState(correlationId));
 
-        return Ok(response.Message);
+        return new ApiResponse<ProcessingState>
+        {
+            StatusCode = HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = response.Message
+        };
     }
 
     [Authorize]
     [HttpPost("placebid")]
-    public async Task<ActionResult> PlaceBid([FromBody] PlaceBidDTO par)
+    public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
         var bid = new RequestProcessingBidStart(par.auctionId, User.Identity.Name, par.amount, par.correlationId);
 
         await _publishEndpoint.Publish(bid);
 
-        return Accepted();
+        return new ApiResponse<object>
+        {
+            StatusCode = HttpStatusCode.Accepted,
+            IsSuccess = true,
+            Result = { }
+        };
     }
 }
