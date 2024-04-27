@@ -116,6 +116,10 @@ export default function SignalRProvider() {
                         }, 1000);
                     })
 
+                    connection.on('FinanceCreditAdd', (finance: any) => {
+                        dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true }));
+                    })
+
                     connection.on('FaultRequestFinanceDebitAdd', (debitError: SagaErrorType) => {
                         setTimeout(() => {
                             if (user?.login === debitError.userLogin) {

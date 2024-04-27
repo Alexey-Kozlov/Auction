@@ -16,13 +16,13 @@ export default function FinRow({ item }: Props) {
     return (
         <>
             <div>
-                {!auction.isLoading && auction.data?.result?.id ? (
+                {!auction.isLoading && auction.data?.result?.id && auction.status === 'fulfilled' ? (
                     <NavLink to={`/auctions/${item.auctionId}`} className='group'>
                         <ImageCard id={item.auctionId} dopStyle=' max-h-20' />
                     </NavLink>
                 ) : ""}
             </div>
-            <div>{!auction.isLoading && auction.data?.result?.title ? (
+            <div>{!auction.isLoading && auction.data?.result?.title && auction.status === 'fulfilled' ? (
                 <NavLink to={`/auctions/${item.auctionId}`} className='group'>
                     {auction.data?.result?.title}
                 </NavLink>

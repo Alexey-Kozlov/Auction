@@ -3,7 +3,7 @@ import qs from 'query-string';
 import { useDispatch, useSelector } from 'react-redux';
 import { reset, setParams } from '../../store/paramSlice';
 import { RootState } from '../../store/store';
-import { ApiResponse, FinanceItem } from '../../store/types';
+import { FinanceItem, ProcessingState } from '../../store/types';
 import { useAddCreditMutation, useGetFinanceItemQuery } from '../../api/FinanceApi';
 import { setFinanceItems } from '../../store/financeSlice';
 import AppPagination from '../auctionList/AddPagination';
@@ -11,8 +11,8 @@ import { Button } from 'flowbite-react';
 import { Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
-import ConvertUTCDate from '../../utils/ConvertUTCDate';
 import FinTable from './FinTable';
+import { setEventFlag } from '../../store/processingSlice';
 
 export default function FinListings() {
     const dispatch = useDispatch();
@@ -22,6 +22,7 @@ export default function FinListings() {
     const financeItems: FinanceItem[] = useSelector((state: RootState) => state.financeStore).items;
     const url = qs.stringifyUrl({ url: '', query: { ...params, pageSize: 5 } });
     const financeData = useGetFinanceItemQuery(url);
+    const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
 
     useEffect(() => {
         if (!financeData.isLoading) {
@@ -34,6 +35,15 @@ export default function FinListings() {
             dispatch(reset(null));
         }
     }, [dispatch])
+
+    useEffect(() => {
+        const eventStateFinanceCreditAdd = procState.find(p => p.eventName === 'FinanceCreditAdd');
+        if (eventStateFinanceCreditAdd && eventStateFinanceCreditAdd.ready) {
+            dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: false }));
+            financeData.refetch();
+            setIsWaiting(false);
+        }
+    }, [procState, dispatch]);
 
     function setPageNumber(pageNumber: number) {
         dispatch(setParams({ pageNumber: pageNumber }));
@@ -48,39 +58,41 @@ export default function FinListings() {
                 enableReinitialize
                 onSubmit={async (values, { setErrors }) => {
                     dispatch(reset(null));
+                    dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: false }));
                     setIsWaiting(true);
-                    const response: ApiResponse<number> = await addCredit(values.amount);
-                    if (response.data!.isSuccess) {
-                        let attemptCounter = 10;
-                        const refInterval = setInterval(() => {
-                            if (attemptCounter === 0) {
-                                //не удалось найти запись в Search после 10 попыток - ошибка
-                                clearInterval(refInterval);
-                                setIsWaiting(false);
-                                values.amount = 0;
-                                //toast.error(`Ошибка обновления аукциона "${values?.title}".`, { duration: 15000 });
+                    await addCredit(values.amount);
 
-                            }
-                            attemptCounter--;
-                            try {
-                                financeData.refetch()
-                                    .then(rez => {
-                                        let currentTime = ConvertUTCDate(null);
-                                        currentTime!.setSeconds(currentTime!.getSeconds() - 5);
-                                        let updatedTime = new Date(rez.data!.result.results[0].actionDate);
-                                        if (rez.data && rez.data.result &&
-                                            updatedTime!.getTime() > currentTime!.getTime()
-                                        ) {
-                                            clearInterval(refInterval);
-                                            setIsWaiting(false);
-                                            values.amount = 0;
-                                        }
-                                    })
-                            } catch (e) {
-                                clearInterval(refInterval);
-                            }
-                        }, 500);
-                    }
+                    // if (response.data!.isSuccess) {
+                    //     let attemptCounter = 10;
+                    //     const refInterval = setInterval(() => {
+                    //         if (attemptCounter === 0) {
+                    //             //не удалось найти запись в Search после 10 попыток - ошибка
+                    //             clearInterval(refInterval);
+                    //             setIsWaiting(false);
+                    //             values.amount = 0;
+                    //             //toast.error(`Ошибка обновления аукциона "${values?.title}".`, { duration: 15000 });
+
+                    //         }
+                    //         attemptCounter--;
+                    //         try {
+                    //             financeData.refetch()
+                    //                 .then(rez => {
+                    //                     let currentTime = ConvertUTCDate(null);
+                    //                     currentTime!.setSeconds(currentTime!.getSeconds() - 5);
+                    //                     let updatedTime = new Date(rez.data!.result.results[0].actionDate);
+                    //                     if (rez.data && rez.data.result &&
+                    //                         updatedTime!.getTime() > currentTime!.getTime()
+                    //                     ) {
+                    //                         clearInterval(refInterval);
+                    //                         setIsWaiting(false);
+                    //                         values.amount = 0;
+                    //                     }
+                    //                 })
+                    //         } catch (e) {
+                    //             clearInterval(refInterval);
+                    //         }
+                    //     }, 500);
+                    // }
 
                 }
                 }

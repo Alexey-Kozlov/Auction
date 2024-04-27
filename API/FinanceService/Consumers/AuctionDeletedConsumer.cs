@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Consumers;
 
-public class AuctionDeletedConsumer : IConsumer<AuctionFinished>
+public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
 {
     private readonly FinanceDbContext _dbContext;
 
@@ -13,24 +13,19 @@ public class AuctionDeletedConsumer : IConsumer<AuctionFinished>
     {
         _dbContext = dbContext;
     }
-    public async Task Consume(ConsumeContext<AuctionFinished> context)
+    public async Task Consume(ConsumeContext<AuctionDeleted> context)
     {
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
-        //подтверждаем у победителя запись дебита
-        var winnerItem = await _dbContext.BalanceItems.FirstOrDefaultAsync(p => p.AuctionId == context.Message.AuctionId &&
-            p.UserLogin == context.Message.Winner && p.Status == RecordStatus.Заявка);
-        winnerItem.Status = RecordStatus.Подтверждено;
         //удаляем у всех записи откатов дебита, если есть
-        var rollbackItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
+        var rollbackItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id &&
             p.Status == RecordStatus.Откат).ToListAsync();
         if (rollbackItems != null && rollbackItems.Count > 0)
         {
             _dbContext.RemoveRange(rollbackItems);
         }
 
-        //удаляем все резервирования денег по данному аукциону, кроме победителя
-        var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
-            p.UserLogin != context.Message.Winner).ToListAsync();
+        //удаляем все резервирования денег по данному аукциону
+        var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
         //правим финансы для каждого пользователя, участвующего в аукционе (кроме победителя)
         //возвращаем деньги за проигранный аукцион
         var balance = 0;
@@ -46,6 +41,6 @@ public class AuctionDeletedConsumer : IConsumer<AuctionFinished>
         }
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
-        Console.WriteLine("--> Получение сообщения - аукцион завершен - " + context.Message.AuctionId);
+        Console.WriteLine("--> Получение сообщения - аукцион удален - " + context.Message.Id);
     }
 }

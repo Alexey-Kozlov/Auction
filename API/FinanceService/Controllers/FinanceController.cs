@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
 using Common.Utils;
+using Contracts;
 using FinanceService.Data;
 using FinanceService.DTO;
 using FinanceService.Entities;
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +18,12 @@ namespace ImageService.Controllers;
 public class FinanceController : ControllerBase
 {
     private readonly FinanceDbContext _context;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public FinanceController(FinanceDbContext context)
+    public FinanceController(FinanceDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
+        _publishEndpoint = publishEndpoint;
     }
 
     [HttpGet("GetBalance")]
@@ -85,6 +89,8 @@ public class FinanceController : ControllerBase
         await _context.BalanceItems.AddAsync(credit);
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+
+        await _publishEndpoint.Publish(new FinanceCreditAdd(creditDTO.amount, userLogin));
 
         return new ApiResponse<decimal>()
         {
