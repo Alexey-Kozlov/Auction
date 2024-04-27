@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -47,28 +46,13 @@ builder.Services.AddAuthentication(p =>
 builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
+    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("notification", false));
     p.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
         {
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
-        });
-        config.ReceiveEndpoint("notification-auction-created", e =>
-        {
-            e.ConfigureConsumer<AuctionCreatedConsumer>(context);
-        });
-        config.ReceiveEndpoint("notification-auction-deleted", e =>
-        {
-            e.ConfigureConsumer<AuctionDeletedConsumer>(context);
-        });
-        config.ReceiveEndpoint("notification-auction-finished", e =>
-        {
-            e.ConfigureConsumer<AuctionFinishedConsumer>(context);
-        });
-        config.ReceiveEndpoint("notification-bid-placed", e =>
-        {
-            e.ConfigureConsumer<BidPlacedConsumer>(context);
         });
         config.ReceiveEndpoint("finance-debit-add_error", e =>
         {
@@ -78,6 +62,7 @@ builder.Services.AddMassTransit(p =>
         {
             e.ConfigureConsumer<BidPlacedErrorConsumer>(context);
         });
+        config.ConfigureEndpoints(context);
     });
 });
 builder.Services.AddSignalR();

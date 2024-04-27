@@ -17,6 +17,8 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
     }
     public async Task Consume(ConsumeContext<RequestFinanceDebitAdd> context)
     {
+        Console.WriteLine("--> Получение сообщения - новый дебит, - " +
+         context.Message.Debit + ", " + context.Message.UserLogin);
         using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         //проверяем - есть ли записи по данному пользователю, по данному аукциону со статусом откат
         //емли есть - удаляем
@@ -82,7 +84,7 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
         await context.Publish(new FinanceGranted(context.Message.CorrelationId));
-        Console.WriteLine("--> Получение сообщения - новый дебит, - " +
+        Console.WriteLine("--> Выполнено сообщение по резервированию денег, - " +
                  context.Message.Debit + ", " + context.Message.UserLogin);
 
     }

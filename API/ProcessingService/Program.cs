@@ -8,6 +8,7 @@ using System.Text;
 using ProcessingService.Data;
 using ProcessingService.StateMachines;
 using Contracts;
+using ProcessingService.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +38,13 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddMassTransit(p =>
 {
+    p.AddConsumersFromNamespaceContaining<FaultedDebitAddConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
-    p.AddSagaStateMachine<ProcessingStateMachine, ProcessingState>()
-    .InMemoryRepository()
+    p.AddSagaStateMachine<ProcessingStateMachine, ProcessingState>((context, cfg) =>
+    {
+        cfg.UseInMemoryOutbox(context);
+    })
+    //.InMemoryRepository()
     .EntityFrameworkRepository(p =>
     {
         p.ConcurrencyMode = ConcurrencyMode.Pessimistic;
@@ -53,11 +58,21 @@ builder.Services.AddMassTransit(p =>
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
+        config.ReceiveEndpoint("finance-debit-add_error", e =>
+        {
+            e.ConfigureConsumer<FaultedDebitAddConsumer>(context);
+        });
+        config.ReceiveEndpoint("bids-bid-placed_error", e =>
+        {
+            e.ConfigureConsumer<FaultedBidPlaceConsumer>(context);
+        });
         config.ConfigureEndpoints(context);
+
     });
 });
 EndpointConvention.Map<RequestFinanceDebitAdd>(new Uri("queue:finance-debit-add"));
 EndpointConvention.Map<RequestBidPlace>(new Uri("queue:bids-bid-placed"));
+EndpointConvention.Map<UserNotificationSet>(new Uri("queue:notification-set-notification"));
 EndpointConvention.Map<RollbackFinanceDebitAdd>(new Uri("queue:finance-rollback-debit-add"));
 EndpointConvention.Map<Fault<RequestFinanceDebitAdd>>(new Uri("queue:finance-debit-add_error"));
 EndpointConvention.Map<Fault<RequestBidPlace>>(new Uri("queue:bids-bid-placed_error"));

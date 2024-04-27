@@ -16,4 +16,5 @@ public record AuctionDTO
     public string Properties { get; set; }
     public string Description { get; set; }
     public string Image { get; set; }
+    public string AuctionAuthor { get; set; }
 }

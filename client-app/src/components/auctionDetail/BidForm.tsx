@@ -7,8 +7,8 @@ import uuid from 'react-uuid';
 import { ProcessingState, User } from '../../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { setProcessFlag } from '../../store/processingSlice';
 import { useEffect } from 'react';
+import { setEventFlag } from '../../store/processingSlice';
 
 type Props = {
     auctionId: string;
@@ -23,10 +23,10 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
     const user: User = useSelector((state: RootState) => state.authStore);
 
     useEffect(() => {
-        const userState = procState.find(p => p.userLogin === user.login);
-        if (userState && userState.ready) {
+        const eventState = procState.find(p => p.eventName === 'BidPlaced');
+        if (eventState && eventState.ready) {
             bidList.refetch();
-            dispatch(setProcessFlag({ userLogin: user.login, ready: false }));
+            dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
         }
     }, [procState, user, dispatch, bidList]);
 
@@ -35,7 +35,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
             initialValues={{ amount: 0, error: null }}
             onSubmit={
                 async (values, { setErrors }) => {
-                    dispatch(setProcessFlag({ userLogin: user.login, ready: false }));
+                    dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
                     await placeBid({
                         amount: values.amount,
                         auctionId: auctionId,

@@ -12,7 +12,7 @@ export default function AuctionCard({ auction }: Props) {
     return (
         <NavLink to={`/auctions/${auction.id}`} className='group'>
             <div className='rounded-lg'>
-                <div className='flex justify-center'>
+                <div className='flex justify-center relative'>
                     <ImageCard id={auction.id} dopStyle=' max-h-60' />
                     <div className='absolute bottom-2 left-2'>
                         <CountdownTimer auctionEnd={auction.auctionEnd} />

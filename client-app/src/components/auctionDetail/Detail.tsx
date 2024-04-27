@@ -1,80 +1,77 @@
 import { useEffect, useState } from 'react'
 import Heading from '../auctionList/Heading';
 import CountdownTimer from '../auctionList/CountDownTimer';
-import { ApiResponse, Auction, User } from '../../store/types';
-import { useSelector } from 'react-redux';
+import { ApiResponse, Auction, ProcessingState, User } from '../../store/types';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { Button } from 'flowbite-react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import ImageCard from '../auctionList/ImageCard';
 import BidList from './BidList';
 import DetailedSpecs from './DetailedSpec';
-import { useDeleteAuctionMutation, useGetAuctionByIdQuery, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useDeleteAuctionMutation, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { useIsNotifyUserQuery, useSetNotifyUserMutation } from '../../api/NotificationApi';
-import toast from 'react-hot-toast';
+import { setEventFlag } from '../../store/processingSlice';
 
 export default function Detail() {
     const { id } = useParams();
     const user: User = useSelector((state: RootState) => state.authStore);
+    const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
     const [notifyUser, setNotifyUser] = useState(false);
-    const [deleteAuctionId, setDeleteAuctionId] = useState('');
+    const [deleteAuction, setDeleteAuction] = useState(false);
     const [auctionDetail, setAuctionDetail] = useState<Auction>();
     const { data, isLoading } = useGetDetailedViewDataQuery(id!);
     const isNotifyUser = useIsNotifyUserQuery(id!, {
         skip: user.login === '' || user.login === undefined
     });
     const [setNotifyUserApi] = useSetNotifyUserMutation();
-
-    const [deleteAuction] = useDeleteAuctionMutation();
-    const deleteAuctionItem = useGetAuctionByIdQuery(deleteAuctionId, {
-        skip: deleteAuctionId === ''
-    });
+    const [deleteAuctionProc] = useDeleteAuctionMutation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     //удаляем аукцион
     const handleDeleteAuction = async () => {
-        await deleteAuction(id!);
-        setDeleteAuctionId(id!); //делаем запрос на удаляемый аукцион, когда вернется результат - аукцион удален
-        //если запись аукциона еще присутствует в Search, делаем задержку и повторяем проверку
-        let deleteCounter = 10;
-        const refInterval = setInterval(() => {
-            if (deleteCounter === 0) {
-                //не удалось удалить запись из Search после 10 попыток - ошибка
-                clearInterval(refInterval);
-                toast.error(`Ошибка удаления аукциона "${auctionDetail?.title}".`, { duration: 15000 });
-                navigate('/');
-            }
-            deleteCounter--;
-            try {
-                deleteAuctionItem.refetch()
-                    .then(rez => {
-                        if (rez.data && !rez.data.result) {
-                            clearInterval(refInterval);
-                            toast.success(`Аукцион "${auctionDetail?.title}" удален.`);
-                            navigate('/');
-                        }
-                    })
-            } catch (e) {
-                clearInterval(refInterval);
-            }
-        }, 500);
+        setDeleteAuction(true);
+        dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: false }));
+        await deleteAuctionProc(id!);
     }
 
+    //инициализация данных
     useEffect(() => {
         if (!isLoading && data?.isSuccess && data?.result && data?.result.title) {
             setAuctionDetail(data!.result);
         }
     }, [isLoading, data]);
 
-    //для управления переключателем по уведомлениям польбзователя
+    //для управления переключателем по уведомлениям пользователя
     useEffect(() => {
         if (!isNotifyUser.isLoading && isNotifyUser.data) {
             setNotifyUser(isNotifyUser.data!.result!);
         }
     }, [isNotifyUser.isLoading, isNotifyUser.data]);
 
+    //обновление переключателя рассылки уведомлений или переход в случае удалени записи
+    useEffect(() => {
+        const eventState = procState.find(p => p.eventName === 'BidPlaced');
+        if (eventState && eventState.ready && !notifyUser) {
+            //обновление переключателя
+            isNotifyUser.refetch();
+            dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
+        }
+    }, [procState, isNotifyUser, dispatch, notifyUser]);
+
+    useEffect(() => {
+        const eventState = procState.find(p => p.eventName === 'AuctionDeleted');
+        if (eventState && eventState.ready && deleteAuction) {
+            dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: false }));
+            //удаление записи
+            navigate('/');
+        }
+    }, [procState, dispatch, navigate, deleteAuction]);
+
     //запоминаем переключатель по уведомлениям пользователя по событиям данного аукциона
     const handleSetNotifyUser = async (event: React.FormEvent<HTMLInputElement>) => {
+        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
         var data = { id: id, enable: event.currentTarget.checked };
         const result: ApiResponse<{}> = await setNotifyUserApi(JSON.stringify(data));
         if (result && result!.data!.isSuccess) {
@@ -83,10 +80,10 @@ export default function Detail() {
     };
 
     useEffect(() => {
-        if (!deleteAuctionId && !isLoading && data?.isSuccess && data?.result && !data?.result.title) {
+        if (!deleteAuction && !isLoading && data?.isSuccess && data?.result && !data?.result.title) {
             navigate('/not-found');
         }
-    }, [isLoading, deleteAuctionId, data, navigate]);
+    }, [isLoading, deleteAuction, data, navigate]);
 
 
     if (isLoading) return 'Загрузка...';
@@ -102,7 +99,7 @@ export default function Detail() {
                                 <Button outline>
                                     <NavLink to={`/auctions/edit/${id}`}>Редактировать аукцион</NavLink>
                                 </Button>
-                                <Button isProcessing={!!deleteAuctionId} outline onClick={handleDeleteAuction}>
+                                <Button isProcessing={!!deleteAuction} outline onClick={handleDeleteAuction}>
                                     Удалить аукцион
                                 </Button>
                             </>

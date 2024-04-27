@@ -1,21 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { ProcessingState } from "./types";
 
-export const initProcessingState: ProcessingState[] = [];
+export const initEventsState: ProcessingState[] = [];
 
 export const processingSlice = createSlice({
   name: "processing",
-  initialState: initProcessingState,
+  initialState: initEventsState,
   reducers: {
-    setProcessFlag: (state, action) => {
+    setEventFlag: (state, action) => {
       let userState = state.find(
-        (p) => p.userLogin === action.payload.userLogin
+        (p) => p.eventName === action.payload.eventName
       );
       if (userState) {
         userState.ready = action.payload.ready;
       } else {
         state.push({
-          userLogin: action.payload.userLogin,
+          eventName: action.payload.eventName,
           ready: action.payload.ready,
         });
       }
@@ -23,5 +23,5 @@ export const processingSlice = createSlice({
   },
 });
 
-export const { setProcessFlag } = processingSlice.actions;
+export const { setEventFlag } = processingSlice.actions;
 export const processinhReducer = processingSlice.reducer;

@@ -1,24 +1,27 @@
 namespace Contracts;
 
-public record AuctionCreated(
-   Guid Id,
-   int ReservePrice,
-   string Seller,
-   string Winner,
-    int SoldAmount,
-    int CurrentHighBid,
-    DateTime CreateAt,
-    DateTime UpdatedAt,
-    DateTime AuctionEnd,
-    string Status,
-    string Properties,
-    string Title,
-    string Description,
-    string Image
-);
+public class AuctionCreated
+{
+     public Guid Id { get; set; }
+     public int ReservePrice { get; set; }
+     public string Seller { get; set; }
+     public string Winner { get; set; }
+     public int SoldAmount { get; set; }
+     public int CurrentHighBid { get; set; }
+     public DateTime CreateAt { get; set; }
+     public DateTime UpdatedAt { get; set; }
+     public DateTime AuctionEnd { get; set; }
+     public string Status { get; set; }
+     public string Properties { get; set; }
+     public string Title { get; set; }
+     public string Description { get; set; }
+     public string Image { get; set; }
+     public string AuctionAuthor { get; set; }
+};
 
 public record AuctionDeleted(
-    Guid Id
+    Guid Id,
+    string AuctionAuthor
 );
 
 public record AuctionFinished(
@@ -36,6 +39,7 @@ public class AuctionUpdated
      public string Properties { get; set; }
      public string Image { get; set; }
      public string Description { get; set; }
+     public string AuctionAuthor { get; set; }
      public DateTime AuctionEnd { get; set; }
 };
 

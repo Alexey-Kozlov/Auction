@@ -10,7 +10,7 @@ import AuctionFinishedToast from '../components/signalRNotifications/AuctionFini
 import { RootState } from '../store/store';
 import BidCreatedToast from '../components/signalRNotifications/BidCreatedToast';
 import ErrorBidCreatedToast from '../components/signalRNotifications/ErrorBidCreatedToast';
-import { setProcessFlag } from '../store/processingSlice';
+import { setEventFlag } from '../store/processingSlice';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -70,11 +70,21 @@ export default function SignalRProvider() {
 
                     connection.on('BidPlaced', (bid: Bid) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-                        dispatch(setProcessFlag({ userLogin: user.login, ready: true }));
+                        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true }));
+
+                        setTimeout(() => {
+                            if (user?.login !== bid.bidder) {
+                                return toast((p) => (
+                                    <BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+                            }
+                        }, 1000);
+
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
-                        //задержка в 1 секунду - чтобы обновились данные
+                        dispatch(setEventFlag({ eventName: 'AuctionCreated', ready: true }));
                         setTimeout(() => {
                             if (user?.login !== auction.seller) {
                                 return toast((p) => (
@@ -85,11 +95,25 @@ export default function SignalRProvider() {
                         }, 1000);
                     })
 
+                    connection.on('AuctionUpdated', (auction: any) => {
+                        //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
+                        dispatch(setEventFlag({ eventName: 'AuctionUpdated', ready: true }));
+                    })
+
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
                         setTimeout(() => {
                             setFinishedAuction(finishedAuction);
                         }, 1000);
+                    })
 
+                    connection.on('AuctionDeleted', (auction: any) => {
+                        dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: true }));
+                    })
+
+                    connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
+                        setTimeout(() => {
+                            setFinishedAuction(finishedAuction);
+                        }, 1000);
                     })
 
                     connection.on('FaultRequestFinanceDebitAdd', (debitError: SagaErrorType) => {

@@ -11,5 +11,7 @@ public class MappingProfiles : Profile
     {
         CreateMap<Bid, BidDTO>();
         CreateMap<AuctionCreated, Auction>();
+        CreateMap<AuctionUpdated, Auction>();
+        CreateMap<Auction, Auction>();
     }
 }

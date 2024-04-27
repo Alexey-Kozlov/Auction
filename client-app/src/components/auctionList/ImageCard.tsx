@@ -7,7 +7,9 @@ type Props = {
 }
 
 export default function ImageCard({ id, dopStyle }: Props) {
-    const { isLoading, data } = useGetImageForAuctionQuery(id!);
+    const { isLoading, data } = useGetImageForAuctionQuery(id ? id : '', {
+        skip: !id
+    });
 
     if (isLoading) return;
     return (

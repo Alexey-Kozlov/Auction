@@ -118,6 +118,6 @@ export type SagaErrorType = {
 };
 
 export type ProcessingState = {
-  userLogin: string;
+  eventName: string;
   ready: boolean;
 };

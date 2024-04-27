@@ -4,15 +4,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Formik, Form, ErrorMessage } from 'formik';
 import TextInput from '../inputComponents/TextInput';
 import * as Yup from 'yup';
-import toast from 'react-hot-toast';
-import { ApiResponse, Auction } from '../../store/types';
+import { Auction, ProcessingState } from '../../store/types';
 import DatePickerInput from '../inputComponents/DatePickerInput';
 import ImageFileInput from '../inputComponents/ImageFileInput';
 import TextAreaInput from '../inputComponents/TextAreaInput';
 import { Button } from 'flowbite-react';
-import { useCreateAuctionMutation, useGetAuctionByIdQuery, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
+import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
-import ConvertUTCDate from '../../utils/ConvertUTCDate';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import { setEventFlag } from '../../store/processingSlice';
 
 export default function AuctionForm() {
     let { id } = useParams();
@@ -23,10 +24,9 @@ export default function AuctionForm() {
 
     const [createAuction] = useCreateAuctionMutation();
     const [updateAuction] = useUpdateAuctionMutation();
-    const [createAuctionId, setCreateAuctionId] = useState('');
-    const createdAuctionItem = useGetAuctionByIdQuery(createAuctionId, {
-        skip: createAuctionId === ''
-    });
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
     const [image, setImage] = useState('');
     const [isWaiting, setIsWaiting] = useState(false);
     const [newAuction, setNewAuction] = useState<Auction>(
@@ -40,7 +40,6 @@ export default function AuctionForm() {
             error: ''
         } as Auction
     )
-    const navigate = useNavigate();
     const auctionImage = useGetImageForAuctionQuery(newAuction.id, {
         skip: newAuction.id === undefined
     });
@@ -64,6 +63,16 @@ export default function AuctionForm() {
         }
     }, [isLoading, data, id, navigate]);
 
+    useEffect(() => {
+        const eventStateAuctionUpdated = procState.find(p => p.eventName === 'AuctionUpdated');
+        const eventStateAuctionCreated = procState.find(p => p.eventName === 'AuctionCreated');
+        if ((eventStateAuctionUpdated && eventStateAuctionUpdated.ready) ||
+            (eventStateAuctionCreated && eventStateAuctionCreated.ready)) {
+            dispatch(setEventFlag({ eventName: 'AuctionUpdated', ready: false }));
+            dispatch(setEventFlag({ eventName: 'AuctionCreated', ready: false }));
+            navigate('/');
+        }
+    }, [procState, dispatch, navigate]);
 
     if (isLoading) return 'Загрузка...';
 
@@ -78,72 +87,17 @@ export default function AuctionForm() {
                         setIsWaiting(true);
                         if (id !== 'empty') {
                             //обновление аукциона
-                            const response: ApiResponse<Auction> = await updateAuction({
+                            dispatch(setEventFlag({ eventName: 'AuctionUpdated', ready: false }));
+                            await updateAuction({
                                 id: id,
                                 data: JSON.stringify(values)
                             });
-                            if (response.data!.isSuccess) {
-                                setCreateAuctionId(response.data!.result.id!);
-                                //если запись аукциона еще присутствует в Search, делаем задержку и повторяем проверку
-                                let attemptCounter = 10;
-                                const refInterval = setInterval(() => {
-                                    if (attemptCounter === 0) {
-                                        //не удалось найти запись в Search после 10 попыток - ошибка
-                                        clearInterval(refInterval);
-                                        toast.error(`Ошибка обновления аукциона "${values?.title}".`, { duration: 15000 });
-                                        navigate('/');
-                                    }
-                                    attemptCounter--;
-                                    try {
-                                        createdAuctionItem.refetch()
-                                            .then(rez => {
-                                                let currentTime = ConvertUTCDate(null);
-                                                currentTime!.setSeconds(currentTime!.getSeconds() - 5);
-                                                let updatedTime = new Date(rez.data!.result.updatedAt);
-                                                if (rez.data && rez.data.result &&
-                                                    updatedTime!.getTime() > currentTime!.getTime()
-                                                ) {
-                                                    clearInterval(refInterval);
-                                                    toast.success(`Аукцион "${rez.data!.result.title}" успешно обновлен!`);
-                                                    navigate('/');
-                                                }
-                                            })
-                                    } catch (e) {
-                                        clearInterval(refInterval);
-                                    }
-                                }, 500);
-                            }
                         } else {
                             //создание аукциона
-                            const response: ApiResponse<Auction> = await createAuction({
+                            dispatch(setEventFlag({ eventName: 'AuctionCreated', ready: false }));
+                            await createAuction({
                                 data: JSON.stringify(values)
                             });
-                            if (response.data!.isSuccess) {
-                                setCreateAuctionId(response.data!.result.id!);
-                                //если запись аукциона еще присутствует в Search, делаем задержку и повторяем проверку
-                                let attemptCounter = 10;
-                                const refInterval = setInterval(() => {
-                                    if (attemptCounter === 0) {
-                                        //не удалось найти запись в Search после 10 попыток - ошибка
-                                        clearInterval(refInterval);
-                                        toast.error(`Ошибка создания аукциона "${values?.title}".`, { duration: 15000 });
-                                        navigate('/');
-                                    }
-                                    attemptCounter--;
-                                    try {
-                                        createdAuctionItem.refetch()
-                                            .then(rez => {
-                                                if (rez.data && rez.data.result) {
-                                                    clearInterval(refInterval);
-                                                    toast.success(`Новый аукцион "${rez.data!.result.title}" успешно создан!`);
-                                                    navigate('/');
-                                                }
-                                            })
-                                    } catch (e) {
-                                        clearInterval(refInterval);
-                                    }
-                                }, 500);
-                            }
                         }
                     }
                     }
