@@ -50,13 +50,16 @@ public class SearchController : ControllerBase
             _ => query.OrderByDescending(p => p.AuctionEnd)
         };
         //отбор в зависимости от текстового параметра FilterBy
-        query = searchParams.FilterBy switch
+        if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
-            "finished" => query.Where(p => p.AuctionEnd < DateTime.UtcNow),
-            "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(24)
-                && p.AuctionEnd > DateTime.UtcNow),
-            _ => query.Where(p => p.AuctionEnd > DateTime.UtcNow)
-        };
+            query = searchParams.FilterBy switch
+            {
+                "finished" => query.Where(p => p.AuctionEnd < DateTime.UtcNow),
+                "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(24)
+                    && p.AuctionEnd > DateTime.UtcNow),
+                _ => query.Where(p => p.AuctionEnd > DateTime.UtcNow)
+            };
+        }
 
         //если ищем свои аукционы
         if (!string.IsNullOrEmpty(searchParams.Seller))

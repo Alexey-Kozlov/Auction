@@ -32,9 +32,9 @@ export const paramSlice = createSlice({
       if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
       if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
       if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
-      if (action.payload.filterBy) state.filterBy = action.payload.filterBy;
-      if (action.payload.seller) state.seller = action.payload.seller;
-      if (action.payload.winner) state.winner = action.payload.winner;
+      state.filterBy = action.payload.filterBy;
+      state.seller = action.payload.seller;
+      state.winner = action.payload.winner;
       if (action.payload.searchTerm || action.payload?.searchTerm === "")
         state.searchTerm = action.payload.searchTerm;
       if (!action.payload.pageNumber) {

@@ -17,12 +17,12 @@ export default function UserActions() {
     const dispatch = useDispatch();
     const location = useLocation();
     const SetWinner = () => {
-        dispatch(setParams({ winner: user.login, seller: undefined }));
+        dispatch(setParams({ winner: user.login, filterBy: '', seller: undefined }));
         if (location.pathname !== '/') navigate('/');
     }
 
     const SetSeller = () => {
-        dispatch(setParams({ seller: user.login, winner: undefined }));
+        dispatch(setParams({ seller: user.login, filterBy: '', winner: undefined }));
         if (location.pathname !== '/') navigate('/');
     }
 

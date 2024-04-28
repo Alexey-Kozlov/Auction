@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Common.Utils;
-using Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -61,6 +60,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<GrpcAuctionService>();
 
-DbInit.InitDb(app);
+//DbInit.InitDb(app);
 
 app.Run();

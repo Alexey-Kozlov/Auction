@@ -43,7 +43,7 @@ export default function FinListings() {
             financeData.refetch();
             setIsWaiting(false);
         }
-    }, [procState, dispatch]);
+    }, [procState, dispatch, financeData]);
 
     function setPageNumber(pageNumber: number) {
         dispatch(setParams({ pageNumber: pageNumber }));
