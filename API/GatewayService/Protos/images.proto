@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "ImageService";
+
+service GrpcImage {
+    rpc GetImage (GetImageRequest) returns (GrpcImageResponse);
+}
+
+message GetImageRequest {
+    string id = 1;
+}
+
+message GrpcImageModel {
+    string id = 1;
+    string image = 2;
+}
+
+message GrpcImageResponse {
+    GrpcImageModel image = 1;
+}

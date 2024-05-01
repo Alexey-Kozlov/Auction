@@ -61,13 +61,11 @@ export default function Detail() {
     }, [procState, isNotifyUser, dispatch, notifyUser]);
 
     useEffect(() => {
-        const eventState = procState.find(p => p.eventName === 'AuctionDeleted');
-        if (eventState && eventState.ready && deleteAuction) {
-            dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: false }));
-            //удаление записи
+        const eventState = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
+        if (eventState && deleteAuction) {
             navigate('/');
         }
-    }, [procState, dispatch, navigate, deleteAuction]);
+    }, [procState, navigate, deleteAuction]);
 
     //запоминаем переключатель по уведомлениям пользователя по событиям данного аукциона
     const handleSetNotifyUser = async (event: React.FormEvent<HTMLInputElement>) => {

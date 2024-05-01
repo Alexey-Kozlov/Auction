@@ -36,6 +36,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
             onSubmit={
                 async (values, { setErrors }) => {
                     dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
+                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
                     await placeBid({
                         amount: values.amount,
                         auctionId: auctionId,

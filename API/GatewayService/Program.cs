@@ -2,6 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Common.Utils;
+using GatewayService.Services;
+using GatewayService.Cache;
+using GatewayService.Models;
+using MassTransit;
+using GatewayService.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +29,21 @@ builder.Services.AddAuthentication(p =>
     };
 });
 
+builder.Services.AddMassTransit(p =>
+{
+    p.AddConsumersFromNamespaceContaining<AuctionUpdatedConsumer>();
+    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("gateway", false));
+    p.UsingRabbitMq((context, config) =>
+    {
+        config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
+        {
+            p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
+            p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
+        });
+        config.ConfigureEndpoints(context);
+    });
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("customPolicy", p =>
@@ -35,9 +55,30 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost";
+    options.InstanceName = "local";
+});
+
+builder.Services.AddScoped<GrpcImageClient>();
+builder.Services.AddScoped<ImageCache>();
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("customPolicy");
+
+//получаем изображения из кеша - сервис с использованием reddis
+app.MapGet("/api/images/{id}", async (string id, ImageCache imageCache) =>
+{
+    string img = await imageCache.GetImage(id);
+    return new ApiResponse<ImageDTO>()
+    {
+        StatusCode = System.Net.HttpStatusCode.OK,
+        IsSuccess = true,
+        Result = new ImageDTO(id, img)
+    };
+});
 
 app.MapReverseProxy();
 app.UseAuthentication();

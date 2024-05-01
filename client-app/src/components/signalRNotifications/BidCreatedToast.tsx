@@ -3,6 +3,7 @@ import { AuctionImage } from '../../store/types';
 import { NavLink } from 'react-router-dom';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useEffect } from 'react';
 const empty = require('../../assets/Empty.png');
 
 type Props = {
@@ -13,6 +14,12 @@ type Props = {
 export default function BidCreatedToast({ auctionId, toastId }: Props) {
     const { isLoading, data } = useGetImageForAuctionQuery(auctionId);
     const bidAuction = useGetDetailedViewDataQuery(auctionId);
+    useEffect(() => {
+        if (bidAuction) {
+            bidAuction.refetch();
+        }
+    }, [bidAuction]);
+
     return (
         <div>
             {!bidAuction.isLoading && (

@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Common.Utils;
 using ImageService.Data;
+using AuctionService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,19 +26,14 @@ builder.Services.AddMassTransit(p =>
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
-        // config.ReceiveEndpoint("image-auction-created", e =>
-        // {
-        //     e.ConfigureConsumer<AuctionCreatedConsumer>(context);
-        // });
         config.ConfigureEndpoints(context);
     });
 });
-
+builder.Services.AddGrpc();
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
-
+app.MapGrpcService<GrpcImageServer>();
 app.Run();

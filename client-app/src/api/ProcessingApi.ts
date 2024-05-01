@@ -4,7 +4,7 @@ import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
 
 const processingApi = createApi({
-  refetchOnMountOrArgChange: true,
+  //refetchOnMountOrArgChange: true,
   reducerPath: "processingApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + `/api/processing`,
@@ -15,7 +15,7 @@ const processingApi = createApi({
       }
     },
   }),
-  tagTypes: ["pocessing"],
+  tagTypes: ["processing"],
   endpoints: (builder) => ({
     placeBidForAuction: builder.mutation<any, PlaceBidParams>({
       query: (params) => ({
@@ -33,7 +33,7 @@ const processingApi = createApi({
       transformErrorResponse: (response: any, meta: any) => {
         PostErrorApiProcess(response);
       },
-      invalidatesTags: ["pocessing"],
+      invalidatesTags: ["processing"],
     }),
   }),
 });

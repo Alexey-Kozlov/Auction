@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -81,6 +82,8 @@ public class SearchController : ControllerBase
         {
             pageCount = (itemsCount + searchParams.PageSize - 1) / searchParams.PageSize;
         }
+
+        Console.WriteLine($"{DateTime.Now} Запрос данных - {JsonSerializer.Serialize(searchParams)}");
 
         return new ApiResponse<PagedResult<List<Item>>>
         {

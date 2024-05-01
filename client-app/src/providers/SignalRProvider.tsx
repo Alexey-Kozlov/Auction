@@ -71,6 +71,7 @@ export default function SignalRProvider() {
                     connection.on('BidPlaced', (bid: Bid) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
                         dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
 
                         setTimeout(() => {
                             if (user?.login !== bid.bidder) {
@@ -84,7 +85,7 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
-                        dispatch(setEventFlag({ eventName: 'AuctionCreated', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
                         setTimeout(() => {
                             if (user?.login !== auction.seller) {
                                 return toast((p) => (
@@ -97,7 +98,7 @@ export default function SignalRProvider() {
 
                     connection.on('AuctionUpdated', (auction: any) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-                        dispatch(setEventFlag({ eventName: 'AuctionUpdated', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
                     })
 
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
@@ -107,7 +108,7 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionDeleted', (auction: any) => {
-                        dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
                     })
 
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {

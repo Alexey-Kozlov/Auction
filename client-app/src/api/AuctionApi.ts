@@ -9,7 +9,7 @@ import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const auctionApi = createApi({
-  refetchOnMountOrArgChange: true,
+  //refetchOnMountOrArgChange: true,
   reducerPath: "auctionApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + "/api",

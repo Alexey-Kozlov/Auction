@@ -4,7 +4,7 @@ import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const bidApi = createApi({
-  refetchOnMountOrArgChange: true,
+  //refetchOnMountOrArgChange: true,
   reducerPath: "bidApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + `/api/bids`,

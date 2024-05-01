@@ -12,21 +12,20 @@ import { Button } from 'flowbite-react';
 import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
 import { setEventFlag } from '../../store/processingSlice';
+import { RootState } from '../../store/store';
 
 export default function AuctionForm() {
     let { id } = useParams();
     if (!id) id = 'empty';
-    const { data, isLoading } = useGetDetailedViewDataQuery(id!, {
+    const auction = useGetDetailedViewDataQuery(id!, {
         skip: id === 'empty'
     });
-
+    const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
     const [createAuction] = useCreateAuctionMutation();
     const [updateAuction] = useUpdateAuctionMutation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
     const [image, setImage] = useState('');
     const [isWaiting, setIsWaiting] = useState(false);
     const [newAuction, setNewAuction] = useState<Auction>(
@@ -45,10 +44,10 @@ export default function AuctionForm() {
     });
 
     useEffect(() => {
-        if (!isLoading && data) {
-            setNewAuction(data!.result);
+        if (!auction.isLoading && auction.data) {
+            setNewAuction(auction.data!.result);
         }
-    }, [data, isLoading])
+    }, [auction.data, auction.isLoading])
 
     useEffect(() => {
         if (!auctionImage.isLoading && auctionImage.data?.result?.image) {
@@ -58,23 +57,20 @@ export default function AuctionForm() {
 
 
     useEffect(() => {
-        if (id !== 'empty' && !isLoading && data?.isSuccess && data?.result && !data?.result.title) {
+        if (id !== 'empty' && !auction.isLoading && auction.data?.isSuccess &&
+            auction.data?.result && !auction.data?.result.title) {
             navigate('/not-found');
         }
-    }, [isLoading, data, id, navigate]);
+    }, [auction.isLoading, auction.data, id, navigate]);
 
     useEffect(() => {
-        const eventStateAuctionUpdated = procState.find(p => p.eventName === 'AuctionUpdated');
-        const eventStateAuctionCreated = procState.find(p => p.eventName === 'AuctionCreated');
-        if ((eventStateAuctionUpdated && eventStateAuctionUpdated.ready) ||
-            (eventStateAuctionCreated && eventStateAuctionCreated.ready)) {
-            dispatch(setEventFlag({ eventName: 'AuctionUpdated', ready: false }));
-            dispatch(setEventFlag({ eventName: 'AuctionCreated', ready: false }));
+        const eventStateAuctionUpdated = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
+        if (eventStateAuctionUpdated) {
             navigate('/');
         }
-    }, [procState, dispatch, navigate]);
+    }, [procState, auction, navigate]);
 
-    if (isLoading) return 'Загрузка...';
+    if (auction.isLoading) return 'Загрузка...';
 
     return (
         <div className='mx-auto max-w-[75%] shadow-lg p-10 bg-white rounded-lg'>
@@ -87,14 +83,14 @@ export default function AuctionForm() {
                         setIsWaiting(true);
                         if (id !== 'empty') {
                             //обновление аукциона
-                            dispatch(setEventFlag({ eventName: 'AuctionUpdated', ready: false }));
+                            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
                             await updateAuction({
                                 id: id,
                                 data: JSON.stringify(values)
                             });
                         } else {
                             //создание аукциона
-                            dispatch(setEventFlag({ eventName: 'AuctionCreated', ready: false }));
+                            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
                             await createAuction({
                                 data: JSON.stringify(values)
                             });

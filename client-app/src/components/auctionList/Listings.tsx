@@ -9,7 +9,8 @@ import { setParams } from '../../store/paramSlice';
 import { RootState } from '../../store/store';
 import { setData } from '../../store/auctionSlice';
 import Filters from './Filters';
-import { Auction } from '../../store/types';
+import { Auction, ProcessingState } from '../../store/types';
+import { setEventFlag } from '../../store/processingSlice';
 
 export default function Listings() {
     const dispatch = useDispatch();
@@ -17,13 +18,24 @@ export default function Listings() {
     const auctions: Auction[] = useSelector((state: RootState) => state.auctionStore).auctions;
     const url = qs.stringifyUrl({ url: '', query: params });
     const auctionsData = useGetAuctionsQuery(url);
+    const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
 
     useEffect(() => {
-        if (!auctionsData.isLoading) {
-            dispatch(setData(auctionsData.data?.result));
-        }
-    }, [auctionsData.isLoading, auctionsData.data?.result, dispatch]);
+        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
+    }, [dispatch])
 
+    useEffect(() => {
+        if (!auctionsData.isLoading && auctionsData.data) {
+            dispatch(setData(auctionsData.data.result));
+        }
+    }, [auctionsData, dispatch]);
+
+    useEffect(() => {
+        const eventStateChanged = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
+        if (eventStateChanged) {
+            auctionsData.refetch();
+        }
+    }, [procState, auctionsData]);
 
     function setPageNumber(pageNumber: number) {
         dispatch(setParams({ pageNumber: pageNumber }));

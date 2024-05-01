@@ -4,7 +4,7 @@ import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
 
 const financeApi = createApi({
-  refetchOnMountOrArgChange: true,
+  //refetchOnMountOrArgChange: true,
   reducerPath: "financeApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + `/api/finance`,
