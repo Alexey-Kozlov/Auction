@@ -15,7 +15,7 @@ public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
     }
     public async Task Consume(ConsumeContext<AuctionDeleted> consumeContext)
     {
-        Console.WriteLine("--> Получение сообщения удалить аукцион");
+        Console.WriteLine($"{DateTime.Now}  Получение сообщения удалить аукцион");
         var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == consumeContext.Message.Id);
         if (item != null)
         {

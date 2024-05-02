@@ -4,18 +4,18 @@ using MassTransit;
 
 namespace GatewayService.Consumers;
 
-public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
+public class ImageUpdatedConsumer : IConsumer<ImageUpdated>
 {
     private readonly ImageCache _cacheService;
-    public AuctionUpdatedConsumer(ImageCache cacheService)
+    public ImageUpdatedConsumer(ImageCache cacheService)
     {
         _cacheService = cacheService;
     }
-    public async Task Consume(ConsumeContext<AuctionUpdated> consumeContext)
+    public async Task Consume(ConsumeContext<ImageUpdated> consumeContext)
     {
 
-        if (string.IsNullOrEmpty(consumeContext.Message.Image)) return;
+        if (string.IsNullOrEmpty(consumeContext.Message.id)) return;
         Console.WriteLine("--> Получение сообщения обновить аукцион, сбрасываем кеш изображения");
-        await _cacheService.DeleteCacheItem(consumeContext.Message.Id);
+        await _cacheService.DeleteCacheItem(consumeContext.Message.id);
     }
 }

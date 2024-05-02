@@ -7,19 +7,21 @@ namespace GatewayService.Services;
 
 public class GrpcImageClient
 {
-    private readonly ILogger<GrpcImageClient> _logger;
     private readonly IConfiguration _config;
 
-    public GrpcImageClient(ILogger<GrpcImageClient> logger, IConfiguration config)
+    public GrpcImageClient(IConfiguration config)
     {
-        _logger = logger;
         _config = config;
     }
 
     public async Task<ImageDTO> GetImage(string id)
     {
-        _logger.LogInformation("Вызов Grpc сервер");
-        var channel = GrpcChannel.ForAddress(_config["GrpcImage"]);
+        Console.WriteLine($"{DateTime.Now} Вызов GrpcImage сервер");
+        var channel = GrpcChannel.ForAddress(_config["GrpcImage"], new GrpcChannelOptions
+        {
+            MaxSendMessageSize = int.MaxValue,
+            MaxReceiveMessageSize = int.MaxValue
+        });
         var client = new GrpcImage.GrpcImageClient(channel);
         var request = new GetImageRequest { Id = id };
 
@@ -33,16 +35,16 @@ public class GrpcImageClient
         {
             if (ex.StatusCode == StatusCode.NotFound)
             {
-                _logger.LogError("Изображение в БД не найдено");
+                Console.WriteLine($"{DateTime.Now} Изображение в БД не найдено");
                 return new ImageDTO(id, "");
             }
-            _logger.LogError(ex, "Ошибка GRPC Image");
-            return null;
+            Console.WriteLine($"{DateTime.Now} Ошибка GRPC Image - {ex.Message}");
+            return new ImageDTO(id, "");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Невозможно вызвать GRPC Image сервер");
-            return null;
+            Console.WriteLine($"{DateTime.Now} Невозможно вызвать GRPC Image сервер - {ex.Message}");
+            return new ImageDTO(id, "");
         }
     }
 }

@@ -51,7 +51,7 @@ public class SearchController : ControllerBase
             _ => query.OrderByDescending(p => p.AuctionEnd)
         };
         //отбор в зависимости от текстового параметра FilterBy
-        if (!string.IsNullOrEmpty(searchParams.SearchTerm))
+        if (!string.IsNullOrEmpty(searchParams.FilterBy))
         {
             query = searchParams.FilterBy switch
             {
@@ -83,7 +83,7 @@ public class SearchController : ControllerBase
             pageCount = (itemsCount + searchParams.PageSize - 1) / searchParams.PageSize;
         }
 
-        Console.WriteLine($"{DateTime.Now} Запрос данных - {JsonSerializer.Serialize(searchParams)}");
+        //Console.WriteLine($"{DateTime.Now} Запрос данных - {JsonSerializer.Serialize(searchParams)}");
 
         return new ApiResponse<PagedResult<List<Item>>>
         {

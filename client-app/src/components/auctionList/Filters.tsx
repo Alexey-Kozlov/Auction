@@ -72,7 +72,7 @@ export default function Filters() {
         //const newVal = orderButtons.find(p => p.value === val)!.value;
         setOrderItem((prev) => {
             prev.forEach((item) => {
-                if (val.indexOf('title') !== -1 && item.indexOf('title') && lastOrder.indexOf('title') !== -1) {
+                if (val.indexOf('title') !== -1 && item.indexOf('title') !== -1 && lastOrder.indexOf('title') !== -1) {
                     if (item === 'titleAsc') {
                         prev[0] = 'titleDesc';
                     } else {

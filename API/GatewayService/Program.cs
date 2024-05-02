@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionUpdatedConsumer>();
+    p.AddConsumersFromNamespaceContaining<ImageUpdatedConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("gateway", false));
     p.UsingRabbitMq((context, config) =>
     {
@@ -57,8 +57,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = "localhost";
-    options.InstanceName = "local";
+    options.Configuration = builder.Configuration["Redis:Config"];
+    options.InstanceName = builder.Configuration["Redis:Instance"];
 });
 
 builder.Services.AddScoped<GrpcImageClient>();

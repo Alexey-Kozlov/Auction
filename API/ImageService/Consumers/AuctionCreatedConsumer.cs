@@ -23,6 +23,6 @@ public class AuctionCreatedConsumer : IConsumer<AuctionCreated>
         var item = _mapper.Map<ImageItem>(newItem);
         await _context.AddAsync(item);
         await _context.SaveChangesAsync();
-        Console.WriteLine("--> Получение сообщения создать аукцион");
+        Console.WriteLine($"{DateTime.Now} Получение сообщения создать аукцион");
     }
 }

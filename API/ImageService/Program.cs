@@ -29,7 +29,12 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(opt =>
+{
+    opt.EnableDetailedErrors = true;
+    opt.MaxSendMessageSize = int.MaxValue;
+    opt.MaxReceiveMessageSize = int.MaxValue;
+});
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.

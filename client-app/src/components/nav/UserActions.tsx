@@ -40,13 +40,17 @@ export default function UserActions() {
             <Dropdown.Item icon={AiFillTrophy} onClick={SetWinner}>
                 Аукционы выигранные
             </Dropdown.Item>
-            <Dropdown.Item icon={RiAuctionFill}>
-                <NavLink to='/auctions/create'>Создать аукцион</NavLink>
-            </Dropdown.Item>
+            <NavLink to='/auctions/create'>
+                <Dropdown.Item icon={RiAuctionFill}>
+                    Создать аукцион
+                </Dropdown.Item>
+            </NavLink>
             <Dropdown.Divider />
-            <Dropdown.Item icon={GrMoney}>
-                <NavLink to='/finance/list'>Финансы</NavLink>
-            </Dropdown.Item>
+            <NavLink to='/finance/list'>
+                <Dropdown.Item icon={GrMoney}>
+                    Финансы
+                </Dropdown.Item>
+            </NavLink>
             <Dropdown.Divider />
             <Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>
                 Выход
