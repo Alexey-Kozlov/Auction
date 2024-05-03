@@ -49,7 +49,6 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHostedService<CheckAuctionFinished>();
-builder.Services.AddScoped<GrpcAuctionClient>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

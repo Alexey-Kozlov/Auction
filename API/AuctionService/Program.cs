@@ -1,7 +1,6 @@
 using System.Text;
 using AuctionService.Consumers;
 using AuctionService.Data;
-using AuctionService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -48,17 +47,13 @@ builder.Services.AddAuthentication(p =>
     };
 });
 
-builder.Services.AddGrpc();
-
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-// Configure the HTTP request pipeline.
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGrpcService<GrpcAuctionService>();
 
 //DbInit.InitDb(app);
 

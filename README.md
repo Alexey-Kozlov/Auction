@@ -1,6 +1,15 @@
 # -
 
-React+Microservices
+Технологии:
+React + TailWind CSS
+RTK Query
+Microservices .Net8
+PostgreSql, EF, AutoMapper
+RabbitMq, MassTransit
+REST, GRPC
+SignalR
+Saga Orchestration, StateMachine
+Redis cache
 
 команды деплоя
 

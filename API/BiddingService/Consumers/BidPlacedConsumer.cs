@@ -11,13 +11,11 @@ namespace BiddingService.Consumers;
 public class BidPlacedConsumer : IConsumer<RequestBidPlace>
 {
     private readonly BidDbContext _dbContext;
-    private readonly GrpcAuctionClient _grpcClient;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public BidPlacedConsumer(IPublishEndpoint publishEndpoint, BidDbContext dbContext, GrpcAuctionClient grpcClient)
+    public BidPlacedConsumer(IPublishEndpoint publishEndpoint, BidDbContext dbContext)
     {
         _dbContext = dbContext;
-        _grpcClient = grpcClient;
         _publishEndpoint = publishEndpoint;
     }
     public async Task Consume(ConsumeContext<RequestBidPlace> context)
@@ -25,13 +23,12 @@ public class BidPlacedConsumer : IConsumer<RequestBidPlace>
         var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.AuctionId);
         if (auction == null)
         {
-            auction = _grpcClient.GetAuction(context.Message.AuctionId.ToString());
-            if (auction == null) throw new PlaceBidException(
-                context.Message.Bidder,
-                context.Message.Amount,
-                context.Message.AuctionId.ToString(),
-                "Невозможно назначить заявку на этот аукцион - аукцион не найден!"
-            );
+            throw new PlaceBidException(
+            context.Message.Bidder,
+            context.Message.Amount,
+            context.Message.AuctionId.ToString(),
+            "Невозможно назначить заявку на этот аукцион - аукцион не найден!"
+        );
         }
 
         if (auction.Seller == context.Message.Bidder) throw new PlaceBidException(
