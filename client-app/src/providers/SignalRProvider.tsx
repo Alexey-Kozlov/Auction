@@ -20,7 +20,6 @@ export default function SignalRProvider() {
     const auction = useGetAuctionQuery(finishedAuctionId, {
         skip: finishedAuctionId === 'empty'
     });
-    const [auctionId, setAuctionId] = useState('');
     const dispatch = useDispatch();
     const [connection, setConnection] = useState<HubConnection | null>(null);
 
@@ -54,15 +53,6 @@ export default function SignalRProvider() {
     }, [finishedAuction, auction.data, auction.data?.result, auction.isLoading]);
 
     useEffect(() => {
-        if (auctionId) {
-            toast((p) => (
-                <BidCreatedToast auctionId={auctionId} toastId={p.id} />
-            ), { duration: 10000 });
-            setAuctionId('');
-        }
-    }, [auctionId]);
-
-    useEffect(() => {
         if (connection) {
             connection.start()
                 .then(() => {
@@ -71,29 +61,24 @@ export default function SignalRProvider() {
                     connection.on('BidPlaced', (bid: Bid) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
                         dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true }));
+                        //для обновления плашки ставки на страничке аукциона в списке аукционов
                         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
-
-                        setTimeout(() => {
-                            if (user?.login !== bid.bidder) {
-                                return toast((p) => (
-                                    <BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
-                                ),
-                                    { duration: 10000 });
-                            }
-                        }, 1000);
-
+                        if (user?.login !== bid.bidder) {
+                            return toast((p) => (
+                                <BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
+                            ),
+                                { duration: 5000 });
+                        }
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
                         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
-                        setTimeout(() => {
-                            if (user?.login !== auction.seller) {
-                                return toast((p) => (
-                                    <AuctionCreatedToast auction={auction} toastId={p.id} />
-                                ),
-                                    { duration: 10000 });
-                            }
-                        }, 1000);
+                        if (user?.login !== auction.seller) {
+                            return toast((p) => (
+                                <AuctionCreatedToast auction={auction} toastId={p.id} />
+                            ),
+                                { duration: 5000 });
+                        }
                     })
 
                     connection.on('AuctionUpdated', (auction: any) => {
@@ -102,19 +87,11 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
-                        setTimeout(() => {
-                            setFinishedAuction(finishedAuction);
-                        }, 1000);
+                        setFinishedAuction(finishedAuction);
                     })
 
                     connection.on('AuctionDeleted', (auction: any) => {
                         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
-                    })
-
-                    connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
-                        setTimeout(() => {
-                            setFinishedAuction(finishedAuction);
-                        }, 1000);
                     })
 
                     connection.on('FinanceCreditAdd', (finance: any) => {
@@ -122,14 +99,12 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('FaultRequestFinanceDebitAdd', (debitError: SagaErrorType) => {
-                        setTimeout(() => {
-                            if (user?.login === debitError.userLogin) {
-                                return toast((p) => (
-                                    <ErrorBidCreatedToast auctionId={debitError.auctionId} toastId={p.id} />
-                                ),
-                                    { duration: 10000 });
-                            }
-                        }, 1000);
+                        if (user?.login === debitError.userLogin) {
+                            return toast((p) => (
+                                <ErrorBidCreatedToast auctionId={debitError.auctionId} toastId={p.id} />
+                            ),
+                                { duration: 10000 });
+                        }
                     })
                 }).catch(err => console.log(err));
         }

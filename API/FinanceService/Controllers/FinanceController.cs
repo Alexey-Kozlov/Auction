@@ -55,6 +55,7 @@ public class FinanceController : ControllerBase
         {
             pageCount = (itemsCount + pagedParams.PageSize - 1) / pagedParams.PageSize;
         }
+        Console.WriteLine($"{DateTime.Now} Запрос финансов для {userLogin}, количество записей - {itemsCount}");
         return new ApiResponse<PagedResult<List<BalanceItem>>>
         {
             StatusCode = System.Net.HttpStatusCode.OK,

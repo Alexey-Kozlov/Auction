@@ -67,7 +67,8 @@ export default function BidList({ user, auction }: Props) {
     useEffect(() => {
         if (itemsRef && itemsRef.current) {
             itemsRef.current.scrollIntoView({
-                behavior: 'smooth',
+                //behavior: 'smooth',
+                behavior: 'auto',
                 block: 'start',
                 inline: 'nearest',
             });

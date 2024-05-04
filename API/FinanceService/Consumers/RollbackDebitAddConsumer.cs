@@ -39,7 +39,7 @@ public class RollbackDebitAddConsumer : IConsumer<RollbackFinanceDebitAdd>
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        Console.WriteLine("--> Получение сообщения - отмена платежа по заявке, - " +
+        Console.WriteLine($"{DateTime.Now} Получение сообщения - отмена платежа по заявке, - " +
                  context.Message.Debit + ", " + context.Message.UserLogin);
 
     }

@@ -20,7 +20,7 @@ public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
     }
     public async Task Consume(ConsumeContext<AuctionUpdated> context)
     {
-        Console.WriteLine("--> Получение сообщения обновить аукцион");
+        Console.WriteLine($"{DateTime.Now}  Получение сообщения обновить аукцион");
         var item = await _context.Auctions.FirstOrDefaultAsync(p => p.Id == Guid.Parse(context.Message.Id));
         if (item != null)
         {
@@ -28,6 +28,6 @@ public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
             await _context.SaveChangesAsync();
             return;
         }
-        Console.WriteLine("Ошибка обновления записи - запись " + context.Message.Id + " не найдена.");
+        Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись " + context.Message.Id + " не найдена.");
     }
 }

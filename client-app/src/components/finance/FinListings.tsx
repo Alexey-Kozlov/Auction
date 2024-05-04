@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import qs from 'query-string';
 import { useDispatch, useSelector } from 'react-redux';
 import { reset, setParams } from '../../store/paramSlice';
@@ -25,20 +25,21 @@ export default function FinListings() {
     const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
 
     useEffect(() => {
-        if (!financeData.isLoading) {
-            dispatch(setFinanceItems(financeData.data?.result));
+        if (financeData.data && !financeData.isLoading) {
+            dispatch(setFinanceItems(financeData.data.result));
         }
-    }, [financeData.isLoading, financeData.data?.result, dispatch]);
+    }, [financeData, dispatch]);
 
     useEffect(() => {
+        dispatch(reset(null));
         return () => {
             dispatch(reset(null));
         }
     }, [dispatch])
 
     useEffect(() => {
-        const eventStateFinanceCreditAdd = procState.find(p => p.eventName === 'FinanceCreditAdd');
-        if (eventStateFinanceCreditAdd && eventStateFinanceCreditAdd.ready) {
+        const eventStateFinanceCreditAdd = procState.find(p => p.eventName === 'FinanceCreditAdd' && p.ready);
+        if (eventStateFinanceCreditAdd) {
             dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: false }));
             financeData.refetch();
             setIsWaiting(false);
@@ -61,38 +62,6 @@ export default function FinListings() {
                     dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: false }));
                     setIsWaiting(true);
                     await addCredit(values.amount);
-
-                    // if (response.data!.isSuccess) {
-                    //     let attemptCounter = 10;
-                    //     const refInterval = setInterval(() => {
-                    //         if (attemptCounter === 0) {
-                    //             //не удалось найти запись в Search после 10 попыток - ошибка
-                    //             clearInterval(refInterval);
-                    //             setIsWaiting(false);
-                    //             values.amount = 0;
-                    //             //toast.error(`Ошибка обновления аукциона "${values?.title}".`, { duration: 15000 });
-
-                    //         }
-                    //         attemptCounter--;
-                    //         try {
-                    //             financeData.refetch()
-                    //                 .then(rez => {
-                    //                     let currentTime = ConvertUTCDate(null);
-                    //                     currentTime!.setSeconds(currentTime!.getSeconds() - 5);
-                    //                     let updatedTime = new Date(rez.data!.result.results[0].actionDate);
-                    //                     if (rez.data && rez.data.result &&
-                    //                         updatedTime!.getTime() > currentTime!.getTime()
-                    //                     ) {
-                    //                         clearInterval(refInterval);
-                    //                         setIsWaiting(false);
-                    //                         values.amount = 0;
-                    //                     }
-                    //                 })
-                    //         } catch (e) {
-                    //             clearInterval(refInterval);
-                    //         }
-                    //     }, 500);
-                    // }
 
                 }
                 }

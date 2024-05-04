@@ -81,10 +81,27 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
             };
             await _context.BalanceItems.AddAsync(_debit);
         }
+        //удаляем все резервирования денег по данному аукциону, кроме сделавшего последнюю ставку
+        var debitItems = await _context.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
+            p.UserLogin != context.Message.UserLogin).ToListAsync();
+        //правим финансы для каждого пользователя, участвующего в аукционе (кроме сделавшего последнюю ставку)
+        //возвращаем деньги за сделанные ставки по данному аукциону
+        var balance = 0;
+        foreach (var debitItem in debitItems)
+        {
+            balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == debitItem.UserLogin)
+                .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
+            balance = balanceItem.Balance + debitItem.Debit;
+            _context.Remove(debitItem);
+            balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == debitItem.UserLogin)
+                .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
+            balanceItem.Balance = balance;
+        }
+
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
         await context.Publish(new FinanceGranted(context.Message.CorrelationId));
-        Console.WriteLine("--> Выполнено сообщение по резервированию денег, - " +
+        Console.WriteLine($"{DateTime.Now} Выполнено сообщение по резервированию денег, - " +
                  context.Message.Debit + ", " + context.Message.UserLogin);
 
     }

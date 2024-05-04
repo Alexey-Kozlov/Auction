@@ -41,6 +41,6 @@ public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
         }
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
-        Console.WriteLine("--> Получение сообщения - аукцион удален - " + context.Message.Id);
+        Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион удален - " + context.Message.Id);
     }
 }

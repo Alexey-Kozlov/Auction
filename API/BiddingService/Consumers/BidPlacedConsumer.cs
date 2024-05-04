@@ -67,7 +67,7 @@ public class BidPlacedConsumer : IConsumer<RequestBidPlace>
             context.Message.AuctionId,
             context.Message.Amount));
 
-        Console.WriteLine("--> Получение сообщения - размещена заявка - " +
+        Console.WriteLine($"{DateTime.Now} Получение сообщения - размещена заявка - " +
                  context.Message.Bidder + ", " + context.Message.Amount);
     }
 }

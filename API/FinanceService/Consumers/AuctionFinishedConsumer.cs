@@ -46,6 +46,6 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
         }
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
-        Console.WriteLine("--> Получение сообщения - аукцион завершен - " + context.Message.AuctionId);
+        Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион завершен - " + context.Message.AuctionId);
     }
 }

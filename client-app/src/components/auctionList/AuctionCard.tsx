@@ -11,7 +11,7 @@ type Props = {
 export default function AuctionCard({ auction }: Props) {
     return (
         <NavLink to={`/auctions/${auction.id}`} className='group'>
-            <div className='rounded-lg'>
+            <div className='rounded-lg group-hover:drop-shadow-4xl duration-700'>
                 <div className='flex justify-center relative'>
                     <ImageCard id={auction.id} dopStyle=' max-h-60' />
                     <div className='absolute bottom-2 left-2'>
@@ -22,8 +22,11 @@ export default function AuctionCard({ auction }: Props) {
                     </div>
                 </div>
             </div>
-            <div className='flex justify-center items-center mt-4`'>
-                <h3 className='text-gray-700'>{auction.title}</h3>
+            <div className='flex justify-center items-center mt-4'>
+                <div className='backdrop-brightness-200 p-2 rounded-xl
+                border-2 border-white group-hover:border-gray-700 duration-700'>
+                    <h3 className='text-gray-700 '>{auction.title}</h3>
+                </div>
             </div>
         </NavLink>
     )
