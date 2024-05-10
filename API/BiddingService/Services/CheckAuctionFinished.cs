@@ -52,7 +52,7 @@ public class CheckAuctionFinished : BackgroundService
                 .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
 
                 await endpoint.Publish(new AuctionFinished(winningBid != null, auction.Id, winningBid?.Bidder,
-                    auction.Seller, (winningBid == null ? 0 : winningBid.Amount)), stoppingToken);
+                    auction.Seller, (winningBid == null ? 0 : winningBid.Amount), new Guid()), stoppingToken);
             }
         }
         catch (Exception ex)

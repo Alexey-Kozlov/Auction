@@ -3,7 +3,7 @@ import { ApiResponseNet, AuctionImage } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
 const imageApi = createApi({
-  refetchOnMountOrArgChange: true,
+  //refetchOnMountOrArgChange: true,
   reducerPath: "imageApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + `/api/images`,

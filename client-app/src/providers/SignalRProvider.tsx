@@ -60,9 +60,9 @@ export default function SignalRProvider() {
 
                     connection.on('BidPlaced', (bid: Bid) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-                        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true, id: bid.auctionId }));
                         //для обновления плашки ставки на страничке аукциона в списке аукционов
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: bid.auctionId }));
                         if (user?.login !== bid.bidder) {
                             return toast((p) => (
                                 <BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
@@ -72,7 +72,8 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
+                        dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, id: auction.id }));
                         if (user?.login !== auction.seller) {
                             return toast((p) => (
                                 <AuctionCreatedToast auction={auction} toastId={p.id} />
@@ -81,9 +82,10 @@ export default function SignalRProvider() {
                         }
                     })
 
-                    connection.on('AuctionUpdated', (auction: any) => {
+                    connection.on('AuctionUpdated', (auction: Auction) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
+                        dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, id: auction.id }));
                     })
 
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
@@ -91,7 +93,7 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionDeleted', (auction: any) => {
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
                     })
 
                     connection.on('FinanceCreditAdd', (finance: any) => {

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using BiddingService.Data;
-using BiddingService.Entities;
 using Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -8,17 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BiddingService.Consumers;
 
-public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
+public class AuctionUpdatingBidConsumer : IConsumer<AuctionUpdatingBid>
 {
     private readonly IMapper _mapper;
     private readonly BidDbContext _context;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionUpdatedConsumer(IMapper mapper, BidDbContext context)
+    public AuctionUpdatingBidConsumer(IMapper mapper, BidDbContext context, IPublishEndpoint publishEndpoint)
     {
         _mapper = mapper;
         _context = context;
+        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<AuctionUpdated> context)
+    public async Task Consume(ConsumeContext<AuctionUpdatingBid> context)
     {
         Console.WriteLine($"{DateTime.Now}  Получение сообщения обновить аукцион");
         var item = await _context.Auctions.FirstOrDefaultAsync(p => p.Id == Guid.Parse(context.Message.Id));
@@ -26,8 +27,9 @@ public class AuctionUpdatedConsumer : IConsumer<AuctionUpdated>
         {
             item.AuctionEnd = context.Message.AuctionEnd;
             await _context.SaveChangesAsync();
-            return;
+            await _publishEndpoint.Publish(new AuctionUpdatedBid(context.Message.Id, context.Message.CorrelationId));
         }
+
         Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись " + context.Message.Id + " не найдена.");
     }
 }

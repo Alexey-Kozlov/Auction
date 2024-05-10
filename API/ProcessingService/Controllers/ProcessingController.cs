@@ -1,11 +1,12 @@
 ﻿using System.Net;
+using System.Security.Claims;
 using Common.Utils;
 using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcessingService.DTO;
-using ProcessingService.StateMachines;
+using ProcessingService.StateMachines.CreateBidStateMachine;
 
 namespace ProcessingService.Controllers;
 
@@ -24,12 +25,12 @@ public class ProcessingController : ControllerBase
     }
 
     [HttpGet("status/{correlationId}")]
-    public async Task<ApiResponse<ProcessingState>> GetStatusAsync(Guid correlationId)
+    public async Task<ApiResponse<CreateBidState>> GetStatusAsync(Guid correlationId)
     {
-        var response = await _processingClient.GetResponse<ProcessingState>(
+        var response = await _processingClient.GetResponse<CreateBidState>(
             new GetProcessingBidState(correlationId));
 
-        return new ApiResponse<ProcessingState>
+        return new ApiResponse<CreateBidState>
         {
             StatusCode = HttpStatusCode.OK,
             IsSuccess = true,
@@ -44,6 +45,40 @@ public class ProcessingController : ControllerBase
         var bid = new RequestProcessingBidStart(par.auctionId, User.Identity.Name, par.amount, par.correlationId);
 
         await _publishEndpoint.Publish(bid);
+
+        return new ApiResponse<object>
+        {
+            StatusCode = HttpStatusCode.Accepted,
+            IsSuccess = true,
+            Result = { }
+        };
+    }
+
+    [Authorize]
+    [HttpPost("updateauction")]
+    public async Task<ApiResponse<object>> UpdateAuction([FromBody] UpdateAuctionDTO par)
+    {
+        var auction = new RequestAuctionUpdate(par.Id, par.Title, par.Properties, par.Image, par.Description,
+        User.Identity.Name, par.AuctionEnd, par.CorrelationId);
+
+        await _publishEndpoint.Publish(auction);
+
+        return new ApiResponse<object>
+        {
+            StatusCode = HttpStatusCode.Accepted,
+            IsSuccess = true,
+            Result = { }
+        };
+    }
+
+    [Authorize]
+    [HttpPost("deleteauction")]
+    public async Task<ApiResponse<object>> DeleteAuction([FromBody] DeleteAuctionDTO par)
+    {
+        var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        var reqAuctionDelete = new RequestAuctionDelete(par.CorrelationId, auctionAuthor, par.Id);
+
+        await _publishEndpoint.Publish(reqAuctionDelete);
 
         return new ApiResponse<object>
         {

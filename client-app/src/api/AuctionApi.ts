@@ -72,45 +72,25 @@ const auctionApi = createApi({
       },
       providesTags: ["auctions"],
     }),
-    deleteAuction: builder.mutation<ApiResponseNet<{}>, string>({
-      query: (id) => ({
-        url: `/auctions/${id}`,
-        method: "delete",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: "",
-      }),
-      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["auctions"],
-    }),
-    updateAuction: builder.mutation<
-      ApiResponseNet<Auction>,
-      CreateUpdateAuctionParams
-    >({
-      query: (params) => ({
-        url: `/auctions/${params.id}`,
-        method: "put",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: params.data,
-      }),
-      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["auctions"],
-    }),
+    // deleteAuction: builder.mutation<ApiResponseNet<{}>, string>({
+    //   query: (id) => ({
+    //     url: `/auctions/${id}`,
+    //     method: "delete",
+    //     headers: {
+    //       "content-type": "application/json",
+    //     },
+    //     body: "",
+    //   }),
+    //   transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+    //     PostApiProcess(response);
+    //     return response;
+    //   },
+    //   transformErrorResponse: (response: any, meta: any) => {
+    //     PostErrorApiProcess(response);
+    //   },
+    //   invalidatesTags: ["auctions"],
+    // }),
+
     createAuction: builder.mutation<
       ApiResponseNet<Auction>,
       CreateUpdateAuctionParams
@@ -139,8 +119,6 @@ export const {
   useGetAuctionsQuery,
   useGetAuctionByIdQuery,
   useGetDetailedViewDataQuery,
-  useDeleteAuctionMutation,
-  useUpdateAuctionMutation,
   useCreateAuctionMutation,
 } = auctionApi;
 export default auctionApi;

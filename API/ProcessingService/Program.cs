@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ProcessingService.Data;
-using ProcessingService.StateMachines;
 using Contracts;
 using ProcessingService.Consumers;
+using ProcessingService.StateMachines.CreateBidStateMachine;
+using ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,17 +41,27 @@ builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<FaultedDebitAddConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
-    p.AddSagaStateMachine<ProcessingStateMachine, ProcessingState>((context, cfg) =>
+    p.AddSagaStateMachine<CreateBidStateMachine, CreateBidState>((context, cfg) =>
     {
         cfg.UseInMemoryOutbox(context);
     })
-    //.InMemoryRepository()
     .EntityFrameworkRepository(p =>
     {
-        p.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+        p.ConcurrencyMode = ConcurrencyMode.Optimistic;
         p.ExistingDbContext<ProcessingDbContext>();
         p.UsePostgres();
     });
+    p.AddSagaStateMachine<UpdateAuctionStateMachine, UpdateAuctionState>((context, cfg) =>
+    {
+        cfg.UseInMemoryOutbox(context);
+    })
+    .EntityFrameworkRepository(p =>
+    {
+        p.ConcurrencyMode = ConcurrencyMode.Optimistic;
+        p.ExistingDbContext<ProcessingDbContext>();
+        p.UsePostgres();
+    });
+
     p.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
@@ -67,9 +78,15 @@ builder.Services.AddMassTransit(p =>
             e.ConfigureConsumer<FaultedBidPlaceConsumer>(context);
         });
         config.ConfigureEndpoints(context);
-
     });
 });
+EndpointConvention.Map<AuctionUpdating>(new Uri("queue:auction-auction-updating"));
+EndpointConvention.Map<AuctionUpdatingBid>(new Uri("queue:bids-auction-updating-bid"));
+EndpointConvention.Map<AuctionUpdatingGateway>(new Uri("queue:gateway-auction-updating-gateway"));
+EndpointConvention.Map<AuctionUpdatingImage>(new Uri("queue:image-auction-updating-image"));
+EndpointConvention.Map<AuctionUpdatingSearch>(new Uri("queue:search-auction-updating-search"));
+EndpointConvention.Map<AuctionUpdatingNotification>(new Uri("queue:notification-auction-updating-notification"));
+
 EndpointConvention.Map<RequestFinanceDebitAdd>(new Uri("queue:finance-debit-add"));
 EndpointConvention.Map<RequestBidPlace>(new Uri("queue:bids-bid-placed"));
 EndpointConvention.Map<UserNotificationSet>(new Uri("queue:notification-set-notification"));

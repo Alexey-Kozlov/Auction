@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<ImageUpdatedConsumer>();
+    p.AddConsumersFromNamespaceContaining<AuctionUpdatingGatewayConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("gateway", false));
     p.UsingRabbitMq((context, config) =>
     {
@@ -71,7 +71,7 @@ app.UseCors("customPolicy");
 //получаем изображения из кеша - сервис с использованием reddis
 app.MapGet("/api/images/{id}", async (string id, ImageCache imageCache) =>
 {
-    string img = await imageCache.GetImage(id);
+    var img = await imageCache.GetImage(id);
     return new ApiResponse<ImageDTO>()
     {
         StatusCode = System.Net.HttpStatusCode.OK,

@@ -1,8 +1,8 @@
 using Contracts;
 using MassTransit;
 
-namespace ProcessingService.StateMachines;
-public class ProcessingStateMachine : MassTransitStateMachine<ProcessingState>
+namespace ProcessingService.StateMachines.CreateBidStateMachine;
+public class CreateBidStateMachine : MassTransitStateMachine<CreateBidState>
 {
     public State AcceptedState { get; }
     public State UserNotificationSetState { get; }
@@ -19,7 +19,7 @@ public class ProcessingStateMachine : MassTransitStateMachine<ProcessingState>
     public Event<Fault<RequestFinanceDebitAdd>> FinanceGrantedFaulted { get; }
     public Event<Fault<RequestBidPlace>> BidPlacedFaulted { get; }
 
-    public ProcessingStateMachine()
+    public CreateBidStateMachine()
     {
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
@@ -57,6 +57,7 @@ public class ProcessingStateMachine : MassTransitStateMachine<ProcessingState>
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
             })
+            //добавляем пользователя, кто сделал ставку - в рассылку для получения уведомлений от этого аукциона
             .Send(context => new UserNotificationSet(
                 context.Message.AuctionId,
                 context.Message.Bidder,

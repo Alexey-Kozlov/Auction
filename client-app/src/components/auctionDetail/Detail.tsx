@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Heading from '../auctionList/Heading';
 import CountdownTimer from '../auctionList/CountDownTimer';
-import { ApiResponse, Auction, ProcessingState, User } from '../../store/types';
+import { ApiResponse, Auction, AuctionDeleted, ProcessingState, User } from '../../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { Button } from 'flowbite-react';
@@ -9,9 +9,10 @@ import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import ImageCard from '../auctionList/ImageCard';
 import BidList from './BidList';
 import DetailedSpecs from './DetailedSpec';
-import { useDeleteAuctionMutation, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { useIsNotifyUserQuery, useSetNotifyUserMutation } from '../../api/NotificationApi';
 import { setEventFlag } from '../../store/processingSlice';
+import { useDeleteAuctionMutation } from '../../api/ProcessingApi';
 
 export default function Detail() {
     const { id } = useParams();
@@ -33,7 +34,8 @@ export default function Detail() {
     const handleDeleteAuction = async () => {
         setDeleteAuction(true);
         dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: false }));
-        await deleteAuctionProc(id!);
+        const auctionDeleted: AuctionDeleted = { auctionId: id! };
+        await deleteAuctionProc(auctionDeleted);
     }
 
     //инициализация данных

@@ -9,7 +9,7 @@ public class MappingProfiles : Profile
     public MappingProfiles()
     {
         CreateMap<AuctionCreated, Item>();
-        CreateMap<AuctionUpdated, Item>();
+        CreateMap<AuctionUpdatingSearch, Item>();
         CreateMap<Item, Item>()
         .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
         .ForMember(dest => dest.Properties, opt => opt.MapFrom(src => src.Properties))

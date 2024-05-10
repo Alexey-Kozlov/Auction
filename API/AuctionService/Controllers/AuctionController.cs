@@ -87,64 +87,31 @@ public class AuctionController : ControllerBase
         };
     }
 
-    [Authorize]
-    [HttpPut("{id}")]
-    public async Task<ApiResponse<object>> UpdateAuction(Guid id, [FromBody] UpdateAuctionDTO updateAuctionDTO)
-    {
-        var auction = await _context.Auctions.Include(p => p.Item).FirstOrDefaultAsync(p => p.Id == id);
-        var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        if (auction == null)
-        {
-            throw new Exception("Запись не найдена");
-        };
-        if (auction.Seller != auctionAuthor)
-        {
-            throw new Exception("Обновить аукцион может только автор аукциона");
-        };
+    // [Authorize]
+    // [HttpDelete("{id}")]
+    // public async Task<ApiResponse<object>> DeleteAuction(Guid id)
+    // {
+    //     var auction = await _context.Auctions.FindAsync(id);
+    //     var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+    //     if (auction == null)
+    //     {
+    //         throw new Exception("Запись не найдена");
+    //     };
 
-        _mapper.Map(updateAuctionDTO, auction);
-        var transferAuction = _mapper.Map<AuctionUpdated>(auction);
-        if (!string.IsNullOrEmpty(updateAuctionDTO.Image))
-        {
-            transferAuction.Image = updateAuctionDTO.Image;
-        }
-        transferAuction.AuctionAuthor = auctionAuthor;
-        await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(transferAuction);
-        return new ApiResponse<object>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = null
-        };
-    }
+    //     if (auction.Seller != auctionAuthor)
+    //     {
+    //         throw new Exception("Удалить аукцион может только автор аукциона");
+    //     };
+    //     _context.Auctions.Remove(auction);
 
+    //     await _publishEndpoint.Publish(new AuctionDeleted(id, auctionAuthor, new Guid()));
 
-    [Authorize]
-    [HttpDelete("{id}")]
-    public async Task<ApiResponse<object>> DeleteAuction(Guid id)
-    {
-        var auction = await _context.Auctions.FindAsync(id);
-        var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        if (auction == null)
-        {
-            throw new Exception("Запись не найдена");
-        };
-
-        if (auction.Seller != auctionAuthor)
-        {
-            throw new Exception("Удалить аукцион может только автор аукциона");
-        };
-        _context.Auctions.Remove(auction);
-
-        await _publishEndpoint.Publish(new AuctionDeleted(id, auctionAuthor));
-
-        await _context.SaveChangesAsync();
-        return new ApiResponse<object>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = new { data = "Ok" }
-        };
-    }
+    //     await _context.SaveChangesAsync();
+    //     return new ApiResponse<object>()
+    //     {
+    //         StatusCode = System.Net.HttpStatusCode.OK,
+    //         IsSuccess = true,
+    //         Result = new { data = "Ok" }
+    //     };
+    // }
 }

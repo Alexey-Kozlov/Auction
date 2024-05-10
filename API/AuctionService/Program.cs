@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Common.Utils;
+using Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -46,7 +47,7 @@ builder.Services.AddAuthentication(p =>
         NameClaimType = "Login"
     };
 });
-
+EndpointConvention.Map<AuctionUpdated>(new Uri("queue:auction-auction-updated"));
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 

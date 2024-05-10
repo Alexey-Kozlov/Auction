@@ -31,7 +31,7 @@ public class MappingProfiles : Profile
             .ForMember(dest => dest.Properties, opt => opt.MapFrom(src => src.First().Properties))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.First().Description));
 
-        CreateMap<UpdateAuctionDTO, Auction>().ForMember(dest => dest.Item,
+        CreateMap<AuctionUpdating, Auction>().ForMember(dest => dest.Item,
             opt => opt.MapFrom((src, dest) =>
             {
                 return new List<Item>
@@ -43,5 +43,7 @@ public class MappingProfiles : Profile
                 }
                 };
             }));
+
+        CreateMap<AuctionUpdating, AuctionUpdated>();
     }
 }

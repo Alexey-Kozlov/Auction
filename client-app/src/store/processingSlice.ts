@@ -17,6 +17,7 @@ export const processingSlice = createSlice({
         state.push({
           eventName: action.payload.eventName,
           ready: action.payload.ready,
+          itemId: action.payload.itemId,
         });
       }
     },

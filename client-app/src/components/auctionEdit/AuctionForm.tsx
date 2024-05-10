@@ -4,16 +4,18 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Formik, Form, ErrorMessage } from 'formik';
 import TextInput from '../inputComponents/TextInput';
 import * as Yup from 'yup';
-import { Auction, ProcessingState } from '../../store/types';
+import { Auction, AuctionUpdated, ProcessingState } from '../../store/types';
 import DatePickerInput from '../inputComponents/DatePickerInput';
 import ImageFileInput from '../inputComponents/ImageFileInput';
 import TextAreaInput from '../inputComponents/TextAreaInput';
 import { Button } from 'flowbite-react';
-import { useCreateAuctionMutation, useGetDetailedViewDataQuery, useUpdateAuctionMutation } from '../../api/AuctionApi';
+import { useCreateAuctionMutation, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { setEventFlag } from '../../store/processingSlice';
 import { RootState } from '../../store/store';
+import { useUpdateAuctionMutation } from '../../api/ProcessingApi';
+import uuid from 'react-uuid';
 
 export default function AuctionForm() {
     let { id } = useParams();
@@ -66,6 +68,8 @@ export default function AuctionForm() {
     useEffect(() => {
         const eventStateAuctionUpdated = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
         if (eventStateAuctionUpdated) {
+            auctionImage.refetch();
+            auction.refetch();
             navigate('/');
         }
     }, [procState, auction, navigate]);
@@ -84,10 +88,17 @@ export default function AuctionForm() {
                         if (id !== 'empty') {
                             //обновление аукциона
                             dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
-                            await updateAuction({
+                            const auctionUpdated: AuctionUpdated = {
                                 id: id,
-                                data: JSON.stringify(values)
-                            });
+                                title: values.title,
+                                description: values.description ? values.description : '',
+                                properties: values.properties,
+                                auctionEnd: values.auctionEnd,
+                                reservePrice: values.reservePrice,
+                                image: values.image ? values.image : '',
+                                correlationId: uuid()
+                            };
+                            await updateAuction(auctionUpdated);
                         } else {
                             //создание аукциона
                             dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));

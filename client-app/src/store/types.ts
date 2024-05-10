@@ -25,14 +25,6 @@ export type Bid = {
   bidStatus: string;
 };
 
-export type AuctionFinished = {
-  itemSold: boolean;
-  auctionId: string;
-  winner?: string;
-  seller: string;
-  amount?: number;
-};
-
 export type LoginResponse = {
   name: string;
   login: string;
@@ -120,4 +112,28 @@ export type SagaErrorType = {
 export type ProcessingState = {
   eventName: string;
   ready: boolean;
+  id?: string;
+};
+
+export type AuctionUpdated = {
+  id: string;
+  title: string;
+  properties: string;
+  description: string;
+  image: string;
+  reservePrice: number;
+  auctionEnd: Date;
+  correlationId: string;
+};
+
+export type AuctionFinished = {
+  itemSold: boolean;
+  auctionId: string;
+  winner?: string;
+  seller: string;
+  amount?: number;
+};
+
+export type AuctionDeleted = {
+  auctionId: string;
 };

@@ -24,7 +24,7 @@ public class MappingProfiles : Profile
             })
         );
 
-        CreateMap<AuctionUpdated, ImageItem>()
+        CreateMap<AuctionUpdatingImage, ImageItem>()
             .ForMember(dest => dest.AuctionId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
             {
