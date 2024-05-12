@@ -15,8 +15,8 @@ import { setEventFlag } from '../store/processingSlice';
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
 
-    const [finishedAuction, setFinishedAuction] = useState<any>();
-    const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
+    const [finishedAuction, setFinishedAuction] = useState<AuctionFinished>();
+    const finishedAuctionId = finishedAuction?.id ? finishedAuction.id : 'empty';
     const auction = useGetAuctionQuery(finishedAuctionId, {
         skip: finishedAuctionId === 'empty'
     });
@@ -48,7 +48,7 @@ export default function SignalRProvider() {
                 />
             ),
                 { duration: 10000 });
-            setFinishedAuction(null);
+            setFinishedAuction(undefined);
         }
     }, [finishedAuction, auction.data, auction.data?.result, auction.isLoading]);
 
@@ -99,13 +99,11 @@ export default function SignalRProvider() {
                         dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true }));
                     })
 
-                    connection.on('FaultRequestFinanceDebitAdd', (debitError: SagaErrorType) => {
-                        if (user?.login === debitError.userLogin) {
-                            return toast((p) => (
-                                <ErrorBidCreatedToast auctionId={debitError.auctionId} toastId={p.id} />
-                            ),
-                                { duration: 10000 });
-                        }
+                    connection.on('FaultRequestBid', (debitError: SagaErrorType) => {
+                        return toast((p) => (
+                            <ErrorBidCreatedToast auctionId={debitError.auctionId} toastId={p.id} />
+                        ),
+                            { duration: 10000 });
                     })
                 }).catch(err => console.log(err));
         }

@@ -144,18 +144,6 @@ public record AuctionDeletedNotification(
 
 #endregion
 
-public record AuctionFinishing(
-      Guid Id,
-      bool ItemSold,
-      string Winner,
-      string Seller,
-      int Amount,
-      Guid CorrelationId
-);
-public record AuctionFinished(
-     Guid CorrelationId
-);
-
 
 #region AuctionUpdate
 
@@ -235,6 +223,61 @@ public record AuctionUpdatedNotification(
 
 #endregion
 
+
+#region AuctionFinish
+public record RequestAuctionFinish(
+      Guid Id,
+      bool ItemSold,
+      string Winner,
+      int Amount,
+      Guid CorrelationId
+);
+public record AuctionFinishing(
+      Guid Id,
+      bool ItemSold,
+      string Winner,
+      int Amount,
+      Guid CorrelationId
+);
+public record AuctionFinished(
+    Guid CorrelationId
+);
+public record AuctionFinishingFinance(
+    Guid Id,
+    bool ItemSold,
+    string Winner,
+    Guid CorrelationId
+);
+public record AuctionFinishedFinance(
+    Guid CorrelationId
+);
+
+public record AuctionFinishingSearch(
+      Guid Id,
+      bool ItemSold,
+      string Winner,
+      int Amount,
+      Guid CorrelationId
+);
+public record AuctionFinishedSearch(
+    Guid CorrelationId
+);
+public record AuctionFinishingNotification(
+      Guid Id,
+      bool ItemSold,
+      string Winner,
+      int Amount,
+      Guid CorrelationId
+);
+public record AuctionFinishedNotification(
+    Guid CorrelationId
+);
+
+#endregion
+
+
+
 public record GetAuctionCreateState(Guid CorrelationId);
 public record GetAuctionUpdateState(Guid CorrelationId);
 public record GetAuctionDeleteState(Guid CorrelationId);
+public record GetAuctionFinishState(Guid CorrelationId);

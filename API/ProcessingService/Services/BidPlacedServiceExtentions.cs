@@ -27,9 +27,9 @@ public static class BidCreateServiceExtentions
         EndpointConvention.Map<BidPlacing>(new Uri("queue:bids-bid-placing"));
         EndpointConvention.Map<BidSearchPlacing>(new Uri("queue:search-bid-search-placing"));
         EndpointConvention.Map<BidNotificationProcessing>(new Uri("queue:notification-bid-notification-processing"));
-        EndpointConvention.Map<RollbackFinanceDebitAdd>(new Uri("queue:finance-rollback-debit-add"));
-        EndpointConvention.Map<Fault<RequestFinanceDebitAdd>>(new Uri("queue:finance-debit-add_error"));
-        EndpointConvention.Map<Fault<RequestBidPlace>>(new Uri("queue:bids-bid-placed_error"));
+        EndpointConvention.Map<RollbackBidFinanceGranted>(new Uri("queue:finance-rollback-bid-finance-granted_error"));
+        EndpointConvention.Map<RollbackBidAuctionPlaced>(new Uri("queue:auction-rollback-bid-auction-placed_error"));
+        EndpointConvention.Map<RollbackBidPlaced>(new Uri("queue:bids-rollback-bid-placed_error"));
         return services;
     }
 }

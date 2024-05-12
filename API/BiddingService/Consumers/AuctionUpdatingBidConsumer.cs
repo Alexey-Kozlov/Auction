@@ -28,8 +28,9 @@ public class AuctionUpdatingBidConsumer : IConsumer<AuctionUpdatingBid>
             item.AuctionEnd = context.Message.AuctionEnd;
             await _context.SaveChangesAsync();
             await _publishEndpoint.Publish(new AuctionUpdatedBid(context.Message.CorrelationId));
+            return;
         }
-
         Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись " + context.Message.Id + " не найдена.");
+        throw new Exception($"{DateTime.Now} Ошибка обновления записи - запись " + context.Message.Id + " не найдена.");
     }
 }

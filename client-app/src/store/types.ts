@@ -127,9 +127,8 @@ export type AuctionUpdated = {
 
 export type AuctionFinished = {
   itemSold: boolean;
-  auctionId: string;
+  id: string;
   winner?: string;
-  seller: string;
   amount?: number;
 };
 

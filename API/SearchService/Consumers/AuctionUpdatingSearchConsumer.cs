@@ -33,5 +33,6 @@ public class AuctionUpdatingSearchConsumer : IConsumer<AuctionUpdatingSearch>
             return;
         }
         Console.WriteLine("Ошибка обновления записи - запись " + updatedItem.Id + " не найдена.");
+        throw new Exception("Ошибка завершения аукциона " + updatedItem.Id + " - аукцион не найден");
     }
 }

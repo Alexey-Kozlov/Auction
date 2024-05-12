@@ -62,7 +62,7 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
         await _dbContext.Bids.AddAsync(bid);
         await _dbContext.SaveChangesAsync();
 
-        await _publishEndpoint.Publish(new BidPlaced(context.Message.CorrelationId));
+        await _publishEndpoint.Publish(new BidPlaced(bid.Id, context.Message.CorrelationId));
 
         Console.WriteLine($"{DateTime.Now} Получение сообщения - размещена заявка - " +
                  context.Message.Bidder + ", " + context.Message.Amount);

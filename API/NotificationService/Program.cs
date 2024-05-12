@@ -54,13 +54,17 @@ builder.Services.AddMassTransit(p =>
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
-        config.ReceiveEndpoint("finance-debit-add_error", e =>
+        config.ReceiveEndpoint("auction-bid-auction-placing_error", e =>
         {
-            e.ConfigureConsumer<DebitAddErrorConsumer>(context);
+            e.ConfigureConsumer<BidAuctionPlacedFaultedConsumer>(context);
         });
-        config.ReceiveEndpoint("bids-bid-placed_error", e =>
+        config.ReceiveEndpoint("finance-bid-finance-granting_error", e =>
         {
-            e.ConfigureConsumer<BidPlacedErrorConsumer>(context);
+            e.ConfigureConsumer<BidFinanceGrantedFaultedConsumer>(context);
+        });
+        config.ReceiveEndpoint("bids-bid-placing_error", e =>
+        {
+            e.ConfigureConsumer<BidPlacedFaultedConsumer>(context);
         });
         config.ConfigureEndpoints(context);
     });

@@ -22,6 +22,43 @@ namespace ProcessingService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ProcessingService.StateMachines.BidPlacedStateMachine.BidPlacedState", b =>
+                {
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("AuctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BidId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Bidder")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OldHighBid")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("BidPlacedState");
+                });
+
             modelBuilder.Entity("ProcessingService.StateMachines.CreateAuctionStateMachine.CreateAuctionState", b =>
                 {
                     b.Property<Guid>("CorrelationId")
@@ -67,37 +104,6 @@ namespace ProcessingService.Migrations
                     b.ToTable("CreateAuctionState");
                 });
 
-            modelBuilder.Entity("ProcessingService.StateMachines.CreateBidStateMachine.CreateBidState", b =>
-                {
-                    b.Property<Guid>("CorrelationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("AuctionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Bidder")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CurrentState")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("CorrelationId");
-
-                    b.ToTable("CreateBidState");
-                });
-
             modelBuilder.Entity("ProcessingService.StateMachines.DeleteAuctionStateMachine.DeleteAuctionState", b =>
                 {
                     b.Property<Guid>("CorrelationId")
@@ -123,6 +129,39 @@ namespace ProcessingService.Migrations
                     b.HasKey("CorrelationId");
 
                     b.ToTable("DeleteAuctionState");
+                });
+
+            modelBuilder.Entity("ProcessingService.StateMachines.FinishAuctionStateMachine.FinishAuctionState", b =>
+                {
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ItemSold")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Winner")
+                        .HasColumnType("text");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("FinishAuctionState");
                 });
 
             modelBuilder.Entity("ProcessingService.StateMachines.UpdateAuctionStateMachine.UpdateAuctionState", b =>

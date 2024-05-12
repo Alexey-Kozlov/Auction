@@ -12,6 +12,25 @@ namespace ProcessingService.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "BidPlacedState",
+                columns: table => new
+                {
+                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CurrentState = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Bidder = table.Column<string>(type: "text", nullable: false),
+                    AuctionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<int>(type: "integer", nullable: false),
+                    BidId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OldHighBid = table.Column<int>(type: "integer", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BidPlacedState", x => x.CorrelationId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CreateAuctionState",
                 columns: table => new
                 {
@@ -34,23 +53,6 @@ namespace ProcessingService.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CreateBidState",
-                columns: table => new
-                {
-                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CurrentState = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Bidder = table.Column<string>(type: "text", nullable: false),
-                    AuctionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Amount = table.Column<int>(type: "integer", nullable: false),
-                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ErrorMessage = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CreateBidState", x => x.CorrelationId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "DeleteAuctionState",
                 columns: table => new
                 {
@@ -64,6 +66,24 @@ namespace ProcessingService.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DeleteAuctionState", x => x.CorrelationId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FinishAuctionState",
+                columns: table => new
+                {
+                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CurrentState = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Winner = table.Column<string>(type: "text", nullable: true),
+                    ItemSold = table.Column<bool>(type: "boolean", nullable: false),
+                    Amount = table.Column<int>(type: "integer", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FinishAuctionState", x => x.CorrelationId);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,13 +112,16 @@ namespace ProcessingService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "BidPlacedState");
+
+            migrationBuilder.DropTable(
                 name: "CreateAuctionState");
 
             migrationBuilder.DropTable(
-                name: "CreateBidState");
+                name: "DeleteAuctionState");
 
             migrationBuilder.DropTable(
-                name: "DeleteAuctionState");
+                name: "FinishAuctionState");
 
             migrationBuilder.DropTable(
                 name: "UpdateAuctionState");

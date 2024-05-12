@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ProcessingService.Data;
-using ProcessingService.Consumers;
 using ProcessingService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,12 +36,11 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<FaultedDebitAddConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
-
     p.AddAuctionUpdateMassTransitConfigurator();
     p.AddAuctionDeleteMassTransitConfigurator();
     p.AddAuctionCreateMassTransitConfigurator();
+    p.AddAuctionFinishMassTransitConfigurator();
     p.AddBidPlacedMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
@@ -52,14 +50,6 @@ builder.Services.AddMassTransit(p =>
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
-        config.ReceiveEndpoint("finance-debit-add_error", e =>
-        {
-            e.ConfigureConsumer<FaultedDebitAddConsumer>(context);
-        });
-        config.ReceiveEndpoint("bids-bid-placed_error", e =>
-        {
-            e.ConfigureConsumer<FaultedBidPlaceConsumer>(context);
-        });
         config.ConfigureEndpoints(context);
     });
 });
@@ -67,6 +57,7 @@ builder.Services.AddMassTransit(p =>
 builder.Services.AddAuctionUpdateServices(builder);
 builder.Services.AddAuctionDeleteServices(builder);
 builder.Services.AddAuctionCreateServices(builder);
+builder.Services.AddAuctionFinishServices(builder);
 builder.Services.AddBidPlacedServices(builder);
 
 var app = builder.Build();
