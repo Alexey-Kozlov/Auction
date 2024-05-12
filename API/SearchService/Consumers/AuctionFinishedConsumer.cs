@@ -5,7 +5,7 @@ using SearchService.Data;
 
 namespace SearchService.Consumers;
 
-public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
+public class AuctionFinishedConsumer : IConsumer<AuctionFinishing>
 {
     private readonly SearchDbContext _context;
 
@@ -13,9 +13,9 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
     {
         _context = context;
     }
-    public async Task Consume(ConsumeContext<AuctionFinished> consumeContext)
+    public async Task Consume(ConsumeContext<AuctionFinishing> consumeContext)
     {
-        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumeContext.Message.AuctionId);
+        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumeContext.Message.Id);
         if (auction != null)
         {
             if (consumeContext.Message.ItemSold)
@@ -23,7 +23,6 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
                 auction.Winner = consumeContext.Message.Winner;
                 auction.SoldAmount = consumeContext.Message.Amount;
             }
-            auction.Status = "Finished";
             await _context.SaveChangesAsync();
             Console.WriteLine("--> Получение сообщения - аукцион завершен");
             return;

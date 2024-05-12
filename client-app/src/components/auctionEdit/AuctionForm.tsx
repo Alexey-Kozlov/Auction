@@ -9,12 +9,12 @@ import DatePickerInput from '../inputComponents/DatePickerInput';
 import ImageFileInput from '../inputComponents/ImageFileInput';
 import TextAreaInput from '../inputComponents/TextAreaInput';
 import { Button } from 'flowbite-react';
-import { useCreateAuctionMutation, useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { setEventFlag } from '../../store/processingSlice';
 import { RootState } from '../../store/store';
-import { useUpdateAuctionMutation } from '../../api/ProcessingApi';
+import { useCreateAuctionMutation, useUpdateAuctionMutation } from '../../api/ProcessingApi';
 import uuid from 'react-uuid';
 
 export default function AuctionForm() {
@@ -68,11 +68,13 @@ export default function AuctionForm() {
     useEffect(() => {
         const eventStateAuctionUpdated = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
         if (eventStateAuctionUpdated) {
-            auctionImage.refetch();
-            auction.refetch();
+            if (id && id !== 'empty') {
+                auctionImage.refetch();
+                auction.refetch();
+            }
             navigate('/');
         }
-    }, [procState, auction, navigate]);
+    }, [procState, auction, navigate, id, auctionImage]);
 
     if (auction.isLoading) return 'Загрузка...';
 
@@ -85,26 +87,23 @@ export default function AuctionForm() {
                     enableReinitialize
                     onSubmit={async (values, { setErrors }) => {
                         setIsWaiting(true);
-                        if (id !== 'empty') {
+                        const auctionUpdated: AuctionUpdated = {
+                            id: id,
+                            title: values.title,
+                            description: values.description ? values.description : '',
+                            properties: values.properties,
+                            auctionEnd: values.auctionEnd,
+                            reservePrice: values.reservePrice,
+                            image: values.image ? values.image : '',
+                            correlationId: uuid()
+                        };
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
+                        if (id && id !== 'empty') {
                             //обновление аукциона
-                            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
-                            const auctionUpdated: AuctionUpdated = {
-                                id: id,
-                                title: values.title,
-                                description: values.description ? values.description : '',
-                                properties: values.properties,
-                                auctionEnd: values.auctionEnd,
-                                reservePrice: values.reservePrice,
-                                image: values.image ? values.image : '',
-                                correlationId: uuid()
-                            };
                             await updateAuction(auctionUpdated);
                         } else {
                             //создание аукциона
-                            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
-                            await createAuction({
-                                data: JSON.stringify(values)
-                            });
+                            await createAuction(auctionUpdated);
                         }
                     }
                     }

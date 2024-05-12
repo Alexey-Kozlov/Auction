@@ -10,8 +10,9 @@ public class MappingProfiles : Profile
     public MappingProfiles()
     {
         CreateMap<Bid, BidDTO>();
-        CreateMap<AuctionCreated, Auction>();
-        CreateMap<AuctionUpdated, Auction>();
+        CreateMap<AuctionCreatingBid, Auction>()
+            .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.AuctionAuthor));
+        CreateMap<AuctionUpdatingBid, Auction>();
         CreateMap<Auction, Auction>();
     }
 }

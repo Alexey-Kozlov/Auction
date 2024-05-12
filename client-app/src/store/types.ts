@@ -7,7 +7,6 @@ export type Auction = {
   createAt: Date;
   updatedAt: Date;
   auctionEnd: Date;
-  status: string;
   title: string;
   properties: string;
   description?: string;
@@ -78,10 +77,10 @@ export type PlaceBidParams = {
   correlationId: string;
 };
 
-export type CreateUpdateAuctionParams = {
-  id?: string;
-  data: string;
-};
+// export type CreateUpdateAuctionParams = {
+//   id?: string;
+//   data: string;
+// };
 
 export type AuctionImage = {
   id: string;
@@ -135,5 +134,6 @@ export type AuctionFinished = {
 };
 
 export type AuctionDeleted = {
-  auctionId: string;
+  id: string;
+  correlationId: string;
 };

@@ -6,7 +6,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcessingService.DTO;
-using ProcessingService.StateMachines.CreateBidStateMachine;
 
 namespace ProcessingService.Controllers;
 
@@ -16,35 +15,54 @@ public class ProcessingController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
 
-    private readonly IRequestClient<GetProcessingBidState> _processingClient;
+    //private readonly IRequestClient<GetProcessingBidState> _processingClient;
 
-    public ProcessingController(IPublishEndpoint publishEndpoint, IRequestClient<GetProcessingBidState> processingClient)
+    public ProcessingController(IPublishEndpoint publishEndpoint)
+    //IRequestClient<GetProcessingBidState> processingClient)
     {
         _publishEndpoint = publishEndpoint;
-        _processingClient = processingClient;
+        //_processingClient = processingClient;
     }
 
-    [HttpGet("status/{correlationId}")]
-    public async Task<ApiResponse<CreateBidState>> GetStatusAsync(Guid correlationId)
-    {
-        var response = await _processingClient.GetResponse<CreateBidState>(
-            new GetProcessingBidState(correlationId));
+    // [HttpGet("status/{correlationId}")]
+    // public async Task<ApiResponse<CreateBidState>> GetStatusAsync(Guid correlationId)
+    // {
+    //     var response = await _processingClient.GetResponse<CreateBidState>(
+    //         new GetProcessingBidState(correlationId));
 
-        return new ApiResponse<CreateBidState>
-        {
-            StatusCode = HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = response.Message
-        };
-    }
+    //     return new ApiResponse<CreateBidState>
+    //     {
+    //         StatusCode = HttpStatusCode.OK,
+    //         IsSuccess = true,
+    //         Result = response.Message
+    //     };
+    // }
 
     [Authorize]
     [HttpPost("placebid")]
     public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
-        var bid = new RequestProcessingBidStart(par.auctionId, User.Identity.Name, par.amount, par.correlationId);
+        var bid = new RequestBidPlace(par.auctionId, User.Identity.Name, par.amount, par.correlationId);
 
         await _publishEndpoint.Publish(bid);
+
+        return new ApiResponse<object>
+        {
+            StatusCode = HttpStatusCode.Accepted,
+            IsSuccess = true,
+            Result = { }
+        };
+    }
+
+    [Authorize]
+    [HttpPost("createauction")]
+    public async Task<ApiResponse<object>> CreateAuction([FromBody] CreateAuctionDTO par)
+    {
+        var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        var auction = new RequestAuctionCreate(Guid.NewGuid(), par.ReservePrice, par.AuctionEnd,
+         par.Properties, par.Title, par.Description, par.Image, auctionAuthor, par.CorrelationId);
+
+        await _publishEndpoint.Publish(auction);
 
         return new ApiResponse<object>
         {

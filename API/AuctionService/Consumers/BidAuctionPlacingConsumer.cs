@@ -4,17 +4,19 @@ using MassTransit;
 
 namespace AuctionService.Consumers;
 
-public class BidPlacedConsumer : IConsumer<BidPlaced>
+public class BidAuctionPlacingConsumer : IConsumer<BidAuctionPlacing>
 {
     private readonly AuctionDbContext _auctionDbContext;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public BidPlacedConsumer(AuctionDbContext auctionDbContext)
+    public BidAuctionPlacingConsumer(AuctionDbContext auctionDbContext, IPublishEndpoint publishEndpoint)
     {
         _auctionDbContext = auctionDbContext;
+        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<BidPlaced> context)
+    public async Task Consume(ConsumeContext<BidAuctionPlacing> context)
     {
-        var auction = await _auctionDbContext.Auctions.FindAsync(Guid.Parse(context.Message.AuctionId.ToString()));
+        var auction = await _auctionDbContext.Auctions.FindAsync(context.Message.AuctionId);
         if (context.Message.Amount > auction.CurrentHighBid)
         {
             auction.CurrentHighBid = context.Message.Amount;
@@ -22,5 +24,6 @@ public class BidPlacedConsumer : IConsumer<BidPlaced>
             Console.WriteLine("--> Получение сообщения - размещена заявка, AuctionId - " + context.Message.AuctionId + ", ставка - "
                 + context.Message.Amount);
         }
+        await _publishEndpoint.Publish(new BidAuctionPlaced(context.Message.CorrelationId));
     }
 }

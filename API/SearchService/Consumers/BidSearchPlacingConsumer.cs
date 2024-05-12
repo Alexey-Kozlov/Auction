@@ -5,15 +5,17 @@ using SearchService.Data;
 
 namespace SearchService.Consumers;
 
-public class BidPlacedConsumer : IConsumer<BidPlaced>
+public class BidSearchPlacingConsumer : IConsumer<BidSearchPlacing>
 {
     private readonly SearchDbContext _context;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public BidPlacedConsumer(SearchDbContext context)
+    public BidSearchPlacingConsumer(SearchDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
+        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<BidPlaced> consumerContext)
+    public async Task Consume(ConsumeContext<BidSearchPlacing> consumerContext)
     {
         Console.WriteLine("--> Получение сообщения разместить заявку");
 
@@ -23,5 +25,6 @@ public class BidPlacedConsumer : IConsumer<BidPlaced>
             auction.CurrentHighBid = consumerContext.Message.Amount;
             await _context.SaveChangesAsync();
         }
+        await _publishEndpoint.Publish(new BidSearchPlaced(consumerContext.Message.CorrelationId));
     }
 }

@@ -33,7 +33,6 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(p => p.CreateAt).HasColumnType("timestamp with time zone").HasColumnName("CreateAt").IsRequired(true);
         builder.Property(p => p.UpdatedAt).HasColumnType("timestamp with time zone").HasColumnName("UpdatedAt").IsRequired(true);
         builder.Property(p => p.AuctionEnd).HasColumnType("timestamp with time zone").HasColumnName("AuctionEnd").IsRequired(true);
-        builder.Property(p => p.Status).HasColumnType("text").HasColumnName("Status").IsRequired(true);
         builder.Property(p => p.Title).HasColumnType("text").HasColumnName("Title").IsRequired(true);
         builder.Property(p => p.Properties).HasColumnType("text").HasColumnName("Properties").IsRequired(false);
         builder.Property(p => p.Description).HasColumnType("text").HasColumnName("Description").IsRequired(false);

@@ -35,7 +35,7 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<DebitAddConsumer>();
+    p.AddConsumersFromNamespaceContaining<AuctionDeletingFinanceConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("finance", false));
     p.UsingRabbitMq((context, config) =>
     {

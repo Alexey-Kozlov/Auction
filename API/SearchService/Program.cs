@@ -24,7 +24,7 @@ builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
+    p.AddConsumersFromNamespaceContaining<AuctionCreatingSearchConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
     p.UsingRabbitMq((context, config) =>
     {
@@ -33,10 +33,6 @@ builder.Services.AddMassTransit(p =>
             p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
             p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
         });
-        // config.ReceiveEndpoint("search-auction-created", e =>
-        // {
-        //     e.ConfigureConsumer<AuctionCreatedConsumer>(context);
-        // });
         config.ConfigureEndpoints(context);
     });
 });

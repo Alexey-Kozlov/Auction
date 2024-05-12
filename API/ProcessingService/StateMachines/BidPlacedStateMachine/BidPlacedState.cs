@@ -1,8 +1,8 @@
 using MassTransit;
 
-namespace ProcessingService.StateMachines.CreateBidStateMachine;
+namespace ProcessingService.StateMachines.BidPlacedStateMachine;
 
-public class CreateBidState : SagaStateMachineInstance
+public class BidPlacedState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }

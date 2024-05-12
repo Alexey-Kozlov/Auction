@@ -7,7 +7,7 @@ using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
-public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
+public class AuctionFinishedConsumer : IConsumer<AuctionFinishing>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly NotificationDbContext _dbContext;
@@ -17,9 +17,9 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
         _hubContext = hubContext;
         _dbContext = dbContext;
     }
-    public async Task Consume(ConsumeContext<AuctionFinished> context)
+    public async Task Consume(ConsumeContext<AuctionFinishing> context)
     {
-        var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
+        var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
         Console.WriteLine("--> Получено сообщение - аукцион завершен, рассылка уведомлений для " + String.Join(',', auctionNotifyList.Select(p => p.UserLogin)));
         await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("AuctionFinished", context.Message);
     }

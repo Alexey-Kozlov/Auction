@@ -7,23 +7,27 @@ using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
-public class AuctionCreatedConsumer : IConsumer<AuctionCreated>
+public class AuctionCreatingNotificationConsumer : IConsumer<AuctionCreatingNotification>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly NotificationDbContext _dbContext;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionCreatedConsumer(IHubContext<NotificationHub> hubContext, NotificationDbContext dbContext)
+    public AuctionCreatingNotificationConsumer(IHubContext<NotificationHub> hubContext,
+    NotificationDbContext dbContext, IPublishEndpoint publishEndpoint)
     {
         _hubContext = hubContext;
         _dbContext = dbContext;
+        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<AuctionCreated> context)
+    public async Task Consume(ConsumeContext<AuctionCreatingNotification> context)
     {
         Console.WriteLine("--> Получено сообщение - создан новый аукцион");
         //подписываем на получение сообщений автора аукциона
-        var notifyItem = new NotifyUser { AuctionId = context.Message.Id, UserLogin = context.Message.Seller };
+        var notifyItem = new NotifyUser { AuctionId = context.Message.Id, UserLogin = context.Message.AuctionAuthor };
         _dbContext.NotifyUser.Add(notifyItem);
         await _dbContext.SaveChangesAsync();
         await _hubContext.Clients.All.SendAsync("AuctionCreated", context.Message);
+        await _publishEndpoint.Publish(new AuctionCreatedNotification(context.Message.CorrelationId));
     }
 }

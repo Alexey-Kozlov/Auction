@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   ApiResponseNet,
+  Auction,
   AuctionDeleted,
   AuctionUpdated,
   PlaceBidParams,
@@ -28,6 +29,24 @@ const processingApi = createApi({
         method: "post",
         headers: {
           "Content-type": "application/json",
+        },
+        body: JSON.stringify(params),
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["processing"],
+    }),
+    createAuction: builder.mutation<ApiResponseNet<{}>, AuctionUpdated>({
+      query: (params) => ({
+        url: "/createauction",
+        method: "post",
+        headers: {
+          "content-type": "application/json",
         },
         body: JSON.stringify(params),
       }),
@@ -81,6 +100,7 @@ const processingApi = createApi({
 
 export const {
   usePlaceBidForAuctionMutation,
+  useCreateAuctionMutation,
   useUpdateAuctionMutation,
   useDeleteAuctionMutation,
 } = processingApi;

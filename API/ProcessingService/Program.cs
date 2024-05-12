@@ -6,10 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ProcessingService.Data;
-using Contracts;
 using ProcessingService.Consumers;
-using ProcessingService.StateMachines.CreateBidStateMachine;
-using ProcessingService.StateMachines.UpdateAuctionStateMachine;
+using ProcessingService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,26 +39,11 @@ builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<FaultedDebitAddConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
-    p.AddSagaStateMachine<CreateBidStateMachine, CreateBidState>((context, cfg) =>
-    {
-        cfg.UseInMemoryOutbox(context);
-    })
-    .EntityFrameworkRepository(p =>
-    {
-        p.ConcurrencyMode = ConcurrencyMode.Optimistic;
-        p.ExistingDbContext<ProcessingDbContext>();
-        p.UsePostgres();
-    });
-    p.AddSagaStateMachine<UpdateAuctionStateMachine, UpdateAuctionState>((context, cfg) =>
-    {
-        cfg.UseInMemoryOutbox(context);
-    })
-    .EntityFrameworkRepository(p =>
-    {
-        p.ConcurrencyMode = ConcurrencyMode.Optimistic;
-        p.ExistingDbContext<ProcessingDbContext>();
-        p.UsePostgres();
-    });
+
+    p.AddAuctionUpdateMassTransitConfigurator();
+    p.AddAuctionDeleteMassTransitConfigurator();
+    p.AddAuctionCreateMassTransitConfigurator();
+    p.AddBidPlacedMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
     {
@@ -80,19 +63,11 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
-EndpointConvention.Map<AuctionUpdating>(new Uri("queue:auction-auction-updating"));
-EndpointConvention.Map<AuctionUpdatingBid>(new Uri("queue:bids-auction-updating-bid"));
-EndpointConvention.Map<AuctionUpdatingGateway>(new Uri("queue:gateway-auction-updating-gateway"));
-EndpointConvention.Map<AuctionUpdatingImage>(new Uri("queue:image-auction-updating-image"));
-EndpointConvention.Map<AuctionUpdatingSearch>(new Uri("queue:search-auction-updating-search"));
-EndpointConvention.Map<AuctionUpdatingNotification>(new Uri("queue:notification-auction-updating-notification"));
 
-EndpointConvention.Map<RequestFinanceDebitAdd>(new Uri("queue:finance-debit-add"));
-EndpointConvention.Map<RequestBidPlace>(new Uri("queue:bids-bid-placed"));
-EndpointConvention.Map<UserNotificationSet>(new Uri("queue:notification-set-notification"));
-EndpointConvention.Map<RollbackFinanceDebitAdd>(new Uri("queue:finance-rollback-debit-add"));
-EndpointConvention.Map<Fault<RequestFinanceDebitAdd>>(new Uri("queue:finance-debit-add_error"));
-EndpointConvention.Map<Fault<RequestBidPlace>>(new Uri("queue:bids-bid-placed_error"));
+builder.Services.AddAuctionUpdateServices(builder);
+builder.Services.AddAuctionDeleteServices(builder);
+builder.Services.AddAuctionCreateServices(builder);
+builder.Services.AddBidPlacedServices(builder);
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

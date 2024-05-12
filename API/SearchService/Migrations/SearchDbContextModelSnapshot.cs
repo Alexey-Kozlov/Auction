@@ -61,11 +61,6 @@ namespace SearchService.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("SoldAmount");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("Status");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text")

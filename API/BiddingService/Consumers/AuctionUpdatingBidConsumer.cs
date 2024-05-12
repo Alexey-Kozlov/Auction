@@ -22,12 +22,12 @@ public class AuctionUpdatingBidConsumer : IConsumer<AuctionUpdatingBid>
     public async Task Consume(ConsumeContext<AuctionUpdatingBid> context)
     {
         Console.WriteLine($"{DateTime.Now}  Получение сообщения обновить аукцион");
-        var item = await _context.Auctions.FirstOrDefaultAsync(p => p.Id == Guid.Parse(context.Message.Id));
+        var item = await _context.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
         if (item != null)
         {
             item.AuctionEnd = context.Message.AuctionEnd;
             await _context.SaveChangesAsync();
-            await _publishEndpoint.Publish(new AuctionUpdatedBid(context.Message.Id, context.Message.CorrelationId));
+            await _publishEndpoint.Publish(new AuctionUpdatedBid(context.Message.CorrelationId));
         }
 
         Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись " + context.Message.Id + " не найдена.");

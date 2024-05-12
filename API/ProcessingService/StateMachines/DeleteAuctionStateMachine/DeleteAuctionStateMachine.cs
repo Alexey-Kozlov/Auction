@@ -6,6 +6,7 @@ namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionState>
 {
     public State AuctionDeletedState { get; }
+    public State AuctionDeletedFinanceState { get; }
     public State AuctionDeletedBidState { get; }
     public State AuctionDeletedGatewayState { get; }
     public State AuctionDeletedImageState { get; }
@@ -16,11 +17,13 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
 
     public Event<RequestAuctionDelete> RequestAuctionDeletingEvent { get; }
     public Event<AuctionDeleted> AuctionDeletedEvent { get; }
+    public Event<AuctionDeletedFinance> AuctionDeletedFinanceEvent { get; }
     public Event<AuctionDeletedBid> AuctionDeletedBidEvent { get; }
     public Event<AuctionDeletedGateway> AuctionDeletedGatewayEvent { get; }
     public Event<AuctionDeletedImage> AuctionDeletedImageEvent { get; }
     public Event<AuctionDeletedNotification> AuctionDeletedNotificationEvent { get; }
     public Event<AuctionDeletedSearch> AuctionDeletedSearchEvent { get; }
+    public Event<GetAuctionDeleteState> AuctionDeletedStateEvent { get; }
 
     public DeleteAuctionStateMachine()
     {
@@ -28,23 +31,26 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureAuctionDeleted();
+        ConfigureAuctionDeletedFinance();
         ConfigureAuctionDeletedBid();
         ConfigureAuctionDeletedGateway();
         ConfigureAuctionDeletedImage();
         ConfigureAuctionDeletedSearch();
         ConfigureAuctionDeletedNotification();
         ConfigureCompleted();
-        ConfigureAny();
+        ConfigureGetState();
     }
     private void ConfigureEvents()
     {
         Event(() => RequestAuctionDeletingEvent);
         Event(() => AuctionDeletedEvent);
+        Event(() => AuctionDeletedFinanceEvent);
         Event(() => AuctionDeletedBidEvent);
         Event(() => AuctionDeletedGatewayEvent);
         Event(() => AuctionDeletedImageEvent);
         Event(() => AuctionDeletedNotificationEvent);
         Event(() => AuctionDeletedSearchEvent);
+        Event(() => AuctionDeletedStateEvent);
     }
     private void ConfigureInitialState()
     {
@@ -74,8 +80,22 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
+            .Send(context => new AuctionDeletingFinance(
+                context.Saga.Id,
+                context.Saga.AuctionAuthor,
+                context.Saga.CorrelationId))
+            .TransitionTo(AuctionDeletedFinanceState));
+    }
+    private void ConfigureAuctionDeletedFinance()
+    {
+        During(AuctionDeletedFinanceState,
+        When(AuctionDeletedFinanceEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
             .Send(context => new AuctionDeletingBid(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedBidState));
     }
@@ -88,7 +108,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionDeletingGateway(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedGatewayState));
     }
@@ -101,7 +121,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionDeletingImage(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedImageState));
     }
@@ -114,7 +134,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionDeletingSearch(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedSearchState));
     }
@@ -127,7 +147,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionDeletingNotification(
-                context.Message.Id,
+                context.Saga.Id,
+                context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedNotificationState));
     }
@@ -148,10 +169,10 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     }
 
 
-    private void ConfigureAny()
+    private void ConfigureGetState()
     {
         DuringAny(
-            When(RequestAuctionDeletingEvent)
+            When(AuctionDeletedStateEvent)
                 .Respond(x => x.Saga)
         );
     }

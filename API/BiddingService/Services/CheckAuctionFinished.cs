@@ -51,8 +51,8 @@ public class CheckAuctionFinished : BackgroundService
                 .OrderByDescending(p => p.Amount)
                 .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
 
-                await endpoint.Publish(new AuctionFinished(winningBid != null, auction.Id, winningBid?.Bidder,
-                    auction.Seller, (winningBid == null ? 0 : winningBid.Amount), new Guid()), stoppingToken);
+                // await endpoint.Publish(new RequestAuctionUpdate(winningBid != null, auction.Id, winningBid?.Bidder,
+                //     auction.Seller, (winningBid == null ? 0 : winningBid.Amount), new Guid()), stoppingToken);
             }
         }
         catch (Exception ex)

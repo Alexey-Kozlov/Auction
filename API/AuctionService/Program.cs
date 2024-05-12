@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AuctionDbContext>(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionFinishedConsumer>();
+    p.AddConsumersFromNamespaceContaining<AuctionCreatingConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
     p.UsingRabbitMq((context, config) =>
     {

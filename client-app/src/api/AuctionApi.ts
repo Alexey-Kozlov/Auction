@@ -1,10 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {
-  Auction,
-  PagedResult,
-  CreateUpdateAuctionParams,
-  ApiResponseNet,
-} from "../store/types";
+import { Auction, PagedResult, ApiResponseNet } from "../store/types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 
@@ -72,46 +67,6 @@ const auctionApi = createApi({
       },
       providesTags: ["auctions"],
     }),
-    // deleteAuction: builder.mutation<ApiResponseNet<{}>, string>({
-    //   query: (id) => ({
-    //     url: `/auctions/${id}`,
-    //     method: "delete",
-    //     headers: {
-    //       "content-type": "application/json",
-    //     },
-    //     body: "",
-    //   }),
-    //   transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
-    //     PostApiProcess(response);
-    //     return response;
-    //   },
-    //   transformErrorResponse: (response: any, meta: any) => {
-    //     PostErrorApiProcess(response);
-    //   },
-    //   invalidatesTags: ["auctions"],
-    // }),
-
-    createAuction: builder.mutation<
-      ApiResponseNet<Auction>,
-      CreateUpdateAuctionParams
-    >({
-      query: (params) => ({
-        url: "/auctions",
-        method: "post",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: params.data,
-      }),
-      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["auctions"],
-    }),
   }),
 });
 
@@ -119,6 +74,5 @@ export const {
   useGetAuctionsQuery,
   useGetAuctionByIdQuery,
   useGetDetailedViewDataQuery,
-  useCreateAuctionMutation,
 } = auctionApi;
 export default auctionApi;

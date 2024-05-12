@@ -12,7 +12,7 @@ using SearchService.Data;
 namespace SearchService.Migrations
 {
     [DbContext(typeof(SearchDbContext))]
-    [Migration("20240329070306_InitDb")]
+    [Migration("20240511123628_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -63,11 +63,6 @@ namespace SearchService.Migrations
                     b.Property<int>("SoldAmount")
                         .HasColumnType("integer")
                         .HasColumnName("SoldAmount");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("Status");
 
                     b.Property<string>("Title")
                         .IsRequired()

@@ -9,7 +9,7 @@ public class MappingProfiles : Profile
 {
     public MappingProfiles()
     {
-        CreateMap<AuctionCreated, ImageItem>()
+        CreateMap<AuctionCreatingImage, ImageItem>()
             .ForMember(dest => dest.AuctionId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
             {

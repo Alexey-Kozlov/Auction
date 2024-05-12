@@ -7,31 +7,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Consumers;
 
-public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
+public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
 {
     private readonly FinanceDbContext _context;
 
-    public DebitAddConsumer(FinanceDbContext financeDbContext)
+    public BidFinanceGrantingConsumer(FinanceDbContext financeDbContext)
     {
         _context = financeDbContext;
     }
-    public async Task Consume(ConsumeContext<RequestFinanceDebitAdd> context)
+    public async Task Consume(ConsumeContext<BidFinanceGranting> context)
     {
         Console.WriteLine("--> Получение сообщения - новый дебит, - " +
-         context.Message.Debit + ", " + context.Message.UserLogin);
+         context.Message.Amount + ", " + context.Message.Bidder);
         using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         //проверяем - есть ли записи по данному пользователю, по данному аукциону со статусом откат
         //емли есть - удаляем
-        var rallbackAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.UserLogin &&
+        var rallbackAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder &&
             p.AuctionId == context.Message.AuctionId && p.Status == RecordStatus.Откат).ToListAsync();
         if (rallbackAuctionBid.Any())
         {
             _context.BalanceItems.RemoveRange(rallbackAuctionBid);
         }
 
-        var balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.UserLogin)
+        var balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder)
             .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
-        var lastAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.UserLogin &&
+        var lastAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder &&
             p.AuctionId == context.Message.AuctionId).OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
 
         if (lastAuctionBid != null)
@@ -40,12 +40,12 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
             //делаем еще одну, у старой ставим признак возможного отката
 
             //сначала проверяем на достаточность денег на ставку
-            var debitDiff = context.Message.Debit - lastAuctionBid.Debit;
+            var debitDiff = context.Message.Amount - lastAuctionBid.Debit;
             var currentCredit = (balanceItem?.Balance ?? 0) - debitDiff;
             if (currentCredit < 0)
             {
                 //недостаточно денег для новой ставки
-                throw new UnsufficientFinanceException(context.Message.UserLogin, context.Message.Debit);
+                throw new UnsufficientFinanceException(context.Message.Bidder, context.Message.Amount);
             }
             lastAuctionBid.Status = RecordStatus.Откат;
             var debit = new BalanceItem
@@ -54,20 +54,20 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
                 AuctionId = context.Message.AuctionId,
                 Balance = currentCredit,
                 Credit = 0,
-                Debit = context.Message.Debit,
+                Debit = context.Message.Amount,
                 Status = RecordStatus.Заявка,
-                UserLogin = context.Message.UserLogin
+                UserLogin = context.Message.Bidder
             };
             await _context.BalanceItems.AddAsync(debit);
         }
         else
         {
             //первая заявка данного пользователя на данном аукционе
-            var currentCredit = (balanceItem?.Balance ?? 0) - context.Message.Debit;
+            var currentCredit = (balanceItem?.Balance ?? 0) - context.Message.Amount;
             if (currentCredit < 0)
             {
                 //недостаточно денег для новой ставки
-                throw new UnsufficientFinanceException(context.Message.UserLogin, context.Message.Debit);
+                throw new UnsufficientFinanceException(context.Message.Bidder, context.Message.Amount);
             }
             var _debit = new BalanceItem
             {
@@ -75,15 +75,15 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
                 AuctionId = context.Message.AuctionId,
                 Balance = currentCredit,
                 Credit = 0,
-                Debit = context.Message.Debit,
+                Debit = context.Message.Amount,
                 Status = RecordStatus.Заявка,
-                UserLogin = context.Message.UserLogin
+                UserLogin = context.Message.Bidder
             };
             await _context.BalanceItems.AddAsync(_debit);
         }
         //удаляем все резервирования денег по данному аукциону, кроме сделавшего последнюю ставку
         var debitItems = await _context.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
-            p.UserLogin != context.Message.UserLogin).ToListAsync();
+            p.UserLogin != context.Message.Bidder).ToListAsync();
         //правим финансы для каждого пользователя, участвующего в аукционе (кроме сделавшего последнюю ставку)
         //возвращаем деньги за сделанные ставки по данному аукциону
         var balance = 0;
@@ -100,9 +100,9 @@ public class DebitAddConsumer : IConsumer<RequestFinanceDebitAdd>
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
-        await context.Publish(new FinanceGranted(context.Message.CorrelationId));
+        await context.Publish(new BidFinanceGranted(context.Message.CorrelationId));
         Console.WriteLine($"{DateTime.Now} Выполнено сообщение по резервированию денег, - " +
-                 context.Message.Debit + ", " + context.Message.UserLogin);
+                 context.Message.Amount + ", " + context.Message.Bidder);
 
     }
 }

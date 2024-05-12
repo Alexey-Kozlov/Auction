@@ -1,5 +1,4 @@
 using AuctionService.Data;
-using AuctionService.Entities;
 using AutoMapper;
 using Contracts;
 using MassTransit;
@@ -21,7 +20,7 @@ public class AuctionUpdatingConsumer : IConsumer<AuctionUpdating>
     }
     public async Task Consume(ConsumeContext<AuctionUpdating> context)
     {
-        var auction = await _auctionDbContext.Auctions.Include(p => p.Item).FirstOrDefaultAsync(p => p.Id == Guid.Parse(context.Message.Id));
+        var auction = await _auctionDbContext.Auctions.Include(p => p.Item).FirstOrDefaultAsync(p => p.Id == context.Message.Id);
         if (auction == null)
         {
             throw new Exception("Запись не найдена");

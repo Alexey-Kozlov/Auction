@@ -13,6 +13,7 @@ import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { useIsNotifyUserQuery, useSetNotifyUserMutation } from '../../api/NotificationApi';
 import { setEventFlag } from '../../store/processingSlice';
 import { useDeleteAuctionMutation } from '../../api/ProcessingApi';
+import uuid from 'react-uuid';
 
 export default function Detail() {
     const { id } = useParams();
@@ -34,7 +35,7 @@ export default function Detail() {
     const handleDeleteAuction = async () => {
         setDeleteAuction(true);
         dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: false }));
-        const auctionDeleted: AuctionDeleted = { auctionId: id! };
+        const auctionDeleted: AuctionDeleted = { id: id!, correlationId: uuid() };
         await deleteAuctionProc(auctionDeleted);
     }
 

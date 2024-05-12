@@ -16,6 +16,7 @@ public class ProcessingDbContext : SagaDbContext
             yield return new CreateBidStateMap();
             yield return new UpdateAuctionStateMap();
             yield return new DeleteAuctionStateMap();
+            yield return new CreateAuctionStateMap();
         }
     }
 }

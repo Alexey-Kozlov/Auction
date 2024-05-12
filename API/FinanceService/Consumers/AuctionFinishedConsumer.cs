@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Consumers;
 
-public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
+public class AuctionFinishedConsumer : IConsumer<AuctionFinishing>
 {
     private readonly FinanceDbContext _dbContext;
 
@@ -13,15 +13,15 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
     {
         _dbContext = dbContext;
     }
-    public async Task Consume(ConsumeContext<AuctionFinished> context)
+    public async Task Consume(ConsumeContext<AuctionFinishing> context)
     {
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         //подтверждаем у победителя запись дебита
-        var winnerItem = await _dbContext.BalanceItems.FirstOrDefaultAsync(p => p.AuctionId == context.Message.AuctionId &&
+        var winnerItem = await _dbContext.BalanceItems.FirstOrDefaultAsync(p => p.AuctionId == context.Message.Id &&
             p.UserLogin == context.Message.Winner && p.Status == RecordStatus.Заявка);
         winnerItem.Status = RecordStatus.Подтверждено;
         //удаляем у всех записи откатов дебита, если есть
-        var rollbackItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
+        var rollbackItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id &&
             p.Status == RecordStatus.Откат).ToListAsync();
         if (rollbackItems != null && rollbackItems.Count > 0)
         {
@@ -29,7 +29,7 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
         }
 
         //удаляем все резервирования денег по данному аукциону, кроме победителя
-        var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
+        var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id &&
             p.UserLogin != context.Message.Winner).ToListAsync();
         //правим финансы для каждого пользователя, участвующего в аукционе (кроме победителя)
         //возвращаем деньги за проигранный аукцион
@@ -46,6 +46,6 @@ public class AuctionFinishedConsumer : IConsumer<AuctionFinished>
         }
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
-        Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион завершен - " + context.Message.AuctionId);
+        Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион завершен - " + context.Message.Id);
     }
 }

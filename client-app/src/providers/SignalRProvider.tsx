@@ -83,7 +83,6 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionUpdated', (auction: Auction) => {
-                        //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
                         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
                         dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, id: auction.id }));
                     })

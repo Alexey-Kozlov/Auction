@@ -23,7 +23,7 @@ public class AuctionUpdatingImageConsumer : IConsumer<AuctionUpdatingImage>
     {
         if (string.IsNullOrEmpty(consumeContext.Message.Image))
         {
-            await _publishEndpoint.Publish(new AuctionUpdatedImage(consumeContext.Message.Id, consumeContext.Message.CorrelationId));
+            await _publishEndpoint.Publish(new AuctionUpdatedImage(consumeContext.Message.CorrelationId));
             return;
         }
         Console.WriteLine($"{DateTime.Now} Получение сообщения обновить изображение для аукциона");
@@ -39,6 +39,6 @@ public class AuctionUpdatingImageConsumer : IConsumer<AuctionUpdatingImage>
         }
         await _context.SaveChangesAsync();
         //послать сообщение о сбросе этого мзображения в кеше редис
-        await _publishEndpoint.Publish(new AuctionUpdatedImage(consumeContext.Message.Id, consumeContext.Message.CorrelationId));
+        await _publishEndpoint.Publish(new AuctionUpdatedImage(consumeContext.Message.CorrelationId));
     }
 }

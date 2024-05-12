@@ -28,7 +28,7 @@ public class AuctionUpdatingSearchConsumer : IConsumer<AuctionUpdatingSearch>
         {
             _mapper.Map(updatedItem, item);
             await _context.SaveChangesAsync();
-            await _publishEndpoint.Publish(new AuctionUpdatedSearch(context.Message.Id, context.Message.CorrelationId));
+            await _publishEndpoint.Publish(new AuctionUpdatedSearch(context.Message.CorrelationId));
             Console.WriteLine($"{DateTime.Now} - Аукцион {updatedItem.Id} успешно обновлен.");
             return;
         }

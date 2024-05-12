@@ -19,6 +19,6 @@ public class AuctionUpdatingNotificationConsumer : IConsumer<AuctionUpdatingNoti
     {
         Console.WriteLine("--> Получено сообщение - обновлен аукцион, послано сообщение " + context.Message.AuctionAuthor);
         await _hubContext.Clients.Group(context.Message.AuctionAuthor).SendAsync("AuctionUpdated", context.Message);
-        await _publishEndpoint.Publish(new AuctionUpdatedNotification(context.Message.Id, context.Message.CorrelationId));
+        await _publishEndpoint.Publish(new AuctionUpdatedNotification(context.Message.CorrelationId));
     }
 }

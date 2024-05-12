@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuctionService.DTO;
+namespace ProcessingService.DTO;
 
 public record CreateAuctionDTO
 (
@@ -12,5 +12,6 @@ public record CreateAuctionDTO
      string Image,
      int ReservePrice,
     [Required]
-     DateTime AuctionEnd
+     DateTime AuctionEnd,
+     Guid CorrelationId
 );

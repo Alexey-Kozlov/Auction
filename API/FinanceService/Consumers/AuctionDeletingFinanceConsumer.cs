@@ -5,15 +5,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Consumers;
 
-public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
+public class AuctionDeletingFinanceConsumer : IConsumer<AuctionDeletingFinance>
 {
     private readonly FinanceDbContext _dbContext;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionDeletedConsumer(FinanceDbContext dbContext)
+    public AuctionDeletingFinanceConsumer(FinanceDbContext dbContext, IPublishEndpoint publishEndpoint)
     {
         _dbContext = dbContext;
+        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<AuctionDeleted> context)
+    public async Task Consume(ConsumeContext<AuctionDeletingFinance> context)
     {
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         //удаляем у всех записи откатов дебита, если есть
@@ -41,6 +43,7 @@ public class AuctionDeletedConsumer : IConsumer<AuctionDeleted>
         }
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
+        await _publishEndpoint.Publish(new AuctionDeletedFinance(context.Message.CorrelationId));
         Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион удален - " + context.Message.Id);
     }
 }

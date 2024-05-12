@@ -8,17 +8,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BiddingService.Consumers;
 
-public class BidPlacedConsumer : IConsumer<RequestBidPlace>
+public class BidPlacingConsumer : IConsumer<BidPlacing>
 {
     private readonly BidDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public BidPlacedConsumer(IPublishEndpoint publishEndpoint, BidDbContext dbContext)
+    public BidPlacingConsumer(IPublishEndpoint publishEndpoint, BidDbContext dbContext)
     {
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<RequestBidPlace> context)
+    public async Task Consume(ConsumeContext<BidPlacing> context)
     {
         var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.AuctionId);
         if (auction == null)
@@ -62,10 +62,7 @@ public class BidPlacedConsumer : IConsumer<RequestBidPlace>
         await _dbContext.Bids.AddAsync(bid);
         await _dbContext.SaveChangesAsync();
 
-        await _publishEndpoint.Publish(new BidPlaced(
-            context.Message.CorrelationId,
-            context.Message.AuctionId,
-            context.Message.Amount));
+        await _publishEndpoint.Publish(new BidPlaced(context.Message.CorrelationId));
 
         Console.WriteLine($"{DateTime.Now} Получение сообщения - размещена заявка - " +
                  context.Message.Bidder + ", " + context.Message.Amount);

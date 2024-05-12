@@ -20,6 +20,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<AuctionUpdatedImage> AuctionUpdatedImageEvent { get; }
     public Event<AuctionUpdatedNotification> AuctionUpdatedNotificationEvent { get; }
     public Event<AuctionUpdatedSearch> AuctionUpdatedSearchEvent { get; }
+    public Event<GetAuctionUpdateState> AuctionUpdatedStateEvent { get; }
 
     public UpdateAuctionStateMachine()
     {
@@ -44,6 +45,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         Event(() => AuctionUpdatedImageEvent);
         Event(() => AuctionUpdatedNotificationEvent);
         Event(() => AuctionUpdatedSearchEvent);
+        Event(() => AuctionUpdatedStateEvent);
     }
     private void ConfigureInitialState()
     {
@@ -51,7 +53,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             When(RequestAuctionUpdatingEvent)
             .Then(context =>
             {
-                context.Saga.Id = Guid.Parse(context.Message.Id);
+                context.Saga.Id = context.Message.Id;
                 context.Saga.Title = context.Message.Title;
                 context.Saga.Description = context.Message.Description;
                 context.Saga.Properties = context.Message.Properties;
@@ -84,7 +86,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionUpdatingBid(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.AuctionEnd,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionUpdatedBidState));
@@ -98,7 +100,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionUpdatingGateway(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionUpdatedGatewayState));
     }
@@ -111,7 +113,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionUpdatingImage(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.Image,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionUpdatedImageState));
@@ -125,7 +127,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionUpdatingSearch(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.Title,
                 context.Saga.Properties,
                 context.Saga.Description,
@@ -143,7 +145,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new AuctionUpdatingNotification(
-                context.Message.Id,
+                context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionUpdatedNotificationState));
@@ -156,7 +158,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 //по окончании обновления - удаляем изображение для экономии места в БД
-                context.Saga.Image = "";
+                context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
             })
             .TransitionTo(CompletedState));
     }
@@ -170,7 +172,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     private void ConfigureAny()
     {
         DuringAny(
-            When(RequestAuctionUpdatingEvent)
+            When(AuctionUpdatedStateEvent)
                 .Respond(x => x.Saga)
         );
     }
