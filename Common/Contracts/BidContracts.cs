@@ -1,13 +1,13 @@
 namespace Contracts;
 
 public record RequestBidPlace(
-     Guid AuctionId,
+     Guid Id,
      string Bidder,
      int Amount,
      Guid CorrelationId
 );
 public record BidFinanceGranting(
-     Guid AuctionId,
+     Guid Id,
      string Bidder,
      int Amount,
      Guid CorrelationId
@@ -16,13 +16,13 @@ public record BidFinanceGranted(
      Guid CorrelationId
 );
 public record RollbackBidFinanceGranted(
-    int Amount,
-    Guid AuctionId,
+    Guid Id,
     string Bidder,
+    int Amount,
     Guid CorrelationId
 );
 public record BidAuctionPlacing(
-     Guid AuctionId,
+     Guid Id,
      string Bidder,
      int Amount,
      Guid CorrelationId
@@ -33,14 +33,14 @@ public record BidAuctionPlaced(
      Guid CorrelationId
 );
 public record RollbackBidAuctionPlaced(
+    Guid Id,
     int OldHighBid,
-    Guid AuctionId,
     string Bidder,
     Guid CorrelationId
 );
 
 public record BidPlacing(
-     Guid AuctionId,
+     Guid Id,
      string Bidder,
      int Amount,
      Guid CorrelationId
@@ -54,7 +54,8 @@ public record RollbackBidPlaced(
     Guid CorrelationId
 );
 public record BidSearchPlacing(
-     Guid AuctionId,
+     Guid Id,
+     string Bidder,
      int Amount,
      Guid CorrelationId
 );
@@ -62,7 +63,7 @@ public record BidSearchPlaced(
      Guid CorrelationId
 );
 public record BidNotificationProcessing(
-     Guid AuctionId,
+     Guid Id,
      string Bidder,
      int Amount,
      Guid CorrelationId

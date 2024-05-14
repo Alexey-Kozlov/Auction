@@ -15,7 +15,15 @@ public class BidPlacedFaultedConsumer : IConsumer<Fault<BidPlacing>>
     }
     public async Task Consume(ConsumeContext<Fault<BidPlacing>> context)
     {
-        Console.WriteLine("--> Получено сообщение - ошибка создания ставки");
-        await _hubContext.Clients.Groups(new List<string> { context.Message.Message.Bidder }).SendAsync("FaultRequestBid", context.Message.Message);
+        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - ошибка создания ставки пользователя '{context.Message.Message.Bidder}'" +
+            $" , ошибка размещения ставки пользователя, ставка - {context.Message.Message.Amount}");
+
+        var error = new ErrorContract
+        (
+            context.Message.Message.Id,
+            $"Ошибка обновления поиска аукциона для новой ставки пользователя {context.Message.Message.Bidder}",
+            context.Message.Message.CorrelationId
+        );
+        await _hubContext.Clients.Group(context.Message.Message.Bidder).SendAsync("ErrorMessage", error);
     }
 }

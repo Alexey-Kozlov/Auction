@@ -20,13 +20,13 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
     }
     public async Task Consume(ConsumeContext<BidPlacing> context)
     {
-        var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.AuctionId);
+        var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
         if (auction == null)
         {
             throw new PlaceBidException(
             context.Message.Bidder,
             context.Message.Amount,
-            context.Message.AuctionId.ToString(),
+            context.Message.Id.ToString(),
             "Невозможно назначить заявку на этот аукцион - аукцион не найден!"
         );
         }
@@ -34,14 +34,14 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
         if (auction.Seller == context.Message.Bidder) throw new PlaceBidException(
             context.Message.Bidder,
             context.Message.Amount,
-            context.Message.AuctionId.ToString(),
+            context.Message.Id.ToString(),
             "Невозможно подать предложение для собственного аукциона"
         );
 
         var bid = new Bid
         {
             Amount = context.Message.Amount,
-            AuctionId = context.Message.AuctionId,
+            AuctionId = context.Message.Id,
             Bidder = context.Message.Bidder
         };
 
@@ -51,7 +51,7 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
         }
         else
         {
-            var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.AuctionId)
+            var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.Id)
                 .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
 
             if ((highBid != null && context.Message.Amount > highBid.Amount) || highBid == null)
@@ -60,6 +60,7 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
             }
         }
         await _dbContext.Bids.AddAsync(bid);
+
         await _dbContext.SaveChangesAsync();
 
         await _publishEndpoint.Publish(new BidPlaced(bid.Id, context.Message.CorrelationId));

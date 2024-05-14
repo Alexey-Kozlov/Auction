@@ -23,7 +23,7 @@ public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
         //проверяем - есть ли записи по данному пользователю, по данному аукциону со статусом откат
         //емли есть - удаляем
         var rallbackAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder &&
-            p.AuctionId == context.Message.AuctionId && p.Status == RecordStatus.Откат).ToListAsync();
+            p.AuctionId == context.Message.Id && p.Status == RecordStatus.Откат).ToListAsync();
         if (rallbackAuctionBid.Any())
         {
             _context.BalanceItems.RemoveRange(rallbackAuctionBid);
@@ -32,7 +32,7 @@ public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
         var balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder)
             .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
         var lastAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder &&
-            p.AuctionId == context.Message.AuctionId).OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
+            p.AuctionId == context.Message.Id).OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
 
         if (lastAuctionBid != null)
         {
@@ -51,7 +51,7 @@ public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
             var debit = new BalanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                AuctionId = context.Message.AuctionId,
+                AuctionId = context.Message.Id,
                 Balance = currentCredit,
                 Credit = 0,
                 Debit = context.Message.Amount,
@@ -72,7 +72,7 @@ public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
             var _debit = new BalanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                AuctionId = context.Message.AuctionId,
+                AuctionId = context.Message.Id,
                 Balance = currentCredit,
                 Credit = 0,
                 Debit = context.Message.Amount,
@@ -82,7 +82,7 @@ public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
             await _context.BalanceItems.AddAsync(_debit);
         }
         //удаляем все резервирования денег по данному аукциону, кроме сделавшего последнюю ставку
-        var debitItems = await _context.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
+        var debitItems = await _context.BalanceItems.Where(p => p.AuctionId == context.Message.Id &&
             p.UserLogin != context.Message.Bidder).ToListAsync();
         //правим финансы для каждого пользователя, участвующего в аукционе (кроме сделавшего последнюю ставку)
         //возвращаем деньги за сделанные ставки по данному аукциону

@@ -19,9 +19,9 @@ public class RollbackBidFinanceGrantedConsumer : IConsumer<RollbackBidFinanceGra
         var balanceItem = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder)
             .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
         var rallbackAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder &&
-            p.AuctionId == context.Message.AuctionId && p.Status == RecordStatus.Откат).FirstOrDefaultAsync();
+            p.AuctionId == context.Message.Id && p.Status == RecordStatus.Откат).FirstOrDefaultAsync();
         var newAuctionBid = await _context.BalanceItems.Where(p => p.UserLogin == context.Message.Bidder &&
-                    p.AuctionId == context.Message.AuctionId && p.Status == RecordStatus.Заявка).FirstOrDefaultAsync();
+                    p.AuctionId == context.Message.Id && p.Status == RecordStatus.Заявка).FirstOrDefaultAsync();
         if (rallbackAuctionBid != null)
         {
             //нашли заявку для отката - делаем ее рабочей и удаляем последнюю

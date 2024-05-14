@@ -22,7 +22,8 @@ public class AuctionCreatingNotificationConsumer : IConsumer<AuctionCreatingNoti
     }
     public async Task Consume(ConsumeContext<AuctionCreatingNotification> context)
     {
-        Console.WriteLine("--> Получено сообщение - создан новый аукцион");
+        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - создан новый аукцион '{context.Message.Title}'" +
+        $", автор - {context.Message.AuctionAuthor}");
         //подписываем на получение сообщений автора аукциона
         var notifyItem = new NotifyUser { AuctionId = context.Message.Id, UserLogin = context.Message.AuctionAuthor };
         _dbContext.NotifyUser.Add(notifyItem);

@@ -1,5 +1,4 @@
 ﻿using AuctionService.Data;
-using AuctionService.Exceptions;
 using Contracts;
 using MassTransit;
 
@@ -17,11 +16,11 @@ public class RollbackBidAuctionPlacedConsumer : IConsumer<RollbackBidAuctionPlac
     }
     public async Task Consume(ConsumeContext<RollbackBidAuctionPlaced> context)
     {
-        var auction = await _auctionDbContext.Auctions.FindAsync(context.Message.AuctionId);
+        var auction = await _auctionDbContext.Auctions.FindAsync(context.Message.Id);
         auction.CurrentHighBid = context.Message.OldHighBid;
         await _auctionDbContext.SaveChangesAsync();
         Console.WriteLine($"{DateTime.Now} --> Получение сообщения - восстановление старого значения максимальной ставки" +
-        $" вследствие отмены последней ставки, AuctionId - {context.Message.AuctionId}, старая ставка - " +
+        $" вследствие отмены последней ставки, AuctionId - {context.Message.Id}, старая ставка - " +
         $" {context.Message.OldHighBid}");
     }
 }

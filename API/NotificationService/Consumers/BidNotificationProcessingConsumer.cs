@@ -23,14 +23,14 @@ public class BidNotificationProcessingConsumer : IConsumer<BidNotificationProces
     }
     public async Task Consume(ConsumeContext<BidNotificationProcessing> context)
     {
-        var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
+        var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
         //если в списке нет пользователя, сделавшего ставку - добавляем его в рассылку
         var bidUser = auctionNotifyList.FirstOrDefault(p => p.UserLogin == context.Message.Bidder);
         if (bidUser == null)
         {
             var notifyUser = new NotifyUser
             {
-                AuctionId = context.Message.AuctionId,
+                AuctionId = context.Message.Id,
                 UserLogin = context.Message.Bidder
             };
             _dbContext.NotifyUser.Add(notifyUser);

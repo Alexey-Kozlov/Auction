@@ -19,7 +19,9 @@ public class BidSearchPlacingConsumer : IConsumer<BidSearchPlacing>
     {
         Console.WriteLine("--> Получение сообщения разместить заявку");
 
-        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumerContext.Message.AuctionId);
+        //throw new Exception("Ошибка создания ставки");
+
+        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumerContext.Message.Id);
         if (consumerContext.Message.Amount > auction.CurrentHighBid)
         {
             auction.CurrentHighBid = consumerContext.Message.Amount;

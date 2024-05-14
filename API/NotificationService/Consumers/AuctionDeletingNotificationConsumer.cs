@@ -22,7 +22,8 @@ public class AuctionDeletingNotificationConsumer : IConsumer<AuctionDeletingNoti
     }
     public async Task Consume(ConsumeContext<AuctionDeletingNotification> context)
     {
-        Console.WriteLine("--> Получение сообщения удалить аукцион, пользователь - " + context.Message.AuctionAuthor);
+        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - удалить аукцион '{context.Message.Id}'" +
+            $", автор - {context.Message.AuctionAuthor}");
         var items = await _context.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
         if (items != null && items.Count > 0)
         {

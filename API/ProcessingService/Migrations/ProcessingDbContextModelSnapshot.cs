@@ -30,9 +30,6 @@ namespace ProcessingService.Migrations
                     b.Property<int>("Amount")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("AuctionId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("BidId")
                         .HasColumnType("uuid");
 
@@ -47,6 +44,9 @@ namespace ProcessingService.Migrations
 
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone");

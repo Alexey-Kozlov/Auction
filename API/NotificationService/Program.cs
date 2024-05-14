@@ -57,14 +57,22 @@ builder.Services.AddMassTransit(p =>
         config.ReceiveEndpoint("auction-bid-auction-placing_error", e =>
         {
             e.ConfigureConsumer<BidAuctionPlacedFaultedConsumer>(context);
+            e.DiscardSkippedMessages();
         });
         config.ReceiveEndpoint("finance-bid-finance-granting_error", e =>
         {
             e.ConfigureConsumer<BidFinanceGrantedFaultedConsumer>(context);
+            e.DiscardSkippedMessages();
         });
         config.ReceiveEndpoint("bids-bid-placing_error", e =>
         {
             e.ConfigureConsumer<BidPlacedFaultedConsumer>(context);
+            e.DiscardSkippedMessages();
+        });
+        config.ReceiveEndpoint("search-bid-search-placing_error", e =>
+        {
+            e.ConfigureConsumer<BidSearchPlacedFaultedConsumer>(context);
+            e.DiscardSkippedMessages();
         });
         config.ConfigureEndpoints(context);
     });

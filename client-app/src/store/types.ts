@@ -101,13 +101,6 @@ export type FinanceItem = {
   balance: number;
 };
 
-export type SagaErrorType = {
-  debit: number;
-  auctionId: string;
-  userLogin: string;
-  correlationId: string;
-};
-
 export type ProcessingState = {
   eventName: string;
   ready: boolean;
@@ -134,5 +127,11 @@ export type AuctionFinished = {
 
 export type AuctionDeleted = {
   id: string;
+  correlationId: string;
+};
+
+export type ErrorMessage = {
+  id: string;
+  errorMessage: string;
   correlationId: string;
 };

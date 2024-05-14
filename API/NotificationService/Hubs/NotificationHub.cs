@@ -1,17 +1,13 @@
-﻿using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
 using NotificationService.Data;
 
 namespace NotificationService.Hubs;
 
 public class NotificationHub : Hub
 {
-    private readonly NotificationDbContext _dbContext;
 
-    public NotificationHub(NotificationDbContext dbContext)
+    public NotificationHub()
     {
-        _dbContext = dbContext;
     }
     public async override Task OnConnectedAsync()
     {

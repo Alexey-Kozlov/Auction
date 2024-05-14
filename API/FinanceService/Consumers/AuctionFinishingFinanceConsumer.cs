@@ -38,24 +38,6 @@ public class AuctionFinishingFinanceConsumer : IConsumer<AuctionFinishingFinance
             $"победитель - {context.Message.Winner}");
         }
 
-
-        // //удаляем все резервирования денег по данному аукциону, кроме победителя (не должно быть, но если вдруг есть)
-        // var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id &&
-        //     p.UserLogin != context.Message.Winner).ToListAsync();
-        // //правим финансы для каждого пользователя, участвующего в аукционе (кроме победителя)
-        // //возвращаем деньги за проигранный аукцион
-        // var balance = 0;
-        // foreach (var debitItem in debitItems)
-        // {
-        //     var balanceItem = await _dbContext.BalanceItems.Where(p => p.UserLogin == debitItem.UserLogin)
-        //         .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
-        //     balance = balanceItem.Balance + debitItem.Debit;
-        //     _dbContext.Remove(debitItem);
-        //     balanceItem = await _dbContext.BalanceItems.Where(p => p.UserLogin == debitItem.UserLogin)
-        //         .OrderByDescending(p => p.ActionDate).FirstOrDefaultAsync();
-        //     balanceItem.Balance = balance;
-        // }
-
         await _publishEndpoint.Publish(new AuctionFinishedFinance(context.Message.CorrelationId));
         Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион завершен - " + context.Message.Id);
     }

@@ -18,7 +18,7 @@ namespace ProcessingService.Migrations
                     CorrelationId = table.Column<Guid>(type: "uuid", nullable: false),
                     CurrentState = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Bidder = table.Column<string>(type: "text", nullable: false),
-                    AuctionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Amount = table.Column<int>(type: "integer", nullable: false),
                     BidId = table.Column<Guid>(type: "uuid", nullable: false),
                     OldHighBid = table.Column<int>(type: "integer", nullable: false),

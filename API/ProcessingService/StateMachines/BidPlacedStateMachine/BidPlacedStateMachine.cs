@@ -19,9 +19,10 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<BidSearchPlaced> BidSearchPlacedEvent { get; }
     public Event<BidNotificationProcessed> BidNotificationProcessedEvent { get; }
     public Event<GetBidPlaceState> GetBidPlaceStateEvent { get; }
-    public Event<Fault<BidFinanceGranting>> BidFinanceGrantedFaulted { get; }
-    public Event<Fault<BidAuctionPlacing>> BidAuctionPlacedFaulted { get; }
-    public Event<Fault<BidPlacing>> BidPlacedFaulted { get; }
+    public Event<Fault<BidFinanceGranting>> BidFinanceGrantedFaultedEvent { get; }
+    public Event<Fault<BidAuctionPlacing>> BidAuctionPlacedFaultedEvent { get; }
+    public Event<Fault<BidPlacing>> BidPlacedFaultedEvent { get; }
+    public Event<Fault<BidSearchPlacing>> BidSearchPlacedFaultedEvent { get; }
 
     public BidPlacedStateMachine()
     {
@@ -46,11 +47,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         Event(() => BidSearchPlacedEvent);
         Event(() => BidNotificationProcessedEvent);
         Event(() => GetBidPlaceStateEvent);
-        Event(() => BidFinanceGrantedFaulted, x => x.CorrelateById(
+        Event(() => BidFinanceGrantedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
-        Event(() => BidAuctionPlacedFaulted, x => x.CorrelateById(
+        Event(() => BidAuctionPlacedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
-        Event(() => BidPlacedFaulted, x => x.CorrelateById(
+        Event(() => BidPlacedFaultedEvent, x => x.CorrelateById(
+            context => context.Message.Message.CorrelationId));
+        Event(() => BidSearchPlacedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
@@ -61,13 +64,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             {
                 context.Saga.Bidder = context.Message.Bidder;
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                context.Saga.AuctionId = context.Message.AuctionId;
+                context.Saga.Id = context.Message.Id;
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
             })
             .Send(context => new BidFinanceGranting(
-                context.Saga.AuctionId,
-                 context.Saga.Bidder,
+                context.Saga.Id,
+                context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
@@ -85,7 +88,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new BidAuctionPlacing(
-                context.Saga.AuctionId,
+                context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
@@ -94,7 +97,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         //если ошибка при оплате - например, превышение имеющегося количества денег - 
         //нет нужды делать корректироующую транзакцию, так как данные по оплате не заносились
         //делаем запись в истории, делаем уведомление пользователю и переходим на конец процесса
-        When(BidFinanceGrantedFaulted)
+        When(BidFinanceGrantedFaultedEvent)
             .Then(context =>
             {
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
@@ -115,7 +118,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.OldHighBid = context.Message.OldHighBid;
             })
             .Send(context => new BidPlacing(
-                context.Saga.AuctionId,
+                context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
@@ -123,16 +126,16 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(BidPlacedState),
         //ошибка при создании записи в аукционе о новой ставке - делаем корректирующую транзакцию для отмены
         //ранее занесенных денег и выход на ошибочное окончание процесса           
-        When(BidAuctionPlacedFaulted)
+        When(BidAuctionPlacedFaultedEvent)
             .Then(context =>
             {
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new RollbackBidFinanceGranted(
-                context.Saga.Amount,
-                context.Saga.AuctionId,
+                context.Saga.Id,
                 context.Saga.Bidder,
+                context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
             .TransitionTo(FaultedState)
@@ -151,7 +154,8 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.BidId = context.Message.BidId;
             })
             .Send(context => new BidSearchPlacing(
-                context.Saga.AuctionId,
+                context.Saga.Id,
+                context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
@@ -160,21 +164,21 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         //-в микросервисе Auction - о новой максимальной ставке
         //-в микроснрвисе Finance о ранее списанных на эту ставку деньгах 
         //и выход на ошибочное окончание процесса           
-        When(BidAuctionPlacedFaulted)
+        When(BidPlacedFaultedEvent)
             .Then(context =>
             {
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new RollbackBidFinanceGranted(
-                context.Saga.Amount,
-                context.Saga.AuctionId,
+                context.Saga.Id,
                 context.Saga.Bidder,
+                context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
             .Send(context => new RollbackBidAuctionPlaced(
+                context.Saga.Id,
                 context.Saga.OldHighBid,
-                context.Saga.AuctionId,
                 context.Saga.Bidder,
                 context.Saga.CorrelationId
             ))
@@ -191,7 +195,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new BidNotificationProcessing(
-                context.Saga.AuctionId,
+                context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
@@ -202,21 +206,21 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         //-в микроснрвисе Finance - о ранее списанных на эту ставку деньгах 
         //-в микросервисе Bid - о новой записи - новая ставка
         //и выход на ошибочное окончание процесса           
-        When(BidPlacedFaulted)
+        When(BidSearchPlacedFaultedEvent)
             .Then(context =>
             {
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(context => new RollbackBidFinanceGranted(
-                context.Saga.Amount,
-                context.Saga.AuctionId,
+                context.Saga.Id,
                 context.Saga.Bidder,
+                context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
             .Send(context => new RollbackBidAuctionPlaced(
+                context.Saga.Id,
                 context.Saga.OldHighBid,
-                context.Saga.AuctionId,
                 context.Saga.Bidder,
                 context.Saga.CorrelationId
             ))
@@ -258,11 +262,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureFaulted()
     {
         During(FaultedState,
-            When(BidFinanceGrantedFaulted)
+            When(BidFinanceGrantedFaultedEvent)
                 .TransitionTo(CompletedState),
-            When(BidAuctionPlacedFaulted)
+            When(BidAuctionPlacedFaultedEvent)
                 .TransitionTo(CompletedState),
-            When(BidPlacedFaulted)
+            When(BidPlacedFaultedEvent)
+                .TransitionTo(CompletedState),
+            When(BidSearchPlacedFaultedEvent)
                 .TransitionTo(CompletedState)
         );
     }

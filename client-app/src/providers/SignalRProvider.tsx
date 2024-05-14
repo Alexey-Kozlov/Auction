@@ -3,14 +3,14 @@ import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
-import { Auction, AuctionFinished, Bid, SagaErrorType, User } from '../store/types';
+import { Auction, AuctionFinished, Bid, ErrorMessage, User } from '../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
 import { RootState } from '../store/store';
 import BidCreatedToast from '../components/signalRNotifications/BidCreatedToast';
-import ErrorBidCreatedToast from '../components/signalRNotifications/ErrorBidCreatedToast';
 import { setEventFlag } from '../store/processingSlice';
+import ErrorMessageToast from '../components/signalRNotifications/ErrorMessageToast';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -99,9 +99,9 @@ export default function SignalRProvider() {
                         dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true }));
                     })
 
-                    connection.on('FaultRequestBid', (debitError: SagaErrorType) => {
+                    connection.on('ErrorMessage', (errorMessage: ErrorMessage) => {
                         return toast((p) => (
-                            <ErrorBidCreatedToast auctionId={debitError.auctionId} toastId={p.id} />
+                            <ErrorMessageToast errorMessage={errorMessage} toastId={p.id} />
                         ),
                             { duration: 10000 });
                     })
