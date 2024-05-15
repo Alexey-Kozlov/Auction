@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   ApiResponseNet,
-  Auction,
   AuctionDeleted,
   AuctionUpdated,
   PlaceBidParams,

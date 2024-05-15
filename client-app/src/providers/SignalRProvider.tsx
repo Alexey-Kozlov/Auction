@@ -3,7 +3,7 @@ import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
-import { Auction, AuctionFinished, Bid, ErrorMessage, User } from '../store/types';
+import { Auction, AuctionFinished, Bid, Message, User } from '../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
@@ -11,6 +11,9 @@ import { RootState } from '../store/store';
 import BidCreatedToast from '../components/signalRNotifications/BidCreatedToast';
 import { setEventFlag } from '../store/processingSlice';
 import ErrorMessageToast from '../components/signalRNotifications/ErrorMessageToast';
+import WarningMessageToast from '../components/signalRNotifications/WarningMessageToast';
+import InfoMessageToast from '../components/signalRNotifications/InfoMessageToast';
+import FinanceUnsufficientToast from '../components/signalRNotifications/FinanceUnsufficientToast';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -99,11 +102,33 @@ export default function SignalRProvider() {
                         dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true }));
                     })
 
-                    connection.on('ErrorMessage', (errorMessage: ErrorMessage) => {
-                        return toast((p) => (
-                            <ErrorMessageToast errorMessage={errorMessage} toastId={p.id} />
-                        ),
-                            { duration: 10000 });
+                    connection.on('ErrorMessage', (message: Message) => {
+                        switch (message.messageType) {
+                            case 0:
+                                return toast((p) => (
+                                    <ErrorMessageToast message={message} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+                            case 1:
+                                return toast((p) => (
+                                    <WarningMessageToast message={message} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+
+                            case 2:
+                                return toast((p) => (
+                                    <InfoMessageToast message={message} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+
+                            case 3:
+                                return toast((p) => (
+                                    <FinanceUnsufficientToast message={message} toastId={p.id} />
+                                ),
+                                    { duration: 10000 });
+
+                        }
+
                     })
                 }).catch(err => console.log(err));
         }

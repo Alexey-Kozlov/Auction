@@ -10,5 +10,6 @@ export default function Logo() {
             <RiAuctionLine size={34} />
             <div>Аукцион</div>
         </NavLink>
+
     )
 }

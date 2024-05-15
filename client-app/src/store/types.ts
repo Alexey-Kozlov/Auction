@@ -130,8 +130,9 @@ export type AuctionDeleted = {
   correlationId: string;
 };
 
-export type ErrorMessage = {
+export type Message = {
   id: string;
-  errorMessage: string;
+  message: string;
+  messageType: number;
   correlationId: string;
 };
