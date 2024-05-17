@@ -7,15 +7,15 @@ import { useEffect } from 'react';
 const empty = require('../../assets/Empty.png');
 
 type Props = {
-    auctionId: string;
+    id: string;
     toastId: string;
 }
 
-export default function BidCreatedToast({ auctionId, toastId }: Props) {
-    const { isLoading, data } = useGetImageForAuctionQuery(auctionId);
-    const bidAuction = useGetDetailedViewDataQuery(auctionId);
+export default function BidCreatedToast({ id, toastId }: Props) {
+    const { isLoading, data } = useGetImageForAuctionQuery(id);
+    const bidAuction = useGetDetailedViewDataQuery(id);
     useEffect(() => {
-        if (bidAuction) {
+        if (bidAuction && id) {
             bidAuction.refetch();
         }
     }, [bidAuction]);
@@ -27,7 +27,7 @@ export default function BidCreatedToast({ auctionId, toastId }: Props) {
                     <div className='flex flex-row-reverse' >
                         <button onClick={() => toast.dismiss(toastId)}>X</button>
                     </div>
-                    <NavLink to={`/auctions/${auctionId}`} className='flex flex-col items-center'>
+                    <NavLink to={`/auctions/${id}`} className='flex flex-col items-center'>
                         <div className='flex flex-row items-center gap-2'>
                             <img src={!isLoading && (data?.result as AuctionImage)!.image ? (`data:image/png;base64 , ${data?.result['image']}`) : empty}
                                 alt=''

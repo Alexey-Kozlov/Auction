@@ -46,7 +46,7 @@ export default function BidList({ user, auction }: Props) {
             const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
                 return Date.parse(b.bidTime) - Date.parse(a.bidTime);
             })[0];
-            setLastBidId(maxBidId.id);
+            setLastBidId(maxBidId.bidId);
         }
     }, [bidList.isLoading, bids])
 
@@ -98,8 +98,8 @@ export default function BidList({ user, auction }: Props) {
                     <>
                         {bids?.map((bid, index) => (
                             <li
-                                key={bid?.id} className='list-none'
-                                ref={bid?.id === lastBidId ? itemsRef : null}
+                                key={bid?.bidId} className='list-none'
+                                ref={bid?.bidId === lastBidId ? itemsRef : null}
                             >
                                 <BidItem bid={bid} />
                             </li>

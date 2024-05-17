@@ -42,7 +42,7 @@ public class ProcessingController : ControllerBase
     [HttpPost("placebid")]
     public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
-        var bid = new RequestBidPlace(par.auctionId, User.Identity.Name, par.amount, par.correlationId);
+        var bid = new RequestBidPlace(par.Id, User.Identity.Name, par.Amount, par.CorrelationId);
 
         await _publishEndpoint.Publish(bid);
 
