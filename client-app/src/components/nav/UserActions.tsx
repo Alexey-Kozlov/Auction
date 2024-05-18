@@ -10,6 +10,7 @@ import { RootState } from '../../store/store';
 import { emptyUserState, setAuthUser } from '../../store/authSlice';
 import { setParams } from '../../store/paramSlice';
 import { GrMoney } from "react-icons/gr";
+import { setEventFlag } from '../../store/processingSlice';
 
 export default function UserActions() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -17,12 +18,14 @@ export default function UserActions() {
     const dispatch = useDispatch();
     const location = useLocation();
     const SetWinner = () => {
-        dispatch(setParams({ winner: user.login, filterBy: '', seller: undefined }));
+        dispatch(setParams({ winner: user.login, seller: undefined }));
+        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
         if (location.pathname !== '/') navigate('/');
     }
 
     const SetSeller = () => {
-        dispatch(setParams({ seller: user.login, filterBy: '', winner: undefined }));
+        dispatch(setParams({ seller: user.login, winner: undefined }));
+        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
         if (location.pathname !== '/') navigate('/');
     }
 

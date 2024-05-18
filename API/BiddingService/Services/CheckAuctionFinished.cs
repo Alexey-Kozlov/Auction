@@ -46,8 +46,7 @@ public class CheckAuctionFinished : BackgroundService
                 auction.Finished = true;
                 await _context.SaveChangesAsync();
                 var winningBid = await _context.Bids.Where(p =>
-                p.AuctionId == auction.Id &&
-                p.BidStatus == BidStatus.Принято)
+                p.AuctionId == auction.Id)
                 .OrderByDescending(p => p.Amount)
                 .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
 

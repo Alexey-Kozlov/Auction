@@ -58,6 +58,10 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
             {
                 bid.BidStatus = BidStatus.Принято;
             }
+            if (highBid != null && context.Message.Amount <= highBid.Amount)
+            {
+                throw new Exception("Ошибка ставки - ставка меньше существующей ставики");
+            }
         }
         await _dbContext.Bids.AddAsync(bid);
 

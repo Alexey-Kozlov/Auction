@@ -1,11 +1,10 @@
 ﻿namespace BiddingService.DTO;
 
-public record BidDTO
-(
-     string Id,
-     string AuctionId,
-     string Bidder,
-     DateTime BidTime,
-     int Amount,
-     string BidStatus
-);
+public class BidDTO
+{
+     public Guid Id { get; set; }
+     public Guid BidId { get; set; }
+     public string Bidder { get; set; }
+     public DateTime BidTime { get; set; }
+     public int Amount { get; set; }
+}

@@ -29,7 +29,7 @@ export default function BidList({ user, auction }: Props) {
         let result = bids?.reduce((prev, current) => {
             return prev > current?.amount
                 ? prev
-                : current?.bidStatus?.includes('Принято') ? current?.amount : prev
+                : current?.amount
         }, 0);
         if (auction.reservePrice && auction.reservePrice > result) {
             result = auction.reservePrice;

@@ -34,6 +34,7 @@ export default function Listings() {
         const eventStateChanged = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
         if (eventStateChanged) {
             auctionsData.refetch();
+            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
         }
     }, [procState, auctionsData]);
 

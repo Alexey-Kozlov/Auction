@@ -15,7 +15,9 @@ public class MappingProfiles : Profile
             .ForMember(dest => dest.Properties, opt => opt.MapFrom(src => src.FirstOrDefault().Properties))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.FirstOrDefault().Description));
 
-        CreateMap<AuctionCreating, Auction>().ForMember(dest => dest.Item,
+        CreateMap<AuctionCreating, Auction>()
+        .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.AuctionAuthor))
+        .ForMember(dest => dest.Item,
             dest => dest.MapFrom(src => new List<Item>{
                 new() {
                     Title = src.Title,
@@ -23,12 +25,6 @@ public class MappingProfiles : Profile
                     Description = src.Description ?? ""
                 }
             }));
-
-        // CreateMap<Auction, AuctionUpdated>().IncludeMembers(p => p.Item);
-        // CreateMap<ICollection<Item>, AuctionUpdated>()
-        //     .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.First().Title))
-        //     .ForMember(dest => dest.Properties, opt => opt.MapFrom(src => src.First().Properties))
-        //     .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.First().Description));
 
         CreateMap<AuctionUpdating, Auction>().ForMember(dest => dest.Item,
             opt => opt.MapFrom((src, dest) =>

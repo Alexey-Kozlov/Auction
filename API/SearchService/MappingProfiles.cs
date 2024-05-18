@@ -9,10 +9,13 @@ public class MappingProfiles : Profile
     public MappingProfiles()
     {
         CreateMap<AuctionCreatingSearch, Item>()
+        .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.AuctionAuthor))
             .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
+
         CreateMap<AuctionUpdatingSearch, Item>();
+
         CreateMap<Item, Item>()
         .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
         .ForMember(dest => dest.Properties, opt => opt.MapFrom(src => src.Properties))

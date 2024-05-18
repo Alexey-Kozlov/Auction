@@ -18,7 +18,7 @@ export default function BidCreatedToast({ id, toastId }: Props) {
         if (bidAuction && id) {
             bidAuction.refetch();
         }
-    }, [bidAuction]);
+    }, [bidAuction, id]);
 
     return (
         <div>

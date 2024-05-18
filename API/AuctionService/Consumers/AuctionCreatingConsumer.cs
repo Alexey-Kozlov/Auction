@@ -21,7 +21,6 @@ public class AuctionCreatingConsumer : IConsumer<AuctionCreating>
     public async Task Consume(ConsumeContext<AuctionCreating> context)
     {
         var auction = _mapper.Map<Auction>(context.Message);
-        auction.Seller = context.Message.AuctionAuthor;
         _auctionDbContext.Auctions.Add(auction);
         await _auctionDbContext.SaveChangesAsync();
 

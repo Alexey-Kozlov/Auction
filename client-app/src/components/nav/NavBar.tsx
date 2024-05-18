@@ -19,7 +19,6 @@ export default function NavBar() {
 
     useEffect(() => {
         if (localStorage.getItem('Auction')) {
-            //user = JSON.parse(localStorage.getItem('Auction')!);
             dispatch(setAuthUser(JSON.parse(localStorage.getItem('Auction')!)));
         }
     }, [dispatch]);

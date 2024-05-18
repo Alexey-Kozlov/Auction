@@ -32,11 +32,29 @@ export const paramSlice = createSlice({
       if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
       if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
       if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
-      state.filterBy = action.payload.filterBy;
-      state.seller = action.payload.seller;
-      state.winner = action.payload.winner;
-      if (action.payload.searchTerm || action.payload?.searchTerm === "")
+      if (action.payload.filterBy) {
+        state.filterBy = action.payload.filterBy;
+        state.seller = undefined;
+        state.winner = undefined;
+      }
+      if (action.payload.seller) {
+        state.seller = action.payload.seller;
+        state.filterBy = "";
+        state.searchTerm = "";
+        state.winner = undefined;
+      }
+      if (action.payload.winner) {
+        state.winner = action.payload.winner;
+        state.filterBy = "";
+        state.searchTerm = "";
+        state.seller = undefined;
+      }
+      if (action.payload.searchTerm || action.payload?.searchTerm === "") {
         state.searchTerm = action.payload.searchTerm;
+        state.seller = undefined;
+        state.winner = undefined;
+      }
+
       if (!action.payload.pageNumber) {
         state.pageNumber = 1;
       }
