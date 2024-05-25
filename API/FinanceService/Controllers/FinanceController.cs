@@ -41,7 +41,7 @@ public class FinanceController : ControllerBase
     }
 
     [HttpGet("GetHistory")]
-    public async Task<ApiResponse<PagedResult<List<BalanceItem>>>> GetHistory([FromQuery] PagedParamsDTO pagedParams)
+    public async Task<ApiResponse<PagedResult<List<BalanceItemDTO>>>> GetHistory([FromQuery] PagedParamsDTO pagedParams)
     {
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         var balanceItemList = _context.BalanceItems.Where(p => p.UserLogin == userLogin && p.Status != RecordStatus.Откат)
@@ -55,14 +55,29 @@ public class FinanceController : ControllerBase
         {
             pageCount = (itemsCount + pagedParams.PageSize - 1) / pagedParams.PageSize;
         }
-        Console.WriteLine($"{DateTime.Now} Запрос финансов для {userLogin}, количество записей - {itemsCount}");
-        return new ApiResponse<PagedResult<List<BalanceItem>>>
+        var resultDTO = new List<BalanceItemDTO>();
+        foreach (var item in result)
+        {
+            resultDTO.Add(new BalanceItemDTO
+            {
+                Id = item.AuctionId.HasValue ? item.AuctionId.Value : null,
+                ItemId = item.Id,
+                UserLogin = item.UserLogin,
+                Status = item.Status,
+                Credit = item.Credit,
+                Debit = item.Debit,
+                ActionDate = item.ActionDate,
+                Balance = item.Balance
+            });
+        }
+
+        return new ApiResponse<PagedResult<List<BalanceItemDTO>>>
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
-            Result = new PagedResult<List<BalanceItem>>()
+            Result = new PagedResult<List<BalanceItemDTO>>()
             {
-                Results = result,
+                Results = resultDTO,
                 PageCount = pageCount,
                 TotalCount = itemsCount
             }

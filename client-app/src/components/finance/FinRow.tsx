@@ -10,20 +10,20 @@ type Props = {
 }
 
 export default function FinRow({ item }: Props) {
-    const auction = useGetAuctionByIdQuery(item.auctionId, {
-        skip: !item.auctionId
+    const auction = useGetAuctionByIdQuery(item.id, {
+        skip: !item.id
     });
     return (
         <>
             <div>
                 {!auction.isLoading && auction.data?.result?.id && auction.status === 'fulfilled' ? (
-                    <NavLink to={`/auctions/${item.auctionId}`} className='group'>
-                        <ImageCard id={item.auctionId} dopStyle=' max-h-20' />
+                    <NavLink to={`/auctions/${item.id}`} className='group'>
+                        <ImageCard id={item.id} dopStyle=' max-h-20' zooming={false} />
                     </NavLink>
                 ) : ""}
             </div>
             <div>{!auction.isLoading && auction.data?.result?.title && auction.status === 'fulfilled' ? (
-                <NavLink to={`/auctions/${item.auctionId}`} className='group'>
+                <NavLink to={`/auctions/${item.id}`} className='group'>
                     {auction.data?.result?.title}
                 </NavLink>
             )

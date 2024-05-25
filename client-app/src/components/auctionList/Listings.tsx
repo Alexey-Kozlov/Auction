@@ -36,7 +36,7 @@ export default function Listings() {
             auctionsData.refetch();
             dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
         }
-    }, [procState, auctionsData]);
+    }, [procState, auctionsData, dispatch]);
 
     function setPageNumber(pageNumber: number) {
         dispatch(setParams({ pageNumber: pageNumber }));
@@ -50,8 +50,8 @@ export default function Listings() {
             {
                 auctions.length === 0 ? (
                     <EmptyFilter showReset />
-                ) : (<>
-                    <div className='grid grid-cols-4 gap-6'>
+                ) : (<div>
+                    <div className='grid grid-cols-4 gap-6 items-center'>
                         {auctions.map((auction: Auction, index: number) => {
                             return (
                                 <AuctionCard auction={auction} key={index} />
@@ -62,7 +62,7 @@ export default function Listings() {
                         <AppPagination pageChanged={setPageNumber}
                             currentPage={params.pageNumber} totalPages={auctionsData.data?.result.pageCount!} />
                     </div>
-                </>
+                </div>
                 )}
 
         </div>

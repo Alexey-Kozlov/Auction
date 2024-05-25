@@ -127,7 +127,7 @@ export default function Detail() {
                 </div>
                 <div className='grid grid-cols-2 gap-6 mt-3'>
                     <div className='flex items-center justify-center rounded-lg'>
-                        <ImageCard id={auctionDetail!.id} dopStyle=' max-h-96' />
+                        <ImageCard id={auctionDetail!.id} zooming={true} />
                     </div>
                     <BidList user={user} auction={auctionDetail!} />
                 </div>

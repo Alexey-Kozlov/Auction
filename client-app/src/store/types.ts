@@ -88,6 +88,7 @@ export type NotifyUser = {
 
 export type FinanceItem = {
   id: string;
+  itemId: string;
   debit: number;
   credit: number;
   actionDate: Date;
