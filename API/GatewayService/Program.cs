@@ -7,6 +7,7 @@ using GatewayService.Cache;
 using GatewayService.Models;
 using MassTransit;
 using GatewayService.Consumers;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +79,15 @@ app.MapGet("/api/images/{id}", async (string id, ImageCache imageCache) =>
         IsSuccess = true,
         Result = new ImageDTO(id, img)
     };
+});
+app.MapGet("/api/images_dop/{id}", async (string id, ImageCache imageCache) =>
+{
+    return "data:image/png;base64, " + await imageCache.GetImage(id);
+});
+app.MapGet("/api/images_file/{id}", async (string id, ImageCache imageCache) =>
+{
+    var img = await imageCache.GetImage(id);
+    return Results.File(Convert.FromBase64String(img), contentType: "image/png");
 });
 
 app.MapReverseProxy();
