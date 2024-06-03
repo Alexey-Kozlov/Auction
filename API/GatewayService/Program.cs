@@ -7,7 +7,6 @@ using GatewayService.Cache;
 using GatewayService.Models;
 using MassTransit;
 using GatewayService.Consumers;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,27 +68,17 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("customPolicy");
 
-//получаем изображения из кеша - сервис с использованием reddis
-app.MapGet("/api/images/{id}", async (string id, ImageCache imageCache) =>
-{
-    var img = await imageCache.GetImage(id);
-    return new ApiResponse<ImageDTO>()
-    {
-        StatusCode = System.Net.HttpStatusCode.OK,
-        IsSuccess = true,
-        Result = new ImageDTO(id, img)
-    };
-});
-app.MapGet("/api/images_dop/{id}", async (string id, ImageCache imageCache) =>
-{
-    return "data:image/png;base64, " + await imageCache.GetImage(id);
-});
-app.MapGet("/api/images_file/{id}", async (string id, ImageCache imageCache) =>
-{
-    var img = await imageCache.GetImage(id);
-    return Results.File(Convert.FromBase64String(img), contentType: "image/png");
-});
+// добавляем дополнительный роутинг для возврата изображений
+// это все запросы начинающиеся с :
+//    /api/images/*
+//    /api/images_dop/*
+//    /api/images_file/*
+// если это такой запрос - дальше запрос не проходит, возвращается изображение или null
 
+app.ImageMiddleware();
+
+//если запрашивается не изображение - проходим сюда и вызываем штатный функционал реверс-прокси YARP
+//с помощью правил YARP маршрутизируем микросервисы
 app.MapReverseProxy();
 app.UseAuthentication();
 app.UseAuthorization();
