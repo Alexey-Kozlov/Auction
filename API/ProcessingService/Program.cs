@@ -10,7 +10,11 @@ using ProcessingService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null;
+});
+
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ProcessingDbContext>(options =>
 {

@@ -4,12 +4,14 @@ using System.Text;
 using Common.Utils;
 using GatewayService.Services;
 using GatewayService.Cache;
-using GatewayService.Models;
 using MassTransit;
 using GatewayService.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null;
+});
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 builder.Services.AddAuthentication(p =>

@@ -136,7 +136,7 @@ export default function Detail() {
                 </div>
 
                 <div className='flex justify-center mt-2'>
-                    <Button onClick={() => navigate(-1)}>Назад</Button>
+                    <Button outline onClick={() => navigate(-1)} className='mb-2'>Назад</Button>
                 </div>
             </>)}
         </div>
