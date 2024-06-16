@@ -37,7 +37,7 @@ export default function ImageCard({ id, dopStyle, zooming }: Props) {
                     <TransformComponent>
                         <img src={imageQuery.data?.result?.image ? `data:image/png;base64 , ${imageQuery.data.result.image}` : empty}
                             alt=''
-                            className={`object-cover ease-in-out  max-w-lg max-h-96 
+                            className={`object-cover ease-in-out  max-w-[720px] max-h-[512px]
             ${imageQuery.isLoading ? 'grayscale blur-2xl scale-110' : 'grayscale-0 blur-0 scale-100'} 
             `}
                         />
