@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using IdentityService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -45,17 +46,17 @@ builder.Services.AddAuthentication(p =>
 });
 builder.Services.AddControllers();
 builder.Services.AddCors();
+builder.Services.AddTransient<IAuthService, AuthService>();
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
-app.UseStaticFiles();
+//app.UseStaticFiles();
 
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-SeedData.EnsureSeedData(app);
-
+//SeedData.EnsureSeedData(app);
 
 app.Run();
