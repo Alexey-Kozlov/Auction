@@ -41,8 +41,17 @@ export default function Login() {
                 name:'',
                 password: (passwordRef.current! as HTMLInputElement).value
             });
-            setPasswordFunc();
-            toast.success(`Пароль успешно изменен. Можно войти в систему под новым паролем`);
+            setPasswordFunc()
+            .then((rez:ApiResponse<object>) =>{
+                if(rez.data!.isSuccess){
+                    toast.success(`Пароль успешно изменен. Можно войти в систему под новым паролем`);
+                }
+            })
+            .catch(e => {
+                console.log(`Ошибка установки пароля - ${e.message}`);
+                toast.error(`Ошибка установки пароля - ${e.message}`);
+            });
+           
         }
         setUpdatePassword(undefined);
         setShowConfirm(false);
