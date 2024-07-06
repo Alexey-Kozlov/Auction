@@ -1,21 +1,61 @@
-import React from 'react'
+import React, { MouseEventHandler, useEffect, useRef, useState } from 'react'
 import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
 import { Button } from 'flowbite-react';
-import { useLoginUserMutation } from '../../api/AuthApi';
+import { useLoginUserMutation, useSetNewPasswordMutation } from '../../api/AuthApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
-import { ApiResponse, LoginResponse } from '../../store/types';
+import { ApiResponse, CreateUser, LoginResponse } from '../../store/types';
 import { setAuthUser } from '../../store/authSlice';
+import ModalConfirm from '../Modals/ModalConfirm';
 
 export default function Login() {
     const [loginUser] = useLoginUserMutation();
+    const [setPassword] = useSetNewPasswordMutation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const loginRef = useRef(null);
+    const passwordRef = useRef(null);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [updatePassword, setUpdatePassword] = useState<boolean | undefined>(undefined);
+
+    const handleSetNewPassword = async () => {
+        if(!(loginRef.current! as HTMLInputElement).value){
+            toast.success(`Необходимо указать логин`);
+            return;
+        }
+        if(!(passwordRef.current! as HTMLInputElement).value){
+            toast.success(`Необходимо указать пароль`);
+            return;
+        }
+        setShowConfirm(true);
+        return;
+    }
+
+    useEffect(() => {
+        if(updatePassword){
+            const setPasswordFunc = async () => await setPassword({
+                login: (loginRef.current! as HTMLInputElement).value,
+                name:'',
+                password: (passwordRef.current! as HTMLInputElement).value
+            });
+            setPasswordFunc();
+            toast.success(`Пароль успешно изменен. Можно войти в систему под новым паролем`);
+        }
+        setUpdatePassword(undefined);
+        setShowConfirm(false);
+    }, [updatePassword]);
+
     return (
         <div className='container'>
+            <ModalConfirm 
+                openModal={showConfirm} 
+                text='Подтверждение обновления пароля. Обновить пароль?'
+                title='Обновление пароля'
+                setResult={setUpdatePassword}
+            />
             <Formik
                 initialValues={{ login: '', password: '', error: null }}
                 onSubmit={
@@ -61,6 +101,7 @@ export default function Login() {
                                     onChange={() => { }}
                                     controlsAlign='justify-center'
                                     required
+                                    ref={loginRef}
                                 />
                             </div>
                             <div className='mt-5'>
@@ -74,6 +115,7 @@ export default function Login() {
                                     onChange={() => { }}
                                     controlsAlign='justify-center'
                                     required
+                                    ref = {passwordRef}
                                 />
                             </div>
                             <ErrorMessage name='error' render={() =>
@@ -84,6 +126,12 @@ export default function Login() {
                                     disabled={!isValid || !dirty || isSubmitting}
                                     isProcessing={isSubmitting}
                                     type='submit'>Вход</Button>
+                            </div>
+                            <hr className='mt-4' />
+                            <div className='flex justify-around mt-5'>
+                                <Button
+                                    onClick={handleSetNewPassword}
+                                >Я забыл пароль. Установить новый.</Button>
                             </div>
 
                         </div>

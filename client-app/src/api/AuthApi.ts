@@ -59,6 +59,23 @@ const authApi = createApi({
         PostErrorApiProcess(response);
       },
     }),
+    setNewPassword: builder.mutation<any, CreateUser>({
+      query: (userData) => ({
+        url: "setnewpassword",
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: userData,
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+    })
   }),
 });
 
@@ -66,5 +83,6 @@ export const {
   useRegisterUserMutation,
   useLoginUserMutation,
   useGetUserNameQuery,
+  useSetNewPasswordMutation
 } = authApi;
 export default authApi;

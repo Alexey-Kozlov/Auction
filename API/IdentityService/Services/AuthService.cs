@@ -13,18 +13,18 @@ namespace IdentityService.Services;
 public class AuthService : IAuthService
 {
     private readonly ApplicationDbContext _db;
-     private readonly UserManager<ApplicationUser> _userManager;
-     private readonly string _secretKey;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly string _secretKey;
 
-     public  AuthService(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IConfiguration configuration)
-     {
+    public AuthService(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    {
         _db = db;
         _secretKey = configuration.GetValue<string>("ApiSettings:Secret");
         _userManager = userManager;
-     }
+    }
     public async Task<ApiResponse<object>> Register(RegisterRequestDTO registerRequestDTO)
     {
-        var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.UserName.ToLower() == registerRequestDTO.Login.ToLower());
+        var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.Email.ToLower() == registerRequestDTO.Login.ToLower());
         if (user != null)
         {
             return new ApiResponse<object>()
@@ -128,5 +128,37 @@ public class AuthService : IAuthService
             IsSuccess = true,
             Result = user == null ? "" : user.UserName
         };
+    }
+
+    public async Task<ApiResponse<object>> SetPassword(LoginRequestDTO setPasswordDTO)
+    {
+        var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.Email.ToLower() == setPasswordDTO.Login.ToLower());
+        if (user == null)
+        {
+            return new ApiResponse<object>()
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = [$"Пользователь {setPasswordDTO.Login} не найден"],
+                Result = null
+            };
+        }
+
+        var result = await _userManager.RemovePasswordAsync(user);
+        if (result.Succeeded)
+        {
+            result = await _userManager.AddPasswordAsync(user, setPasswordDTO.Password);
+            if (result.Succeeded)
+            {
+                return new ApiResponse<object>()
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    IsSuccess = true,
+                    Result = new { data = "Ok" }
+                };
+            }
+        }
+
+        throw new Exception("Ошибка регистрации нового пользователя - " + result.Errors.First().Description);
     }
 }

@@ -34,4 +34,10 @@ public class AuthController : ControllerBase
         return await _authService.GetUserName(dto);
     }
 
+    [HttpPost("SetNewPassword")]
+    public async Task<ApiResponse<object>> SetPassword([FromBody] LoginRequestDTO dto)
+    {
+        return await _authService.SetPassword(dto);
+    }
+
 }

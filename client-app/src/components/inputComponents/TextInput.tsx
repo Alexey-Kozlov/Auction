@@ -1,4 +1,5 @@
 import { useField } from "formik";
+import { forwardRef } from "react";
 
 interface TI {
     placeholder: string;
@@ -13,8 +14,8 @@ interface TI {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function TextInput({ labellWidth, inputWidth, inputDescr, required,
-    controlsAlign, ...rest }: TI) {
+export default forwardRef<HTMLInputElement, any>(function TextInput({ labellWidth, inputWidth, inputDescr, required,
+    controlsAlign, ...rest }: TI, ref) {
 
     const [field, meta, helpers] = useField(rest.name);
     const { setValue } = helpers;
@@ -26,11 +27,11 @@ export default function TextInput({ labellWidth, inputWidth, inputDescr, require
                     {required && (<span>*</span>)}
                 </div>
                 <input
-                    className={`border-gray-400 border ml-[5px] pl-[5px]
-                ${inputWidth ? inputWidth : 'w-6/12'}`}
+                    ref = {ref}
+                    className={`border-gray-400 border ml-[5px] pl-[5px] ${inputWidth ? inputWidth : 'w-6/12'}`}
                     {...field}
                     {...rest}
-                    onChange={(e) => { setValue(e.currentTarget.value); rest.onChange!(e) }}
+                    onChange={(e) => { setValue(e.currentTarget.value); rest.onChange!(e) }}                   
                 />
                 {inputDescr && (
                     <label className="ml-3">{inputDescr}</label>
@@ -45,4 +46,4 @@ export default function TextInput({ labellWidth, inputWidth, inputDescr, require
             </div>
         </>
     )
-}
+})
