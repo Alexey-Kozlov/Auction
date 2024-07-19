@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 ARG TARGETARCH
 

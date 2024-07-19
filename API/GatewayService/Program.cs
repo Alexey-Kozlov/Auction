@@ -77,7 +77,18 @@ app.UseCors("customPolicy");
 //    /api/images_file/*
 // если это такой запрос - дальше запрос не проходит, возвращается изображение или null
 
+app.Use(async (context, next) =>
+{
+    //логируем вошедший запрос
+    Console.WriteLine(" Вошедший запрос -> " + context.Request.Path);
+    await next.Invoke();
+    // Do logging or other work that doesn't write to the Response.
+});
+
+
 app.ImageMiddleware();
+
+
 
 //если запрашивается не изображение - проходим сюда и вызываем штатный функционал реверс-прокси YARP
 //с помощью правил YARP маршрутизируем микросервисы
