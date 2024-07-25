@@ -23,7 +23,7 @@ export default function ImageCard({ id, dopStyle, zooming }: Props) {
 
     useEffect(() => {
         const eventState = procState.find(p => p.eventName === 'ImageChanged');
-        if (eventState && eventState.ready && eventState.id && id && eventState.id === id) {
+        if (eventState && eventState.ready && eventState.itemId && id && eventState.itemId === id) {
             imageQuery.refetch();
             dispatch(setEventFlag({ eventName: 'ImageChanged', ready: false }));
         }

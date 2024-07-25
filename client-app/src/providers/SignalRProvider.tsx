@@ -63,9 +63,10 @@ export default function SignalRProvider() {
 
                     connection.on('BidPlaced', (bid: Bid) => {
                         //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-                        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true, id: bid.id }));
+                        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true, itemId: bid.id}));
+                        dispatch(setEventFlag({ eventName: 'WaiterHide', ready: true }));
                         //для обновления плашки ставки на страничке аукциона в списке аукционов
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: bid.id }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: bid.id}));
                         if (user?.login !== bid.bidder) {
                             return toast((p) => (
                                 <BidCreatedToast id={bid.id} toastId={p.id} />
@@ -75,8 +76,8 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionCreated', (auction: Auction) => {
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
-                        dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, id: auction.id }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.id}));
+                        dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.id}));
                         if (user?.login !== auction.seller) {
                             return toast((p) => (
                                 <AuctionCreatedToast auction={auction} toastId={p.id} />
@@ -86,8 +87,8 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionUpdated', (auction: Auction) => {
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
-                        dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, id: auction.id }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.id}));
+                        dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.id}));
                     })
 
                     connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
@@ -95,40 +96,41 @@ export default function SignalRProvider() {
                     })
 
                     connection.on('AuctionDeleted', (auction: any) => {
-                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, id: auction.id }));
+                        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.id }));
                     })
 
                     connection.on('FinanceCreditAdd', (finance: any) => {
-                        dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true }));
+                        dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true}));
                     })
 
                     connection.on('ErrorMessage', (message: Message) => {
+                        dispatch(setEventFlag({ eventName: 'WaiterHide', ready: true}));
                         switch (message.messageType) {
                             case 0:
                                 return toast((p) => (
                                     <ErrorMessageToast message={message} toastId={p.id} />
                                 ),
-                                    { duration: 10000 });
+                                    { duration: 5000 });
                             case 1:
                                 return toast((p) => (
                                     <WarningMessageToast message={message} toastId={p.id} />
                                 ),
-                                    { duration: 10000 });
+                                    { duration: 5000 });
 
                             case 2:
                                 return toast((p) => (
                                     <InfoMessageToast message={message} toastId={p.id} />
                                 ),
-                                    { duration: 10000 });
+                                    { duration: 5000 });
 
                             case 3:
                                 return toast((p) => (
                                     <FinanceUnsufficientToast message={message} toastId={p.id} />
                                 ),
-                                    { duration: 10000 });
+                                    { duration: 5000 });
 
                         }
-
+                        
                     })
                 }).catch(err => console.log(err));
         }

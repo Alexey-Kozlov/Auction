@@ -22,27 +22,27 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
     const dispatch = useDispatch();
     const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
     const user: User = useSelector((state: RootState) => state.authStore);
-    const [waiting, setWaiting] = useState(false);
-
-    useEffect(() => {
+    useEffect(() => {       
         const eventState = procState.find(p => p.eventName === 'BidPlaced');
         if (eventState && eventState.ready) {
             bidList.refetch();
             dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
-            setWaiting(false);
         }
     }, [procState, user, dispatch, bidList]);
 
     return (
         <>
-            {waiting ? <Waiter color='rgb(156 163 175)' /> :
-                <Formik
+            { (procState.find(p => p.eventName === 'WaiterHide') &&
+                !procState.find(p => p.eventName === 'WaiterHide')!.ready) ? <
+                    Waiter color='rgb(156 163 175)' /> 
+                    :
+                    <Formik
                     initialValues={{ amount: 0, error: null }}
                     onSubmit={
                         async (values, { setErrors }) => {
-                            setWaiting(true);
-                            dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
-                            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
+                            dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false}));
+                            dispatch(setEventFlag({ eventName: 'WaiterHide', ready: false}));
+                            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false}));
                             await placeBid({
                                 amount: values.amount,
                                 id: auctionId,

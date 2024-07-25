@@ -99,7 +99,7 @@ export type FinanceItem = {
 export type ProcessingState = {
   eventName: string;
   ready: boolean;
-  id?: string;
+  itemId?: string;
 };
 
 export type AuctionUpdated = {
