@@ -70,25 +70,23 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("customPolicy");
 
+app.Use(async (context, next) =>
+{
+    // логируем вошедший запрос
+    Console.WriteLine(" Вошедший запрос -> " + context.Request.Path);
+    await next.Invoke();
+    // логируем ответ
+});
+
+Console.WriteLine($"{DateTime.Now} - Gateway service started");
+
 // добавляем дополнительный роутинг для возврата изображений
 // это все запросы начинающиеся с :
 //    /api/images/*
 //    /api/images_dop/*
 //    /api/images_file/*
 // если это такой запрос - дальше запрос не проходит, возвращается изображение или null
-
-app.Use(async (context, next) =>
-{
-    //логируем вошедший запрос
-    Console.WriteLine(" Вошедший запрос -> " + context.Request.Path);
-    await next.Invoke();
-    // Do logging or other work that doesn't write to the Response.
-});
-
-
 app.ImageMiddleware();
-
-
 
 //если запрашивается не изображение - проходим сюда и вызываем штатный функционал реверс-прокси YARP
 //с помощью правил YARP маршрутизируем микросервисы

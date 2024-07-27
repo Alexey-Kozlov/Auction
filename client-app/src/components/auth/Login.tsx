@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { ApiResponse, CreateUser, LoginResponse } from '../../store/types';
 import { setAuthUser } from '../../store/authSlice';
-import ModalConfirm from '../Modals/ModalConfirm';
+import ModalConfirm from '../modals/ModalConfirm';
 
 export default function Login() {
     const [loginUser] = useLoginUserMutation();
