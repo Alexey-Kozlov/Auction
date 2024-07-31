@@ -1,5 +1,6 @@
 using ElasticSearchService.Consumers;
 using ElasticSearchService.Data;
+using ElasticSearchService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,8 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
+
+builder.Services.AddScoped<ElkClient>();
 
 var app = builder.Build();
 

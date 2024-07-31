@@ -26,6 +26,8 @@ public static class AuctionFinishServiceExtentions
         EndpointConvention.Map<AuctionFinishingFinance>(new Uri("queue:finance-auction-finishing-finance"));
         EndpointConvention.Map<AuctionFinishingSearch>(new Uri("queue:search-auction-finishing-search"));
         EndpointConvention.Map<AuctionFinishingNotification>(new Uri("queue:notification-auction-finishing-notification"));
+        EndpointConvention.Map<AuctionFinishingElk>(new Uri("queue:elk-auction-finishing-elk"));
+
 
         return services;
     }

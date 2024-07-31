@@ -10,6 +10,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public State AuctionUpdatedImageState { get; }
     public State AuctionUpdatedNotificationState { get; }
     public State AuctionUpdatedSearchState { get; }
+    public State AuctionUpdatedElkState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
@@ -20,6 +21,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<AuctionUpdatedImage> AuctionUpdatedImageEvent { get; }
     public Event<AuctionUpdatedNotification> AuctionUpdatedNotificationEvent { get; }
     public Event<AuctionUpdatedSearch> AuctionUpdatedSearchEvent { get; }
+    public Event<AuctionUpdatedElk> AuctionUpdatedElkEvent { get; }
     public Event<GetAuctionUpdateState> AuctionUpdatedStateEvent { get; }
 
     public UpdateAuctionStateMachine()
@@ -33,6 +35,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         ConfigureAuctionUpdatedImage();
         ConfigureAuctionUpdatedSearch();
         ConfigureAuctionUpdatedNotification();
+        ConfigureAuctionUpdatedElk();
         ConfigureCompleted();
         ConfigureAny();
     }
@@ -45,6 +48,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         Event(() => AuctionUpdatedImageEvent);
         Event(() => AuctionUpdatedNotificationEvent);
         Event(() => AuctionUpdatedSearchEvent);
+        Event(() => AuctionUpdatedElkEvent);
         Event(() => AuctionUpdatedStateEvent);
     }
     private void ConfigureInitialState()
@@ -159,6 +163,24 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 //по окончании обновления - удаляем изображение для экономии места в БД
                 context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
+            })
+            .Send(context => new AuctionUpdatingElk(
+                context.Saga.Id,
+                context.Saga.Title,
+                context.Saga.Properties,
+                context.Saga.Description,
+                context.Saga.AuctionAuthor,
+                context.Saga.AuctionEnd,
+                context.Saga.CorrelationId))
+            .TransitionTo(AuctionUpdatedElkState));
+    }
+    private void ConfigureAuctionUpdatedElk()
+    {
+        During(AuctionUpdatedElkState,
+        When(AuctionUpdatedElkEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .TransitionTo(CompletedState));
     }

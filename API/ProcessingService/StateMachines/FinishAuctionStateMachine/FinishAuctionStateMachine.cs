@@ -8,6 +8,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public State AuctionFinishedFinanceState { get; }
     public State AuctionFinishedNotificationState { get; }
     public State AuctionFinishedSearchState { get; }
+    public State AuctionFinishedElkState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
@@ -16,6 +17,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedFinance> AuctionFinishedFinanceEvent { get; }
     public Event<AuctionFinishedNotification> AuctionFinishedNotificationEvent { get; }
     public Event<AuctionFinishedSearch> AuctionFinishedSearchEvent { get; }
+    public Event<AuctionFinishedElk> AuctionFinishedElkEvent { get; }
     public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
 
     public FinishAuctionStateMachine()
@@ -27,6 +29,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         ConfigureAuctionFinishedFinance();
         ConfigureAuctionFinishedSearch();
         ConfigureAuctionFinishedNotification();
+        ConfigureAuctionFinishedElk();
         ConfigureCompleted();
         ConfigureGetState();
     }
@@ -38,6 +41,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         Event(() => AuctionFinishedNotificationEvent);
         Event(() => AuctionFinishedSearchEvent);
         Event(() => AuctionFinishedStateEvent);
+        Event(() => AuctionFinishedElkEvent);
     }
     private void ConfigureInitialState()
     {
@@ -115,6 +119,23 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     {
         During(AuctionFinishedNotificationState,
         When(AuctionFinishedNotificationEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Send(context => new AuctionFinishingElk(
+                context.Saga.Id,
+                context.Saga.ItemSold,
+                context.Saga.Winner,
+                context.Saga.Amount,
+                context.Saga.CorrelationId))
+            .TransitionTo(AuctionFinishedElkState));
+    }
+
+    private void ConfigureAuctionFinishedElk()
+    {
+        During(AuctionFinishedElkState,
+        When(AuctionFinishedElkEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;

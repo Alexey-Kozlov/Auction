@@ -162,7 +162,10 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 context.Saga.AuctionEnd,
                 DateTime.UtcNow,
                 context.Saga.CorrelationId,
-                context.Saga.ReservePrice))
+                context.Saga.ReservePrice,
+                false,
+                "",
+                0))
             .TransitionTo(AuctionCreatedElkState));
     }
 

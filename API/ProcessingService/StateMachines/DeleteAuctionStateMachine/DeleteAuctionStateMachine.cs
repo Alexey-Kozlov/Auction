@@ -12,6 +12,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public State AuctionDeletedImageState { get; }
     public State AuctionDeletedNotificationState { get; }
     public State AuctionDeletedSearchState { get; }
+    public State AuctionDeletedElkState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
@@ -23,6 +24,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<AuctionDeletedImage> AuctionDeletedImageEvent { get; }
     public Event<AuctionDeletedNotification> AuctionDeletedNotificationEvent { get; }
     public Event<AuctionDeletedSearch> AuctionDeletedSearchEvent { get; }
+    public Event<AuctionDeletedElk> AuctionDeletedElkEvent { get; }
     public Event<GetAuctionDeleteState> AuctionDeletedStateEvent { get; }
 
     public DeleteAuctionStateMachine()
@@ -37,6 +39,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         ConfigureAuctionDeletedImage();
         ConfigureAuctionDeletedSearch();
         ConfigureAuctionDeletedNotification();
+        ConfigureAuctionDeletedElk();
         ConfigureCompleted();
         ConfigureGetState();
     }
@@ -51,6 +54,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         Event(() => AuctionDeletedNotificationEvent);
         Event(() => AuctionDeletedSearchEvent);
         Event(() => AuctionDeletedStateEvent);
+        Event(() => AuctionDeletedElkEvent);
     }
     private void ConfigureInitialState()
     {
@@ -156,6 +160,20 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(AuctionDeletedNotificationState,
         When(AuctionDeletedNotificationEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Send(context => new AuctionDeletingElk(
+                context.Saga.Id,
+                context.Saga.AuctionAuthor,
+                context.Saga.CorrelationId))
+            .TransitionTo(AuctionDeletedElkState));
+    }
+    private void ConfigureAuctionDeletedElk()
+    {
+        During(AuctionDeletedElkState,
+        When(AuctionDeletedElkEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;

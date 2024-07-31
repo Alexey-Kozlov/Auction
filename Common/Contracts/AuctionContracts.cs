@@ -87,7 +87,10 @@ public record AuctionCreatingElk(
       DateTime AuctionEnd,
       DateTime AuctionCreated,
       Guid CorrelationId,
-      int ReservePrice
+      int ReservePrice,
+      bool ItemSold,
+      string Winner,
+      int Amount
 );
 public record AuctionCreatedElk(
       Guid CorrelationId
@@ -154,6 +157,14 @@ public record AuctionDeletingNotification(
     Guid CorrelationId
 );
 public record AuctionDeletedNotification(
+    Guid CorrelationId
+);
+public record AuctionDeletingElk(
+    Guid Id,
+    string AuctionAuthor,
+    Guid CorrelationId
+);
+public record AuctionDeletedElk(
     Guid CorrelationId
 );
 
@@ -235,7 +246,19 @@ public record AuctionUpdatingNotification(
 public record AuctionUpdatedNotification(
       Guid CorrelationId
 );
+public record AuctionUpdatingElk(
+      Guid Id,
+      string Title,
+      string Properties,
+      string Description,
+      string AuctionAuthor,
+      DateTime AuctionEnd,
+      Guid CorrelationId
+);
 
+public record AuctionUpdatedElk(
+      Guid CorrelationId
+);
 #endregion
 
 
@@ -285,6 +308,16 @@ public record AuctionFinishingNotification(
       Guid CorrelationId
 );
 public record AuctionFinishedNotification(
+    Guid CorrelationId
+);
+public record AuctionFinishingElk(
+      Guid Id,
+      bool ItemSold,
+      string Winner,
+      int Amount,
+      Guid CorrelationId
+);
+public record AuctionFinishedElk(
     Guid CorrelationId
 );
 
