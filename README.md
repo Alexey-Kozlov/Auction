@@ -43,11 +43,11 @@ docker push kozlovas/auction-front
 из папки Projects/Auction/Common/Contracts
 из папки Projects/Auction/Common/Utils
 dotnet pack -o ~/Projects/Auctions/Packages/
-dotnet pack -o /var/Projects/Auction/Packages/
+dotnet pack -o /var/projects/Auction/Packages/
 
 команды добавления пакетов в проекты
--для debian:  dotnet nuget add source ~/Projects/Auctions/Packages/ -n AuctionContracts
--для manjaro: dotnet nuget add source /var/Projects/Auction/Packages/ -n AuctionContracts
+-для debian: dotnet nuget add source ~/Projects/Auctions/Packages/ -n AuctionContracts
+-для manjaro: dotnet nuget add source /var/projects/Auction/Packages/ -n AuctionContracts
 dotnet add package AuctionContracts
 
 очистка кешей NuGet-пакетов

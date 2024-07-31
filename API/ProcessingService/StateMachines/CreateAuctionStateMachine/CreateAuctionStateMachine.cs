@@ -9,6 +9,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public State AuctionCreatedImageState { get; }
     public State AuctionCreatedNotificationState { get; }
     public State AuctionCreatedSearchState { get; }
+    public State AuctionCreatedElkState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
@@ -18,6 +19,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public Event<AuctionCreatedImage> AuctionCreatedImageEvent { get; }
     public Event<AuctionCreatedNotification> AuctionCreatedNotificationEvent { get; }
     public Event<AuctionCreatedSearch> AuctionCreatedSearchEvent { get; }
+    public Event<AuctionCreatedElk> AuctionCreatedElkEvent { get; }
     public Event<GetAuctionCreateState> AuctionCreatedStateEvent { get; }
 
     public CreateAuctionStateMachine()
@@ -30,6 +32,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
         ConfigureAuctionCreatedImage();
         ConfigureAuctionCreatedSearch();
         ConfigureAuctionCreatedNotification();
+        ConfigureAuctionCreatedElk();
         ConfigureCompleted();
         ConfigureAny();
     }
@@ -42,6 +45,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
         Event(() => AuctionCreatedNotificationEvent);
         Event(() => AuctionCreatedSearchEvent);
         Event(() => AuctionCreatedStateEvent);
+        Event(() => AuctionCreatedElkEvent);
     }
     private void ConfigureInitialState()
     {
@@ -140,10 +144,32 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionCreatedNotificationState));
     }
+
     private void ConfigureAuctionCreatedNotification()
     {
         During(AuctionCreatedNotificationState,
         When(AuctionCreatedNotificationEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Send(context => new AuctionCreatingElk(
+                context.Saga.Id,
+                context.Saga.Title,
+                context.Saga.Properties,
+                context.Saga.Description,
+                context.Saga.AuctionAuthor,
+                context.Saga.AuctionEnd,
+                DateTime.UtcNow,
+                context.Saga.CorrelationId,
+                context.Saga.ReservePrice))
+            .TransitionTo(AuctionCreatedElkState));
+    }
+
+    private void ConfigureAuctionCreatedElk()
+    {
+        During(AuctionCreatedElkState,
+        When(AuctionCreatedElkEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;

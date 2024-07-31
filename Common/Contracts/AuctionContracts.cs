@@ -78,6 +78,21 @@ public record AuctionCreatedNotification(
       Guid CorrelationId
 );
 
+public record AuctionCreatingElk(
+      Guid Id,
+      string Title,
+      string Properties,
+      string Description,
+      string AuctionAuthor,
+      DateTime AuctionEnd,
+      DateTime AuctionCreated,
+      Guid CorrelationId,
+      int ReservePrice
+);
+public record AuctionCreatedElk(
+      Guid CorrelationId
+);
+
 #endregion
 
 
