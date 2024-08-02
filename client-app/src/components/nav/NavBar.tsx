@@ -32,10 +32,10 @@ export default function NavBar() {
             {user.id ? (
                 <UserActions />
             ) : (<div className='flex'>
-                <Button outline onClick={e => navigate('/register')}>
+                <Button outline onClick={() => navigate('/register')}>
                     Регистрация
                 </Button>
-                <Button className='ml-2' outline onClick={e => navigate('/login')}>
+                <Button className='ml-2' outline onClick={() => navigate('/login')}>
                     Логин
                 </Button>
             </div>

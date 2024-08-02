@@ -1,4 +1,4 @@
-using Contracts;
+using Common.Contracts;
 using FinanceService.Data;
 using FinanceService.Entities;
 using FinanceService.Exceptions;

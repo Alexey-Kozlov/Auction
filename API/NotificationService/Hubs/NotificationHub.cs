@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using NotificationService.Data;
 
 namespace NotificationService.Hubs;
 

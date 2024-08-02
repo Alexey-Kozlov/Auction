@@ -9,6 +9,7 @@ type State = {
   seller?: string;
   winner?: string;
   searchTerm: string;
+  searchAdv: string;
 };
 
 const initialState: State = {
@@ -20,6 +21,7 @@ const initialState: State = {
   seller: undefined,
   winner: undefined,
   searchTerm: "",
+  searchAdv: ""
 };
 
 export const paramSlice = createSlice({
@@ -41,16 +43,27 @@ export const paramSlice = createSlice({
         state.seller = action.payload.seller;
         state.filterBy = "";
         state.searchTerm = "";
+        state.searchAdv = "";
         state.winner = undefined;
       }
       if (action.payload.winner) {
         state.winner = action.payload.winner;
         state.filterBy = "";
         state.searchTerm = "";
+        state.searchAdv = "";
         state.seller = undefined;
       }
-      if (action.payload.searchTerm || action.payload?.searchTerm === "") {
+      if (action.payload.searchTerm || action.payload.searchTerm === "") {
         state.searchTerm = action.payload.searchTerm;
+        state.seller = undefined;
+        state.winner = undefined;
+      }
+      
+      console.log(action.payload);
+      console.log(action.payload.searchAdv);
+
+      if (action.payload.searchStoreAdv || action.payload.searchStoreAdv === "") {
+        state.searchAdv = action.payload.searchAdv;
         state.seller = undefined;
         state.winner = undefined;
       }
@@ -68,6 +81,7 @@ export const paramSlice = createSlice({
       state.seller = undefined;
       state.winner = undefined;
       state.searchTerm = "";
+      state.searchAdv = "";
     },
   },
 });

@@ -1,11 +1,8 @@
-﻿using System.Security.Claims;
-using AuctionService.Data;
+﻿using AuctionService.Data;
 using AuctionService.DTO;
 using AuctionService.Entities;
 using AutoMapper;
-using Contracts;
 using MassTransit;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Common.Utils;

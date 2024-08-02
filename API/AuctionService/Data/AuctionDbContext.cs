@@ -1,5 +1,4 @@
 ﻿using AuctionService.Entities;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

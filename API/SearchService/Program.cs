@@ -6,6 +6,7 @@ using SearchService.Consumers;
 using SearchService.Data;
 using SearchService.Services;
 using Common.Utils;
+using Common.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
 {
     config.Timeout = TimeSpan.FromSeconds(300);
 });
+builder.Services.AddScoped<SearchLogic>();
 
 builder.Services.AddMassTransit(p =>
 {
@@ -35,6 +37,7 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
+EndpointConvention.Map<SearchRequest>(new Uri("queue:search-auction-elksearch"));
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

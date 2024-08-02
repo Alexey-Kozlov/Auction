@@ -1,6 +1,6 @@
 ﻿using ImageService.Data;
 using AutoMapper;
-using Contracts;
+using Common.Contracts;
 using ImageService.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

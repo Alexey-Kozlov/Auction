@@ -3,11 +3,11 @@ import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
 import { usePlaceBidForAuctionMutation } from '../../api/ProcessingApi';
-import uuid from 'react-uuid';
+import uuid from 'react-native-uuid';
 import { ProcessingState, User } from '../../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { setEventFlag } from '../../store/processingSlice';
 import Waiter from '../Waiter';
 
@@ -46,7 +46,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
                             await placeBid({
                                 amount: values.amount,
                                 id: auctionId,
-                                correlationId: uuid()
+                                correlationId: uuid.v4() as string
                             });
                             values.amount = 0;
                         }

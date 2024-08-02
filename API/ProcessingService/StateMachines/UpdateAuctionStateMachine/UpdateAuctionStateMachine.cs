@@ -1,4 +1,4 @@
-using Contracts;
+using Common.Contracts;
 using MassTransit;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;

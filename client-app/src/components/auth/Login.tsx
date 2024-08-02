@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
@@ -7,7 +7,7 @@ import { useLoginUserMutation, useSetNewPasswordMutation } from '../../api/AuthA
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
-import { ApiResponse, CreateUser, LoginResponse } from '../../store/types';
+import { ApiResponse, LoginResponse } from '../../store/types';
 import { setAuthUser } from '../../store/authSlice';
 import ModalConfirm from '../modals/ModalConfirm';
 
@@ -55,7 +55,7 @@ export default function Login() {
         }
         setUpdatePassword(undefined);
         setShowConfirm(false);
-    }, [updatePassword]);
+    }, [updatePassword, setPassword]);
 
     return (
         <div className='container'>

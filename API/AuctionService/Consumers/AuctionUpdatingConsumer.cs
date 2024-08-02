@@ -1,6 +1,6 @@
 using AuctionService.Data;
 using AutoMapper;
-using Contracts;
+using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

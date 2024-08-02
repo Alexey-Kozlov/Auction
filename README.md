@@ -47,7 +47,7 @@ dotnet pack -o /var/projects/Auction/Packages/
 
 команды добавления пакетов в проекты
 -для debian: dotnet nuget add source ~/Projects/Auctions/Packages/ -n AuctionContracts
--для manjaro: dotnet nuget add source /var/projects/Auction/Packages/ -n AuctionContracts
+-для arch: dotnet nuget add source /var/projects/Auction/Packages/ -n AuctionContracts
 dotnet add package AuctionContracts
 
 очистка кешей NuGet-пакетов
@@ -56,7 +56,7 @@ dotnet add package AuctionContracts
 - удаляем пакет из папки пакетов (в нашем случае из ~/Projects/Auctions/Packages/)
 - очищаем кеш нугет-пакетов командой - dotnet nuget locals all --clear
 - компилируем проект командой dotnet build - будет ошибка, что пакет не найден и нет нужных типов
-- компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o ~/Projects/Auctions/Packages/
+- компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o /var/projects/Auction/Packages/
 - будет создан пакет, теперь снова компилируем нужный проект - теперь должны подтянутся изменения в пакете.
 
 прочие команды

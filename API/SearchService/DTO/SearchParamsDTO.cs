@@ -2,6 +2,7 @@
 
 public record SearchParamsDTO(
     string SearchTerm,
+    string SearchAdv,
     string Seller,
     string Winner,
     string OrderBy,

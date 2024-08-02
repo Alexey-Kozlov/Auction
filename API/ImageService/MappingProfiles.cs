@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Contracts;
+using Common.Contracts;
 using ImageService.Controllers;
 using ImageService.Entities;
 

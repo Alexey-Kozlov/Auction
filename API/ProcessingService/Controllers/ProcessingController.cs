@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Security.Claims;
 using Common.Utils;
-using Contracts;
+using Common.Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

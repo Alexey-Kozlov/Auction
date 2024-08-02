@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using BiddingService.Data;
 using BiddingService.Entities;
-using Contracts;
+using Common.Contracts;
 using MassTransit;
 
 namespace BiddingService.Consumers;

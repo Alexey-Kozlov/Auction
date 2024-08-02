@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using IdentityService.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace IdentityService.Data;
 

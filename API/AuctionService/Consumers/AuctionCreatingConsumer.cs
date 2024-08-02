@@ -1,7 +1,7 @@
 using AuctionService.Data;
 using AuctionService.Entities;
 using AutoMapper;
-using Contracts;
+using Common.Contracts;
 using MassTransit;
 
 namespace AuctionService.Consumers;

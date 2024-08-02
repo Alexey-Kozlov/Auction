@@ -1,4 +1,4 @@
-using Contracts;
+using Common.Contracts;
 using FinanceService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using Common.Utils;
-using Contracts;
+using Common.Contracts;
 using FinanceService.Data;
 using FinanceService.DTO;
 using FinanceService.Entities;

@@ -1,7 +1,6 @@
-using Contracts;
+using Common.Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
-using NotificationService.Data;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;

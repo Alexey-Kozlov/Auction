@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setEventFlag } from '../../store/processingSlice';
 import { RootState } from '../../store/store';
 import { useCreateAuctionMutation, useUpdateAuctionMutation } from '../../api/ProcessingApi';
-import uuid from 'react-uuid';
+import uuid from 'react-native-uuid';
 
 export default function AuctionForm() {
     let { id } = useParams();
@@ -95,7 +95,7 @@ export default function AuctionForm() {
                             auctionEnd: values.auctionEnd,
                             reservePrice: values.reservePrice,
                             image: values.image ? values.image : '',
-                            correlationId: uuid()
+                            correlationId: uuid.v4() as string
                         };
                         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
                         if (id && id !== 'empty') {

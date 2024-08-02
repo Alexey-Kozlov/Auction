@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Contracts;
+using Common.Contracts;
 using SearchService.Entities;
 
 namespace SearchService;

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using BiddingService.DTO;
 using BiddingService.Entities;
-using Contracts;
+using Common.Contracts;
 
 namespace BiddingService;
 

@@ -10,7 +10,6 @@ builder.Services.AddDbContext<SearchDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<AuctionCreatingElkConsumer>();
