@@ -30,7 +30,7 @@ export default function Search() {
 
     const AdvSearch = () => {
         if (location.pathname !== '/') navigate('/');
-        dispatch(setParams({ searchStoreAdv: searchAdv }));
+        dispatch(setParams({ searchAdv: searchAdv }));
     }
 
     // useEffect(() => {

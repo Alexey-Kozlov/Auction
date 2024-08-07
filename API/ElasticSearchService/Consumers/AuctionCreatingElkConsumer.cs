@@ -16,7 +16,8 @@ public class AuctionCreatingElkConsumer : IConsumer<AuctionCreatingElk>
     }
     public async Task Consume(ConsumeContext<AuctionCreatingElk> consumeContext)
     {
-        var response = await _client.Client.IndexAsync<AuctionCreatingElk>(consumeContext.Message, index: "search_index");
+        var response = await _client.Client.IndexAsync(consumeContext.Message);
+
         if (response.IsValidResponse)
         {
             Console.WriteLine($"Index document with ID {response.Id} succeeded.");

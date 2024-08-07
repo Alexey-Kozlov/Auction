@@ -20,7 +20,7 @@ public static class AuctionCreateServiceExtentions
             p.UsePostgres();
         });
     }
-    public static IServiceCollection AddAuctionCreateServices(this IServiceCollection services, WebApplicationBuilder builder)
+    public static void AddAuctionCreateServices(this IServiceCollection services)
     {
         EndpointConvention.Map<AuctionCreating>(new Uri("queue:auction-auction-creating"));
         EndpointConvention.Map<AuctionCreatingBid>(new Uri("queue:bids-auction-creating-bid"));
@@ -28,6 +28,6 @@ public static class AuctionCreateServiceExtentions
         EndpointConvention.Map<AuctionCreatingSearch>(new Uri("queue:search-auction-creating-search"));
         EndpointConvention.Map<AuctionCreatingNotification>(new Uri("queue:notification-auction-creating-notification"));
         EndpointConvention.Map<AuctionCreatingElk>(new Uri("queue:elk-auction-creating-elk"));
-        return services;
+        return;
     }
 }

@@ -21,7 +21,7 @@ public static class AuctionDeleteServiceExtentions
             p.UsePostgres();
         });
     }
-    public static IServiceCollection AddAuctionDeleteServices(this IServiceCollection services, WebApplicationBuilder builder)
+    public static void AddAuctionDeleteServices(this IServiceCollection services)
     {
         EndpointConvention.Map<AuctionDeleting>(new Uri("queue:auction-auction-deleting"));
         EndpointConvention.Map<AuctionDeletingFinance>(new Uri("queue:finance-auction-deleting-finance"));
@@ -32,6 +32,6 @@ public static class AuctionDeleteServiceExtentions
         EndpointConvention.Map<AuctionDeletingNotification>(new Uri("queue:notification-auction-deleting-notification"));
         EndpointConvention.Map<AuctionDeletingElk>(new Uri("queue:elk-auction-deleting-elk"));
 
-        return services;
+        return;
     }
 }

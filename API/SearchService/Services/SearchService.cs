@@ -84,11 +84,11 @@ public class SearchLogic
         };
     }
 
-    public async Task<ApiResponse<PagedResult<List<Item>>>> ElkSearchItems(SearchParamsDTO searchParams)
+    public async Task<ApiResponse<PagedResult<List<Item>>>> ElkSearchItems(SearchParamsDTO searchParams, string login)
     {
-        Console.WriteLine(searchParams.SearchAdv);
         //посылаем сообщение для поиска в ELK
-        await _publishEndpoint.Publish(new SearchRequest(searchParams.SearchAdv, ""));
+        await _publishEndpoint.Publish(new ElkSearchRequest(Guid.NewGuid(), Guid.NewGuid(),
+            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, login));
 
         //посылаем null в качестве результата для отображения заставки ожидания
         return new ApiResponse<PagedResult<List<Item>>>

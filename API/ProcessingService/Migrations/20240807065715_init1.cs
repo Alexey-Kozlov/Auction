@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ProcessingService.Migrations
 {
     /// <inheritdoc />
-    public partial class InitDb : Migration
+    public partial class init1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -69,6 +69,35 @@ namespace ProcessingService.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ElkSearchState",
+                columns: table => new
+                {
+                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CurrentState = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: true),
+                    Properties = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    AuctionAuthor = table.Column<string>(type: "text", nullable: true),
+                    AuctionEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    AuctionCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
+                    Winner = table.Column<string>(type: "text", nullable: true),
+                    ItemSold = table.Column<bool>(type: "boolean", nullable: false),
+                    Amount = table.Column<int>(type: "integer", nullable: false),
+                    ReservePrice = table.Column<int>(type: "integer", nullable: false),
+                    Term = table.Column<string>(type: "text", nullable: true),
+                    PgeNumber = table.Column<int>(type: "integer", nullable: false),
+                    PageSize = table.Column<int>(type: "integer", nullable: false),
+                    UserLogin = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ElkSearchState", x => x.CorrelationId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FinishAuctionState",
                 columns: table => new
                 {
@@ -119,6 +148,9 @@ namespace ProcessingService.Migrations
 
             migrationBuilder.DropTable(
                 name: "DeleteAuctionState");
+
+            migrationBuilder.DropTable(
+                name: "ElkSearchState");
 
             migrationBuilder.DropTable(
                 name: "FinishAuctionState");

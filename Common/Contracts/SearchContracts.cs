@@ -1,15 +1,39 @@
 namespace Common.Contracts;
 
-public record SearchRequest(
+public record ElkSearchRequest(
+     Guid Id,
+     Guid CorrelationId,
      string SearchTerm,
-     string Props
+     int PageNumber,
+     int PageSize,
+     string UserLogin
 );
 
-public record SearchResponse(
-
+public record ElkSearchCreating(
+     Guid Id,
      Guid CorrelationId,
+     string SearchTerm,
+     int PageNumber,
+     int PageSize
+);
+
+public record ElkSearchCreated<T>(
+     Guid CorrelationId,
+     string SearchTerm,
      ResultType ResultType,
-     List<Guid> ResultList
+     T Result
+);
+
+public record ElkSearchResponse<T>(
+     Guid CorrelationId,
+     string SearchTerm,
+     ResultType ResultType,
+     T Result,
+     string UserLogin
+);
+
+public record ElkSearchResponseCompleted(
+     Guid CorrelationId
 );
 
 public enum ResultType

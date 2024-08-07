@@ -12,8 +12,8 @@ using ProcessingService.Data;
 namespace ProcessingService.Migrations
 {
     [DbContext(typeof(ProcessingDbContext))]
-    [Migration("20240514184940_InitDb")]
-    partial class InitDb
+    [Migration("20240807065715_init1")]
+    partial class init1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -132,6 +132,72 @@ namespace ProcessingService.Migrations
                     b.HasKey("CorrelationId");
 
                     b.ToTable("DeleteAuctionState");
+                });
+
+            modelBuilder.Entity("ProcessingService.StateMachines.ElkSearchStateMachine.ElkSearchState", b =>
+                {
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AuctionAuthor")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("AuctionCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("AuctionEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ItemSold")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PageSize")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PgeNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ReservePrice")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Term")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserLogin")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Winner")
+                        .HasColumnType("text");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("ElkSearchState");
                 });
 
             modelBuilder.Entity("ProcessingService.StateMachines.FinishAuctionStateMachine.FinishAuctionState", b =>

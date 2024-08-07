@@ -20,7 +20,7 @@ public static class AuctionFinishServiceExtentions
             p.UsePostgres();
         });
     }
-    public static IServiceCollection AddAuctionFinishServices(this IServiceCollection services, WebApplicationBuilder builder)
+    public static void AddAuctionFinishServices(this IServiceCollection services)
     {
         EndpointConvention.Map<AuctionFinishing>(new Uri("queue:auction-auction-finishing"));
         EndpointConvention.Map<AuctionFinishingFinance>(new Uri("queue:finance-auction-finishing-finance"));
@@ -29,6 +29,6 @@ public static class AuctionFinishServiceExtentions
         EndpointConvention.Map<AuctionFinishingElk>(new Uri("queue:elk-auction-finishing-elk"));
 
 
-        return services;
+        return;
     }
 }

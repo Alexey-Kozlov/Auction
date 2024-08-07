@@ -18,6 +18,7 @@ public class ProcessingDbContext : SagaDbContext
             yield return new DeleteAuctionStateMap();
             yield return new CreateAuctionStateMap();
             yield return new FinishAuctionStateMap();
+            yield return new ElkSearchStateMap();
         }
     }
 }

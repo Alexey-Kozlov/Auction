@@ -3,7 +3,6 @@ const flowbite = require("flowbite-react/tailwind");
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "node_modules/flowbite-react/lib/esm/**/*.js",
     flowbite.content(),
   ],
   theme: {
@@ -11,8 +10,6 @@ module.exports = {
   },
   plugins: 
     [
-      require("@tailwindcss/aspect-ratio"), 
-      require("flowbite-react"),
       flowbite.plugin()
     ],
 

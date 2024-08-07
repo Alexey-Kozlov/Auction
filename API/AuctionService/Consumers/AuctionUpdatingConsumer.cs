@@ -33,6 +33,6 @@ public class AuctionUpdatingConsumer : IConsumer<AuctionUpdating>
         _mapper.Map(context.Message, auction);
         await _auctionDbContext.SaveChangesAsync();
         await _publishEndpoint.Publish(_mapper.Map<AuctionUpdated>(context.Message));
-        Console.WriteLine("--> Получение сообщения - аукцион обновлен - " + context.Message.Id);
+        Console.WriteLine($"{DateTime.Now}--> Получение сообщения - аукцион обновлен - {context.Message.Id}, {context.Message.Title}");
     }
 }

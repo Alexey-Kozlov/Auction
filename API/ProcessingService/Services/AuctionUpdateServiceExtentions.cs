@@ -20,7 +20,7 @@ public static class AuctionUpdateServiceExtentions
             p.UsePostgres();
         });
     }
-    public static IServiceCollection AddAuctionUpdateServices(this IServiceCollection services, WebApplicationBuilder builder)
+    public static void AddAuctionUpdateServices(this IServiceCollection services)
     {
         EndpointConvention.Map<AuctionUpdating>(new Uri("queue:auction-auction-updating"));
         EndpointConvention.Map<AuctionUpdatingBid>(new Uri("queue:bids-auction-updating-bid"));
@@ -30,6 +30,6 @@ public static class AuctionUpdateServiceExtentions
         EndpointConvention.Map<AuctionUpdatingNotification>(new Uri("queue:notification-auction-updating-notification"));
         EndpointConvention.Map<AuctionUpdatingElk>(new Uri("queue:elk-auction-updating-elk"));
 
-        return services;
+        return;
     }
 }

@@ -59,10 +59,7 @@ export const paramSlice = createSlice({
         state.winner = undefined;
       }
       
-      console.log(action.payload);
-      console.log(action.payload.searchAdv);
-
-      if (action.payload.searchStoreAdv || action.payload.searchStoreAdv === "") {
+      if (action.payload.searchAdv || action.payload.searchAdv === "") {
         state.searchAdv = action.payload.searchAdv;
         state.seller = undefined;
         state.winner = undefined;

@@ -46,6 +46,7 @@ builder.Services.AddMassTransit(p =>
     p.AddAuctionCreateMassTransitConfigurator();
     p.AddAuctionFinishMassTransitConfigurator();
     p.AddBidPlacedMassTransitConfigurator();
+    p.ElkSearchMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
     {
@@ -58,11 +59,12 @@ builder.Services.AddMassTransit(p =>
     });
 });
 
-builder.Services.AddAuctionUpdateServices(builder);
-builder.Services.AddAuctionDeleteServices(builder);
-builder.Services.AddAuctionCreateServices(builder);
-builder.Services.AddAuctionFinishServices(builder);
-builder.Services.AddBidPlacedServices(builder);
+builder.Services.AddAuctionUpdateServices();
+builder.Services.AddAuctionDeleteServices();
+builder.Services.AddAuctionCreateServices();
+builder.Services.AddAuctionFinishServices();
+builder.Services.AddBidPlacedServices();
+builder.Services.ElkSearchCreateServices();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

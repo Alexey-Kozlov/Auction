@@ -6,7 +6,6 @@ using SearchService.Consumers;
 using SearchService.Data;
 using SearchService.Services;
 using Common.Utils;
-using Common.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +36,6 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
-EndpointConvention.Map<SearchRequest>(new Uri("queue:search-auction-elksearch"));
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

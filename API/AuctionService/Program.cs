@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(p =>
         NameClaimType = "Login"
     };
 });
-EndpointConvention.Map<AuctionUpdated>(new Uri("queue:auction-auction-updated"));
+
 var app = builder.Build();
 app.Use(async (context, next) =>
 {

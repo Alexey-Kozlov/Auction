@@ -17,8 +17,7 @@ public class AuctionDeletingElkConsumer : IConsumer<AuctionDeletingElk>
     public async Task Consume(ConsumeContext<AuctionDeletingElk> consumeContext)
     {
 
-        var response = await _client.Client.DeleteAsync(index: "search_index",
-            consumeContext.Message.Id.ToString());
+        var response = await _client.Client.DeleteAsync(index: "search_index", consumeContext.Message.Id.ToString());
 
         if (response.IsValidResponse)
         {

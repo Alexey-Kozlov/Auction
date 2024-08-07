@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import qs from 'query-string';
 import { useGetAuctionsQuery } from '../../api/AuctionApi';
 import EmptyFilter from './EmptyFilter';
@@ -11,6 +11,7 @@ import { setData } from '../../store/auctionSlice';
 import Filters from './Filters';
 import { Auction, ProcessingState } from '../../store/types';
 import { setEventFlag } from '../../store/processingSlice';
+import Waiter from '../Waiter';
 
 export default function Listings() {
     const dispatch = useDispatch();
@@ -48,6 +49,7 @@ export default function Listings() {
         <div>
             <Filters />
             {
+                auctionsData.data?.result?.pageCount ? (
                 auctions.length === 0 ? (
                     <EmptyFilter showReset />
                 ) : (<div>
@@ -59,12 +61,16 @@ export default function Listings() {
                         })}
                     </div>
                     <div className='flex justify-center mt-4'>
+
                         <AppPagination pageChanged={setPageNumber}
-                            currentPage={params.pageNumber} totalPages={auctionsData.data?.result.pageCount!} />
+                            currentPage={params.pageNumber} totalPages={auctionsData.data?.result.pageCount!} />                                                
                     </div>
                 </div>
-                )}
-
+                )
+                ) : (
+                    <Waiter color='rgb(156 163 175)' /> 
+                )
+            }
         </div>
     )
 

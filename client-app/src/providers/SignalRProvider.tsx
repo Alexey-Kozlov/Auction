@@ -3,7 +3,7 @@ import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
-import { Auction, AuctionFinished, Bid, Message, User } from '../store/types';
+import { Auction, AuctionFinished, Bid, Message, PagedResult, User } from '../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
@@ -14,6 +14,7 @@ import ErrorMessageToast from '../components/signalRNotifications/ErrorMessageTo
 import WarningMessageToast from '../components/signalRNotifications/WarningMessageToast';
 import InfoMessageToast from '../components/signalRNotifications/InfoMessageToast';
 import FinanceUnsufficientToast from '../components/signalRNotifications/FinanceUnsufficientToast';
+import { setData } from '../store/auctionSlice';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -101,6 +102,11 @@ export default function SignalRProvider() {
 
                     connection.on('FinanceCreditAdd', (finance: any) => {
                         dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true}));
+                    })
+
+                    connection.on('ElkSearch', (elk: any) => {
+                        const elkData = elk as PagedResult<Auction>;
+                        dispatch(setData(elkData));
                     })
 
                     connection.on('ErrorMessage', (message: Message) => {

@@ -17,7 +17,6 @@ public class AuctionFinishingElkConsumer : IConsumer<AuctionFinishingElk>
     public async Task Consume(ConsumeContext<AuctionFinishingElk> consumeContext)
     {
         var response = await _client.Client.UpdateAsync<AuctionCreatingSearch, AuctionFinishingElk>(
-            index: "search_index",
             consumeContext.Message.Id.ToString(),
             p => p.Doc(consumeContext.Message));
         if (response.IsValidResponse)

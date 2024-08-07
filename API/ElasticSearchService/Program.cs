@@ -1,3 +1,4 @@
+using Common.Utils;
 using ElasticSearchService.Consumers;
 using ElasticSearchService.Data;
 using ElasticSearchService.Services;
@@ -28,7 +29,7 @@ builder.Services.AddMassTransit(p =>
 builder.Services.AddScoped<ElkClient>();
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.Use(async (context, next) =>
 {
     //логируем вошедший запрос
