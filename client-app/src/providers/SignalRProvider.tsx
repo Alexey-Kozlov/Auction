@@ -15,6 +15,7 @@ import WarningMessageToast from '../components/signalRNotifications/WarningMessa
 import InfoMessageToast from '../components/signalRNotifications/InfoMessageToast';
 import FinanceUnsufficientToast from '../components/signalRNotifications/FinanceUnsufficientToast';
 import { setData } from '../store/auctionSlice';
+import { setParams } from '../store/paramSlice';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -33,14 +34,23 @@ export default function SignalRProvider() {
 
     useEffect(() => {
         const tokenData = localStorage.getItem("Auction");
-        const token = JSON.parse(tokenData!).token;
-        const newConnection = new HubConnectionBuilder()
-            .withUrl(apiUrl!, {
-                accessTokenFactory: () => token
-            })
-            .withAutomaticReconnect()
-            .build();
-        setConnection(newConnection);
+        if(tokenData){
+            const token = JSON.parse(tokenData!).token;
+            const newConnection = new HubConnectionBuilder()
+                .withUrl(apiUrl!, {
+                    accessTokenFactory: () => token
+                })
+                .withAutomaticReconnect()
+                .build();
+            setConnection(newConnection);
+        } else {
+            const newConnection = new HubConnectionBuilder()
+                .withUrl(apiUrl!)
+                .withAutomaticReconnect()
+                .build();
+            setConnection(newConnection);
+        }
+
     }, [apiUrl]);
 
     useEffect(() => {
@@ -104,9 +114,22 @@ export default function SignalRProvider() {
                         dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true}));
                     })
 
+                    connection.on('SessionId', (id: any) => {
+                        dispatch(setParams({ sessionId: id}));
+                    })
+
                     connection.on('ElkSearch', (elk: any) => {
-                        const elkData = elk as PagedResult<Auction>;
-                        dispatch(setData(elkData));
+                        const elkData = elk.result as PagedResult<Auction>;
+                         dispatch(setData(elkData));
+                         dispatch(setEventFlag({ eventName: 'ElkSearch', ready: false}));
+                    })
+
+                    connection.on('ElkIndex', (result: number) => {
+                        dispatch(setEventFlag({ eventName: 'ElkIndex', ready: false }));
+                        const mes:Message = {message:result.toString(),correlationId:'',id:'',messageType:0};
+                        return toast((p) => (
+                            <InfoMessageToast message={mes} toastId={p.id} />
+                        ), { duration: 5000 });
                     })
 
                     connection.on('ErrorMessage', (message: Message) => {

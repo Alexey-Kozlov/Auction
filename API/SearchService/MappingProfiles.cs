@@ -28,5 +28,8 @@ public class MappingProfiles : Profile
         .ForMember(dest => dest.CreateAt, opt => opt.Ignore())
         .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
         .ForMember(dest => dest.AuctionEnd, opt => opt.MapFrom(src => src.AuctionEnd));
+
+        CreateMap<Item, AuctionCreatingElk>()
+        .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.SoldAmount));
     }
 }

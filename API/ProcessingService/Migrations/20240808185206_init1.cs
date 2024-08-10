@@ -69,6 +69,37 @@ namespace ProcessingService.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ElkIndexState",
+                columns: table => new
+                {
+                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CurrentState = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: true),
+                    Properties = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    AuctionAuthor = table.Column<string>(type: "text", nullable: true),
+                    AuctionEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    AuctionCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
+                    Winner = table.Column<string>(type: "text", nullable: true),
+                    ItemSold = table.Column<bool>(type: "boolean", nullable: false),
+                    Amount = table.Column<int>(type: "integer", nullable: false),
+                    ReservePrice = table.Column<int>(type: "integer", nullable: false),
+                    Term = table.Column<string>(type: "text", nullable: true),
+                    PageNumber = table.Column<int>(type: "integer", nullable: false),
+                    PageSize = table.Column<int>(type: "integer", nullable: false),
+                    SessionId = table.Column<string>(type: "text", nullable: true),
+                    LastItem = table.Column<bool>(type: "boolean", nullable: false),
+                    ItemNumber = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ElkIndexState", x => x.CorrelationId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ElkSearchState",
                 columns: table => new
                 {
@@ -88,9 +119,9 @@ namespace ProcessingService.Migrations
                     Amount = table.Column<int>(type: "integer", nullable: false),
                     ReservePrice = table.Column<int>(type: "integer", nullable: false),
                     Term = table.Column<string>(type: "text", nullable: true),
-                    PgeNumber = table.Column<int>(type: "integer", nullable: false),
+                    PageNumber = table.Column<int>(type: "integer", nullable: false),
                     PageSize = table.Column<int>(type: "integer", nullable: false),
-                    UserLogin = table.Column<string>(type: "text", nullable: true)
+                    SessionId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -148,6 +179,9 @@ namespace ProcessingService.Migrations
 
             migrationBuilder.DropTable(
                 name: "DeleteAuctionState");
+
+            migrationBuilder.DropTable(
+                name: "ElkIndexState");
 
             migrationBuilder.DropTable(
                 name: "ElkSearchState");

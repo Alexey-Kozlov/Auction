@@ -12,9 +12,18 @@ import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
+import { useEffect, useState } from "react";
+import ElkIndex from "./components/services/ElkIndex";
 
 function App() {
   const user: User = useSelector((state: RootState) => state.authStore);
+
+  const [userChange, setUserChange] = useState<User>();
+
+  useEffect(() =>{
+    setUserChange(user);
+  },[user]);
+
   return (
     <div>
       <ToasterProvider />
@@ -30,7 +39,8 @@ function App() {
           <Route path="/finance/list" element={<FinListings />}></Route>
           <Route path="/not-found" element={<NotFound />}></Route>
         </Routes>
-        {user?.name ? <SignalRProvider /> : <></>}
+        <SignalRProvider />
+        <ElkIndex />
       </div>
     </div>
   );

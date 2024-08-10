@@ -78,20 +78,21 @@ public record AuctionCreatedNotification(
       Guid CorrelationId
 );
 
-public record AuctionCreatingElk(
-      Guid Id,
-      string Title,
-      string Properties,
-      string Description,
-      string AuctionAuthor,
-      DateTime AuctionEnd,
-      DateTime AuctionCreated,
-      Guid CorrelationId,
-      int ReservePrice,
-      bool ItemSold,
-      string Winner,
-      int Amount
-);
+public class AuctionCreatingElk
+{
+      public Guid Id { get; set; }
+      public string Title { get; set; }
+      public string Properties { get; set; }
+      public string Description { get; set; }
+      public string AuctionAuthor { get; set; }
+      public DateTime AuctionEnd { get; set; }
+      public DateTime AuctionCreated { get; set; }
+      public Guid CorrelationId { get; set; }
+      public int ReservePrice { get; set; }
+      public bool ItemSold { get; set; }
+      public string Winner { get; set; }
+      public int Amount { get; set; }
+};
 public record AuctionCreatedElk(
       Guid CorrelationId
 );

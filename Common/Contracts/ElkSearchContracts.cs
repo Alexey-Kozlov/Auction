@@ -6,7 +6,7 @@ public record ElkSearchRequest(
      string SearchTerm,
      int PageNumber,
      int PageSize,
-     string UserLogin
+     string SessionId
 );
 
 public record ElkSearchCreating(
@@ -29,10 +29,42 @@ public record ElkSearchResponse<T>(
      string SearchTerm,
      ResultType ResultType,
      T Result,
-     string UserLogin
+     string SessionId
 );
 
 public record ElkSearchResponseCompleted(
+     Guid CorrelationId
+);
+
+public record ElkIndexRequest(
+     Guid Id,
+     Guid CorrelationId,
+     AuctionCreatingElk Item,
+     bool LastItem,
+     int ItemNumber,
+     string SessionId
+);
+
+public record ElkIndexCreating(
+     Guid CorrelationId,
+     AuctionCreatingElk Item,
+     int ItemNumber
+);
+
+public record ElkIndexCreated(
+     Guid CorrelationId,
+     ResultType Result
+);
+
+public record ElkIndexResponse(
+     Guid CorrelationId,
+     ResultType Result,
+     bool LastItem,
+     int ItemNumber,
+     string SessionId
+);
+
+public record ElkIndexResponseCompleted(
      Guid CorrelationId
 );
 

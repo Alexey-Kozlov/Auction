@@ -38,9 +38,9 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.Id = context.Message.Id;
                 context.Saga.Term = context.Message.SearchTerm;
                 context.Saga.PageSize = context.Message.PageSize;
-                context.Saga.PgeNumber = context.Message.PageNumber;
+                context.Saga.PageNumber = context.Message.PageNumber;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
-                context.Saga.UserLogin = context.Message.UserLogin;
+                context.Saga.SessionId = context.Message.SessionId;
             })
             .Send(context => new ElkSearchCreating(
                 context.Message.Id,
@@ -66,7 +66,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.Term,
                 context.Message.ResultType,
                 context.Message.Result,
-                context.Saga.UserLogin
+                context.Saga.SessionId
                 ))
             .TransitionTo(ElkSearchNotificationState));
     }

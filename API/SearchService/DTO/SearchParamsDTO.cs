@@ -7,6 +7,7 @@ public record SearchParamsDTO(
     string Winner,
     string OrderBy,
     string FilterBy,
+    string SessionId,
     int PageNumber = 1,
     int PageSize = 5
 );

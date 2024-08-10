@@ -1,8 +1,8 @@
 using MassTransit;
 
-namespace ProcessingService.StateMachines.ElkSearchStateMachine;
+namespace ProcessingService.StateMachines.ElkIndexStateMachine;
 
-public class ElkSearchState : SagaStateMachineInstance
+public class ElkIndexState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }
@@ -23,4 +23,6 @@ public class ElkSearchState : SagaStateMachineInstance
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
     public string SessionId { get; set; }
+    public bool LastItem { get; set; }
+    public int ItemNumber { get; set; }
 }

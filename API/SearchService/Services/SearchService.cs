@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
 using SearchService.DTO;
 using SearchService.Entities;
+using System.Net;
+using AutoMapper;
 
 namespace SearchService.Services;
 
@@ -12,8 +14,10 @@ public class SearchLogic
 {
     private readonly SearchDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
-    public SearchLogic(SearchDbContext context, IPublishEndpoint publishEndpoint)
+    private readonly IMapper _mapper;
+    public SearchLogic(IMapper mapper, SearchDbContext context, IPublishEndpoint publishEndpoint)
     {
+        _mapper = mapper;
         _context = context;
         _publishEndpoint = publishEndpoint;
     }
@@ -84,11 +88,13 @@ public class SearchLogic
         };
     }
 
-    public async Task<ApiResponse<PagedResult<List<Item>>>> ElkSearchItems(SearchParamsDTO searchParams, string login)
+    public async Task<ApiResponse<PagedResult<List<Item>>>> ElkSearchItems(SearchParamsDTO searchParams)
     {
         //посылаем сообщение для поиска в ELK
         await _publishEndpoint.Publish(new ElkSearchRequest(Guid.NewGuid(), Guid.NewGuid(),
-            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, login));
+            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, searchParams.SessionId));
+
+        Console.WriteLine($"Поиск ELK - '{searchParams.SearchAdv}' сессия - {searchParams.SessionId}");
 
         //посылаем null в качестве результата для отображения заставки ожидания
         return new ApiResponse<PagedResult<List<Item>>>
@@ -107,6 +113,26 @@ public class SearchLogic
             IsSuccess = true,
             StatusCode = System.Net.HttpStatusCode.OK,
             Result = item
+        };
+    }
+
+    public async Task<ApiResponse<HttpStatusCode>> ElkIndex(string SessionId)
+    {
+        var Items = await _context.Items.ToListAsync();
+        var cnt = 0;
+        foreach (var item in Items)
+        {
+            cnt++;
+            var elk = _mapper.Map<AuctionCreatingElk>(item);
+            await _publishEndpoint.Publish(new ElkIndexRequest(Guid.NewGuid(), Guid.NewGuid(), elk,
+               Items.Count == cnt, cnt, SessionId));
+            Console.WriteLine($"{DateTime.Now} {cnt} {item.Title}");
+        }
+        return new ApiResponse<HttpStatusCode>()
+        {
+            IsSuccess = true,
+            StatusCode = HttpStatusCode.OK,
+            Result = HttpStatusCode.OK
         };
     }
 }

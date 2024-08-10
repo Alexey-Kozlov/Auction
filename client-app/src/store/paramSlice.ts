@@ -10,6 +10,7 @@ type State = {
   winner?: string;
   searchTerm: string;
   searchAdv: string;
+  sessionId: string;
 };
 
 const initialState: State = {
@@ -21,7 +22,8 @@ const initialState: State = {
   seller: undefined,
   winner: undefined,
   searchTerm: "",
-  searchAdv: ""
+  searchAdv: "",
+  sessionId: ""
 };
 
 export const paramSlice = createSlice({
@@ -29,8 +31,7 @@ export const paramSlice = createSlice({
   initialState: initialState,
   reducers: {
     setParams: (state, action) => {
-      if (action.payload.pageNumber)
-        state.pageNumber = action.payload.pageNumber;
+      if (action.payload.pageNumber) state.pageNumber = action.payload.pageNumber;
       if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
       if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
       if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
@@ -68,6 +69,10 @@ export const paramSlice = createSlice({
       if (!action.payload.pageNumber) {
         state.pageNumber = 1;
       }
+      
+      if(action.payload.sessionId) {
+        state.sessionId = action.payload.sessionId;
+      }      
     },
     reset: (state, action) => {
       state.pageNumber = 1;

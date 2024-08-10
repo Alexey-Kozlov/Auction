@@ -153,19 +153,21 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionCreatingElk(
-                context.Saga.Id,
-                context.Saga.Title,
-                context.Saga.Properties,
-                context.Saga.Description,
-                context.Saga.AuctionAuthor,
-                context.Saga.AuctionEnd,
-                DateTime.UtcNow,
-                context.Saga.CorrelationId,
-                context.Saga.ReservePrice,
-                false,
-                "",
-                0))
+            .Send(context => new AuctionCreatingElk()
+            {
+                Id = context.Saga.Id,
+                Title = context.Saga.Title,
+                Properties = context.Saga.Properties,
+                Description = context.Saga.Description,
+                AuctionAuthor = context.Saga.AuctionAuthor,
+                AuctionEnd = context.Saga.AuctionEnd,
+                AuctionCreated = DateTime.UtcNow,
+                CorrelationId = context.Saga.CorrelationId,
+                ReservePrice = context.Saga.ReservePrice,
+                ItemSold = false,
+                Winner = "",
+                Amount = 0
+            })
             .TransitionTo(AuctionCreatedElkState));
     }
 

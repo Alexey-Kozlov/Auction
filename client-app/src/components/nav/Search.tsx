@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setParams } from '../../store/paramSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { setEventFlag } from '../../store/processingSlice';
+import { RootState } from '../../store/store';
 
 export default function Search() {
     const [search, setSearch] = useState('');
@@ -10,8 +12,8 @@ export default function Search() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    //const searchTerm = useSelector((state: RootState) => state.paramStore.searchTerm);
-    //const searchStoreAdv = useSelector((state: RootState) => state.paramStore.searchAdv);
+
+    const params = useSelector((state: RootState) => state.paramStore);
 
     const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);
@@ -30,12 +32,17 @@ export default function Search() {
 
     const AdvSearch = () => {
         if (location.pathname !== '/') navigate('/');
+        if(params.searchAdv === searchAdv){
+            return;
+        }
         dispatch(setParams({ searchAdv: searchAdv }));
+        dispatch(setEventFlag({ eventName: 'ElkSearch', ready: true}));
     }
-
-    // useEffect(() => {
-    //     setSearch(searchTerm);
-    // }, [searchTerm])
+//для сброса значений поиска при щелчке на сброс фильтров
+    useEffect(() => {
+        setSearch(params.searchTerm);
+        setSearchAdv(params.searchAdv);
+    }, [params.searchTerm, params.searchAdv])
 
     return (
         <div className='flex'>
@@ -63,6 +70,9 @@ export default function Search() {
                 className='input-custom text-sm text-gray-600'
                 value={searchAdv}
                 onChange={e => onAdvSearchChange(e)}
+                onKeyDown={(e: any) => {
+                    if (e.key === 'Enter') AdvSearch();
+                }}
             />
         <button 
                 onClick={() => AdvSearch()}

@@ -44,9 +44,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 //инициализация БД поиска из сервиса Auction
-app.Lifetime.ApplicationStarted.Register(async () =>
-{
-    await DbInitializer.InitDb(app);
-});
+// app.Lifetime.ApplicationStarted.Register(async () =>
+// {
+//     await DbInitializer.InitDb(app);
+// });
 
 app.Run();

@@ -12,7 +12,7 @@ using ProcessingService.Data;
 namespace ProcessingService.Migrations
 {
     [DbContext(typeof(ProcessingDbContext))]
-    [Migration("20240807065715_init1")]
+    [Migration("20240808185206_init1")]
     partial class init1
     {
         /// <inheritdoc />
@@ -134,6 +134,78 @@ namespace ProcessingService.Migrations
                     b.ToTable("DeleteAuctionState");
                 });
 
+            modelBuilder.Entity("ProcessingService.StateMachines.ElkIndexStateMachine.ElkIndexState", b =>
+                {
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AuctionAuthor")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("AuctionCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("AuctionEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ItemNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ItemSold")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LastItem")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PageNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PageSize")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ReservePrice")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SessionId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Term")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Winner")
+                        .HasColumnType("text");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("ElkIndexState");
+                });
+
             modelBuilder.Entity("ProcessingService.StateMachines.ElkSearchStateMachine.ElkSearchState", b =>
                 {
                     b.Property<Guid>("CorrelationId")
@@ -171,10 +243,10 @@ namespace ProcessingService.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PageSize")
+                    b.Property<int>("PageNumber")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PgeNumber")
+                    b.Property<int>("PageSize")
                         .HasColumnType("integer");
 
                     b.Property<string>("Properties")
@@ -183,13 +255,13 @@ namespace ProcessingService.Migrations
                     b.Property<int>("ReservePrice")
                         .HasColumnType("integer");
 
+                    b.Property<string>("SessionId")
+                        .HasColumnType("text");
+
                     b.Property<string>("Term")
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserLogin")
                         .HasColumnType("text");
 
                     b.Property<string>("Winner")

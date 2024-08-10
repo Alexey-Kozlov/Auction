@@ -131,3 +131,7 @@ export type Message = {
   messageType: number;
   correlationId: string;
 };
+
+export type Session = {
+  sessionid: string;
+}

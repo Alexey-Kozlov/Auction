@@ -4,13 +4,16 @@ import { AiFillTrophy, AiOutlineLogout } from 'react-icons/ai';
 import { RiAuctionFill } from "react-icons/ri";
 import { HiUser } from 'react-icons/hi2';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { User } from '../../store/types';
+import { Message, User } from '../../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { emptyUserState, setAuthUser } from '../../store/authSlice';
 import { setParams } from '../../store/paramSlice';
 import { GrMoney } from "react-icons/gr";
 import { setEventFlag } from '../../store/processingSlice';
+import { GoCodescanCheckmark } from "react-icons/go";
+import InfoMessageToast from '../signalRNotifications/InfoMessageToast';
+import toast from 'react-hot-toast';
 
 export default function UserActions() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -35,6 +38,14 @@ export default function UserActions() {
         navigate('/');
     }
 
+    const handlerElkReindex = () => {
+        dispatch(setEventFlag({ eventName: 'ElkIndex', ready: true }));
+        const message:Message = {message:'Старт переиндексации ELK...',correlationId:'',id:'',messageType:0};
+        return toast((p) => (
+            <InfoMessageToast message={message} toastId={p.id} />
+        ),{ duration: 5000 });
+    }
+
     return (
         <Dropdown inline label={`Здравствуйте ${user.name}`}>
             <Dropdown.Item icon={HiUser} onClick={SetSeller}>
@@ -48,12 +59,15 @@ export default function UserActions() {
                     Создать аукцион
                 </Dropdown.Item>
             </NavLink>
-            <Dropdown.Divider />
             <NavLink to='/finance/list'>
                 <Dropdown.Item icon={GrMoney}>
                     Финансы
                 </Dropdown.Item>
             </NavLink>
+            <Dropdown.Divider />
+            <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerElkReindex}>
+                 Elk индексация
+            </Dropdown.Item>
             <Dropdown.Divider />
             <Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>
                 Выход

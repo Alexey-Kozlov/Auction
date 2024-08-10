@@ -31,10 +31,18 @@ public class SearchController : ControllerBase
         //в ElasticSearch. В этом случае направляем запрос через шину сообщений в сервис ElasticSearchService
         if (!string.IsNullOrEmpty(searchParams.SearchAdv))
         {
-            return await _search.ElkSearchItems(searchParams, User.Identity.Name);
+            return await _search.ElkSearchItems(searchParams);
         }
 
         //а здесь обычный SQL-поиск с точным частичным вхождением поисковой последовательности в поля title, properties
         return await _search.SqlSearchItems(searchParams);
+    }
+
+    [HttpPost("elkindex")]
+    public async Task<ApiResponse<System.Net.HttpStatusCode>> ElkIndex(SessionDTO param)
+    {
+        //Выполняем реиндексацию ELK
+        return await _search.ElkIndex(param.SessionId);
+
     }
 }

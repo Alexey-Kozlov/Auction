@@ -9,17 +9,24 @@ import { setParams } from '../../store/paramSlice';
 import { RootState } from '../../store/store';
 import { setData } from '../../store/auctionSlice';
 import Filters from './Filters';
-import { Auction, ProcessingState } from '../../store/types';
+import { Auction, PagedResult, ProcessingState } from '../../store/types';
 import { setEventFlag } from '../../store/processingSlice';
 import Waiter from '../Waiter';
 
 export default function Listings() {
     const dispatch = useDispatch();
     const params = useSelector((state: RootState) => state.paramStore);
-    const auctions: Auction[] = useSelector((state: RootState) => state.auctionStore).auctions;
+    const data = useSelector((state: RootState) => state.auctionStore);
+    const auctions: Auction[] = data.auctions;
     const url = qs.stringifyUrl({ url: '', query: params });
-    const auctionsData = useGetAuctionsQuery(url);
     const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
+    const elkSearch = procState.find(p => p.eventName === 'ElkSearch' && p.ready) && params.searchAdv;
+    let auctionsData = useGetAuctionsQuery(url, {
+        skip: !params.sessionId, 
+        //если делаем поиск в ELK - отключаем кеширование, чтобы всегда был запрос 
+        //и соответственно ответ. Иначе нарушится UI
+        refetchOnMountOrArgChange: !!params.searchAdv
+    });
 
     useEffect(() => {
         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
@@ -49,7 +56,7 @@ export default function Listings() {
         <div>
             <Filters />
             {
-                auctionsData.data?.result?.pageCount ? (
+                !elkSearch ? (
                 auctions.length === 0 ? (
                     <EmptyFilter showReset />
                 ) : (<div>
@@ -63,7 +70,11 @@ export default function Listings() {
                     <div className='flex justify-center mt-4'>
 
                         <AppPagination pageChanged={setPageNumber}
-                            currentPage={params.pageNumber} totalPages={auctionsData.data?.result.pageCount!} />                                                
+                            currentPage={params.pageNumber} 
+                            totalPages={auctionsData.data?.result ? 
+                                auctionsData.data?.result.pageCount!
+                                : data.pageCount
+                            } />                                                
                     </div>
                 </div>
                 )
