@@ -16,7 +16,7 @@ export default function ElkIndex() {
             const ses: Session = {sessionid: sessionId}
             doElkIndex(ses);
         }
-    },[elkIndexEvent]);
+    },[elkIndexEvent,sessionId,elkIndex]);
 
   return (
     <></>

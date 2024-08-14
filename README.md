@@ -18,6 +18,7 @@ cmd из папки Projects/Auctions
 билдим образы:
 docker build -f API/AuctionService/Dockerfile -t kozlovas/auction-auction-api .
 docker build -f API/BiddingService/Dockerfile -t kozlovas/auction-bidding-api .
+docker build -f API/ElasticSearchService/Dockerfile -t kozlovas/auction-elk-api .
 docker build -f API/FinanceService/Dockerfile -t kozlovas/auction-finance-api .
 docker build -f API/GatewayService/Dockerfile -t kozlovas/auction-gateway-api .
 docker build -f API/IdentityService/Dockerfile -t kozlovas/auction-identity-api .
