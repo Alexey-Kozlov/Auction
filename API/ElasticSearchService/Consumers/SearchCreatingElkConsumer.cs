@@ -24,28 +24,35 @@ public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
         var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s =>
             s.From(consumeContext.Message.PageNumber - 1)
             .Size(consumeContext.Message.PageSize)
+            //запрос - поисковый запрос разбивается на термы, все термы должны быть
+            //указанном поле. Поиск нечеткий (Fuzzy), с учетом русского языка.
+            //поиск по ИЛИ в 3-х полях - Title, Properties, Description
             .Query(q => q
                 .Bool(b => b
-                    .Should(
-                        //любое совпадение по словам с учетом морфологии
-                        sd => sd.Fuzzy(f => f
-                            .Field(fl => fl.Title)
-                            .Value(consumeContext.Message.SearchTerm)
+                    .Should(s => s
+                       .Match(m => m
+                           .Field(f => f.Title)
+                            .Fuzziness(new Fuzziness("AUTO"))
+                            .Query(consumeContext.Message.SearchTerm)
+                            .Operator(Operator.And)
                         ),
-                        sd => sd.Fuzzy(f => f
-                            .Field(fl => fl.Properties)
-                            .Value(consumeContext.Message.SearchTerm)
+                        s => s
+                       .Match(m => m
+                           .Field(f => f.Description)
+                            .Fuzziness(new Fuzziness("AUTO"))
+                            .Query(consumeContext.Message.SearchTerm)
+                            .Operator(Operator.And)
                         ),
-                        sd => sd.Fuzzy(f => f
-                            .Field(fl => fl.Description)
-                            .Value(consumeContext.Message.SearchTerm)
-                        ),
-                        //поиск по всем термам без учета морфологии
-                        sd => sd.MultiMatch(m => m.Query(consumeContext.Message.SearchTerm)
+                        s => s
+                       .Match(m => m
+                           .Field(f => f.Properties)
+                            .Fuzziness(new Fuzziness("AUTO"))
+                            .Query(consumeContext.Message.SearchTerm)
+                            .Operator(Operator.And)
+                        )
                     )
                 )
             )
-        )
         );
 
         var itemsCount = elkResponse.Documents.Count;
