@@ -1,5 +1,7 @@
 ﻿using Common.Contracts;
 using Common.Utils;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 using ElasticSearchService.Services;
 using MassTransit;
 
@@ -17,14 +19,33 @@ public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
     }
     public async Task Consume(ConsumeContext<ElkSearchCreating> consumeContext)
     {
+        var fz = new Fuzziness("Auto");
 
         var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s =>
             s.From(consumeContext.Message.PageNumber - 1)
             .Size(consumeContext.Message.PageSize)
-            .Query(q =>
-                q.QueryString(p =>
-                p.Query(consumeContext.Message.SearchTerm)
-                ))
+            .Query(q => q
+                .Bool(b => b
+                    .Should(
+                        //любое совпадение по словам с учетом морфологии
+                        sd => sd.Fuzzy(f => f
+                            .Field(fl => fl.Title)
+                            .Value(consumeContext.Message.SearchTerm)
+                        ),
+                        sd => sd.Fuzzy(f => f
+                            .Field(fl => fl.Properties)
+                            .Value(consumeContext.Message.SearchTerm)
+                        ),
+                        sd => sd.Fuzzy(f => f
+                            .Field(fl => fl.Description)
+                            .Value(consumeContext.Message.SearchTerm)
+                        ),
+                        //поиск по всем термам без учета морфологии
+                        sd => sd.MultiMatch(m => m.Query(consumeContext.Message.SearchTerm)
+                    )
+                )
+            )
+        )
         );
 
         var itemsCount = elkResponse.Documents.Count;

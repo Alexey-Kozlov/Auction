@@ -22,7 +22,7 @@ export default function Search() {
 
     const Search = () => {
         if (location.pathname !== '/') navigate('/');
-        dispatch(setParams({ searchTerm: search }));
+        dispatch(setParams({ searchTerm: search, searchAdv:'' }));
     }
 
     const onAdvSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +35,7 @@ export default function Search() {
         if(params.searchAdv === searchAdv){
             return;
         }
-        dispatch(setParams({ searchAdv: searchAdv }));
+        dispatch(setParams({ searchAdv: searchAdv, searchTerm: '' }));
         dispatch(setEventFlag({ eventName: 'ElkSearch', ready: true}));
     }
 //для сброса значений поиска при щелчке на сброс фильтров
