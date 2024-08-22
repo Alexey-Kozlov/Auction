@@ -27,6 +27,9 @@ public class BidAuctionPlacingConsumer : IConsumer<BidAuctionPlacing>
             await _publishEndpoint.Publish(new BidAuctionPlaced(oldBid, context.Message.CorrelationId));
             return;
         }
-        throw new Exception("Ошибка BidAuctionPlacingConsumer");
+        else
+        {
+            throw new Exception($"{DateTime.Now} - Ошибка BidAuctionPlacingConsumer, новая ставка меньше или равна текущей.");
+        }
     }
 }

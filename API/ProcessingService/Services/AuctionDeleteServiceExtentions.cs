@@ -31,6 +31,7 @@ public static class AuctionDeleteServiceExtentions
         EndpointConvention.Map<AuctionDeletingSearch>(new Uri("queue:search-auction-deleting-search"));
         EndpointConvention.Map<AuctionDeletingNotification>(new Uri("queue:notification-auction-deleting-notification"));
         EndpointConvention.Map<AuctionDeletingElk>(new Uri("queue:elk-auction-deleting-elk"));
+        EndpointConvention.Map<AuctionDeletingElk>(new Uri("queue:metrics-auction-deleting-metrics"));
 
         return;
     }

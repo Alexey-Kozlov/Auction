@@ -117,7 +117,16 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.OldHighBid = context.Message.OldHighBid;
             })
-            .Send(context => new BidPlacing(
+            //если нужно посылать одинаковые сообщения в разные консьюмеры (очереди), то соглашения
+            //EndpointConvention.Map<тип сообщения> не работают, посылка идет только на одтин адрес
+            //поэтому в этом случае явно указываем адреса для рассылки
+            .Send(new Uri("queue:bids-bid-placing"), context => new BidPlacing(
+                context.Saga.Id,
+                context.Saga.Bidder,
+                context.Saga.Amount,
+                context.Saga.CorrelationId
+            ))
+            .Send(new Uri("queue:metrics-bid-added-metrics"), context => new BidPlacing(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,

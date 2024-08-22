@@ -20,15 +20,12 @@ public class AuctionUpdatingElkConsumer : IConsumer<AuctionUpdatingElk>
         var response = await _client.Client.UpdateAsync<AuctionCreatingSearch, AuctionUpdatingElk>(
             consumeContext.Message.Id.ToString(),
             p => p.Doc(consumeContext.Message));
-        if (response.IsValidResponse)
-        {
-            Console.WriteLine($"Updated document with ID {response.Id} succeeded.");
-        }
-        else
+        if (!response.IsValidResponse)
         {
             Console.WriteLine(response.ElasticsearchServerError);
         }
+        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - обновлен аукцион '{consumeContext.Message.Title}'" +
+        $", автор - {consumeContext.Message.AuctionAuthor}");
         await _publishEndpoint.Publish(new AuctionUpdatedElk(consumeContext.Message.CorrelationId));
-        Console.WriteLine("--> Получение сообщения обновить аукцион");
     }
 }

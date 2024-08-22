@@ -24,7 +24,6 @@ public static class BidCreateServiceExtentions
     {
         EndpointConvention.Map<BidFinanceGranting>(new Uri("queue:finance-bid-finance-granting"));
         EndpointConvention.Map<BidAuctionPlacing>(new Uri("queue:auction-bid-auction-placing"));
-        EndpointConvention.Map<BidPlacing>(new Uri("queue:bids-bid-placing"));
         EndpointConvention.Map<BidSearchPlacing>(new Uri("queue:search-bid-search-placing"));
         EndpointConvention.Map<BidNotificationProcessing>(new Uri("queue:notification-bid-notification-processing"));
         EndpointConvention.Map<RollbackBidFinanceGranted>(new Uri("queue:finance-rollback-bid-finance-granted"));

@@ -29,6 +29,7 @@ public static class AuctionUpdateServiceExtentions
         EndpointConvention.Map<AuctionUpdatingSearch>(new Uri("queue:search-auction-updating-search"));
         EndpointConvention.Map<AuctionUpdatingNotification>(new Uri("queue:notification-auction-updating-notification"));
         EndpointConvention.Map<AuctionUpdatingElk>(new Uri("queue:elk-auction-updating-elk"));
+        EndpointConvention.Map<AuctionUpdatingElk>(new Uri("queue:metrics-auction-updating-metrics"));
 
         return;
     }

@@ -28,6 +28,7 @@ public static class AuctionCreateServiceExtentions
         EndpointConvention.Map<AuctionCreatingSearch>(new Uri("queue:search-auction-creating-search"));
         EndpointConvention.Map<AuctionCreatingNotification>(new Uri("queue:notification-auction-creating-notification"));
         EndpointConvention.Map<AuctionCreatingElk>(new Uri("queue:elk-auction-creating-elk"));
+        EndpointConvention.Map<AuctionCreatingElk>(new Uri("queue:metrics-auction-creating-metrics"));
         return;
     }
 }
