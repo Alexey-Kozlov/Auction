@@ -31,7 +31,7 @@ builder.Services.AddMassTransit(p =>
 builder.Services.AddScoped<ElkClient>();
 builder.Services.AddOpenTelemetry()
     .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MeterName")))
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
         .AddAspNetCoreInstrumentation()
         .AddRuntimeInstrumentation()
         .AddOtlpExporter(options =>
