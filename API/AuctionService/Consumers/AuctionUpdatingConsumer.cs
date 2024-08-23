@@ -1,4 +1,5 @@
 using AuctionService.Data;
+using AuctionService.Metrics;
 using AutoMapper;
 using Common.Contracts;
 using MassTransit;
@@ -11,12 +12,15 @@ public class AuctionUpdatingConsumer : IConsumer<AuctionUpdating>
     private readonly AuctionDbContext _auctionDbContext;
     private readonly IMapper _mapper;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly AuctionMetrics _metrics;
 
-    public AuctionUpdatingConsumer(AuctionDbContext auctionDbContext, IMapper mapper, IPublishEndpoint publishEndpoint)
+    public AuctionUpdatingConsumer(AuctionDbContext auctionDbContext, IMapper mapper,
+        IPublishEndpoint publishEndpoint, AuctionMetrics metrics)
     {
         _auctionDbContext = auctionDbContext;
         _mapper = mapper;
         _publishEndpoint = publishEndpoint;
+        _metrics = metrics;
     }
     public async Task Consume(ConsumeContext<AuctionUpdating> context)
     {
@@ -33,6 +37,7 @@ public class AuctionUpdatingConsumer : IConsumer<AuctionUpdating>
         _mapper.Map(context.Message, auction);
         await _auctionDbContext.SaveChangesAsync();
         await _publishEndpoint.Publish(_mapper.Map<AuctionUpdated>(context.Message));
-        Console.WriteLine($"{DateTime.Now}--> Получение сообщения - аукцион обновлен - {context.Message.Id}, {context.Message.Title}");
+        _metrics.UpdateAuction();
+        Console.WriteLine($"{DateTime.Now} Получение сообщения - аукцион обновлен - {context.Message.Id}, {context.Message.Title}");
     }
 }

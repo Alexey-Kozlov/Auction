@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Common.Utils;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BidDbContext>(options =>
@@ -49,6 +51,17 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHostedService<CheckAuctionFinished>();
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(opt => opt
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MeterName")))
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+        })
+);
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

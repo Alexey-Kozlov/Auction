@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Common.Utils;
 using ImageService.Data;
 using AuctionService.Services;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +37,16 @@ builder.Services.AddGrpc(opt =>
     opt.MaxSendMessageSize = int.MaxValue;
     opt.MaxReceiveMessageSize = int.MaxValue;
 });
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(opt => opt
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MeterName")))
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+        })
+);
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
 ﻿using AuctionService.Data;
+using AuctionService.Metrics;
 using Common.Contracts;
 using MassTransit;
 
@@ -8,11 +9,13 @@ public class BidAuctionPlacingConsumer : IConsumer<BidAuctionPlacing>
 {
     private readonly AuctionDbContext _auctionDbContext;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly AuctionMetrics _metrics;
 
-    public BidAuctionPlacingConsumer(AuctionDbContext auctionDbContext, IPublishEndpoint publishEndpoint)
+    public BidAuctionPlacingConsumer(AuctionDbContext auctionDbContext, IPublishEndpoint publishEndpoint, AuctionMetrics metrics)
     {
         _auctionDbContext = auctionDbContext;
         _publishEndpoint = publishEndpoint;
+        _metrics = metrics;
     }
     public async Task Consume(ConsumeContext<BidAuctionPlacing> context)
     {
@@ -22,8 +25,8 @@ public class BidAuctionPlacingConsumer : IConsumer<BidAuctionPlacing>
             var oldBid = auction.CurrentHighBid; ;
             auction.CurrentHighBid = context.Message.Amount;
             await _auctionDbContext.SaveChangesAsync();
-            Console.WriteLine("--> Получение сообщения - размещена заявка, AuctionId - " + context.Message.Id + ", ставка - "
-                + context.Message.Amount);
+            _metrics.BidAuction();
+            Console.WriteLine($"{DateTime.Now}--> Получение сообщения - размещена заявка, AuctionId - {context.Message.Id}, ставка - {context.Message.Amount}");
             await _publishEndpoint.Publish(new BidAuctionPlaced(oldBid, context.Message.CorrelationId));
             return;
         }

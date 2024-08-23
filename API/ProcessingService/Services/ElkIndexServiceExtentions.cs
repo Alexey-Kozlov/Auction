@@ -21,10 +21,4 @@ public static class ElkIndexServiceExtentions
             p.UsePostgres();
         });
     }
-    public static void ElkIndexCreateServices(this IServiceCollection services)
-    {
-        EndpointConvention.Map<ElkIndexCreating>(new Uri("queue:elk-elk-index"));
-        EndpointConvention.Map<ElkIndexResponse>(new Uri("queue:notification-elk-index-creating-notification"));
-        return;
-    }
 }

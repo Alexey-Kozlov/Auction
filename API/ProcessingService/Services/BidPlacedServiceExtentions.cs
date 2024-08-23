@@ -20,15 +20,4 @@ public static class BidCreateServiceExtentions
             p.UsePostgres();
         });
     }
-    public static void AddBidPlacedServices(this IServiceCollection services)
-    {
-        EndpointConvention.Map<BidFinanceGranting>(new Uri("queue:finance-bid-finance-granting"));
-        EndpointConvention.Map<BidAuctionPlacing>(new Uri("queue:auction-bid-auction-placing"));
-        EndpointConvention.Map<BidSearchPlacing>(new Uri("queue:search-bid-search-placing"));
-        EndpointConvention.Map<BidNotificationProcessing>(new Uri("queue:notification-bid-notification-processing"));
-        EndpointConvention.Map<RollbackBidFinanceGranted>(new Uri("queue:finance-rollback-bid-finance-granted"));
-        EndpointConvention.Map<RollbackBidAuctionPlaced>(new Uri("queue:auction-rollback-bid-auction-placed"));
-        EndpointConvention.Map<RollbackBidPlaced>(new Uri("queue:bids-rollback-bid-placed"));
-        return;
-    }
 }

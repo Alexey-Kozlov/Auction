@@ -12,6 +12,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public State AuctionCreatedElkState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
+    private IConfiguration configuration { get; }
 
     public Event<RequestAuctionCreate> RequestAuctionCreatingEvent { get; }
     public Event<AuctionCreated> AuctionCreatedEvent { get; }
@@ -22,8 +23,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public Event<AuctionCreatedElk> AuctionCreatedElkEvent { get; }
     public Event<GetAuctionCreateState> AuctionCreatedStateEvent { get; }
 
-    public CreateAuctionStateMachine()
+    public CreateAuctionStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -64,7 +66,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.ReservePrice = context.Message.ReservePrice;
             })
-            .Send(context => new AuctionCreating(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionCreating"]),
+                context => new AuctionCreating(
                 context.Message.Id,
                 context.Message.Title,
                 context.Message.Properties,
@@ -87,7 +91,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionCreatingBid(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionCreatingBid"]),
+                context => new AuctionCreatingBid(
                 context.Saga.Id,
                 context.Saga.AuctionEnd,
                 context.Saga.AuctionAuthor,
@@ -103,7 +109,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionCreatingImage(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionCreatingImage"]),
+                context => new AuctionCreatingImage(
                 context.Saga.Id,
                 context.Saga.Image,
                 context.Saga.CorrelationId))
@@ -118,7 +126,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionCreatingSearch(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionCreatingSearch"]),
+                context => new AuctionCreatingSearch(
                 context.Saga.Id,
                 context.Saga.Title,
                 context.Saga.Properties,
@@ -137,7 +147,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionCreatingNotification(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionCreatingNotification"]),
+                context => new AuctionCreatingNotification(
                 context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.Title,
@@ -153,21 +165,23 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionCreatingElk()
-            {
-                Id = context.Saga.Id,
-                Title = context.Saga.Title,
-                Properties = context.Saga.Properties,
-                Description = context.Saga.Description,
-                AuctionAuthor = context.Saga.AuctionAuthor,
-                AuctionEnd = context.Saga.AuctionEnd,
-                AuctionCreated = DateTime.UtcNow,
-                CorrelationId = context.Saga.CorrelationId,
-                ReservePrice = context.Saga.ReservePrice,
-                ItemSold = false,
-                Winner = "",
-                Amount = 0
-            })
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionCreatingElk"]),
+                context => new AuctionCreatingElk()
+                {
+                    Id = context.Saga.Id,
+                    Title = context.Saga.Title,
+                    Properties = context.Saga.Properties,
+                    Description = context.Saga.Description,
+                    AuctionAuthor = context.Saga.AuctionAuthor,
+                    AuctionEnd = context.Saga.AuctionEnd,
+                    AuctionCreated = DateTime.UtcNow,
+                    CorrelationId = context.Saga.CorrelationId,
+                    ReservePrice = context.Saga.ReservePrice,
+                    ItemSold = false,
+                    Winner = "",
+                    Amount = 0
+                })
             .TransitionTo(AuctionCreatedElkState));
     }
 

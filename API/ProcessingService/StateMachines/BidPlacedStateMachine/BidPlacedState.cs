@@ -13,4 +13,5 @@ public class BidPlacedState : SagaStateMachineInstance
     public int OldHighBid { get; set; }
     public DateTime LastUpdated { get; set; }
     public string ErrorMessage { get; set; }
+
 }

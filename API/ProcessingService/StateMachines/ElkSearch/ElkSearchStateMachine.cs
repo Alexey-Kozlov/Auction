@@ -13,9 +13,11 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
     public Event<ElkSearchRequest> RequestElkSearchEvent { get; }
     public Event<ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> ElkSearchCompletedEvent { get; }
     public Event<AuctionCreatedNotification> ElkSearchNotificationSendedEvent { get; }
+    private IConfiguration configuration { get; }
 
-    public ElkSearchStateMachine()
+    public ElkSearchStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -42,7 +44,9 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
             })
-            .Send(context => new ElkSearchCreating(
+            .Send(
+                new Uri(configuration["QueuePaths:ElkSearchCreating"]),
+                context => new ElkSearchCreating(
                 context.Message.Id,
                 context.Saga.CorrelationId,
                 context.Message.SearchTerm,
@@ -61,7 +65,9 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new ElkSearchResponse<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(
+            .Send(
+                new Uri(configuration["QueuePaths:ElkSearchResponse"]),
+                context => new ElkSearchResponse<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(
                 context.Message.CorrelationId,
                 context.Saga.Term,
                 context.Message.ResultType,

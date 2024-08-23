@@ -19,9 +19,11 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedSearch> AuctionFinishedSearchEvent { get; }
     public Event<AuctionFinishedElk> AuctionFinishedElkEvent { get; }
     public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
+    private IConfiguration configuration { get; }
 
-    public FinishAuctionStateMachine()
+    public FinishAuctionStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -56,7 +58,9 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionFinishing(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishing"]),
+                context => new AuctionFinishing(
                 context.Message.Id,
                 context.Message.ItemSold,
                 context.Message.Winner,
@@ -75,7 +79,9 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionFinishingFinance(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishingFinance"]),
+                context => new AuctionFinishingFinance(
                 context.Saga.Id,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
@@ -90,7 +96,9 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionFinishingSearch(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishingSearch"]),
+                context => new AuctionFinishingSearch(
                 context.Saga.Id,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
@@ -107,7 +115,9 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionFinishingNotification(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishingNotification"]),
+                context => new AuctionFinishingNotification(
                 context.Saga.Id,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
@@ -123,7 +133,9 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionFinishingElk(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishingElk"]),
+                context => new AuctionFinishingElk(
                 context.Saga.Id,
                 context.Saga.ItemSold,
                 context.Saga.Winner,

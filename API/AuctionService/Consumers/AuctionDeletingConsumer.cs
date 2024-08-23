@@ -1,4 +1,5 @@
 using AuctionService.Data;
+using AuctionService.Metrics;
 using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,13 @@ public class AuctionDeletingConsumer : IConsumer<AuctionDeleting>
 {
     private readonly AuctionDbContext _auctionDbContext;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly AuctionMetrics _metrics;
 
-    public AuctionDeletingConsumer(AuctionDbContext auctionDbContext, IPublishEndpoint publishEndpoint)
+    public AuctionDeletingConsumer(AuctionDbContext auctionDbContext, IPublishEndpoint publishEndpoint, AuctionMetrics metrics)
     {
         _auctionDbContext = auctionDbContext;
         _publishEndpoint = publishEndpoint;
+        _metrics = metrics;
     }
     public async Task Consume(ConsumeContext<AuctionDeleting> context)
     {
@@ -29,6 +32,7 @@ public class AuctionDeletingConsumer : IConsumer<AuctionDeleting>
         _auctionDbContext.Auctions.Remove(auction);
         await _auctionDbContext.SaveChangesAsync();
         await _publishEndpoint.Publish(new AuctionDeleted(context.Message.CorrelationId));
+        _metrics.DeleteAuction();
         Console.WriteLine("--> Получение сообщения - аукцион удален - " + context.Message.Id);
     }
 }

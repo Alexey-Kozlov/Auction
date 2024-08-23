@@ -23,9 +23,11 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<AuctionUpdatedSearch> AuctionUpdatedSearchEvent { get; }
     public Event<AuctionUpdatedElk> AuctionUpdatedElkEvent { get; }
     public Event<GetAuctionUpdateState> AuctionUpdatedStateEvent { get; }
+    private IConfiguration configuration { get; }
 
-    public UpdateAuctionStateMachine()
+    public UpdateAuctionStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -67,7 +69,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionUpdating(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdating"]),
+                context => new AuctionUpdating(
                 context.Message.Id,
                 context.Message.Title,
                 context.Message.Properties,
@@ -89,7 +93,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionUpdatingBid(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdatingBid"]),
+                context => new AuctionUpdatingBid(
                 context.Saga.Id,
                 context.Saga.AuctionEnd,
                 context.Saga.CorrelationId))
@@ -103,7 +109,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionUpdatingGateway(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdatingGateway"]),
+                context => new AuctionUpdatingGateway(
                 context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionUpdatedGatewayState));
@@ -116,7 +124,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionUpdatingImage(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdatingImage"]),
+                context => new AuctionUpdatingImage(
                 context.Saga.Id,
                 context.Saga.Image,
                 context.Saga.CorrelationId))
@@ -130,7 +140,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionUpdatingSearch(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdatingSearch"]),
+                context => new AuctionUpdatingSearch(
                 context.Saga.Id,
                 context.Saga.Title,
                 context.Saga.Properties,
@@ -148,7 +160,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionUpdatingNotification(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdatingNotification"]),
+                context => new AuctionUpdatingNotification(
                 context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))
@@ -164,7 +178,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 //по окончании обновления - удаляем изображение для экономии места в БД
                 context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
             })
-            .Send(context => new AuctionUpdatingElk(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionUpdatingElk"]),
+                context => new AuctionUpdatingElk(
                 context.Saga.Id,
                 context.Saga.Title,
                 context.Saga.Properties,

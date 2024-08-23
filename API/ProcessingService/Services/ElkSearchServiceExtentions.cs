@@ -21,10 +21,4 @@ public static class ElkSearchServiceExtentions
             p.UsePostgres();
         });
     }
-    public static void ElkSearchCreateServices(this IServiceCollection services)
-    {
-        EndpointConvention.Map<ElkSearchCreating>(new Uri("queue:elk-search-creating-elk"));
-        EndpointConvention.Map<ElkSearchResponse<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>>(new Uri("queue:notification-elk-search-creating-notification"));
-        return;
-    }
 }

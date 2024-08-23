@@ -1,11 +1,14 @@
 
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using SearchService;
 using SearchService.Consumers;
 using SearchService.Data;
 using SearchService.Services;
 using Common.Utils;
+using OpenTelemetry.Metrics;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +40,19 @@ builder.Services.AddMassTransit(p =>
     });
 });
 
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(opt => opt
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MeterName")))
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+        })
+);
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-// Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

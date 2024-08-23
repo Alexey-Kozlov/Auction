@@ -26,9 +26,11 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<AuctionDeletedSearch> AuctionDeletedSearchEvent { get; }
     public Event<AuctionDeletedElk> AuctionDeletedElkEvent { get; }
     public Event<GetAuctionDeleteState> AuctionDeletedStateEvent { get; }
+    private IConfiguration configuration { get; }
 
-    public DeleteAuctionStateMachine()
+    public DeleteAuctionStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -67,7 +69,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeleting(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeleting"]),
+                context => new AuctionDeleting(
                 context.Message.Id,
                 context.Message.AuctionAuthor,
                 context.Message.CorrelationId
@@ -84,7 +88,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingFinance(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingFinance"]),
+                context => new AuctionDeletingFinance(
                 context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))
@@ -98,7 +104,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingBid(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingBid"]),
+                context => new AuctionDeletingBid(
                 context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedBidState));
@@ -111,7 +119,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingGateway(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingGateway"]),
+                context => new AuctionDeletingGateway(
                 context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedGatewayState));
@@ -124,7 +134,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingImage(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingImage"]),
+                context => new AuctionDeletingImage(
                 context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedImageState));
@@ -137,7 +149,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingSearch(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingSearch"]),
+                context => new AuctionDeletingSearch(
                 context.Saga.Id,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedSearchState));
@@ -150,7 +164,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingNotification(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingNotification"]),
+                context => new AuctionDeletingNotification(
                 context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))
@@ -164,7 +180,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new AuctionDeletingElk(
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionDeletingElk"]),
+                context => new AuctionDeletingElk(
                 context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))

@@ -12,9 +12,11 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     public Event<ElkIndexRequest> RequestElkIndexEvent { get; }
     public Event<ElkIndexCreated> ElkIndexCompletedEvent { get; }
     public Event<ElkIndexResponseCompleted> ElkIndexNotificationSendedEvent { get; }
+    private IConfiguration configuration { get; }
 
-    public ElkIndexStateMachine()
+    public ElkIndexStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -50,7 +52,9 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 context.Saga.ItemNumber = context.Message.ItemNumber;
                 context.Saga.SessionId = context.Message.SessionId;
             })
-            .Send(context => new ElkIndexCreating(
+            .Send(
+                new Uri(configuration["QueuePaths:ElkIndexCreating"]),
+                context => new ElkIndexCreating(
                 context.Saga.CorrelationId,
                 context.Message.Item,
                 context.Saga.ItemNumber
@@ -67,7 +71,9 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new ElkIndexResponse(
+            .Send(
+                new Uri(configuration["QueuePaths:ElkIndexResponse"]),
+                context => new ElkIndexResponse(
                 context.Message.CorrelationId,
                 context.Message.Result,
                 context.Saga.LastItem,

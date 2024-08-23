@@ -23,9 +23,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<Fault<BidAuctionPlacing>> BidAuctionPlacedFaultedEvent { get; }
     public Event<Fault<BidPlacing>> BidPlacedFaultedEvent { get; }
     public Event<Fault<BidSearchPlacing>> BidSearchPlacedFaultedEvent { get; }
+    private IConfiguration configuration { get; }
 
-    public BidPlacedStateMachine()
+    public BidPlacedStateMachine(IServiceProvider services)
     {
+        configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
@@ -37,7 +39,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureCompleted();
         ConfigureAny();
         ConfigureFaulted();
+
     }
+
     private void ConfigureEvents()
     {
         Event(() => RequestBidPlaceEvent);
@@ -68,7 +72,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
             })
-            .Send(context => new BidFinanceGranting(
+            .Send(
+                new Uri(configuration["QueuePaths:BidFinanceGranting"]),
+                context => new BidFinanceGranting(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
@@ -87,7 +93,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new BidAuctionPlacing(
+            .Send(
+                new Uri(configuration["QueuePaths:BidAuctionPlacing"]),
+                context => new BidAuctionPlacing(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
@@ -118,15 +126,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.OldHighBid = context.Message.OldHighBid;
             })
             //если нужно посылать одинаковые сообщения в разные консьюмеры (очереди), то соглашения
-            //EndpointConvention.Map<тип сообщения> не работают, посылка идет только на одтин адрес
-            //поэтому в этом случае явно указываем адреса для рассылки
-            .Send(new Uri("queue:bids-bid-placing"), context => new BidPlacing(
-                context.Saga.Id,
-                context.Saga.Bidder,
-                context.Saga.Amount,
-                context.Saga.CorrelationId
-            ))
-            .Send(new Uri("queue:metrics-bid-added-metrics"), context => new BidPlacing(
+            //EndpointConvention.Map<тип сообщения> не работают, посылка идет только на один адрес
+            //поэтому можно явно указываем адреса для рассылки
+            .Send(
+                new Uri(configuration["QueuePaths:BidPlacing"]),
+                context => new BidPlacing(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
@@ -141,7 +145,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new RollbackBidFinanceGranted(
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidFinanceGranted"]),
+                context => new RollbackBidFinanceGranted(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
@@ -162,7 +168,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.BidId = context.Message.BidId;
             })
-            .Send(context => new BidSearchPlacing(
+            .Send(
+                new Uri(configuration["QueuePaths:BidSearchPlacing"]),
+                context => new BidSearchPlacing(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
@@ -179,13 +187,17 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new RollbackBidFinanceGranted(
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidFinanceGranted"]),
+                context => new RollbackBidFinanceGranted(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
-            .Send(context => new RollbackBidAuctionPlaced(
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidAuctionPlaced"]),
+                context => new RollbackBidAuctionPlaced(
                 context.Saga.Id,
                 context.Saga.OldHighBid,
                 context.Saga.Bidder,
@@ -203,7 +215,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new BidNotificationProcessing(
+            .Send(
+                new Uri(configuration["QueuePaths:BidNotificationProcessing"]),
+                context => new BidNotificationProcessing(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
@@ -221,19 +235,25 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(context => new RollbackBidFinanceGranted(
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidFinanceGranted"]),
+                context => new RollbackBidFinanceGranted(
                 context.Saga.Id,
                 context.Saga.Bidder,
                 context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
-            .Send(context => new RollbackBidAuctionPlaced(
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidAuctionPlaced"]),
+                context => new RollbackBidAuctionPlaced(
                 context.Saga.Id,
                 context.Saga.OldHighBid,
                 context.Saga.Bidder,
                 context.Saga.CorrelationId
             ))
-            .Send(context => new RollbackBidPlaced(
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidPlaced"]),
+                context => new RollbackBidPlaced(
                 context.Saga.BidId,
                 context.Saga.CorrelationId
             ))

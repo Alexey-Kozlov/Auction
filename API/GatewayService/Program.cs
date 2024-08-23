@@ -6,6 +6,8 @@ using GatewayService.Services;
 using GatewayService.Cache;
 using MassTransit;
 using GatewayService.Consumers;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
@@ -65,6 +67,17 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddScoped<GrpcImageClient>();
 builder.Services.AddScoped<ImageCache>();
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(opt => opt
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MeterName")))
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+        })
+);
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
