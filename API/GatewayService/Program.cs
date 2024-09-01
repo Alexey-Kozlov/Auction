@@ -62,7 +62,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration["Redis:Config"];
-    options.InstanceName = builder.Configuration["Redis:Instance"];
 });
 
 builder.Services.AddScoped<GrpcImageClient>();

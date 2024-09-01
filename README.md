@@ -10,6 +10,10 @@ REST, GRPC
 SignalR
 Saga Orchestration, StateMachine
 Redis cache
+Elastic Search
+OpenTelemetry
+Prometheus
+Grafana
 
 команды деплоя
 
@@ -27,18 +31,6 @@ docker build -f API/NotificationService/Dockerfile -t kozlovas/auction-notificat
 docker build -f API/ProcessingService/Dockerfile -t kozlovas/auction-processing-api .
 docker build -f API/SearchService/Dockerfile -t kozlovas/auction-search-api .
 docker build -f client-app/Dockerfile -t kozlovas/auction-front .
-
-пушим
-docker push kozlovas/auction-auction-api
-docker push kozlovas/auction-bidding-api
-docker push kozlovas/auction-finance-api
-docker push kozlovas/auction-gateway-api
-docker push kozlovas/auction-identity-api
-docker push kozlovas/auction-image-api
-docker push kozlovas/auction-notification-api
-docker push kozlovas/auction-processing-api
-docker push kozlovas/auction-search-api
-docker push kozlovas/auction-front
 
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts

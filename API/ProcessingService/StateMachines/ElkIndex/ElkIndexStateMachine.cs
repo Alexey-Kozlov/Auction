@@ -51,6 +51,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 context.Saga.LastItem = context.Message.LastItem;
                 context.Saga.ItemNumber = context.Message.ItemNumber;
                 context.Saga.SessionId = context.Message.SessionId;
+                context.Saga.AuctionCreated = context.Message.Item.AuctionCreated;
             })
             .Send(
                 new Uri(configuration["QueuePaths:ElkIndexCreating"]),

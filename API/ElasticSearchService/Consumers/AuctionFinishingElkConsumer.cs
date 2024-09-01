@@ -16,7 +16,7 @@ public class AuctionFinishingElkConsumer : IConsumer<AuctionFinishingElk>
     }
     public async Task Consume(ConsumeContext<AuctionFinishingElk> consumeContext)
     {
-        var response = await _client.Client.UpdateAsync<AuctionCreatingSearch, AuctionFinishingElk>(
+        var response = await _client.Client.UpdateAsync<AuctionCreatingElk, AuctionFinishingElk>(
             consumeContext.Message.Id.ToString(),
             p => p.Doc(consumeContext.Message));
         if (response.IsValidResponse)
@@ -27,7 +27,7 @@ public class AuctionFinishingElkConsumer : IConsumer<AuctionFinishingElk>
         {
             Console.WriteLine(response.ElasticsearchServerError);
         }
-        await _publishEndpoint.Publish(new AuctionCreatedElk(consumeContext.Message.CorrelationId));
+        await _publishEndpoint.Publish(new AuctionFinishedElk(consumeContext.Message.CorrelationId));
         Console.WriteLine("--> Получение сообщения завершить аукцион");
     }
 }

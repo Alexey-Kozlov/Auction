@@ -30,6 +30,9 @@ public class MappingProfiles : Profile
         .ForMember(dest => dest.AuctionEnd, opt => opt.MapFrom(src => src.AuctionEnd));
 
         CreateMap<Item, AuctionCreatingElk>()
-        .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.SoldAmount));
+        .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.SoldAmount))
+        .ForMember(dest => dest.AuctionAuthor, opt => opt.MapFrom(src => src.Seller))
+        .ForMember(dest => dest.AuctionCreated, opt => opt.MapFrom(src => src.CreateAt))
+        .ForMember(dest => dest.ItemSold, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.Winner)));
     }
 }
