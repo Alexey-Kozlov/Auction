@@ -69,7 +69,8 @@ export default function Listings() {
                     </div>
                     <div className='flex justify-center mt-4'>
 
-                        <AppPagination pageChanged={setPageNumber}
+                        <AppPagination 
+                            pageChanged={setPageNumber}
                             currentPage={params.pageNumber} 
                             totalPages={auctionsData.data?.result ? 
                                 auctionsData.data?.result.pageCount!

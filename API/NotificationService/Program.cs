@@ -80,11 +80,11 @@ builder.Services.AddMassTransit(p =>
     });
 });
 builder.Services.AddSignalR();
+
 builder.Services.AddOpenTelemetry()
     .WithMetrics(opt => opt
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddAspNetCoreInstrumentation()
-        .AddRuntimeInstrumentation()
+        .AddProcessInstrumentation()
         .AddOtlpExporter(options =>
         {
             options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);

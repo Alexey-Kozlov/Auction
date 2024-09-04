@@ -57,8 +57,9 @@ internal class Program
         builder.Services.AddOpenTelemetry()
             .WithMetrics(opt => opt
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricConfig:MetricGroup")))
-                .AddAspNetCoreInstrumentation()
-                .AddRuntimeInstrumentation()
+                //.AddAspNetCoreInstrumentation()
+                //.AddRuntimeInstrumentation()
+                .AddProcessInstrumentation()
                 .AddOtlpExporter(options =>
                 {
                     options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);

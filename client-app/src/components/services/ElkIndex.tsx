@@ -13,8 +13,8 @@ export default function ElkIndex() {
             await elkIndex(ses);
         }
         if(elkIndexEvent.find(p => p.eventName === 'ElkIndex' && p.ready)){
-            const ses: Session = {sessionid: sessionId}
-            doElkIndex(ses);
+            const sesion: Session = {sessionid: sessionId}
+            doElkIndex(sesion);
         }
     },[elkIndexEvent,sessionId,elkIndex]);
 

@@ -12,7 +12,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
 
     public Event<ElkSearchRequest> RequestElkSearchEvent { get; }
     public Event<ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> ElkSearchCompletedEvent { get; }
-    public Event<AuctionCreatedNotification> ElkSearchNotificationSendedEvent { get; }
+    public Event<ElkSearchResponseCompleted> ElkSearchNotificationSendedEvent { get; }
     private IConfiguration configuration { get; }
 
     public ElkSearchStateMachine(IServiceProvider services)

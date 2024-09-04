@@ -48,16 +48,17 @@ builder.Services.AddAuthentication(p =>
 builder.Services.AddControllers();
 builder.Services.AddCors();
 builder.Services.AddTransient<IAuthService, AuthService>();
+
 builder.Services.AddOpenTelemetry()
     .WithMetrics(opt => opt
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddAspNetCoreInstrumentation()
-        .AddRuntimeInstrumentation()
+        .AddProcessInstrumentation()
         .AddOtlpExporter(options =>
         {
             options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
         })
 );
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();

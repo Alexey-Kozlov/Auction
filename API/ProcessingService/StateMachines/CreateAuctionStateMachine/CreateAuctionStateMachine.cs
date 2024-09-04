@@ -192,6 +192,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
+                //очищаем поле изображения (если оно было), чтобы не засорять БД
+                context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Добавлено изображение";
             })
             .TransitionTo(CompletedState));
     }

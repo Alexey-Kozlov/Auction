@@ -175,8 +175,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                //по окончании обновления - удаляем изображение для экономии места в БД
-                context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
             })
             .Send(
                 new Uri(configuration["QueuePaths:AuctionUpdatingElk"]),
@@ -197,6 +195,8 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
+                //по окончании обновления - удаляем изображение для экономии места в БД
+                context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
             })
             .TransitionTo(CompletedState));
     }
