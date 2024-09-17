@@ -9,10 +9,10 @@ public class ElkClient
     public ElasticsearchClient Client;
     public ElkClient(IConfiguration configuration)
     {
-        var url = configuration.GetValue<string>("ElasticSettings:Url");
-        var fp = configuration.GetValue<string>("ElasticSettings:FingerPrint");
-        var user = configuration.GetValue<string>("ElasticSettings:User");
-        var password = configuration.GetValue<string>("ElasticSettings:Password");
+        var url = configuration["elk:host"];
+        var fp = configuration["elk:fingerprint"];
+        var user = configuration["elk:username"];
+        var password = configuration["elk:password"];
 
         var settings = new ElasticsearchClientSettings(new Uri(url))
         .DefaultIndex("search_index")

@@ -10,6 +10,15 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddVault(options =>
+          {
+              var vaultOptions = builder.Configuration.GetSection("Vault");
+              options.Address = vaultOptions["Address"];
+              options.Role = vaultOptions["VAULT_ROLE_ID"];
+              options.SecretPathRt = vaultOptions["SecretPathRt"];
+              options.SecretPathApi = vaultOptions["SecretPathApi"];
+              options.Secret = vaultOptions["VAULT_SECRET_ID"];
+          });
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = null;
@@ -27,7 +36,7 @@ builder.Services.AddAuthentication(p =>
     p.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("ApiSettings:Secret"))),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["api:secret"])),
         ValidateIssuer = false,
         ValidateAudience = false
     };
@@ -39,10 +48,10 @@ builder.Services.AddMassTransit(p =>
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("gateway", false));
     p.UsingRabbitMq((context, config) =>
     {
-        config.Host(builder.Configuration["RabbitMq:Host"], "/", p =>
+        config.Host(builder.Configuration["rt:host"], "/", p =>
         {
-            p.Username(builder.Configuration.GetValue("RabbitMq:UserName", "guest"));
-            p.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
+            p.Username(builder.Configuration["rt:password"]);
+            p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);
     });

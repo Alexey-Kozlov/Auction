@@ -19,7 +19,7 @@ public class AuthService : IAuthService
     public AuthService(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _db = db;
-        _secretKey = configuration.GetValue<string>("ApiSettings:Secret");
+        _secretKey = configuration["api:secret"];
         _userManager = userManager;
     }
     public async Task<ApiResponse<object>> Register(RegisterRequestDTO registerRequestDTO)

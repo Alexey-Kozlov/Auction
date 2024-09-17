@@ -9,11 +9,27 @@ using Microsoft.IdentityModel.Tokens;
 using IdentityService.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddVault(options =>
+          {
+              var vaultOptions = builder.Configuration.GetSection("Vault");
+              options.Address = vaultOptions["Address"];
+              options.Role = vaultOptions["VAULT_ROLE_ID"];
+              options.SecretPathPg = vaultOptions["SecretPathPg"];
+              options.SecretPathApi = vaultOptions["SecretPathApi"];
+              options.Secret = vaultOptions["VAULT_SECRET_ID"];
+          });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var conStrBuilder = new NpgsqlConnectionStringBuilder();
+    conStrBuilder.Password = builder.Configuration["pg:password"];
+    conStrBuilder.Username = builder.Configuration["pg:username"];
+    conStrBuilder.Database = builder.Configuration["pg:database"];
+    conStrBuilder.Host = builder.Configuration["pg:host"];
+
+    options.UseNpgsql(conStrBuilder.ConnectionString);
 });
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
@@ -40,7 +56,7 @@ builder.Services.AddAuthentication(p =>
     p.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetValue<string>("ApiSettings:Secret"))),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["api:secret"])),
         ValidateIssuer = false,
         ValidateAudience = false
     };
@@ -62,7 +78,6 @@ builder.Services.AddOpenTelemetry()
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
-//app.UseStaticFiles();
 
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
