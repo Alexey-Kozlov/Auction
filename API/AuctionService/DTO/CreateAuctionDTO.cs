@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProcessingService.DTO;
+namespace AuctionService.DTO;
 
 public record CreateAuctionDTO
 (

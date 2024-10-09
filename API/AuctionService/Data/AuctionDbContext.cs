@@ -11,16 +11,30 @@ public class AuctionDbContext : DbContext
     }
 
     public DbSet<Auction> Auctions { get; set; }
+    public DbSet<EventsLog> EventsLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new AuctionConfiguration());
         modelBuilder.ApplyConfiguration(new ItemConfiguration());
+        modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
     }
 
 }
 
+public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
+{
+    public void Configure(EntityTypeBuilder<EventsLog> builder)
+    {
+        builder.ToTable("EventsLog").HasKey(p => p.Id).HasName("PK_EventsLogId");
+        builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
+        builder.Property(p => p.CreateAt).HasColumnType("timestamp with time zone").HasColumnName("CreateAt").IsRequired(true);
+        builder.Property(p => p.Aggregate).HasColumnType("jsonb").HasColumnName("Aggregate").IsRequired(true);
+        builder.HasIndex(p => p.Id).HasDatabaseName("PK_EventsLog");
+        builder.HasIndex(p => p.CreateAt).HasDatabaseName("IX_EventsLog_CreateAt");
+    }
+}
 public class AuctionConfiguration : IEntityTypeConfiguration<Auction>
 {
     public void Configure(EntityTypeBuilder<Auction> builder)

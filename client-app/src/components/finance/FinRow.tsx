@@ -1,4 +1,4 @@
-import { useGetAuctionByIdQuery } from '../../api/AuctionApi';
+import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { FinanceItem } from '../../store/types';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
 import { Checkbox } from 'flowbite-react';
@@ -10,7 +10,7 @@ type Props = {
 }
 
 export default function FinRow({ item }: Props) {
-    const auction = useGetAuctionByIdQuery(item.id, {
+    const auction = useGetDetailedViewDataQuery(item.id, {
         skip: !item.id
     });
     return (

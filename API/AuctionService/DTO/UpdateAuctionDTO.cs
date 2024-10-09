@@ -1,4 +1,4 @@
-namespace ProcessingService.DTO;
+namespace AuctionService.DTO;
 public record UpdateAuctionDTO
 (
     Guid Id,

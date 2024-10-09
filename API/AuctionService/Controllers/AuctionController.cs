@@ -6,55 +6,102 @@ using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Common.Utils;
+using Microsoft.AspNetCore.Authorization;
+using AuctionService.Commands;
+using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Common.Contracts;
+using System.Security.Claims;
+using AuctionService.Bus;
+using MassTransit.DependencyInjection;
+using Confluent.Kafka;
 
 namespace AuctionService.Controllers;
-
-[ApiController]
 [Route("api/auctions")]
+[ApiController]
 public class AuctionController : ControllerBase
 {
     private readonly AuctionDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IPublishEndpoint _publishEndpointRabbit;
+    private readonly ICommandDispatcher _commandDispatcher;
+    private readonly ILogger<AuctionController> _logger;
+    private readonly Bind<ISecondBus, IPublishEndpoint> _publishEndpointKafka;
+    private readonly ITopicProducer<IMessage> _topicProducer;
+
 
     public AuctionController(AuctionDbContext context, IMapper mapper,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpointRabbit, ICommandDispatcher commandDispatcher,
+        ILogger<AuctionController> logger, ITopicProducer<IMessage> topicProducer)
     {
         _context = context;
         _mapper = mapper;
-        _publishEndpoint = publishEndpoint;
+        _publishEndpointRabbit = publishEndpointRabbit;
+        _commandDispatcher = commandDispatcher;
+        _logger = logger;
+        _topicProducer = topicProducer;
     }
 
-    [HttpGet]
-    public async Task<ApiResponse<List<AuctionDTO>>> GetAllAuctions(string date)
+
+    //[Authorize]
+    [HttpPost("createauction")]
+    public async Task CreateAuction([FromBody] CreateAuctionDTO par)
     {
-        var query = _context.Auctions
-            .Include(p => p.Item)
-            .OrderBy(p => p.Item.First().Title).AsQueryable();
-        if (!string.IsNullOrEmpty(date))
+        var cmd = _mapper.Map<CreateAuctionCommand>(par);
+        cmd.EditUser = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _commandDispatcher.SendAsync(cmd);
+    }
+
+    //[Authorize]
+    [HttpPost("updateauction")]
+    public async Task UpdateAuction([FromBody] UpdateAuctionDTO par)
+    {
+        var cmd = _mapper.Map<UpdateAuctionCommand>(par);
+        cmd.EditUser = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _commandDispatcher.SendAsync(cmd);
+    }
+
+    //[Authorize]
+    [HttpPost("deleteauction")]
+    public async Task DeleteAuction([FromBody] DeleteAuctionDTO par)
+    {
+        var cmd = new DeleteAuctionCommand
         {
-            query = query.Where(p => p.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
+            EditUser = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault(),
+            Id = par.Id,
+            Type = typeof(DeleteAuctionCommand).ToString()
+        };
+        await _commandDispatcher.SendAsync(cmd);
+    }
+
+    [HttpPost("convert")]
+    public async Task<string> Convert()
+    {
+        var i = 0;
+        JsonSerializerOptions options = new()
+        {
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        foreach (var item in await _context.Auctions.Include(p => p.Item).ToListAsync())
+        {
+            //если уже перенесли запись - пропускаем
+            if (await _context.EventsLogs.FirstOrDefaultAsync(p => p.Id == item.Id) != null)
+            {
+                continue;
+            }
+            i++;
+            var cmd = _mapper.Map<TransferAuctionCommand>(item);
+            _context.EventsLogs.Add(new EventsLog
+            {
+                Id = item.Id,
+                CreateAt = item.CreateAt,
+                Aggregate = JsonDocument.Parse(JsonSerializer.Serialize(cmd, cmd.GetType(), options))
+            });
         }
-        return new ApiResponse<List<AuctionDTO>>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = _mapper.Map<List<AuctionDTO>>(await query.ToListAsync())
-        };
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ApiResponse<AuctionDTO>> GetAuctionById(Guid id)
-    {
-        var auction = await _context.Auctions
-            .Include(p => p.Item)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        return new ApiResponse<AuctionDTO>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = _mapper.Map<AuctionDTO>(auction ?? new Auction())
-        };
+        await _context.SaveChangesAsync();
+        return await Task.FromResult("Обработано " + i.ToString() + " записей.");
     }
 }

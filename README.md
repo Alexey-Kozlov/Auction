@@ -56,3 +56,9 @@ dotnet add package AuctionContracts
 
 kubectl delete deployment auction-front
 kubectl apply -f front.yml
+
+миграции
+
+добавление - dotnet ef migrations add "новая_миграция"
+удаление - dotnet ef migrations remove
+применение изменений в БД - dotnet ef database update

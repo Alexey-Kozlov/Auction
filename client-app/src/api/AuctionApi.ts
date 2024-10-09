@@ -19,7 +19,7 @@ const auctionApi = createApi({
   endpoints: (builder) => ({
     getDetailedViewData: builder.query<ApiResponseNet<Auction>, string>({
       query: (id) => ({
-        url: `/auctions/${id}`,
+        url: `/search/${id}`,
       }),
       transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
         PostApiProcess(response);
@@ -53,26 +53,12 @@ const auctionApi = createApi({
         PostErrorApiProcess(response);
       },
       providesTags: ["auctions"],
-    }),
-    getAuctionById: builder.query<ApiResponseNet<Auction>, string>({
-      query: (id) => ({
-        url: "/search/" + id,
-      }),
-      transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      providesTags: ["auctions"],
-    }),
+    })
   }),
 });
 
 export const {
   useGetAuctionsQuery,
-  useGetAuctionByIdQuery,
   useGetDetailedViewDataQuery,
 } = auctionApi;
 export default auctionApi;

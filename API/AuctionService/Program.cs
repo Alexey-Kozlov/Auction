@@ -10,6 +10,10 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using AuctionService.Metrics;
 using Npgsql;
+using AuctionService.Commands;
+using Confluent.Kafka;
+using AuctionService.Bus;
+using Common.Contracts;
 
 internal class Program
 {
@@ -40,11 +44,11 @@ internal class Program
 
         });
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-        builder.Services.AddMassTransit(p =>
+        builder.Services.AddMassTransit(busConfigurator =>
         {
-            p.AddConsumersFromNamespaceContaining<AuctionCreatingConsumer>();
-            p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
-            p.UsingRabbitMq((context, config) =>
+            busConfigurator.AddConsumersFromNamespaceContaining<AuctionCreatingConsumer>();
+            busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
+            busConfigurator.UsingRabbitMq((context, config) =>
             {
                 config.Host(builder.Configuration["rt:host"], "/", p =>
                 {
@@ -52,6 +56,28 @@ internal class Program
                     p.Password(builder.Configuration["rt:password"]);
                 });
                 config.ConfigureEndpoints(context);
+            });
+        });
+
+        builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
+        {
+            busConfigurator.UsingInMemory((context, config) =>
+            {
+                config.ConfigureEndpoints(context);
+            });
+            busConfigurator.AddRider(r =>
+            {
+                r.AddConsumer<TestConsumer>();
+                r.AddProducer<IMessage>(builder.Configuration["Kafka_Topic"]);
+                r.UsingKafka((context, k) =>
+                {
+                    k.Host(builder.Configuration["Kafka_Host"]);
+                    k.TopicEndpoint<IMessage>(builder.Configuration["Kafka_Topic"], "consumerGroup", e =>
+                    {
+                        e.ConfigureConsumer<TestConsumer>(context);
+                        e.CreateIfMissing();
+                    });
+                });
             });
         });
 
@@ -95,7 +121,15 @@ internal class Program
 
         builder.Services.AddSingleton<AuctionMetrics>();
 
+        //сервисы для редактирования аукционов по паттерну EventSourcing
+        builder.Services.AddScoped<ICommandHandler, CommandHandler>();
+        builder.Services.AddScoped<ICommandDispatcher, CommandDispatcher>();
+
+        builder.Services.Configure<ProducerConfig>(builder.Configuration.GetSection(nameof(ProducerConfig)));
+
+
         var app = builder.Build();
+
 
         app.Use(async (context, next) =>
         {

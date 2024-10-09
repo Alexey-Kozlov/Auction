@@ -1,4 +1,4 @@
-namespace ProcessingService.DTO;
+namespace AuctionService.DTO;
 public record DeleteAuctionDTO
 (
      Guid Id,
