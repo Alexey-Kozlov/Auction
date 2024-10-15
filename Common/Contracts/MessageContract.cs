@@ -17,17 +17,5 @@ public enum MessageType
 
 }
 
-public interface IMessage
-{
-      string Data { get; }
-}
 
-public class Message : IMessage
-{
-      public string Data { get; init; }
-      public Message(string message)
-      {
-            Data = message;
-      }
-}
 

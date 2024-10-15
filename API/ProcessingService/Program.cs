@@ -10,8 +10,11 @@ using ProcessingService.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
+using ProcessingService;
+using Common.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Configuration.AddVault(options =>
           {
               var vaultOptions = builder.Configuration.GetSection("Vault");
@@ -56,6 +59,7 @@ builder.Services.AddAuthentication(p =>
     };
 });
 
+//Шина для обработки сообщений RabbitMq
 builder.Services.AddMassTransit(p =>
 {
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
@@ -75,6 +79,23 @@ builder.Services.AddMassTransit(p =>
             p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);
+    });
+});
+
+//добавляем шину для обработки сообщений Kafka
+builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
+{
+    busConfigurator.UsingInMemory((context, config) =>
+    {
+        config.ConfigureEndpoints(context, SnakeCaseEndpointNameFormatter.Instance);
+    });
+    busConfigurator.AddRider(r =>
+    {
+        r.AddProducer<BaseStateContract>(builder.Configuration["Kafka_Topic_Event"]);
+        r.UsingKafka((context, k) =>
+        {
+            k.Host(builder.Configuration["Kafka_Host"]);
+        });
     });
 });
 

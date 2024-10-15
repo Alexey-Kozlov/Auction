@@ -2,7 +2,6 @@ using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.DTO;
 using SearchService.Entities;
-using SearchService.Services;
 
 namespace SearchService.Controllers;
 
@@ -10,9 +9,9 @@ namespace SearchService.Controllers;
 [Route("api/search")]
 public class SearchController : ControllerBase
 {
-    private readonly SearchLogic _search;
+    private readonly Services.SearchService _search;
 
-    public SearchController(SearchLogic search)
+    public SearchController(Services.SearchService search)
     {
         _search = search;
     }

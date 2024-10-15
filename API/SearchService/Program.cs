@@ -1,4 +1,3 @@
-
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Consumers;
@@ -6,7 +5,6 @@ using SearchService.Data;
 using SearchService.Services;
 using Common.Utils;
 using OpenTelemetry.Metrics;
-using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
 using Npgsql;
@@ -38,7 +36,7 @@ builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
 {
     config.Timeout = TimeSpan.FromSeconds(300);
 });
-builder.Services.AddScoped<SearchLogic>();
+builder.Services.AddScoped<SearchService.Services.SearchService>();
 
 builder.Services.AddMassTransit(p =>
 {
@@ -70,10 +68,5 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-//инициализация БД поиска из сервиса Auction
-// app.Lifetime.ApplicationStarted.Register(async () =>
-// {
-//     await DbInitializer.InitDb(app);
-// });
 
 app.Run();

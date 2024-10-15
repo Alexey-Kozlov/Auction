@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{C7B7F817-2E49-4A94-B34C-ED8AB2ECD4A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuctionService", "API\AuctionService\AuctionService.csproj", "{5FB59FFB-7467-4C02-89C5-D6E001F2A118}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcingService", "API\EventSourcingService\EventSourcingService.csproj", "{5FB59FFB-7467-4C02-89C5-D6E001F2A118}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchService", "API\SearchService\SearchService.csproj", "{36E28295-58ED-49F9-A1FE-F0F937F63699}"
 EndProject

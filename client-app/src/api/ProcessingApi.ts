@@ -12,7 +12,7 @@ const processingApi = createApi({
   //refetchOnMountOrArgChange: true,
   reducerPath: "processingApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL + `/api`,
+    baseUrl: process.env.REACT_APP_API_URL + `/api/processing`,
     prepareHeaders: (headers: Headers, api) => {
       const token = AddTokenHeader();
       if (token) {
@@ -24,7 +24,7 @@ const processingApi = createApi({
   endpoints: (builder) => ({
     placeBidForAuction: builder.mutation<any, PlaceBidParams>({
       query: (params) => ({
-        url: "/processing/placebid",
+        url: "/placebid",
         method: "post",
         headers: {
           "Content-type": "application/json",
@@ -42,7 +42,7 @@ const processingApi = createApi({
     }),
     createAuction: builder.mutation<ApiResponseNet<{}>, AuctionUpdated>({
       query: (params) => ({
-        url: "/processing/createauction",
+        url: "/createauction",
         method: "post",
         headers: {
           "content-type": "application/json",
@@ -60,7 +60,7 @@ const processingApi = createApi({
     }),
     updateAuction: builder.mutation<ApiResponseNet<{}>, AuctionUpdated>({
       query: (params) => ({
-        url: "/auctions/updateauction",
+        url: "/updateauction",
         method: "post",
         headers: {
           "Content-type": "application/json",
@@ -78,7 +78,7 @@ const processingApi = createApi({
     }),
     deleteAuction: builder.mutation<ApiResponseNet<{}>, AuctionDeleted>({
       query: (params) => ({
-        url: `/processing/deleteauction`,
+        url: `/deleteauction`,
         method: "post",
         headers: {
           "content-type": "application/json",

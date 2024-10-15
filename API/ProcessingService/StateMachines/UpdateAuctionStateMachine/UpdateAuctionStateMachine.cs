@@ -1,5 +1,6 @@
 using Common.Contracts;
 using MassTransit;
+using ProcessingService.Activities.AuctionUpdate;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionState>
@@ -11,6 +12,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public State AuctionUpdatedNotificationState { get; }
     public State AuctionUpdatedSearchState { get; }
     public State AuctionUpdatedElkState { get; }
+    public State CommitAuctionUpdatedState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
@@ -22,6 +24,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<AuctionUpdatedNotification> AuctionUpdatedNotificationEvent { get; }
     public Event<AuctionUpdatedSearch> AuctionUpdatedSearchEvent { get; }
     public Event<AuctionUpdatedElk> AuctionUpdatedElkEvent { get; }
+    public Event<CommitAuctionUpdatedContract> CommitAuctionUpdatedEvent { get; }
     public Event<GetAuctionUpdateState> AuctionUpdatedStateEvent { get; }
     private IConfiguration configuration { get; }
 
@@ -38,6 +41,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         ConfigureAuctionUpdatedSearch();
         ConfigureAuctionUpdatedNotification();
         ConfigureAuctionUpdatedElk();
+        ConfigureCommitUpdatingAuction();
         ConfigureCompleted();
         ConfigureAny();
     }
@@ -52,6 +56,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         Event(() => AuctionUpdatedSearchEvent);
         Event(() => AuctionUpdatedElkEvent);
         Event(() => AuctionUpdatedStateEvent);
+        Event(() => CommitAuctionUpdatedEvent);
     }
     private void ConfigureInitialState()
     {
@@ -69,18 +74,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionUpdating"]),
-                context => new AuctionUpdating(
-                context.Message.Id,
-                context.Message.Title,
-                context.Message.Properties,
-                context.Message.Image,
-                context.Message.Description,
-                context.Message.AuctionAuthor,
-                context.Message.AuctionEnd,
-                context.Message.CorrelationId
-            ))
+            .Activity(p => p.OfType<UpdatingAuctionActivity>())
             .TransitionTo(AuctionUpdatedState)
         );
     }
@@ -197,6 +191,18 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 //по окончании обновления - удаляем изображение для экономии места в БД
                 context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
+            })
+            .Activity(p => p.OfType<CommitUpdatingAuctionActivity>())
+            .TransitionTo(CommitAuctionUpdatedState));
+    }
+
+    private void ConfigureCommitUpdatingAuction()
+    {
+        During(CommitAuctionUpdatedState,
+        When(CommitAuctionUpdatedEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .TransitionTo(CompletedState));
     }

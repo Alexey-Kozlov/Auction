@@ -10,12 +10,12 @@ using AutoMapper;
 
 namespace SearchService.Services;
 
-public class SearchLogic
+public class SearchService
 {
     private readonly SearchDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMapper _mapper;
-    public SearchLogic(IMapper mapper, SearchDbContext context, IPublishEndpoint publishEndpoint)
+    public SearchService(IMapper mapper, SearchDbContext context, IPublishEndpoint publishEndpoint)
     {
         _mapper = mapper;
         _context = context;
