@@ -1,5 +1,6 @@
 using Common.Contracts;
 using MassTransit;
+using ProcessingService.Activities;
 using ProcessingService.Activities.AuctionDelete;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 

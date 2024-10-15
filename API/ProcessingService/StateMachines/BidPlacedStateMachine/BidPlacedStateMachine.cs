@@ -1,23 +1,28 @@
 using Common.Contracts;
 using MassTransit;
+using ProcessingService.Activities.BidPlaced;
 
 namespace ProcessingService.StateMachines.BidPlacedStateMachine;
 public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
 {
+    public State AfterEventSourcingState { get; }
     public State FinanceGrantedState { get; }
     public State BidAuctionPlacedState { get; }
     public State BidPlacedState { get; }
     public State BidSearchPlacedState { get; }
     public State UserNotificationSetState { get; }
+    public State CommitBidPlacedState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
+    public Event<AfterBidPlacedContract> AfterBidPlacedEvent { get; }
     public Event<RequestBidPlace> RequestBidPlaceEvent { get; }
     public Event<BidFinanceGranted> BidFinanceGrantedEvent { get; }
     public Event<BidAuctionPlaced> BidAuctionPlacedEvent { get; }
     public Event<BidPlaced> BidPlacedEvent { get; }
     public Event<BidSearchPlaced> BidSearchPlacedEvent { get; }
     public Event<BidNotificationProcessed> BidNotificationProcessedEvent { get; }
+    public Event<CommitBidPlacedContract> CommitBidPlacedEvent { get; }
     public Event<GetBidPlaceState> GetBidPlaceStateEvent { get; }
     public Event<Fault<BidFinanceGranting>> BidFinanceGrantedFaultedEvent { get; }
     public Event<Fault<BidAuctionPlacing>> BidAuctionPlacedFaultedEvent { get; }
@@ -29,6 +34,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
+        ConfigureAfterBidPlaced();
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureFinanceGranted();
@@ -36,6 +42,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureBidPlaced();
         ConfigureBidSearchPlaced();
         ConfigureBidNotificationProcessed();
+        ConfigureCommitBidPlaced();
         ConfigureCompleted();
         ConfigureAny();
         ConfigureFaulted();
@@ -45,12 +52,14 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureEvents()
     {
         Event(() => RequestBidPlaceEvent);
+        Event(() => AfterBidPlacedEvent);
         Event(() => BidFinanceGrantedEvent);
         Event(() => BidAuctionPlacedEvent);
         Event(() => BidPlacedEvent);
         Event(() => BidSearchPlacedEvent);
         Event(() => BidNotificationProcessedEvent);
         Event(() => GetBidPlaceStateEvent);
+        Event(() => CommitBidPlacedEvent);
         Event(() => BidFinanceGrantedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
         Event(() => BidAuctionPlacedFaultedEvent, x => x.CorrelateById(
@@ -72,6 +81,23 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
             })
+            .Activity(p => p.OfType<BidPlacedActivity>())
+            .TransitionTo(AfterEventSourcingState)
+        );
+    }
+
+    private void ConfigureAfterBidPlaced()
+    {
+        During(AfterEventSourcingState,
+            When(AfterBidPlacedEvent)
+            .Then(context =>
+            {
+                context.Saga.Bidder = context.Saga.Bidder;
+                context.Saga.LastUpdated = DateTime.UtcNow;
+                context.Saga.Id = context.Saga.Id;
+                context.Saga.Amount = context.Saga.Amount;
+                context.Saga.CorrelationId = context.Saga.CorrelationId;
+            })
             .Send(
                 new Uri(configuration["QueuePaths:BidFinanceGranting"]),
                 context => new BidFinanceGranting(
@@ -83,7 +109,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(FinanceGrantedState)
         );
     }
-
     private void ConfigureFinanceGranted()
     {
         During(FinanceGrantedState,
@@ -264,8 +289,20 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureBidNotificationProcessed()
     {
         During(UserNotificationSetState,
-        //успешно оплатили ставку - переходим к этапу создания заявки        
         When(BidNotificationProcessedEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Activity(p => p.OfType<CommitBidPlacedActivity>())
+            .TransitionTo(CommitBidPlacedState)
+        );
+    }
+
+    private void ConfigureCommitBidPlaced()
+    {
+        During(CommitBidPlacedState,
+        When(CommitBidPlacedEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;

@@ -24,7 +24,7 @@ public class DeletingAuctionActivity : IStateMachineActivity<DeleteAuctionState,
 
     public async Task Execute(BehaviorContext<DeleteAuctionState, RequestAuctionDelete> context, IBehavior<DeleteAuctionState, RequestAuctionDelete> next)
     {
-        _logger.LogInformation($"Команда на создание записи в EventSourcing - команда DeleteAuction");
+        _logger.LogInformation($"{DateTime.Now} Команда на создание записи в EventSourcing - команда DeleteAuction");
         JsonSerializerOptions options = new()
         {
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
@@ -46,6 +46,6 @@ public class DeletingAuctionActivity : IStateMachineActivity<DeleteAuctionState,
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-auction-delete2");
     }
 }

@@ -12,6 +12,7 @@ using OpenTelemetry.Resources;
 using Npgsql;
 using ProcessingService;
 using Common.Contracts;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,7 +92,11 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
     });
     busConfigurator.AddRider(r =>
     {
-        r.AddProducer<BaseStateContract>(builder.Configuration["Kafka_Topic_Event"]);
+        r.AddProducer<BaseStateContract>(builder.Configuration["Kafka_Topic_Event"], new ProducerConfig
+        {
+            MessageMaxBytes = 30485880,
+            QueueBufferingMaxKbytes = 40000
+        });
         r.UsingKafka((context, k) =>
         {
             k.Host(builder.Configuration["Kafka_Host"]);

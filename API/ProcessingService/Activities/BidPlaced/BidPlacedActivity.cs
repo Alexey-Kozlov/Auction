@@ -1,18 +1,17 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Common.Contracts;
-using Common.Utils;
 using MassTransit;
-using ProcessingService.StateMachines.CreateAuctionStateMachine;
+using ProcessingService.StateMachines.BidPlacedStateMachine;
 
-namespace ProcessingService.Activities.AuctionCreate;
+namespace ProcessingService.Activities.BidPlaced;
 
-public class CreatingAuctionActivity : IStateMachineActivity<CreateAuctionState, RequestAuctionCreate>
+public class BidPlacedActivity : IStateMachineActivity<BidPlacedState, RequestBidPlace>
 {
     private readonly ITopicProducer<BaseStateContract> _topicProducer;
-    private readonly ILogger<CreatingAuctionActivity> _logger;
-    public CreatingAuctionActivity(ITopicProducer<BaseStateContract> topicProducer,
-        ILogger<CreatingAuctionActivity> logger)
+    private readonly ILogger<BidPlacedActivity> _logger;
+    public BidPlacedActivity(ITopicProducer<BaseStateContract> topicProducer,
+        ILogger<BidPlacedActivity> logger)
     {
         _topicProducer = topicProducer;
         _logger = logger;
@@ -23,7 +22,7 @@ public class CreatingAuctionActivity : IStateMachineActivity<CreateAuctionState,
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<CreateAuctionState, RequestAuctionCreate> context, IBehavior<CreateAuctionState, RequestAuctionCreate> next)
+    public async Task Execute(BehaviorContext<BidPlacedState, RequestBidPlace> context, IBehavior<BidPlacedState, RequestBidPlace> next)
     {
         _logger.LogInformation($"{DateTime.Now} Команда на создание записи в EventSourcing - команда CreateAuction");
         JsonSerializerOptions options = new()
@@ -32,21 +31,21 @@ public class CreatingAuctionActivity : IStateMachineActivity<CreateAuctionState,
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
-        var message = new CreateAuctionStateContract();
+        var message = new BidPlacedStateContract();
         message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CreateAuctionStateContract);
+        message.Type = nameof(BidPlacedStateContract);
         message.Data = JsonSerializer.Serialize(context.Saga, context.Saga.GetType(), options);
         await _topicProducer.Produce(message);
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<CreateAuctionState, RequestAuctionCreate, TException> context, IBehavior<CreateAuctionState, RequestAuctionCreate> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<BidPlacedState, RequestBidPlace, TException> context, IBehavior<BidPlacedState, RequestBidPlace> next) where TException : Exception
     {
         return next.Faulted(context);
     }
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-create");
+        context.CreateScope("request-bidplace");
     }
 }

@@ -25,6 +25,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public Event<AuctionCreatedElk> AuctionCreatedElkEvent { get; }
     public Event<CommitAuctionCreatedContract> CommitAuctionCreatedEvent { get; }
     public Event<GetAuctionCreateState> AuctionCreatedStateEvent { get; }
+    private string Image { get; set; }
 
     public CreateAuctionStateMachine(IServiceProvider services)
     {
@@ -66,10 +67,10 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 context.Saga.Properties = context.Message.Properties;
                 context.Saga.AuctionAuthor = context.Message.AuctionAuthor;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
-                context.Saga.Image = context.Message.Image;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.ReservePrice = context.Message.ReservePrice;
+                this.Image = context.Message.Image;
             })
             .Activity(p => p.OfType<CreatingAuctionActivity>())
             .TransitionTo(AuctionCreatedState)
@@ -106,7 +107,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 new Uri(configuration["QueuePaths:AuctionCreatingImage"]),
                 context => new AuctionCreatingImage(
                 context.Saga.Id,
-                context.Saga.Image,
+                this.Image,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionCreatedImageState));
     }
@@ -185,8 +186,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                //очищаем поле изображения (если оно было), чтобы не засорять БД
-                context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Добавлено изображение";
+                context.Saga.Image = string.IsNullOrEmpty(this.Image) ? "" : "Добавлено изображение";
             })
             .Activity(p => p.OfType<CommitCreatingAuctionActivity>())
             .TransitionTo(CommitAuctionCreatedState));

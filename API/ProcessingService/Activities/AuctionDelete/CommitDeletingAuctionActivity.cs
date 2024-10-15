@@ -37,6 +37,6 @@ public class CommitDeletingAuctionActivity : IStateMachineActivity<DeleteAuction
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-auction-delete");
     }
 }

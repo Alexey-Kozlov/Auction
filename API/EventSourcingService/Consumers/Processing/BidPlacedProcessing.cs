@@ -7,17 +7,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Consumers.Processing;
 
-public class AuctionCreateProcessing
+public class BidPlacedProcessing
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _context;
 
-    public AuctionCreateProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext context)
+    public BidPlacedProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext context)
     {
         _publishEndpoint = publishEndpoint;
         _context = context;
     }
-    public async Task ProcessingCreateAuctionState(ConsumeContext<BaseStateContract> context)
+    public async Task ProcessingBidPlacedState(ConsumeContext<BaseStateContract> context)
     {
         _context.EventsLogs.Add(new EventsLog
         {
@@ -28,10 +28,10 @@ public class AuctionCreateProcessing
             EventData = JsonDocument.Parse(context.Message.Data)
         });
         await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(new AuctionCreated(context.Message.CorrelationId));
+        await _publishEndpoint.Publish(new AfterBidPlacedContract(context.Message.CorrelationId));
     }
 
-    public async Task ProcessingCommitCreateAuctionEvent(ConsumeContext<BaseStateContract> context)
+    public async Task ProcessingCommitBidPlacedEvent(ConsumeContext<BaseStateContract> context)
     {
         var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CommandId == context.Message.CorrelationId);
         if (item == null)
@@ -40,6 +40,6 @@ public class AuctionCreateProcessing
         }
         item.Commited = true;
         await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(new CommitAuctionCreatedContract(context.Message.CorrelationId));
+        await _publishEndpoint.Publish(new CommitBidPlacedContract(context.Message.CorrelationId));
     }
 }

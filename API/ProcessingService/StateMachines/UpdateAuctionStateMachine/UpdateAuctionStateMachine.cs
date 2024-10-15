@@ -27,6 +27,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<CommitAuctionUpdatedContract> CommitAuctionUpdatedEvent { get; }
     public Event<GetAuctionUpdateState> AuctionUpdatedStateEvent { get; }
     private IConfiguration configuration { get; }
+    private string Image { get; set; }
 
     public UpdateAuctionStateMachine(IServiceProvider services)
     {
@@ -70,7 +71,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.Properties = context.Message.Properties;
                 context.Saga.AuctionAuthor = context.Message.AuctionAuthor;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
-                context.Saga.Image = context.Message.Image;
+                this.Image = context.Message.Image;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
@@ -122,7 +123,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 new Uri(configuration["QueuePaths:AuctionUpdatingImage"]),
                 context => new AuctionUpdatingImage(
                 context.Saga.Id,
-                context.Saga.Image,
+                this.Image,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionUpdatedImageState));
     }
@@ -189,8 +190,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                //по окончании обновления - удаляем изображение для экономии места в БД
-                context.Saga.Image = string.IsNullOrEmpty(context.Saga.Image) ? "" : "Обновление изображения";
+                context.Saga.Image = string.IsNullOrEmpty(this.Image) ? "" : "Обновление изображения";
             })
             .Activity(p => p.OfType<CommitUpdatingAuctionActivity>())
             .TransitionTo(CommitAuctionUpdatedState));

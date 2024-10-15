@@ -37,6 +37,6 @@ public class CommitCreatingAuctionActivity : IStateMachineActivity<CreateAuction
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-auction-create2");
     }
 }

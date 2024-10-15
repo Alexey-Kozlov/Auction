@@ -24,7 +24,7 @@ public class UpdatingAuctionActivity : IStateMachineActivity<UpdateAuctionState,
 
     public async Task Execute(BehaviorContext<UpdateAuctionState, RequestAuctionUpdate> context, IBehavior<UpdateAuctionState, RequestAuctionUpdate> next)
     {
-        _logger.LogInformation($"Команда на создание записи в EventSourcing - команда UpdateAuction");
+        _logger.LogInformation($"{DateTime.Now} Команда на создание записи в EventSourcing - команда UpdateAuction");
         JsonSerializerOptions options = new()
         {
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
@@ -32,11 +32,6 @@ public class UpdatingAuctionActivity : IStateMachineActivity<UpdateAuctionState,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
         var message = new UpdateAuctionStateContract();
-        //нужно удалить изображение из объекта - его не будем передавать в Kafka
-        //для этого делаем глубокую копию объекта и ее правим
-        var auctionString = JsonSerializer.Serialize(context.Saga, context.Saga.GetType(), options);
-        var auctionObject = JsonSerializer.Deserialize<UpdateAuctionState>(auctionString, options);
-        auctionObject.Image = "";
         message.Data = JsonSerializer.Serialize(context.Saga, context.Saga.GetType(), options);
         message.Type = nameof(UpdateAuctionStateContract);
         message.CorrelationId = context.Saga.CorrelationId;
@@ -51,6 +46,6 @@ public class UpdatingAuctionActivity : IStateMachineActivity<UpdateAuctionState,
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-auction-update2");
     }
 }

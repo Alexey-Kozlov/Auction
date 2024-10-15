@@ -99,6 +99,10 @@ public class BidPlacedStateContract : BaseStateContract
     public DateTime LastUpdated { get; set; }
     public string ErrorMessage { get; set; }
 }
+public record AfterBidPlacedContract
+(
+    Guid CorrelationId
+);
 
 public class CommitBidPlacingContract : BaseStateContract { }
 

@@ -1,5 +1,7 @@
 using Common.Contracts;
 using MassTransit;
+using ProcessingService.Activities.AuctionDelete;
+using ProcessingService.Activities.AuctionFinish;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
 public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionState>
@@ -9,6 +11,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public State AuctionFinishedNotificationState { get; }
     public State AuctionFinishedSearchState { get; }
     public State AuctionFinishedElkState { get; }
+    public State CommitAuctionFinishedState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
@@ -18,6 +21,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedNotification> AuctionFinishedNotificationEvent { get; }
     public Event<AuctionFinishedSearch> AuctionFinishedSearchEvent { get; }
     public Event<AuctionFinishedElk> AuctionFinishedElkEvent { get; }
+    public Event<CommitAuctionFinishedContract> CommitAuctionFinishedEvent { get; }
     public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
     private IConfiguration configuration { get; }
 
@@ -32,6 +36,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         ConfigureAuctionFinishedSearch();
         ConfigureAuctionFinishedNotification();
         ConfigureAuctionFinishedElk();
+        ConfigureCommitFinishingAuction();
         ConfigureCompleted();
         ConfigureGetState();
     }
@@ -44,6 +49,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         Event(() => AuctionFinishedSearchEvent);
         Event(() => AuctionFinishedStateEvent);
         Event(() => AuctionFinishedElkEvent);
+        Event(() => CommitAuctionFinishedEvent);
     }
     private void ConfigureInitialState()
     {
@@ -58,15 +64,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishing"]),
-                context => new AuctionFinishing(
-                context.Message.Id,
-                context.Message.ItemSold,
-                context.Message.Winner,
-                context.Message.Amount,
-                context.Message.CorrelationId
-            ))
+            .Activity(p => p.OfType<FinishingAuctionActivity>())
             .TransitionTo(AuctionFinishedState)
         );
     }
@@ -148,6 +146,18 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     {
         During(AuctionFinishedElkState,
         When(AuctionFinishedElkEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Activity(p => p.OfType<CommitFinishingAuctionActivity>())
+            .TransitionTo(CommitAuctionFinishedState));
+    }
+
+    private void ConfigureCommitFinishingAuction()
+    {
+        During(CommitAuctionFinishedState,
+        When(CommitAuctionFinishedEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;

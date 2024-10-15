@@ -39,11 +39,11 @@ public class EventSourcingEventConsumer : IConsumer<BaseStateContract>
                 await updateProcessing2.ProcessingCommitUpdateAuctionEvent(context);
                 break;
             case nameof(CreateAuctionStateContract):
-                var createProcessing = new AuctionCreateProcessing(_publishEndpoint, _context, _logger);
+                var createProcessing = new AuctionCreateProcessing(_publishEndpoint, _context);
                 await createProcessing.ProcessingCreateAuctionState(context);
                 break;
             case nameof(CommitAuctionCreatingContract):
-                var createProcessing2 = new AuctionCreateProcessing(_publishEndpoint, _context, _logger);
+                var createProcessing2 = new AuctionCreateProcessing(_publishEndpoint, _context);
                 await createProcessing2.ProcessingCommitCreateAuctionEvent(context);
                 break;
             case nameof(DeleteAuctionStateContract):
@@ -53,6 +53,22 @@ public class EventSourcingEventConsumer : IConsumer<BaseStateContract>
             case nameof(CommitAuctionDeletingContract):
                 var deleteProcessing2 = new AuctionDeleteProcessing(_publishEndpoint, _context);
                 await deleteProcessing2.ProcessingCommitDeleteAuctionEvent(context);
+                break;
+            case nameof(FinishAuctionStateContract):
+                var finishProcessing = new AuctionFinishProcessing(_publishEndpoint, _context);
+                await finishProcessing.ProcessingFinishAuctionState(context);
+                break;
+            case nameof(CommitAuctionFinishingContract):
+                var finishProcessing2 = new AuctionFinishProcessing(_publishEndpoint, _context);
+                await finishProcessing2.ProcessingCommitFinishAuctionEvent(context);
+                break;
+            case nameof(BidPlacedStateContract):
+                var bidplacedProcessing = new BidPlacedProcessing(_publishEndpoint, _context);
+                await bidplacedProcessing.ProcessingBidPlacedState(context);
+                break;
+            case nameof(CommitBidPlacingContract):
+                var bidplacedProcessing2 = new BidPlacedProcessing(_publishEndpoint, _context);
+                await bidplacedProcessing2.ProcessingCommitBidPlacedEvent(context);
                 break;
             default:
                 break;
