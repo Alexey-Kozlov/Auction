@@ -7,7 +7,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
 {
     public State AfterEventSourcingState { get; }
     public State FinanceGrantedState { get; }
-    public State BidAuctionPlacedState { get; }
+    public State GetCurrentBidState { get; }
     public State BidPlacedState { get; }
     public State BidSearchPlacedState { get; }
     public State UserNotificationSetState { get; }
@@ -18,14 +18,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<AfterBidPlacedContract> AfterBidPlacedEvent { get; }
     public Event<RequestBidPlace> RequestBidPlaceEvent { get; }
     public Event<BidFinanceGranted> BidFinanceGrantedEvent { get; }
-    public Event<BidAuctionPlaced> BidAuctionPlacedEvent { get; }
+    public Event<GetCurrentBid> GetCurrentBidEvent { get; }
     public Event<BidPlaced> BidPlacedEvent { get; }
     public Event<BidSearchPlaced> BidSearchPlacedEvent { get; }
     public Event<BidNotificationProcessed> BidNotificationProcessedEvent { get; }
     public Event<CommitBidPlacedContract> CommitBidPlacedEvent { get; }
     public Event<GetBidPlaceState> GetBidPlaceStateEvent { get; }
     public Event<Fault<BidFinanceGranting>> BidFinanceGrantedFaultedEvent { get; }
-    public Event<Fault<BidAuctionPlacing>> BidAuctionPlacedFaultedEvent { get; }
     public Event<Fault<BidPlacing>> BidPlacedFaultedEvent { get; }
     public Event<Fault<BidSearchPlacing>> BidSearchPlacedFaultedEvent { get; }
     private IConfiguration configuration { get; }
@@ -54,15 +53,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         Event(() => RequestBidPlaceEvent);
         Event(() => AfterBidPlacedEvent);
         Event(() => BidFinanceGrantedEvent);
-        Event(() => BidAuctionPlacedEvent);
+        Event(() => GetCurrentBidEvent);
         Event(() => BidPlacedEvent);
         Event(() => BidSearchPlacedEvent);
         Event(() => BidNotificationProcessedEvent);
         Event(() => GetBidPlaceStateEvent);
         Event(() => CommitBidPlacedEvent);
         Event(() => BidFinanceGrantedFaultedEvent, x => x.CorrelateById(
-            context => context.Message.Message.CorrelationId));
-        Event(() => BidAuctionPlacedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
         Event(() => BidPlacedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
@@ -80,6 +77,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.Id = context.Message.Id;
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
+                context.Saga.BidId = Guid.NewGuid();
             })
             .Activity(p => p.OfType<BidPlacedActivity>())
             .TransitionTo(AfterEventSourcingState)
@@ -112,43 +110,31 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureFinanceGranted()
     {
         During(FinanceGrantedState,
-        //успешно оплатили ставку - делаем запись о ставке в соответствующем аукционе
+        //успешно оплатили ставку - получаем последнюю максимальную ставку по указанному аукциону
         When(BidFinanceGrantedEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(
-                new Uri(configuration["QueuePaths:BidAuctionPlacing"]),
-                context => new BidAuctionPlacing(
+                new Uri(configuration["QueuePaths:GetLastBidPlaced"]),
+                context => new GetLastBidPlaced(
                 context.Saga.Id,
-                context.Saga.Bidder,
-                context.Saga.Amount,
                 context.Saga.CorrelationId
             ))
-            .TransitionTo(BidAuctionPlacedState),
-        //если ошибка при оплате - например, превышение имеющегося количества денег - 
-        //нет нужды делать корректироующую транзакцию, так как данные по оплате не заносились
-        //делаем запись в истории, делаем уведомление пользователю и переходим на конец процесса
-        When(BidFinanceGrantedFaultedEvent)
-            .Then(context =>
-            {
-                context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .TransitionTo(FaultedState)
+            .TransitionTo(GetCurrentBidState)
         );
     }
 
     private void ConfigureBidAuctionPlaced()
     {
-        During(BidAuctionPlacedState,
+        During(GetCurrentBidState,
         //успешно обновили текущую ставку на аукционе - делаем запись о ставке
-        When(BidAuctionPlacedEvent)
+        When(GetCurrentBidEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                context.Saga.OldHighBid = context.Message.OldHighBid;
+                context.Saga.OldHighBid = context.Message.CurrentHighBid;
             })
             //если нужно посылать одинаковые сообщения в разные консьюмеры (очереди), то соглашения
             //EndpointConvention.Map<тип сообщения> не работают, посылка идет только на один адрес
@@ -164,7 +150,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(BidPlacedState),
         //ошибка при создании записи в аукционе о новой ставке - делаем корректирующую транзакцию для отмены
         //ранее занесенных денег и выход на ошибочное окончание процесса           
-        When(BidAuctionPlacedFaultedEvent)
+        When(BidFinanceGrantedFaultedEvent)
             .Then(context =>
             {
                 context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
@@ -329,8 +315,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         During(FaultedState,
             When(BidFinanceGrantedFaultedEvent)
-                .TransitionTo(CompletedState),
-            When(BidAuctionPlacedFaultedEvent)
                 .TransitionTo(CompletedState),
             When(BidPlacedFaultedEvent)
                 .TransitionTo(CompletedState),

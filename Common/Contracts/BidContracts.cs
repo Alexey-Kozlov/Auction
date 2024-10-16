@@ -15,16 +15,18 @@ public record BidFinanceGranting(
 public record BidFinanceGranted(
      Guid CorrelationId
 );
+public record GetCurrentBid(
+     Guid CorrelationId,
+     int CurrentHighBid
+);
 public record RollbackBidFinanceGranted(
     Guid Id,
     string Bidder,
     int Amount,
     Guid CorrelationId
 );
-public record BidAuctionPlacing(
+public record GetLastBidPlaced(
      Guid Id,
-     string Bidder,
-     int Amount,
      Guid CorrelationId
 );
 

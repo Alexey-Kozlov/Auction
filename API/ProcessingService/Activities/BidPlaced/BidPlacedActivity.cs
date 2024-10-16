@@ -24,7 +24,7 @@ public class BidPlacedActivity : IStateMachineActivity<BidPlacedState, RequestBi
 
     public async Task Execute(BehaviorContext<BidPlacedState, RequestBidPlace> context, IBehavior<BidPlacedState, RequestBidPlace> next)
     {
-        _logger.LogInformation($"{DateTime.Now} Команда на создание записи в EventSourcing - команда CreateAuction");
+        _logger.LogInformation($"{DateTime.Now} Команда на создание записи в EventSourcing - команда BidPlaced");
         JsonSerializerOptions options = new()
         {
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
