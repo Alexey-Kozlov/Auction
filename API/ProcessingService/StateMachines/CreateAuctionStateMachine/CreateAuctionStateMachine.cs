@@ -45,7 +45,10 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionCreatingEvent);
+        Event(() => RequestAuctionCreatingEvent, p =>
+        {
+            p.InsertOnInitial = true;
+        });
         Event(() => AuctionCreatedEvent);
         Event(() => AuctionCreatedBidEvent);
         Event(() => AuctionCreatedImageEvent);

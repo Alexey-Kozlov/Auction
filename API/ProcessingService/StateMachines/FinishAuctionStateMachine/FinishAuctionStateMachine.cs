@@ -42,7 +42,10 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionFinishingEvent);
+        Event(() => RequestAuctionFinishingEvent, p =>
+        {
+            p.InsertOnInitial = true;
+        });
         Event(() => AuctionFinishedEvent);
         Event(() => AuctionFinishedFinanceEvent);
         Event(() => AuctionFinishedNotificationEvent);

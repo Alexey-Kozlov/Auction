@@ -27,7 +27,7 @@ public class EventSourcingEventConsumer : IConsumer<BaseStateContract>
     public async Task Consume(ConsumeContext<BaseStateContract> context)
     {
         var ctx = context.ReceiveContext as KafkaReceiveContext<Ignore, BaseStateContract>;
-        _logger.LogInformation($"Message: {context.Message.Data}, Offset: {ctx?.Offset}");
+        //_logger.LogInformation($"Message: {context.Message.Data}, Offset: {ctx?.Offset}");
         switch (context.Message.Type)
         {
             case nameof(UpdateAuctionStateContract):
@@ -69,6 +69,10 @@ public class EventSourcingEventConsumer : IConsumer<BaseStateContract>
             case nameof(CommitBidPlacingContract):
                 var bidplacedProcessing2 = new BidPlacedProcessing(_publishEndpoint, _context);
                 await bidplacedProcessing2.ProcessingCommitBidPlacedEvent(context);
+                break;
+            case nameof(CommitBidErrorContract):
+                var commitError = new CommitErrorProcessing(_publishEndpoint, _context);
+                await commitError.ProcessingCommitErrorEvent(context);
                 break;
             default:
                 break;

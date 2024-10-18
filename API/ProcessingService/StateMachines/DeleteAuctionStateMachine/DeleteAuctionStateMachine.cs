@@ -52,7 +52,10 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionDeletingEvent);
+        Event(() => RequestAuctionDeletingEvent, p =>
+        {
+            p.InsertOnInitial = true;
+        });
         Event(() => AuctionDeletedEvent);
         Event(() => AuctionDeletedFinanceEvent);
         Event(() => AuctionDeletedBidEvent);

@@ -19,56 +19,69 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
     }
     public async Task Consume(ConsumeContext<BidPlacing> context)
     {
-        var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
-        if (auction == null)
+        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        try
         {
-            throw new PlaceBidException(
-            context.Message.Bidder,
-            context.Message.Amount,
-            context.Message.Id.ToString(),
-            "Невозможно назначить заявку на этот аукцион - аукцион не найден!"
-        );
-        }
-
-        if (auction.Seller == context.Message.Bidder) throw new PlaceBidException(
-            context.Message.Bidder,
-            context.Message.Amount,
-            context.Message.Id.ToString(),
-            "Невозможно подать предложение для собственного аукциона"
-        );
-
-        var bid = new Bid
-        {
-            Amount = context.Message.Amount,
-            AuctionId = context.Message.Id,
-            Bidder = context.Message.Bidder
-        };
-
-        if (auction.AuctionEnd < DateTime.UtcNow)
-        {
-            bid.BidStatus = BidStatus.Завершено;
-        }
-        else
-        {
-            var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.Id)
-                .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
-
-            if ((highBid != null && context.Message.Amount > highBid.Amount) || highBid == null)
+            var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
+            if (auction == null)
             {
-                bid.BidStatus = BidStatus.Принято;
+                throw new PlaceBidException(
+                context.Message.Bidder,
+                context.Message.Amount,
+                context.Message.Id.ToString(),
+                "Невозможно назначить заявку на этот аукцион - аукцион не найден!"
+            );
             }
-            if (highBid != null && context.Message.Amount <= highBid.Amount)
+
+            if (auction.Seller == context.Message.Bidder)
             {
-                throw new Exception("Ошибка ставки - ставка меньше существующей ставики");
+                throw new PlaceBidException(
+                    context.Message.Bidder,
+                    context.Message.Amount,
+                    context.Message.Id.ToString(),
+                    "Невозможно подать предложение для собственного аукциона");
+            };
+
+            var bid = new Bid
+            {
+                Amount = context.Message.Amount,
+                AuctionId = context.Message.Id,
+                Bidder = context.Message.Bidder
+            };
+
+            if (auction.AuctionEnd < DateTime.UtcNow)
+            {
+                bid.BidStatus = BidStatus.Завершено;
             }
+            else
+            {
+                var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.Id)
+                    .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
+
+                if ((highBid != null && context.Message.Amount > highBid.Amount) || highBid == null)
+                {
+                    bid.BidStatus = BidStatus.Принято;
+                }
+                if (highBid != null && context.Message.Amount <= highBid.Amount)
+                {
+                    throw new Exception("Ошибка ставки - ставка меньше существующей ставки");
+                }
+            }
+            await _dbContext.Bids.AddAsync(bid);
+
+            await _dbContext.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            await _publishEndpoint.Publish(new BidPlaced(bid.Id, context.Message.CorrelationId));
+
+            Console.WriteLine($"{DateTime.Now} Получение сообщения - размещена заявка - " +
+                     context.Message.Bidder + ", " + context.Message.Amount);
         }
-        await _dbContext.Bids.AddAsync(bid);
-
-        await _dbContext.SaveChangesAsync();
-
-        await _publishEndpoint.Publish(new BidPlaced(bid.Id, context.Message.CorrelationId));
-
-        Console.WriteLine($"{DateTime.Now} Получение сообщения - размещена заявка - " +
-                 context.Message.Bidder + ", " + context.Message.Amount);
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw new Exception($"Ошибка размещения заявки - {e.Message}");
+        }
     }
 }

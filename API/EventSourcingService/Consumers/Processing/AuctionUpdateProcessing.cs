@@ -33,13 +33,23 @@ public class AuctionUpdateProcessing
 
     public async Task ProcessingCommitUpdateAuctionEvent(ConsumeContext<BaseStateContract> context)
     {
-        var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CommandId == context.Message.CorrelationId);
-        if (item == null)
+        using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        try
         {
-            throw new Exception($"EventSourcing Item {context.Message.CorrelationId} не найдено");
+            var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CommandId == context.Message.CorrelationId);
+            if (item == null)
+            {
+                throw new Exception($"EventSourcing Item {context.Message.CorrelationId} не найдено");
+            }
+            item.Commited = true;
+            await _context.SaveChangesAsync();
+            await _publishEndpoint.Publish(new CommitAuctionUpdatedContract(context.Message.CorrelationId));
+            await transaction.CommitAsync();
         }
-        item.Commited = true;
-        await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(new CommitAuctionUpdatedContract(context.Message.CorrelationId));
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw new Exception($"Ошибка размещения заявки - {e.Message}");
+        }
     }
 }

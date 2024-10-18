@@ -26,7 +26,10 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestElkIndexEvent);
+        Event(() => RequestElkIndexEvent, p =>
+        {
+            p.InsertOnInitial = true;
+        });
         Event(() => ElkIndexCompletedEvent);
         Event(() => ElkIndexNotificationSendedEvent);
     }

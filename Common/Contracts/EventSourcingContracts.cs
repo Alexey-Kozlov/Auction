@@ -1,3 +1,6 @@
+using System.Dynamic;
+using System.Security.Cryptography.X509Certificates;
+
 namespace Common.Contracts;
 
 public record SendAllItems(Guid CorrelationId);
@@ -107,6 +110,21 @@ public record AfterBidPlacedContract
 public class CommitBidPlacingContract : BaseStateContract { }
 
 public record CommitBidPlacedContract
+(
+    Guid CorrelationId
+);
+public record CommitBidPlacedErrorContract
+(
+    Guid CorrelationId,
+    Exception ExceptionItem
+);
+
+public class CommitBidErrorContract : BaseStateContract
+{
+
+}
+
+public record CommitErrorSavedContract
 (
     Guid CorrelationId
 );

@@ -23,23 +23,35 @@ public class BidNotificationProcessingConsumer : IConsumer<BidNotificationProces
     }
     public async Task Consume(ConsumeContext<BidNotificationProcessing> context)
     {
-        var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
-        //если в списке нет пользователя, сделавшего ставку - добавляем его в рассылку
-        var bidUser = auctionNotifyList.FirstOrDefault(p => p.UserLogin == context.Message.Bidder);
-        if (bidUser == null)
-        {
-            var notifyUser = new NotifyUser
-            {
-                AuctionId = context.Message.Id,
-                UserLogin = context.Message.Bidder
-            };
-            _dbContext.NotifyUser.Add(notifyUser);
-            await _dbContext.SaveChangesAsync();
-            auctionNotifyList.Add(notifyUser);
-        }
         Console.WriteLine($"{DateTime.Now} --> Получено сообщение - заявка от {context.Message.Bidder} - " +
-            $"{context.Message.Amount} руб. размещена, рассылка уведомлений для {String.Join(',', auctionNotifyList.Select(p => p.UserLogin))}");
-        await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", context.Message);
-        await _publishEndpoint.Publish(new BidNotificationProcessed(context.Message.CorrelationId));
+                $"{context.Message.Amount} руб.");
+        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        try
+        {
+            var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
+            //если в списке нет пользователя, сделавшего ставку - добавляем его в рассылку
+            var bidUser = auctionNotifyList.FirstOrDefault(p => p.UserLogin == context.Message.Bidder);
+            if (bidUser == null)
+            {
+                var notifyUser = new NotifyUser
+                {
+                    AuctionId = context.Message.Id,
+                    UserLogin = context.Message.Bidder
+                };
+                _dbContext.NotifyUser.Add(notifyUser);
+                await _dbContext.SaveChangesAsync();
+                auctionNotifyList.Add(notifyUser);
+            }
+            Console.WriteLine($"{DateTime.Now} --> Получено сообщение - заявка от {context.Message.Bidder} - " +
+                $"{context.Message.Amount} руб. размещена, рассылка уведомлений для {String.Join(',', auctionNotifyList.Select(p => p.UserLogin))}");
+            await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", context.Message);
+            await _publishEndpoint.Publish(new BidNotificationProcessed(context.Message.CorrelationId));
+            await transaction.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw new Exception($"Ошибка создания уведомлений о новой ставке - {e.Message}");
+        }
     }
 }

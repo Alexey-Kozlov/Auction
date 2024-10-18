@@ -48,7 +48,10 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionUpdatingEvent);
+        Event(() => RequestAuctionUpdatingEvent, p =>
+        {
+            p.InsertOnInitial = true;
+        });
         Event(() => AuctionUpdatedEvent);
         Event(() => AuctionUpdatedBidEvent);
         Event(() => AuctionUpdatedGatewayEvent);

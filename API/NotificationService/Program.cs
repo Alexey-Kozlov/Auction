@@ -73,11 +73,6 @@ builder.Services.AddMassTransit(p =>
             p.Username(builder.Configuration["rt:password"]);
             p.Password(builder.Configuration["rt:password"]);
         });
-        config.ReceiveEndpoint("auction-bid-auction-placing_error", e =>
-        {
-            e.ConfigureConsumer<BidAuctionPlacedFaultedConsumer>(context);
-            e.DiscardSkippedMessages();
-        });
         config.ReceiveEndpoint("finance-bid-finance-granting_error", e =>
         {
             e.ConfigureConsumer<BidFinanceGrantedFaultedConsumer>(context);

@@ -27,7 +27,10 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestElkSearchEvent);
+        Event(() => RequestElkSearchEvent, p =>
+        {
+            p.InsertOnInitial = true;
+        });
         Event(() => ElkSearchCompletedEvent);
         Event(() => ElkSearchNotificationSendedEvent);
     }
