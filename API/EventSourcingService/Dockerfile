@@ -5,17 +5,17 @@ WORKDIR /app
 EXPOSE 80
 
 COPY /Packages /Packages
-COPY API/AuctionService/AuctionService.csproj API/AuctionService/AuctionService.csproj
-RUN dotnet restore API/AuctionService/AuctionService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
+COPY API/EventSourcingService/EventSourcingService.csproj API/EventSourcingService/EventSourcingService.csproj
+RUN dotnet restore API/EventSourcingService/EventSourcingService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
 
 # #копируем остальные файлы проекта Auction
-COPY API/AuctionService API/AuctionService
+COPY API/EventSourcingService API/EventSourcingService
 
-WORKDIR /app/API/AuctionService
+WORKDIR /app/API/EventSourcingService
 RUN dotnet publish -c Release -o /app/API/out
 
 # #создание образа
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/API/out .
-ENTRYPOINT [ "dotnet", "AuctionService.dll" ]
+ENTRYPOINT [ "dotnet", "EventSourcingService.dll" ]
