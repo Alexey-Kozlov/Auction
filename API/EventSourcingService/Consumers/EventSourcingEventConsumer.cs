@@ -1,12 +1,9 @@
-using System.Text.Json;
 using Common.Contracts;
 using Confluent.Kafka;
 using EventSourcingService.Consumers.Processing;
 using EventSourcingService.Data;
-using EventSourcingService.Entities;
 using MassTransit;
 using MassTransit.KafkaIntegration;
-using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Consumers;
 

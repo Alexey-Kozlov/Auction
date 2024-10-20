@@ -21,7 +21,7 @@ public class AuctionCreateProcessing
     {
         _context.EventsLogs.Add(new EventsLog
         {
-            CommandId = context.Message.CorrelationId,
+            CorrelationId = context.Message.CorrelationId,
             CreateAt = DateTime.UtcNow,
             Commited = false,
             Info = context.Message.Type,
@@ -36,7 +36,7 @@ public class AuctionCreateProcessing
         using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         try
         {
-            var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CommandId == context.Message.CorrelationId);
+            var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CorrelationId == context.Message.CorrelationId);
             if (item == null)
             {
                 throw new Exception($"EventSourcing Item {context.Message.CorrelationId} не найдено");

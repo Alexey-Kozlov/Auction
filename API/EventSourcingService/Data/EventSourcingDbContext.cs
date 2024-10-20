@@ -26,7 +26,7 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
     {
         builder.ToTable("EventsLog").HasKey(p => p.Version).HasName("PK_EventsLogId");
         builder.Property(p => p.Version).HasColumnType("integer").HasColumnName("Version").IsRequired(true).ValueGeneratedOnAdd();
-        builder.Property(p => p.CommandId).HasColumnType("uuid").HasColumnName("CommandId").IsRequired(true);
+        builder.Property(p => p.CorrelationId).HasColumnType("uuid").HasColumnName("CommandId").IsRequired(true);
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CreateAt).HasColumnType("timestamp with time zone").HasColumnName("CreateAt").IsRequired(true);
         builder.Property(p => p.EventData).HasColumnType("jsonb").HasColumnName("EventData").IsRequired(true);

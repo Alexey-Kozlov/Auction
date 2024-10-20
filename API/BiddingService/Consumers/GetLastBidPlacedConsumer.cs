@@ -1,16 +1,16 @@
-﻿using Common.Contracts;
+﻿using BiddingService.Data;
+using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using SearchService.Data;
 
-namespace SearchService.Consumers;
+namespace BiddingService.Consumers;
 
 public class GetLastBidPlacedConsumer : IConsumer<GetLastBidPlaced>
 {
-    private readonly SearchDbContext _context;
+    private readonly BidDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public GetLastBidPlacedConsumer(SearchDbContext context, IPublishEndpoint publishEndpoint)
+    public GetLastBidPlacedConsumer(BidDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _publishEndpoint = publishEndpoint;
@@ -18,8 +18,9 @@ public class GetLastBidPlacedConsumer : IConsumer<GetLastBidPlaced>
     public async Task Consume(ConsumeContext<GetLastBidPlaced> consumerContext)
     {
         Console.WriteLine($"{DateTime.Now} Получение сообщения - получить максимальную ставку по аукциону");
-        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumerContext.Message.Id);
+        var maxBid = await _context.Bids.Where(p => p.AuctionId == consumerContext.Message.Id)
+            .MaxAsync(p => p.Amount);
 
-        await _publishEndpoint.Publish(new GetCurrentBid(consumerContext.Message.CorrelationId, auction.CurrentHighBid));
+        await _publishEndpoint.Publish(new GetCurrentBid(consumerContext.Message.CorrelationId, maxBid));
     }
 }

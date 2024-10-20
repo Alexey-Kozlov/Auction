@@ -106,6 +106,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //получаем максимальную сделанную ставку по указанному аукциону
+            //данные о текущей ставке получаем из Bids
             .Send(
                 new Uri(configuration["QueuePaths:GetLastBidPlaced"]),
                 context => new GetLastBidPlaced(

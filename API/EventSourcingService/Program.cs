@@ -44,7 +44,7 @@ internal class Program
         });
         builder.Services.AddMassTransit(busConfigurator =>
         {
-            busConfigurator.AddConsumersFromNamespaceContaining<AuctionItemsListConsumer>();
+            busConfigurator.AddConsumersFromNamespaceContaining<DbSnapShotConsumer>();
             busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
             busConfigurator.UsingRabbitMq((context, config) =>
             {

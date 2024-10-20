@@ -1,4 +1,4 @@
-namespace SearchService.DTO;
+namespace ProcessingService.DTO;
 
 public record SessionDTO(
     string SessionId

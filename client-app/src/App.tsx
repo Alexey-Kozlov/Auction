@@ -14,6 +14,7 @@ import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
 import { useEffect, useState } from "react";
 import ElkIndex from "./components/services/ElkIndex";
+import SnapSotDb from "./components/services/SnapSotDb";
 
 function App() {
   const user: User = useSelector((state: RootState) => state.authStore);
@@ -41,6 +42,7 @@ function App() {
         </Routes>
         <SignalRProvider />
         <ElkIndex />
+        <SnapSotDb />
       </div>
     </div>
   );

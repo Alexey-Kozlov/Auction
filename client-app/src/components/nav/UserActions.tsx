@@ -46,6 +46,14 @@ export default function UserActions() {
         ),{ duration: 5000 });
     }
 
+    const handlerSetSnapShotDb = () => {
+        dispatch(setEventFlag({ eventName: 'SetSnapShotDb', ready: true }));
+        const message:Message = {message:'Старт создания снимка БД в ES...',correlationId:'',id:'',messageType:0};
+        return toast((p) => (
+            <InfoMessageToast message={message} toastId={p.id} />
+        ),{ duration: 5000 });
+    }
+
     return (
         <Dropdown inline label={`Здравствуйте ${user.name}`}>
             <Dropdown.Item icon={HiUser} onClick={SetSeller}>
@@ -67,6 +75,10 @@ export default function UserActions() {
             <Dropdown.Divider />
             <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerElkReindex}>
                  Elk индексация
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerSetSnapShotDb}>
+                 SnapShot Db
             </Dropdown.Item>
             <Dropdown.Divider />
             <Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>

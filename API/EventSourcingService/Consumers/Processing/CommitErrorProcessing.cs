@@ -23,7 +23,7 @@ public class CommitErrorProcessing
         using var transaction = _context.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         try
         {
-            var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CommandId == context.Message.CorrelationId);
+            var item = await _context.EventsLogs.FirstOrDefaultAsync(p => p.CorrelationId == context.Message.CorrelationId);
             if (item == null)
             {
                 throw new Exception($"EventSourcing Item {context.Message.CorrelationId} не найдено");

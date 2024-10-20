@@ -36,12 +36,4 @@ public class SearchController : ControllerBase
         //а здесь обычный SQL-поиск с точным частичным вхождением поисковой последовательности в поля title, properties
         return await _search.SqlSearchItems(searchParams);
     }
-
-    [HttpPost("elkindex")]
-    public async Task<ApiResponse<System.Net.HttpStatusCode>> ElkIndex(SessionDTO param)
-    {
-        //Выполняем реиндексацию ELK
-        return await _search.ElkIndex(param.SessionId);
-
-    }
 }

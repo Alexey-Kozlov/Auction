@@ -90,10 +90,24 @@ public class ProcessingController : ControllerBase
         };
     }
 
-    [HttpPost("convert")]
-    public async Task Convert()
+    [Authorize]
+    [HttpPost("SetSnapShotDb")]
+    public async Task SetSnapShotDb(SessionDTO param)
     {
-        await _publishEndpoint.Publish(new SendAllItems(Guid.NewGuid()));
-        _logger.LogInformation($"Послан запрос на инициализацтю начального состояния");
+        //зафиксировать полное состояние БД в EventSourcing
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        var queueObject = new SendToSetSnapShot();
+        await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId));
+        _logger.LogInformation($"Послан запрос на инициализацию начального состояния");
+    }
+
+    [Authorize]
+    [HttpPost("elkindex")]
+    public async Task ElkIndex(SessionDTO param)
+    {
+        //Выполняем реиндексацию ELK
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new SendAllItems<SendToReindexingElk>(userLogin, param.SessionId));
+        _logger.LogInformation($"Послан запрос на переиндексацию ELK");
     }
 }

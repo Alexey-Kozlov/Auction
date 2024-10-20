@@ -7,7 +7,7 @@ const elkApi = createApi({
   refetchOnMountOrArgChange: true,
   reducerPath: "elkApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL + "/api/search",
+    baseUrl: process.env.REACT_APP_API_URL + "/api/processing",
     prepareHeaders: (headers: Headers, api) => {
       const token = AddTokenHeader();
       if (token) {
@@ -35,10 +35,29 @@ const elkApi = createApi({
       },
       invalidatesTags: ["elk"],
     }),
+    setSnapShotDb: builder.mutation<ApiResponseNet<number>, Session>({
+      query: (params) => ({
+        url: "/setsnapshotdb",
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(params)
+      }),
+      transformResponse: (response: ApiResponseNet<number>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["elk"],
+    })
   }),
 });
 
 export const {
   useElkIndexMutation,
+  useSetSnapShotDbMutation
 } = elkApi;
 export default elkApi;

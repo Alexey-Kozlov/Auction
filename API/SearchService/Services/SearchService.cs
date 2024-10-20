@@ -115,24 +115,4 @@ public class SearchService
             Result = item
         };
     }
-
-    public async Task<ApiResponse<HttpStatusCode>> ElkIndex(string SessionId)
-    {
-        var Items = await _context.Items.ToListAsync();
-        var cnt = 0;
-        foreach (var item in Items)
-        {
-            cnt++;
-            var elk = _mapper.Map<AuctionCreatingElk>(item);
-            await _publishEndpoint.Publish(new ElkIndexRequest(Guid.NewGuid(), Guid.NewGuid(), elk,
-               Items.Count == cnt, cnt, SessionId));
-            Console.WriteLine($"{DateTime.Now} {cnt} {item.Title}");
-        }
-        return new ApiResponse<HttpStatusCode>()
-        {
-            IsSuccess = true,
-            StatusCode = HttpStatusCode.OK,
-            Result = HttpStatusCode.OK
-        };
-    }
 }
