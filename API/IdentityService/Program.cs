@@ -10,6 +10,7 @@ using IdentityService.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
+using Common.Utils.Vault;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -20,6 +21,7 @@ builder.Configuration.AddVault(options =>
               options.SecretPathPg = vaultOptions["SecretPathPg"];
               options.SecretPathApi = vaultOptions["SecretPathApi"];
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
+              options.PasswordPolicy = vaultOptions["PasswordPolicy"];
           });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {

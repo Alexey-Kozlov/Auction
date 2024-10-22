@@ -10,6 +10,7 @@ using ProcessingService.DTO;
 namespace ProcessingService.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class ProcessingController : ControllerBase
 {
@@ -23,7 +24,6 @@ public class ProcessingController : ControllerBase
         _logger = logger;
     }
 
-    [Authorize]
     [HttpPost("placebid")]
     public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
@@ -38,7 +38,7 @@ public class ProcessingController : ControllerBase
             Result = { }
         };
     }
-    [Authorize]
+
     [HttpPost("createauction")]
     public async Task<ApiResponse<object>> CreateAuction([FromBody] CreateAuctionDTO par)
     {
@@ -56,7 +56,6 @@ public class ProcessingController : ControllerBase
         };
     }
 
-    [Authorize]
     [HttpPost("updateauction")]
     public async Task<ApiResponse<object>> UpdateAuction([FromBody] UpdateAuctionDTO par)
     {
@@ -73,7 +72,6 @@ public class ProcessingController : ControllerBase
         };
     }
 
-    [Authorize]
     [HttpPost("deleteauction")]
     public async Task<ApiResponse<object>> DeleteAuction([FromBody] DeleteAuctionDTO par)
     {
@@ -90,7 +88,7 @@ public class ProcessingController : ControllerBase
         };
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpPost("SetSnapShotDb")]
     public async Task SetSnapShotDb(SessionDTO param)
     {
@@ -101,7 +99,7 @@ public class ProcessingController : ControllerBase
         _logger.LogInformation($"Послан запрос на инициализацию начального состояния");
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpPost("elkindex")]
     public async Task ElkIndex(SessionDTO param)
     {

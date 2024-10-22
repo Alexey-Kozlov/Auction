@@ -8,6 +8,7 @@ using AuctionService.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
+using Common.Utils.Vault;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>

@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json;
 
 namespace IdentityService.Services;
 public class AuthService : IAuthService
@@ -15,12 +16,14 @@ public class AuthService : IAuthService
     private readonly ApplicationDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly string _secretKey;
+    private readonly string _passwordPolicy;
 
     public AuthService(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _db = db;
         _secretKey = configuration["api:secret"];
         _userManager = userManager;
+        _passwordPolicy = configuration["pw:password_policy"];
     }
     public async Task<ApiResponse<object>> Register(RegisterRequestDTO registerRequestDTO)
     {
@@ -82,14 +85,26 @@ public class AuthService : IAuthService
         }
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_secretKey);
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim("Login", user.Email)
+        };
+        //захардкодили - роль админа только пользователю с именем "admin", остальным - роль "User"
+        if (user.Email == "admin")
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+        }
+        else
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "User"));
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor()
         {
-            Subject = new ClaimsIdentity(new Claim[]
-            {
-                new Claim("Name", user.UserName),
-                new Claim("Login", user.Email),
-            }),
-            Expires = DateTime.UtcNow.AddDays(1),
+            Subject = new ClaimsIdentity(claims),
+            //получаем значение жизни токена из волта в виде json, используем свойство "expiration_hours"
+            Expires = DateTime.UtcNow.AddHours(JsonDocument.Parse(_passwordPolicy).RootElement.GetProperty("expiration_hours").GetInt32()),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

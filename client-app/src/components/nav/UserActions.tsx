@@ -11,7 +11,7 @@ import { emptyUserState, setAuthUser } from '../../store/authSlice';
 import { setParams } from '../../store/paramSlice';
 import { GrMoney } from "react-icons/gr";
 import { setEventFlag } from '../../store/processingSlice';
-import { GoCodescanCheckmark } from "react-icons/go";
+import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import InfoMessageToast from '../signalRNotifications/InfoMessageToast';
 import toast from 'react-hot-toast';
 
@@ -72,14 +72,17 @@ export default function UserActions() {
                     Финансы
                 </Dropdown.Item>
             </NavLink>
-            <Dropdown.Divider />
-            <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerElkReindex}>
-                 Elk индексация
-            </Dropdown.Item>
-            <Dropdown.Divider />
-            <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerSetSnapShotDb}>
-                 SnapShot Db
-            </Dropdown.Item>
+            {user.isAdmin && (
+            <>
+                <Dropdown.Divider />
+                <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerElkReindex}>
+                    Elk индексация
+                </Dropdown.Item>
+                <Dropdown.Item icon={GoDatabase} onClick={handlerSetSnapShotDb}>
+                    Выполнить SnapShot Db
+                </Dropdown.Item>
+            </>
+            )}
             <Dropdown.Divider />
             <Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>
                 Выход

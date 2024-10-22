@@ -25,4 +25,4 @@ export const processingSlice = createSlice({
 });
 
 export const { setEventFlag } = processingSlice.actions;
-export const processinhReducer = processingSlice.reducer;
+export const processingReducer = processingSlice.reducer;

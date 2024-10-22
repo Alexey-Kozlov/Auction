@@ -8,6 +8,7 @@ using MassTransit;
 using GatewayService.Consumers;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using Common.Utils.Vault;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>

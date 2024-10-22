@@ -13,6 +13,7 @@ using Npgsql;
 using ProcessingService;
 using Common.Contracts;
 using Confluent.Kafka;
+using Common.Utils.Vault;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,7 +118,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-// Configure the HTTP request pipeline.
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -3,7 +3,7 @@ using VaultSharp.V1.AuthMethods.AppRole;
 using VaultSharp.V1.Commons;
 using Microsoft.Extensions.Configuration;
 
-namespace Common.Utils;
+namespace Common.Utils.Vault;
 
 public class VaultConfigurationProvider : ConfigurationProvider
 {
@@ -33,6 +33,7 @@ public class VaultConfigurationProvider : ConfigurationProvider
         await GetRabbitCredentials();
         await GetApiSecret();
         await GetELKCredentials();
+        await GetPasswordPolicy();
     }
 
     private async Task GetDatabaseCredentials()
@@ -72,7 +73,6 @@ public class VaultConfigurationProvider : ConfigurationProvider
 
             Data.Add("api:secret", secrets.Data.Data["secret"].ToString());
         }
-
     }
 
     private async Task GetELKCredentials()
@@ -88,43 +88,14 @@ public class VaultConfigurationProvider : ConfigurationProvider
             Data.Add("elk:host", secrets.Data.Data["host"].ToString());
         }
     }
-}
 
-public class VaultConfigurationSource : IConfigurationSource
-{
-    private VaultOptions _config;
-
-    public VaultConfigurationSource(Action<VaultOptions> config)
+    private async Task GetPasswordPolicy()
     {
-        _config = new VaultOptions();
-        config.Invoke(_config);
-    }
-
-    public IConfigurationProvider Build(IConfigurationBuilder builder)
-    {
-        return new VaultConfigurationProvider(_config);
-    }
-}
-
-public class VaultOptions
-{
-    public string Address { get; set; }
-    public string Role { get; set; }
-
-    public string Secret { get; set; }
-    public string SecretPathPg { get; set; }
-    public string SecretPathRt { get; set; }
-    public string SecretPathApi { get; set; }
-    public string SecretPathElk { get; set; }
-}
-
-public static class VaultExtensions
-{
-    public static IConfigurationBuilder AddVault(this IConfigurationBuilder configuration,
-    Action<VaultOptions> options)
-    {
-        var vaultOptions = new VaultConfigurationSource(options);
-        configuration.Add(vaultOptions);
-        return configuration;
+        if (!string.IsNullOrEmpty(_config.PasswordPolicy))
+        {
+            Secret<SecretData> secrets = await _client.V1.Secrets.KeyValue.V2.ReadSecretAsync(
+              _config.PasswordPolicy, null, "secret");
+            Data.Add("pw:password_policy", secrets.Data.Data["policy"].ToString());
+        }
     }
 }

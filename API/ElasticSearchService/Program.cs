@@ -1,4 +1,5 @@
 using Common.Utils;
+using Common.Utils.Vault;
 using ElasticSearchService.Consumers;
 using ElasticSearchService.Data;
 using ElasticSearchService.Services;

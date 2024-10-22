@@ -13,6 +13,7 @@ using EventSourcingService.Data;
 using EventSourcingService;
 using SearchService.Consumers;
 using EventSourcingService.Consumers;
+using Common.Utils.Vault;
 
 internal class Program
 {

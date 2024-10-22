@@ -3,9 +3,9 @@ import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { ApiResponseNet, Session } from "../store/types";
 
-const elkApi = createApi({
+const serviceApi = createApi({
   refetchOnMountOrArgChange: true,
-  reducerPath: "elkApi",
+  reducerPath: "serviceApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + "/api/processing",
     prepareHeaders: (headers: Headers, api) => {
@@ -59,5 +59,5 @@ const elkApi = createApi({
 export const {
   useElkIndexMutation,
   useSetSnapShotDbMutation
-} = elkApi;
-export default elkApi;
+} = serviceApi;
+export default serviceApi;

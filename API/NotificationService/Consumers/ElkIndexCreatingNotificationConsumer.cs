@@ -21,7 +21,8 @@ public class ElkIndexCreatingNotificationConsumer : IConsumer<ElkIndexResponse>
         Console.WriteLine($"{DateTime.Now} --> Получено сообщение - проиндексирована запись, последняя -  {context.Message.LastItem}");
         if (context.Message.LastItem)
         {
-            await _hubContext.Clients.Group(context.Message.SessionId).SendAsync("ElkIndex", context.Message.ItemNumber);
+            await _hubContext.Clients.Group(context.Message.SessionId).SendAsync("ElkIndex",
+                $"Проиндексировано - {context.Message.ItemNumber} записей");
         }
         await _publishEndpoint.Publish(new ElkIndexResponseCompleted(context.Message.CorrelationId));
     }

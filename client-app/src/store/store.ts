@@ -12,8 +12,8 @@ import notificationApi from "../api/NotificationApi";
 import financeApi from "../api/FinanceApi";
 import { financeReducer } from "./financeSlice";
 import processingApi from "../api/ProcessingApi";
-import { processinhReducer } from "./processingSlice";
-import elkApi from "../api/ElkApi";
+import { processingReducer } from "./processingSlice";
+import serviceApi from "../api/ServiceApi";
 
 const store = configureStore({
   reducer: {
@@ -22,7 +22,7 @@ const store = configureStore({
     auctionStore: auctionReducer,
     paramStore: paramReducer,
     financeStore: financeReducer,
-    processingStore: processinhReducer,
+    processingStore: processingReducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [bidApi.reducerPath]: bidApi.reducer,
@@ -31,7 +31,7 @@ const store = configureStore({
     [notificationApi.reducerPath]: notificationApi.reducer,
     [financeApi.reducerPath]: financeApi.reducer,
     [processingApi.reducerPath]: processingApi.reducer,
-    [elkApi.reducerPath]: elkApi.reducer
+    [serviceApi.reducerPath]: serviceApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -45,7 +45,7 @@ const store = configureStore({
       .concat(notificationApi.middleware)
       .concat(financeApi.middleware)
       .concat(processingApi.middleware)
-      .concat(elkApi.middleware)
+      .concat(serviceApi.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

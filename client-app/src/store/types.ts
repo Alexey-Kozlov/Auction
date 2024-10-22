@@ -45,6 +45,7 @@ export type User = {
   name: string;
   login: string;
   id?: string;
+  isAdmin: boolean;
 };
 
 export type PagedResult<T> = {
