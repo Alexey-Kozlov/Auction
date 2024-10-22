@@ -1,4 +1,6 @@
-﻿namespace BiddingService.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace BiddingService.Entities;
 
 public class Bid
 {
@@ -8,5 +10,6 @@ public class Bid
     public DateTime BidTime { get; set; } = DateTime.UtcNow;
     public int Amount { get; set; }
     public BidStatus BidStatus { get; set; }
+    [JsonIgnore]
     public Auction Auction { get; set; }
 }

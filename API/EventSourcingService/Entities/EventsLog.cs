@@ -11,6 +11,7 @@ public class EventsLog : IDisposable
     public bool Commited { get; set; }
     public string Info { get; set; }
     public Guid? SnapShotId { get; set; }
+    public string TypeOf { get; set; }
 
     public void Dispose() => EventData?.Dispose();
 

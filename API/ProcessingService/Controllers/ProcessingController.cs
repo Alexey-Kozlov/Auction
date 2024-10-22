@@ -94,8 +94,7 @@ public class ProcessingController : ControllerBase
     {
         //зафиксировать полное состояние БД в EventSourcing
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var queueObject = new SendToSetSnapShot();
-        await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId));
+        await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
         _logger.LogInformation($"Послан запрос на инициализацию начального состояния");
     }
 
@@ -105,7 +104,7 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем реиндексацию ELK
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new SendAllItems<SendToReindexingElk>(userLogin, param.SessionId));
+        await _publishEndpoint.Publish(new SendAllItems<SendToReindexingElk>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
         _logger.LogInformation($"Послан запрос на переиндексацию ELK");
     }
 }

@@ -32,6 +32,7 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.Property(p => p.EventData).HasColumnType("jsonb").HasColumnName("EventData").IsRequired(true);
         builder.Property(p => p.Info).HasColumnType("text").HasColumnName("Info").IsRequired(false);
         builder.Property(p => p.SnapShotId).HasColumnType("uuid").HasColumnName("SnapShotId").IsRequired(false);
+        builder.Property(p => p.TypeOf).HasColumnType("varchar(50)").HasColumnName("TypeOf").IsRequired(false);
         builder.HasIndex(p => p.Version).HasDatabaseName("PK_EventsLog");
         builder.HasIndex(p => p.CreateAt).HasDatabaseName("IX_EventsLog_CreateAt");
     }
