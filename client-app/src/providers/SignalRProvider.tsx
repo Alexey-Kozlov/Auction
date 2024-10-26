@@ -142,6 +142,14 @@ export default function SignalRProvider() {
                     ), { duration: 5000 });
                 })
 
+                connection.on('RestoreSnapShotDb', (result: number) => {
+                    dispatch(setEventFlag({ eventName: 'RestoreSnapShotDb', ready: false }));
+                    const mes:Message = {message:result.toString(),correlationId:'',id:'',messageType:0};
+                    return toast((p) => (
+                        <InfoMessageToast message={mes} toastId={p.id} />
+                    ), { duration: 5000 });
+                })                
+
                 connection.on('ErrorMessage', (message: Message) => {
                     dispatch(setEventFlag({ eventName: 'WaiterHide', ready: true}));
                     switch (message.messageType) {

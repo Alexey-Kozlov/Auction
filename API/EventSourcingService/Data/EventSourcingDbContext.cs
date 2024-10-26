@@ -30,10 +30,18 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CreateAt).HasColumnType("timestamp with time zone").HasColumnName("CreateAt").IsRequired(true);
         builder.Property(p => p.EventData).HasColumnType("jsonb").HasColumnName("EventData").IsRequired(true);
-        builder.Property(p => p.Info).HasColumnType("text").HasColumnName("Info").IsRequired(false);
+        builder.Property(p => p.Description).HasColumnType("text").HasColumnName("Description").IsRequired(false);
         builder.Property(p => p.SnapShotId).HasColumnType("uuid").HasColumnName("SnapShotId").IsRequired(false);
-        builder.Property(p => p.TypeOf).HasColumnType("varchar(50)").HasColumnName("TypeOf").IsRequired(false);
+        builder.Property(p => p.EntityType).HasColumnType("varchar(50)").HasColumnName("EntityType").IsRequired(true);
+        builder.Property(p => p.RestoringOrder).HasColumnType("smallint").HasColumnName("RestoringOrder").IsRequired(false);
+        builder.Property(p => p.ServiceName).HasColumnType("varchar(20)").HasColumnName("ServiceName").IsRequired(true);
+        builder.Property(p => p.LogicVersion).HasColumnType("smallint").HasColumnName("LogicVersion").IsRequired(true);
+        builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
+        builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(false);
         builder.HasIndex(p => p.Version).HasDatabaseName("PK_EventsLog");
-        builder.HasIndex(p => p.CreateAt).HasDatabaseName("IX_EventsLog_CreateAt");
+        builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_EventsLog_CorrelationId");
+        builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_EventsLog_AuctionId");
+        builder.HasIndex(p => p.UserLogin).HasDatabaseName("IX_EventsLog_UserLogin");
+        builder.HasIndex(p => new { p.ServiceName, p.Commited }).HasDatabaseName("IX_EventsLog_ServiceName");
     }
 }

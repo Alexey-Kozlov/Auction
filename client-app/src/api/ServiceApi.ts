@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import { ApiResponseNet, Session } from "../store/types";
+import { ApiResponseNet, RestoreDb, Session } from "../store/types";
 
 const serviceApi = createApi({
   refetchOnMountOrArgChange: true,
@@ -52,12 +52,31 @@ const serviceApi = createApi({
         PostErrorApiProcess(response);
       },
       invalidatesTags: ["elk"],
+    }),
+    restoreSnapShotDb: builder.mutation<ApiResponseNet<number>, RestoreDb>({
+      query: (params) => ({
+        url: "/restoresnapshotdb",
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(params)
+      }),
+      transformResponse: (response: ApiResponseNet<number>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["elk"],
     })
   }),
 });
 
 export const {
   useElkIndexMutation,
-  useSetSnapShotDbMutation
+  useSetSnapShotDbMutation,
+  useRestoreSnapShotDbMutation
 } = serviceApi;
 export default serviceApi;

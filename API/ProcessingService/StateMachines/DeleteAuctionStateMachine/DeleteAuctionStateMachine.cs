@@ -1,7 +1,6 @@
 using Common.Contracts;
 using MassTransit;
 using ProcessingService.Activities;
-using ProcessingService.Activities.AuctionDelete;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
@@ -38,7 +37,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureAuctionDeleted();
         ConfigureAuctionDeletedFinance();
         ConfigureAuctionDeletedBid();
         ConfigureAuctionDeletedGateway();
@@ -78,27 +76,17 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Activity(p => p.OfType<DeletingAuctionActivity>())
-            .TransitionTo(AuctionDeletedState)
-        );
-    }
-
-    private void ConfigureAuctionDeleted()
-    {
-        During(AuctionDeletedState,
-        When(AuctionDeletedEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
+            //посылаем в FinanceService - для корректировки счетов пользователя
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingFinance"]),
                 context => new AuctionDeletingFinance(
                 context.Saga.Id,
                 context.Saga.AuctionAuthor,
                 context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedFinanceState));
+            .TransitionTo(AuctionDeletedFinanceState)
+        );
     }
+
     private void ConfigureAuctionDeletedFinance()
     {
         During(AuctionDeletedFinanceState,

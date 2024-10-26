@@ -49,6 +49,7 @@ builder.Services.AddMassTransit(p =>
         config.ConfigureEndpoints(context);
     });
 });
+
 builder.Services.AddAuthentication(p =>
 {
     p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

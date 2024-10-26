@@ -1,18 +1,19 @@
+using System.Reflection;
 using Common.Contracts;
+using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionUpdate;
+namespace ProcessingService.Activities.AuctionUpdated;
 
-public class CommitUpdatingAuctionActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdatedElk>
+public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdatedElk>
 {
-    private readonly ITopicProducer<BaseStateContract> _topicProducer;
-    private readonly ILogger<CommitUpdatingAuctionActivity> _logger;
-    public CommitUpdatingAuctionActivity(ITopicProducer<BaseStateContract> topicProducer,
-        ILogger<CommitUpdatingAuctionActivity> logger)
+    private readonly SendEventToES _sendEventToES;
+    private readonly IConfiguration _config;
+    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
     {
-        _topicProducer = topicProducer;
-        _logger = logger;
+        _sendEventToES = sendEventToES;
+        _config = config;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -23,10 +24,8 @@ public class CommitUpdatingAuctionActivity : IStateMachineActivity<UpdateAuction
 
     public async Task Execute(BehaviorContext<UpdateAuctionState, AuctionUpdatedElk> context, IBehavior<UpdateAuctionState, AuctionUpdatedElk> next)
     {
-        var message = new CommitAuctionUpdatingContract();
-        message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CommitAuctionUpdatingContract);
-        await _topicProducer.Produce(message);
+        await _sendEventToES.SendItemToEventSourcing(context.Message, nameof(CommitESOperation),
+             _config["ServicesName:ProcessingService"], context.Message.CorrelationId);
         await next.Execute(context).ConfigureAwait(false);
     }
 

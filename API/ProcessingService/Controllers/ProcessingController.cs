@@ -92,7 +92,7 @@ public class ProcessingController : ControllerBase
     [HttpPost("SetSnapShotDb")]
     public async Task SetSnapShotDb(SessionDTO param)
     {
-        //зафиксировать полное состояние БД в EventSourcing
+        //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
         _logger.LogInformation($"Послан запрос на инициализацию начального состояния");
@@ -106,5 +106,15 @@ public class ProcessingController : ControllerBase
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new SendAllItems<SendToReindexingElk>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
         _logger.LogInformation($"Послан запрос на переиндексацию ELK");
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("RestoreSnapShotDb")]
+    public async Task RestoreSnapShotDb(RestoreSnapShotDTO param)
+    {
+        //Выполняем восстановление БД из указанного SnapShot
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new RestoreSnapShotDb(param.SessionId, userLogin, Guid.Parse(param.SnapShotId)));
+        _logger.LogInformation($"Послан запрос на восстановление БД из SnapShot");
     }
 }

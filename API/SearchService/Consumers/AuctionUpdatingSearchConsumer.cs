@@ -21,18 +21,15 @@ public class AuctionUpdatingSearchConsumer : IConsumer<AuctionUpdatingSearch>
     }
     public async Task Consume(ConsumeContext<AuctionUpdatingSearch> context)
     {
-        Console.WriteLine("--> Получение сообщения обновить аукцион");
         var updatedItem = _mapper.Map<Item>(context.Message);
         var item = await _context.Items.FirstOrDefaultAsync(p => p.Id == updatedItem.Id);
-        if (item != null)
+        if (item == null)
         {
-            _mapper.Map(updatedItem, item);
-            await _context.SaveChangesAsync();
-            await _publishEndpoint.Publish(new AuctionUpdatedSearch(context.Message.CorrelationId));
-            Console.WriteLine($"{DateTime.Now} - Аукцион {updatedItem.Id} успешно обновлен.");
-            return;
+            Console.WriteLine("Ошибка обновления записи - запись " + updatedItem.Id + " не найдена.");
+            throw new Exception("Ошибка завершения аукциона " + updatedItem.Id + " - аукцион не найден");
         }
-        Console.WriteLine("Ошибка обновления записи - запись " + updatedItem.Id + " не найдена.");
-        throw new Exception("Ошибка завершения аукциона " + updatedItem.Id + " - аукцион не найден");
+        _mapper.Map(updatedItem, item);
+        await _context.SaveChangesAsync();
+        await _publishEndpoint.Publish(new AuctionUpdatedSearch(context.Message.CorrelationId));
     }
 }

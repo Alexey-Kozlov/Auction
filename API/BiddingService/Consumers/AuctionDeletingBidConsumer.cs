@@ -25,13 +25,13 @@ public class AuctionDeletingBidConsumer : IConsumer<AuctionDeletingBid>
         {
             _context.Bids.RemoveRange(bids);
         }
-        var auction = await _context.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
+        var auction = await _context.Auctions.FirstOrDefaultAsync(p => p.AuctionId == context.Message.Id);
         if (auction != null)
         {
             _context.Auctions.Remove(auction);
         }
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Удален аукцион - " + auction.Id + ", продавец - " + auction.Seller);
+        _logger.LogInformation("Удален аукцион - " + auction.AuctionId + ", продавец - " + auction.Seller);
         if (bids.Count > 0)
         {
             _logger.LogInformation("Удалены " + bids.Count.ToString() + " ставок для этого аукциона");

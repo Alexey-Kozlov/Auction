@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+﻿using System.Reflection;
+using AutoMapper;
 using Common.Contracts;
+using Common.Utils;
 using MassTransit;
 using SearchService.Data;
 using SearchService.Entities;
@@ -10,20 +12,18 @@ public class AuctionCreatingSearchConsumer : IConsumer<AuctionCreatingSearch>
 {
     private readonly IMapper _mapper;
     private readonly SearchDbContext _context;
-    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionCreatingSearchConsumer(IMapper mapper, SearchDbContext context, IPublishEndpoint publishEndpoint)
+
+    public AuctionCreatingSearchConsumer(IMapper mapper, SearchDbContext context)
     {
         _mapper = mapper;
         _context = context;
-        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<AuctionCreatingSearch> consumeContext)
+    public async Task Consume(ConsumeContext<AuctionCreatingSearch> context)
     {
-        var newItem = _mapper.Map<Item>(consumeContext.Message);
+        var newItem = _mapper.Map<Item>(context.Message);
         await _context.AddAsync(newItem);
         await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(new AuctionCreatedSearch(consumeContext.Message.CorrelationId));
-        Console.WriteLine("--> Получение сообщения создать аукцион");
+
     }
 }

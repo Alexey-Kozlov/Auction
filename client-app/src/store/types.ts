@@ -136,3 +136,8 @@ export type Message = {
 export type Session = {
   sessionid: string;
 }
+
+export type RestoreDb = {
+  sessionid: string;
+  snapShotId: string;
+}

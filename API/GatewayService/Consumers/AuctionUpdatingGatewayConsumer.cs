@@ -16,7 +16,7 @@ public class AuctionUpdatingGatewayConsumer : IConsumer<AuctionUpdatingGateway>
     public async Task Consume(ConsumeContext<AuctionUpdatingGateway> context)
     {
         Console.WriteLine("--> Получение сообщения обновить аукцион, сбрасываем кеш изображения, если оно есть в кеше");
-        await _cacheService.DeleteCacheItem(context.Message.Id.ToString());
+        await _cacheService.DeleteCacheItem(context.Message.AuctionId.ToString());
         await _publishEndpoint.Publish(new AuctionUpdatedGateway(context.Message.CorrelationId));
     }
 }

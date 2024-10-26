@@ -1,25 +1,15 @@
+using System.Text.Json;
+
 namespace Common.Contracts;
 
 public class BaseStateContract
 {
-    public string Data { get; set; }
-    public string Type { get; set; }
+    public string EventData { get; set; }
+    public string EntityType { get; set; }
+    public string ServiceName { get; set; }
     public Guid CorrelationId { get; set; }
 }
 
-public class UpdateAuctionStateContract : BaseStateContract
-{
-    public string CurrentState { get; set; }
-    public Guid Id { get; set; }
-    public string Title { get; set; }
-    public string Properties { get; set; }
-    public string Description { get; set; }
-    public string AuctionAuthor { get; set; }
-    public DateTime AuctionEnd { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
-    public string Image { get; set; }
-}
 
 public class CommitAuctionUpdatingContract : BaseStateContract;
 
@@ -28,35 +18,12 @@ public record CommitAuctionUpdatedContract
     Guid CorrelationId
 );
 
-public class CreateAuctionStateContract : BaseStateContract
-{
-    public string CurrentState { get; set; }
-    public Guid Id { get; set; }
-    public string Title { get; set; }
-    public string Properties { get; set; }
-    public string Description { get; set; }
-    public string AuctionAuthor { get; set; }
-    public DateTime AuctionEnd { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
-    public int ReservePrice { get; set; }
-    public string Image { get; set; }
-}
-
 public class CommitAuctionCreatingContract : BaseStateContract { }
 public record CommitAuctionCreatedContract
 (
     Guid CorrelationId
 );
 
-public class DeleteAuctionStateContract : BaseStateContract
-{
-    public string CurrentState { get; set; }
-    public Guid Id { get; set; }
-    public string AuctionAuthor { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
-}
 
 public class CommitAuctionDeletingContract : BaseStateContract { }
 
@@ -65,17 +32,6 @@ public record CommitAuctionDeletedContract
     Guid CorrelationId
 );
 
-public class BidPlacedStateContract : BaseStateContract
-{
-    public string CurrentState { get; set; }
-    public string Bidder { get; set; }
-    public Guid Id { get; set; }
-    public int Amount { get; set; }
-    public Guid BidId { get; set; }
-    public int OldHighBid { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
-}
 public record AfterBidPlacedContract
 (
     Guid CorrelationId
@@ -103,17 +59,6 @@ public record CommitErrorSavedContract
     Guid CorrelationId
 );
 
-public class FinishAuctionStateContract : BaseStateContract
-{
-    public string CurrentState { get; set; }
-    public Guid Id { get; set; }
-    public string Winner { get; set; }
-    public bool ItemSold { get; set; }
-    public int Amount { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
-}
-
 public class CommitAuctionFinishingContract : BaseStateContract { }
 
 public record CommitAuctionFinishedContract
@@ -133,6 +78,7 @@ public class SendToSetSnapShot
     public string ItemsType { get; set; }
     public string ProjectName { get; set; }
     public DateTime CreateAt { get; set; }
+    public int RestoringOrder { get; set; }
 }
 
 public class SendToReindexingElk
@@ -165,3 +111,38 @@ public class AuctionItem
     public string Properties { get; set; }
     public string Description { get; set; }
 }
+
+public record RestoreSnapShotDb(
+    string SessionId,
+    string UserLogin,
+    Guid SnapShotId
+);
+
+public class RestoreSnapShotItems<T>
+{
+    public string SessionId { get; set; }
+    public string UserLogin { get; set; }
+    public List<RestoreSnapShotItem> Items { get; set; }
+}
+
+public class RestoreSnapShotItem
+{
+    public List<JsonDocument> Items { get; set; }
+    public string ItemsType { get; set; }
+    public int? RestoringOrder { get; set; }
+}
+
+public record FinanceServiceType();
+public record BiddingServiceType();
+public record SearchServiceType();
+public record NotificationServiceType();
+
+public record RestoreSnapShotCompleted(
+    string Message,
+    Guid CorrelationId,
+    string UserLogin,
+    string SessionId
+);
+
+public record CommitESOperation(Guid CorrelationId);
+

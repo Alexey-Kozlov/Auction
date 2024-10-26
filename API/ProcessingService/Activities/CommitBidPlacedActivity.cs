@@ -2,7 +2,7 @@ using Common.Contracts;
 using MassTransit;
 using ProcessingService.StateMachines.BidPlacedStateMachine;
 
-namespace ProcessingService.Activities.BidPlaced;
+namespace ProcessingService.Activities;
 
 public class CommitBidPlacedActivity : IStateMachineActivity<BidPlacedState, BidNotificationProcessed>
 {
@@ -25,7 +25,7 @@ public class CommitBidPlacedActivity : IStateMachineActivity<BidPlacedState, Bid
     {
         var message = new CommitBidPlacingContract();
         message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CommitBidPlacingContract);
+        //message.Type = nameof(CommitBidPlacingContract);
         await _topicProducer.Produce(message);
         await next.Execute(context).ConfigureAwait(false);
     }

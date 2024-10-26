@@ -42,6 +42,7 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendAuctions.ItemsType = nameof(Auction);
         sendAuctions.ProjectName = Assembly.GetExecutingAssembly().GetName().Name;
         sendAuctions.CreateAt = consumeContext.Message.CreateAt;
+        sendAuctions.RestoringOrder = 1;
         await _publishEndpoint.Publish(sendAuctions);
 
         var sendBids = new SendToSetSnapShot();
@@ -57,6 +58,7 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendBids.ItemsType = nameof(Bid);
         sendBids.ProjectName = Assembly.GetExecutingAssembly().GetName().Name;
         sendBids.CreateAt = consumeContext.Message.CreateAt;
+        sendBids.RestoringOrder = 2;
         await _publishEndpoint.Publish(sendBids);
 
         Console.WriteLine("--> Получение сообщения выполнить снапшот текущй БД в EventSourcing");

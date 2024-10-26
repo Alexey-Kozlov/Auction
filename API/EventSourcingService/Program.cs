@@ -12,8 +12,10 @@ using Common.Contracts;
 using EventSourcingService.Data;
 using EventSourcingService;
 using SearchService.Consumers;
-using EventSourcingService.Consumers;
 using Common.Utils.Vault;
+using EventSourcingService.Consumers;
+using EventSourcingService.Services.CreateEventSourcingProcessing;
+using EventSourcingService.Services;
 
 internal class Program
 {
@@ -45,7 +47,7 @@ internal class Program
         });
         builder.Services.AddMassTransit(busConfigurator =>
         {
-            busConfigurator.AddConsumersFromNamespaceContaining<DbSnapShotConsumer>();
+            busConfigurator.AddConsumersFromNamespaceContaining<CreateDbSnapShotConsumer>();
             busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
             busConfigurator.UsingRabbitMq((context, config) =>
             {
@@ -66,13 +68,13 @@ internal class Program
             });
             busConfigurator.AddRider(r =>
             {
-                r.AddConsumer<EventSourcingEventConsumer>();
+                r.AddConsumer<CreateEventSourcingItemConsumer>();
                 r.UsingKafka((context, k) =>
                 {
                     k.Host(builder.Configuration["Kafka_Host"]);
                     k.TopicEndpoint<BaseStateContract>(builder.Configuration["Kafka_Topic_Event"], "consumerGroup", e =>
                     {
-                        e.ConfigureConsumer<EventSourcingEventConsumer>(context);
+                        e.ConfigureConsumer<CreateEventSourcingItemConsumer>(context);
                         e.CreateIfMissing();
                     });
                 });
@@ -118,6 +120,11 @@ internal class Program
             );
 
         builder.Services.AddSingleton<AuctionMetrics>();
+        builder.Services.AddScoped<InsertItemToEventSourcing>();
+        builder.Services.AddScoped<NotificationProcessing>();
+        builder.Services.AddScoped<SearchProcessing>();
+        builder.Services.AddScoped<BidProcessing>();
+        builder.Services.AddScoped<MainProcessing>();
 
         var app = builder.Build();
 

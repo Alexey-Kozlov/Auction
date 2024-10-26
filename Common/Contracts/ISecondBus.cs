@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace ProcessingService;
+namespace Common.Contracts;
 
 public interface ISecondBus : IBus
 {

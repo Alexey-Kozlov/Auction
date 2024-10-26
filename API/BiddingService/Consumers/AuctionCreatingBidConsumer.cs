@@ -1,7 +1,9 @@
-﻿using AutoMapper;
+﻿using System.Reflection;
+using AutoMapper;
 using BiddingService.Data;
 using BiddingService.Entities;
 using Common.Contracts;
+using Common.Utils;
 using MassTransit;
 
 namespace BiddingService.Consumers;
@@ -10,23 +12,17 @@ public class AuctionCreatingBidConsumer : IConsumer<AuctionCreatingBid>
 {
     private readonly BidDbContext _context;
     private readonly IMapper _mapper;
-    private readonly ILogger<AuctionCreatingBidConsumer> _logger;
-    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionCreatingBidConsumer(BidDbContext context, IMapper mapper,
-    ILogger<AuctionCreatingBidConsumer> logger, IPublishEndpoint publishEndpoint)
+    public AuctionCreatingBidConsumer(BidDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
-        _logger = logger;
-        _publishEndpoint = publishEndpoint;
     }
-    public async Task Consume(ConsumeContext<AuctionCreatingBid> consumeContext)
+    public async Task Consume(ConsumeContext<AuctionCreatingBid> context)
     {
-        var auction = _mapper.Map<Auction>(consumeContext.Message);
+        var auction = _mapper.Map<Auction>(context.Message);
         _context.Auctions.Add(auction);
         await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(new AuctionCreatedBid(consumeContext.Message.CorrelationId));
-        _logger.LogInformation("Создан аукцион - " + auction.Id + ", продавец - " + auction.Seller);
+
     }
 }

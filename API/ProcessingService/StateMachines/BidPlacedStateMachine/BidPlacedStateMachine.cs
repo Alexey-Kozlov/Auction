@@ -1,6 +1,5 @@
 using Common.Contracts;
 using MassTransit;
-using ProcessingService.Activities.BidPlaced;
 using ProcessingService.Activities.Errors;
 
 namespace ProcessingService.StateMachines.BidPlacedStateMachine;
@@ -89,7 +88,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.BidId = Guid.NewGuid();
             })
             //посылаем поступившую инфу в лог в EventSourcing
-            .Activity(p => p.OfType<BidPlacedActivity>())
+            //.Activity(p => p.OfType<BidPlacedActivity>())
             //.Publish(context => new AfterBidPlacedContract(context.Saga.CorrelationId))
             .TransitionTo(GetCurrentBidState)
 
@@ -292,7 +291,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Activity(p => p.OfType<CommitBidPlacedActivity>())
+            //.Activity(p => p.OfType<CommitBidPlacedActivity>())
             .TransitionTo(CommitBidPlacedState),
         When(BidNotificationFaultedEvent)
         //ошибка рассылки уведомлений

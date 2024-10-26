@@ -17,7 +17,7 @@ public class RollbackBidPlacedConsumer : IConsumer<RollbackBidPlaced>
     }
     public async Task Consume(ConsumeContext<RollbackBidPlaced> context)
     {
-        var bid = await _dbContext.Bids.Where(p => p.Id == context.Message.BidId).FirstOrDefaultAsync();
+        var bid = await _dbContext.Bids.Where(p => p.BidId == context.Message.BidId).FirstOrDefaultAsync();
         _dbContext.Bids.Remove(bid);
         await _dbContext.SaveChangesAsync();
         Console.WriteLine($"{DateTime.Now} Получение сообщения - отмена размещения заявки - {context.Message.BidId}");

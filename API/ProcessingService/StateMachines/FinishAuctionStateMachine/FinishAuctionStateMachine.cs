@@ -1,7 +1,5 @@
 using Common.Contracts;
 using MassTransit;
-using ProcessingService.Activities.AuctionDelete;
-using ProcessingService.Activities.AuctionFinish;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
 public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionState>
@@ -67,7 +65,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Activity(p => p.OfType<FinishingAuctionActivity>())
+            //.Activity(p => p.OfType<FinishingAuctionActivity>())
             .TransitionTo(AuctionFinishedState)
         );
     }
@@ -153,7 +151,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Activity(p => p.OfType<CommitFinishingAuctionActivity>())
+            //.Activity(p => p.OfType<CommitFinishingAuctionActivity>())
             .TransitionTo(CommitAuctionFinishedState));
     }
 

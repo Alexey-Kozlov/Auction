@@ -22,7 +22,7 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         try
         {
-            var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
+            var auction = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.AuctionId == context.Message.Id);
             if (auction == null)
             {
                 throw new PlaceBidException(
@@ -73,7 +73,7 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
 
             await transaction.CommitAsync();
 
-            await _publishEndpoint.Publish(new BidPlaced(bid.Id, context.Message.CorrelationId));
+            await _publishEndpoint.Publish(new BidPlaced(bid.BidId, context.Message.CorrelationId));
 
             Console.WriteLine($"{DateTime.Now} Получение сообщения - размещена заявка - " +
                      context.Message.Bidder + ", " + context.Message.Amount);

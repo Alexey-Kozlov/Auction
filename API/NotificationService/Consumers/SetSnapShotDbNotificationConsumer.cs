@@ -9,15 +9,10 @@ namespace NotificationService.Consumers;
 public class SetSnapShotDbNotificationConsumer : IConsumer<EventSourcingInitialized>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
-    private readonly NotificationDbContext _dbContext;
-    private readonly IPublishEndpoint _publishEndpoint;
 
-    public SetSnapShotDbNotificationConsumer(IHubContext<NotificationHub> hubContext,
-    NotificationDbContext dbContext, IPublishEndpoint publishEndpoint)
+    public SetSnapShotDbNotificationConsumer(IHubContext<NotificationHub> hubContext)
     {
         _hubContext = hubContext;
-        _dbContext = dbContext;
-        _publishEndpoint = publishEndpoint;
     }
     public async Task Consume(ConsumeContext<EventSourcingInitialized> context)
     {

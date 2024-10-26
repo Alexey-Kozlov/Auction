@@ -45,11 +45,11 @@ public class CheckAuctionFinished : BackgroundService
                 auction.Finished = true;
                 await _context.SaveChangesAsync();
                 var winningBid = await _context.Bids.Where(p =>
-                p.AuctionId == auction.Id)
+                p.AuctionId == auction.AuctionId)
                 .OrderByDescending(p => p.Amount)
                 .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
 
-                await endpoint.Publish(new RequestAuctionFinish(auction.Id, winningBid != null, winningBid?.Bidder,
+                await endpoint.Publish(new RequestAuctionFinish(auction.AuctionId, winningBid != null, winningBid?.Bidder,
                     (winningBid == null ? 0 : winningBid.Amount), Guid.NewGuid()), stoppingToken);
             }
         }

@@ -26,7 +26,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<BalanceItem>
         builder.ToTable("BalanceItems").HasKey(p => p.Id).HasName("PK_Id");
         builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
-        builder.Property(p => p.UserLogin).HasColumnType("text").HasColumnName("UserLogin").IsRequired(true);
+        builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(true);
         builder.Property(p => p.Credit).HasColumnType("integer").HasColumnName("Credit").HasPrecision(14, 2).IsRequired(true);
         builder.Property(p => p.Debit).HasColumnType("integer").HasColumnName("Debit").HasPrecision(14, 2).IsRequired(true);
         builder.Property(p => p.ActionDate).HasColumnType("timestamp with time zone").HasColumnName("ActionDate").IsRequired(true);

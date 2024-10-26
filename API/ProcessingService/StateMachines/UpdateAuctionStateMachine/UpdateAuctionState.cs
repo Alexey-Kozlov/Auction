@@ -6,7 +6,7 @@ public record UpdateAuctionState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; }
-    public Guid Id { get; set; }
+    public Guid AuctionId { get; set; }
     public string Title { get; set; }
     public string Properties { get; set; }
     public string Description { get; set; }

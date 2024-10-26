@@ -1,18 +1,17 @@
+using System.Reflection;
 using Common.Contracts;
+using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionDelete;
+namespace ProcessingService.Activities;
 
 public class CommitDeletingAuctionActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeletedElk>
 {
-    private readonly ITopicProducer<BaseStateContract> _topicProducer;
-    private readonly ILogger<CommitDeletingAuctionActivity> _logger;
-    public CommitDeletingAuctionActivity(ITopicProducer<BaseStateContract> topicProducer,
-        ILogger<CommitDeletingAuctionActivity> logger)
+    private readonly SendEventToES _sendEventToES;
+    public CommitDeletingAuctionActivity(SendEventToES sendEventToES)
     {
-        _topicProducer = topicProducer;
-        _logger = logger;
+        _sendEventToES = sendEventToES;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -23,10 +22,8 @@ public class CommitDeletingAuctionActivity : IStateMachineActivity<DeleteAuction
 
     public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedElk> context, IBehavior<DeleteAuctionState, AuctionDeletedElk> next)
     {
-        var message = new CommitAuctionDeletingContract();
-        message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CommitAuctionDeletingContract);
-        await _topicProducer.Produce(message);
+        await _sendEventToES.SendItemToEventSourcing(context.Message, nameof(CommitESOperation),
+            Assembly.GetExecutingAssembly().GetName().Name, context.Message.CorrelationId);
         await next.Execute(context).ConfigureAwait(false);
     }
 

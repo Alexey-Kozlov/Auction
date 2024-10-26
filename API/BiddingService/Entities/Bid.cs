@@ -4,7 +4,7 @@ namespace BiddingService.Entities;
 
 public class Bid
 {
-    public Guid Id { get; set; }
+    public Guid BidId { get; set; }
     public Guid AuctionId { get; set; }
     public string Bidder { get; set; }
     public DateTime BidTime { get; set; } = DateTime.UtcNow;

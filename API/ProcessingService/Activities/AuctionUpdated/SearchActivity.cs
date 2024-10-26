@@ -1,0 +1,49 @@
+using Common.Contracts;
+using Common.Utils;
+using MassTransit;
+using ProcessingService.StateMachines.UpdateAuctionStateMachine;
+
+namespace ProcessingService.Activities.AuctionUpdated;
+
+public class SearchActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdatedImage>
+{
+    private readonly SendEventToES _sendEventToES;
+    private readonly IConfiguration _config;
+    public SearchActivity(SendEventToES sendEventToES, IConfiguration config)
+    {
+        _sendEventToES = sendEventToES;
+        _config = config;
+    }
+
+    public void Accept(StateMachineVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
+
+    public async Task Execute(BehaviorContext<UpdateAuctionState, AuctionUpdatedImage> context, IBehavior<UpdateAuctionState, AuctionUpdatedImage> next)
+    {
+        await _sendEventToES.SendItemToEventSourcing(
+            new AuctionUpdatingSearch(
+                context.Saga.AuctionId,
+                context.Saga.Title,
+                context.Saga.Properties,
+                context.Saga.Description,
+                context.Saga.AuctionAuthor,
+                context.Saga.AuctionEnd,
+                context.Saga.CorrelationId
+            ),
+            nameof(AuctionUpdatingSearch),
+            _config["ServicesName:SearchService"], context.Message.CorrelationId);
+        await next.Execute(context).ConfigureAwait(false);
+    }
+
+    public Task Faulted<TException>(BehaviorExceptionContext<UpdateAuctionState, AuctionUpdatedImage, TException> context, IBehavior<UpdateAuctionState, AuctionUpdatedImage> next) where TException : Exception
+    {
+        return next.Faulted(context);
+    }
+
+    public void Probe(ProbeContext context)
+    {
+        context.CreateScope("request-auction-update");
+    }
+}

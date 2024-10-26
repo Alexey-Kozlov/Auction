@@ -2,7 +2,7 @@ using Common.Contracts;
 using MassTransit;
 using ProcessingService.StateMachines.FinishAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionDelete;
+namespace ProcessingService.Activities;
 
 public class CommitFinishingAuctionActivity : IStateMachineActivity<FinishAuctionState, AuctionFinishedElk>
 {
@@ -25,7 +25,7 @@ public class CommitFinishingAuctionActivity : IStateMachineActivity<FinishAuctio
     {
         var message = new CommitAuctionFinishingContract();
         message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CommitAuctionFinishingContract);
+        //message.Type = nameof(CommitAuctionFinishingContract);
         await _topicProducer.Produce(message);
         await next.Execute(context).ConfigureAwait(false);
     }

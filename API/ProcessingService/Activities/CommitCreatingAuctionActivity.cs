@@ -1,18 +1,17 @@
+using System.Reflection;
 using Common.Contracts;
+using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.CreateAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionCreate;
+namespace ProcessingService.Activities;
 
 public class CommitCreatingAuctionActivity : IStateMachineActivity<CreateAuctionState, AuctionCreatedElk>
 {
-    private readonly ITopicProducer<BaseStateContract> _topicProducer;
-    private readonly ILogger<CommitCreatingAuctionActivity> _logger;
-    public CommitCreatingAuctionActivity(ITopicProducer<BaseStateContract> topicProducer,
-        ILogger<CommitCreatingAuctionActivity> logger)
+    private readonly SendEventToES _sendEventToES;
+    public CommitCreatingAuctionActivity(SendEventToES sendEventToES)
     {
-        _topicProducer = topicProducer;
-        _logger = logger;
+        _sendEventToES = sendEventToES;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -23,10 +22,8 @@ public class CommitCreatingAuctionActivity : IStateMachineActivity<CreateAuction
 
     public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreatedElk> context, IBehavior<CreateAuctionState, AuctionCreatedElk> next)
     {
-        var message = new CommitAuctionCreatingContract();
-        message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CommitAuctionCreatingContract);
-        await _topicProducer.Produce(message);
+        await _sendEventToES.SendItemToEventSourcing(context.Message, nameof(CommitESOperation),
+            Assembly.GetExecutingAssembly().GetName().Name, context.Message.CorrelationId);
         await next.Execute(context).ConfigureAwait(false);
     }
 

@@ -26,8 +26,8 @@ public class CommitErrorBidSearchPlaceActivity : IStateMachineActivity<BidPlaced
 
         var message = new CommitBidErrorContract();
         message.CorrelationId = context.Saga.CorrelationId;
-        message.Type = nameof(CommitBidErrorContract);
-        message.Data = $"{context.Message.Exceptions[0].Message}";
+        //message.Type = nameof(CommitBidErrorContract);
+        //message.Data = $"{context.Message.Exceptions[0].Message}";
         await _topicProducer.Produce(message);
         await next.Execute(context).ConfigureAwait(false);
     }

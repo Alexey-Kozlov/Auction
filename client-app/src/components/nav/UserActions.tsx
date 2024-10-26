@@ -54,6 +54,14 @@ export default function UserActions() {
         ),{ duration: 5000 });
     }
 
+    const handlerRestoreSnapShotDb = () => {
+        dispatch(setEventFlag({ eventName: 'RestoreSnapShotDb', ready: true }));
+        const message:Message = {message:'Старт восстановления БД из ES...',correlationId:'',id:'',messageType:0};
+        return toast((p) => (
+            <InfoMessageToast message={message} toastId={p.id} />
+        ),{ duration: 5000 });
+    }
+
     return (
         <Dropdown inline label={`Здравствуйте ${user.name}`}>
             <Dropdown.Item icon={HiUser} onClick={SetSeller}>
@@ -81,6 +89,9 @@ export default function UserActions() {
                 <Dropdown.Item icon={GoDatabase} onClick={handlerSetSnapShotDb}>
                     Выполнить SnapShot Db
                 </Dropdown.Item>
+                <Dropdown.Item icon={GoDatabase} onClick={handlerRestoreSnapShotDb}>
+                    Восстановить Db из SnapShot
+                </Dropdown.Item>                
             </>
             )}
             <Dropdown.Divider />

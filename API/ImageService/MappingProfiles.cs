@@ -25,7 +25,7 @@ public class MappingProfiles : Profile
         );
 
         CreateMap<AuctionUpdatingImage, ImageItem>()
-            .ForMember(dest => dest.AuctionId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.AuctionId, opt => opt.MapFrom(src => src.AuctionId))
             .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
             {
                 if (src.Image != null && src.Image.Length > 0)

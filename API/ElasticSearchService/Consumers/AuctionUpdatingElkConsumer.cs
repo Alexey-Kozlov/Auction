@@ -18,7 +18,7 @@ public class AuctionUpdatingElkConsumer : IConsumer<AuctionUpdatingElk>
     {
         //обновляем документ
         var response = await _client.Client.UpdateAsync<AuctionCreatingSearch, AuctionUpdatingElk>(
-            consumeContext.Message.Id.ToString(),
+            consumeContext.Message.AuctionId.ToString(),
             p => p.Doc(consumeContext.Message));
         if (!response.IsValidResponse)
         {

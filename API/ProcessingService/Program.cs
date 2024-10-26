@@ -116,6 +116,8 @@ builder.Services.AddOpenTelemetry()
         })
 );
 
+builder.Services.AddScoped<SendEventToES>();
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 

@@ -91,15 +91,15 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("customPolicy");
 
-app.Use(async (context, next) =>
-{
-    // логируем вошедший запрос
-    Console.WriteLine(" Вошедший запрос -> " + context.Request.Path);
-    await next.Invoke();
-    // логируем ответ
-});
+// app.Use(async (context, next) =>
+// {
+//     // логируем вошедший запрос
+//     Console.WriteLine(" Вошедший запрос -> " + context.Request.Path);
+//     await next.Invoke();
+//     // логируем ответ
+// });
 
-Console.WriteLine($"{DateTime.Now} - Gateway service started");
+//Console.WriteLine($"{DateTime.Now} - Gateway service started");
 
 // добавляем дополнительный роутинг для возврата изображений
 // это все запросы начинающиеся с :

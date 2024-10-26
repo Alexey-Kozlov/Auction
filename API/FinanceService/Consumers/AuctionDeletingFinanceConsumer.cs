@@ -8,12 +8,10 @@ namespace FinanceService.Consumers;
 public class AuctionDeletingFinanceConsumer : IConsumer<AuctionDeletingFinance>
 {
     private readonly FinanceDbContext _dbContext;
-    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuctionDeletingFinanceConsumer(FinanceDbContext dbContext, IPublishEndpoint publishEndpoint)
+    public AuctionDeletingFinanceConsumer(FinanceDbContext dbContext)
     {
         _dbContext = dbContext;
-        _publishEndpoint = publishEndpoint;
     }
     public async Task Consume(ConsumeContext<AuctionDeletingFinance> context)
     {
@@ -43,7 +41,6 @@ public class AuctionDeletingFinanceConsumer : IConsumer<AuctionDeletingFinance>
         }
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
-        await _publishEndpoint.Publish(new AuctionDeletedFinance(context.Message.CorrelationId));
-        Console.WriteLine($"{DateTime.Now}  Получение сообщения - аукцион удален - " + context.Message.Id);
+
     }
 }
