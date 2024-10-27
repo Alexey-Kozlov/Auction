@@ -41,8 +41,8 @@ export default function AuctionForm() {
             error: ''
         } as Auction
     )
-    const auctionImage = useGetImageForAuctionQuery(newAuction.id, {
-        skip: newAuction.id === undefined
+    const auctionImage = useGetImageForAuctionQuery(newAuction.auctionId, {
+        skip: newAuction.auctionId === undefined
     });
 
     useEffect(() => {
@@ -88,7 +88,7 @@ export default function AuctionForm() {
                     onSubmit={async (values, { setErrors }) => {
                         setIsWaiting(true);
                         const auctionUpdated: AuctionUpdated = {
-                            id: id,
+                            auctionId: id,
                             title: values.title,
                             description: values.description ? values.description : '',
                             properties: values.properties,

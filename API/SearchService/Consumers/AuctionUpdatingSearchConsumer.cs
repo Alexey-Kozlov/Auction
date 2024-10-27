@@ -22,11 +22,11 @@ public class AuctionUpdatingSearchConsumer : IConsumer<AuctionUpdatingSearch>
     public async Task Consume(ConsumeContext<AuctionUpdatingSearch> context)
     {
         var updatedItem = _mapper.Map<Item>(context.Message);
-        var item = await _context.Items.FirstOrDefaultAsync(p => p.Id == updatedItem.Id);
+        var item = await _context.Items.FirstOrDefaultAsync(p => p.AuctionId == updatedItem.AuctionId);
         if (item == null)
         {
-            Console.WriteLine("Ошибка обновления записи - запись " + updatedItem.Id + " не найдена.");
-            throw new Exception("Ошибка завершения аукциона " + updatedItem.Id + " - аукцион не найден");
+            Console.WriteLine("Ошибка обновления записи - запись " + updatedItem.AuctionId + " не найдена.");
+            throw new Exception("Ошибка завершения аукциона " + updatedItem.AuctionId + " - аукцион не найден");
         }
         _mapper.Map(updatedItem, item);
         await _context.SaveChangesAsync();

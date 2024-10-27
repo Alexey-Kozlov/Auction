@@ -23,6 +23,10 @@ public class SearchProcessing
             case nameof(AuctionUpdatingSearch):
                 await _publishEndpoint.Publish(new AuctionUpdateESSearch(context.Message.CorrelationId));
                 break;
+            //ProcessingService -> CreatedActivity -> SearchActivity                         
+            case nameof(AuctionCreatingSearch):
+                await _publishEndpoint.Publish(new AuctionCreateESSearch(context.Message.CorrelationId));
+                break;
         }
     }
 }

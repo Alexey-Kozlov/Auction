@@ -22,15 +22,13 @@ public class AuctionDeletingNotificationConsumer : IConsumer<AuctionDeletingNoti
     }
     public async Task Consume(ConsumeContext<AuctionDeletingNotification> context)
     {
-        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - удалить аукцион '{context.Message.Id}'" +
-            $", автор - {context.Message.AuctionAuthor}");
-        var items = await _context.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
+        var items = await _context.NotifyUser.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
         if (items != null && items.Count > 0)
         {
             _context.NotifyUser.RemoveRange(items);
             await _context.SaveChangesAsync();
         }
-        await _hubContext.Clients.Group(context.Message.AuctionAuthor).SendAsync("AuctionDeleted", context.Message);
+        await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("AuctionDeleted", context.Message);
         await _publishEndpoint.Publish(new AuctionDeletedNotification(context.Message.CorrelationId));
     }
 }

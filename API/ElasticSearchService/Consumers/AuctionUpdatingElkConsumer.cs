@@ -24,8 +24,6 @@ public class AuctionUpdatingElkConsumer : IConsumer<AuctionUpdatingElk>
         {
             Console.WriteLine(response.ElasticsearchServerError);
         }
-        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - обновлен аукцион '{consumeContext.Message.Title}'" +
-        $", автор - {consumeContext.Message.AuctionAuthor}");
         await _publishEndpoint.Publish(new AuctionUpdatedElk(consumeContext.Message.CorrelationId));
     }
 }

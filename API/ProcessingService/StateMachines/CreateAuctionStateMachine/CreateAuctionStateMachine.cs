@@ -1,31 +1,37 @@
 using Common.Contracts;
 using MassTransit;
-using ProcessingService.Activities;
+using ProcessingService.Activities.AuctionCreate;
 
 namespace ProcessingService.StateMachines.CreateAuctionStateMachine;
 public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionState>
 {
-    public State AuctionCreatedState { get; }
-    public State AuctionCreatedBidState { get; }
-    public State AuctionCreatedImageState { get; }
-    public State AuctionCreatedNotificationState { get; }
-    public State AuctionCreatedSearchState { get; }
-    public State AuctionCreatedElkState { get; }
-    public State CommitAuctionCreatedState { get; }
+    public State ESBidState { get; }
+    public State BidState { get; }
+    public State ImageState { get; }
+    public State ESSearchState { get; }
+    public State SearchState { get; }
+    public State ElkState { get; }
+    public State ESNotificationState { get; }
+    public State NotificationState { get; }
+    public State ESCommitState { get; }
+    public State CommitState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
-    private IConfiguration configuration { get; }
 
-    public Event<RequestAuctionCreate> RequestAuctionCreatingEvent { get; }
-    public Event<AuctionCreatedBid> AuctionCreatedBidEvent { get; }
 
-    public Event<AuctionCreatedImage> AuctionCreatedImageEvent { get; }
-    public Event<AuctionCreatedNotification> AuctionCreatedNotificationEvent { get; }
-    public Event<AuctionCreatedSearch> AuctionCreatedSearchEvent { get; }
-    public Event<AuctionCreatedElk> AuctionCreatedElkEvent { get; }
-    public Event<CommitAuctionCreatedContract> CommitAuctionCreatedEvent { get; }
-    public Event<GetAuctionCreateState> AuctionCreatedStateEvent { get; }
+    public Event<RequestAuctionCreate> RequestEvent { get; }
+    public Event<AuctionCreateESBid> ESBidEvent { get; }
+    public Event<AuctionCreatedBid> BidEvent { get; }
+    public Event<AuctionCreatedImage> ImageEvent { get; }
+    public Event<AuctionCreateESSearch> ESSearchEvent { get; }
+    public Event<AuctionCreatedSearch> SearchEvent { get; }
+    public Event<AuctionCreatedElk> ElkEvent { get; }
+    public Event<AuctionCreateESNotification> ESNotificationEvent { get; }
+    public Event<AuctionCreatedNotification> NotificationEvent { get; }
+    public Event<AuctionCreateESCommit> CommitEvent { get; }
+
     private string Image { get; set; }
+    private IConfiguration configuration { get; }
 
     public CreateAuctionStateMachine(IServiceProvider services)
     {
@@ -33,63 +39,81 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureAuctionCreatedBid();
-        ConfigureAuctionCreatedImage();
-        ConfigureAuctionCreatedSearch();
-        ConfigureAuctionCreatedNotification();
-        ConfigureAuctionCreatedElk();
-        ConfigureCommitCreatingAuction();
-        ConfigureCompleted();
-        ConfigureAny();
+        ConfigureESBidState();
+        ConfigureBidState();
+        ConfigureImageState();
+        ConfigureESSearchState();
+        ConfigureSearchState();
+        ConfigureESNotificationState();
+        ConfigureNotificationState();
+        ConfigureElkState();
+        ConfigureCommitState();
+        ConfigureCompletedState();
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionCreatingEvent, p =>
+        Event(() => RequestEvent, p =>
         {
             p.InsertOnInitial = true;
         });
-        Event(() => AuctionCreatedBidEvent);
-        Event(() => AuctionCreatedImageEvent);
-        Event(() => AuctionCreatedNotificationEvent);
-        Event(() => AuctionCreatedSearchEvent);
-        Event(() => AuctionCreatedStateEvent);
-        Event(() => AuctionCreatedElkEvent);
-        Event(() => CommitAuctionCreatedEvent);
+        Event(() => ESBidEvent);
+        Event(() => BidEvent);
+        Event(() => ImageEvent);
+        Event(() => ESSearchEvent);
+        Event(() => SearchEvent);
+        Event(() => ElkEvent);
+        Event(() => ESNotificationEvent);
+        Event(() => NotificationEvent);
+        Event(() => CommitEvent);
     }
     private void ConfigureInitialState()
     {
         Initially(
-            When(RequestAuctionCreatingEvent)
+            When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.Id = context.Message.Id;
+                context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Title = context.Message.Title;
                 context.Saga.Description = context.Message.Description;
                 context.Saga.Properties = context.Message.Properties;
-                context.Saga.AuctionAuthor = context.Message.AuctionAuthor;
+                context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.ReservePrice = context.Message.ReservePrice;
                 this.Image = context.Message.Image;
             })
+            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
+            //Создание записи по обновлению аукциона в сервисе BiddingService (обновление времени окончания)
+            .Activity(p => p.OfType<BidActivity>())
+            .TransitionTo(ESBidState)
+        );
+    }
+
+    private void ConfigureESBidState()
+    {
+        During(ESBidState,
+        When(ESBidEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
             //посылаем в BiddingService - для создания новой записи аукциона
             .Send(
                 new Uri(configuration["QueuePaths:AuctionCreatingBid"]),
                 context => new AuctionCreatingBid(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.AuctionEnd,
-                context.Saga.AuctionAuthor,
+                context.Saga.UserLogin,
                 context.Saga.CorrelationId,
                 context.Saga.ReservePrice))
-            .TransitionTo(AuctionCreatedBidState)
-        );
+            .TransitionTo(BidState));
     }
 
-    private void ConfigureAuctionCreatedBid()
+    private void ConfigureBidState()
     {
-        During(AuctionCreatedBidState,
-        When(AuctionCreatedBidEvent)
+        During(BidState,
+        When(BidEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
@@ -98,16 +122,29 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionCreatingImage"]),
                 context => new AuctionCreatingImage(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 this.Image,
                 context.Saga.CorrelationId))
-            .TransitionTo(AuctionCreatedImageState));
+            .TransitionTo(ImageState));
     }
 
-    private void ConfigureAuctionCreatedImage()
+    private void ConfigureImageState()
     {
-        During(AuctionCreatedImageState,
-        When(AuctionCreatedImageEvent)
+        During(ImageState,
+        When(ImageEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
+            //Создание записи по обновлению аукциона в сервисе SearchService (обновление всех описаний)
+            .Activity(p => p.OfType<SearchActivity>())
+            .TransitionTo(ESSearchState));
+    }
+    private void ConfigureESSearchState()
+    {
+        During(ESSearchState,
+        When(ESSearchEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
@@ -116,20 +153,35 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionCreatingSearch"]),
                 context => new AuctionCreatingSearch(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.Title,
                 context.Saga.Properties,
                 context.Saga.Description,
-                context.Saga.AuctionAuthor,
+                context.Saga.UserLogin,
                 context.Saga.AuctionEnd,
                 context.Saga.CorrelationId,
                 context.Saga.ReservePrice))
-            .TransitionTo(AuctionCreatedSearchState));
+            .TransitionTo(SearchState));
     }
-    private void ConfigureAuctionCreatedSearch()
+
+    private void ConfigureSearchState()
     {
-        During(AuctionCreatedSearchState,
-        When(AuctionCreatedSearchEvent)
+        During(SearchState,
+        When(SearchEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
+            //Создание записи по обновлению аукциона в сервисе NotificationService 
+            //создание подписки автора аукциона на уведомления от этого аукциона
+            .Activity(p => p.OfType<NotificationActivity>())
+            .TransitionTo(ESNotificationState));
+    }
+    private void ConfigureESNotificationState()
+    {
+        During(ESNotificationState,
+        When(ESNotificationEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
@@ -138,17 +190,17 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionCreatingNotification"]),
                 context => new AuctionCreatingNotification(
-                context.Saga.Id,
-                context.Saga.AuctionAuthor,
+                context.Saga.AuctionId,
+                context.Saga.UserLogin,
                 context.Saga.Title,
                 context.Saga.CorrelationId))
-            .TransitionTo(AuctionCreatedNotificationState));
+            .TransitionTo(NotificationState));
     }
 
-    private void ConfigureAuctionCreatedNotification()
+    private void ConfigureNotificationState()
     {
-        During(AuctionCreatedNotificationState,
-        When(AuctionCreatedNotificationEvent)
+        During(NotificationState,
+        When(NotificationEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
@@ -158,11 +210,11 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 new Uri(configuration["QueuePaths:AuctionCreatingElk"]),
                 context => new AuctionCreatingElk()
                 {
-                    Id = context.Saga.Id,
+                    AuctionId = context.Saga.AuctionId,
                     Title = context.Saga.Title,
                     Properties = context.Saga.Properties,
                     Description = context.Saga.Description,
-                    AuctionAuthor = context.Saga.AuctionAuthor,
+                    UserLogin = context.Saga.UserLogin,
                     AuctionEnd = context.Saga.AuctionEnd,
                     AuctionCreated = DateTime.UtcNow,
                     CorrelationId = context.Saga.CorrelationId,
@@ -171,27 +223,27 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                     Winner = "",
                     Amount = 0
                 })
-            .TransitionTo(AuctionCreatedElkState));
+            .TransitionTo(ElkState));
     }
 
-    private void ConfigureAuctionCreatedElk()
+    private void ConfigureElkState()
     {
-        During(AuctionCreatedElkState,
-        When(AuctionCreatedElkEvent)
+        During(ElkState,
+        When(ElkEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.Image = string.IsNullOrEmpty(this.Image) ? "" : "Добавлено изображение";
             })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
-            .Activity(p => p.OfType<CommitCreatingAuctionActivity>())
-            .TransitionTo(CommitAuctionCreatedState));
+            .Activity(p => p.OfType<CommitActivity>())
+            .TransitionTo(CommitState));
     }
 
-    private void ConfigureCommitCreatingAuction()
+    private void ConfigureCommitState()
     {
-        During(CommitAuctionCreatedState,
-        When(CommitAuctionCreatedEvent)
+        During(CommitState,
+        When(CommitEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
@@ -199,18 +251,9 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .TransitionTo(CompletedState));
     }
 
-    private void ConfigureCompleted()
+    private void ConfigureCompletedState()
     {
         During(CompletedState);
-    }
-
-
-    private void ConfigureAny()
-    {
-        DuringAny(
-            When(AuctionCreatedStateEvent)
-                .Respond(x => x.Saga)
-        );
     }
 
 }

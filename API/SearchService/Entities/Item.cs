@@ -2,7 +2,7 @@
 
 public class Item
 {
-    public Guid Id { get; set; }
+    public Guid AuctionId { get; set; }
     public int ReservePrice { get; set; }
     public string Seller { get; set; }
     public string Winner { get; set; }

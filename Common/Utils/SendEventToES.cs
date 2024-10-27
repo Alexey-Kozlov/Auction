@@ -14,7 +14,7 @@ public class SendEventToES
     }
 
     public async Task SendItemToEventSourcing<T>(T context, string typeName,
-        string serviceName, Guid correlationId)
+        string serviceName, Guid correlationId, string userLogin, Guid auctionId)
     {
         JsonSerializerOptions options = new()
         {
@@ -27,6 +27,8 @@ public class SendEventToES
         message.EntityType = typeName;
         message.ServiceName = serviceName;
         message.CorrelationId = correlationId;
+        message.AuctionId = auctionId;
+        message.UserLogin = userLogin;
         await _topicProducer.Produce(message);
     }
 }

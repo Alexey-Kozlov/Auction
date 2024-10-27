@@ -19,8 +19,12 @@ public class MainProcessing
         switch (context.Message.EntityType)
         {
             //ProcessingService -> UpdatedActivity -> CommitActivity                         
-            case nameof(CommitESOperation):
+            case nameof(CommitESUpdateAuctionOperation):
                 await _publishEndpoint.Publish(new AuctionUpdateESCommit(context.Message.CorrelationId));
+                break;
+            //ProcessingService -> CreatedActivity -> CommitActivity                         
+            case nameof(CommitESCreateAuctionOperation):
+                await _publishEndpoint.Publish(new AuctionCreateESCommit(context.Message.CorrelationId));
                 break;
         }
 

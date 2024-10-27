@@ -71,8 +71,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             When(RequestAuctionDeletingEvent)
             .Then(context =>
             {
-                context.Saga.Id = context.Message.Id;
-                context.Saga.AuctionAuthor = context.Message.AuctionAuthor;
+                context.Saga.AuctionId = context.Message.AuctionId;
+                context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
@@ -80,8 +80,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingFinance"]),
                 context => new AuctionDeletingFinance(
-                context.Saga.Id,
-                context.Saga.AuctionAuthor,
+                context.Saga.AuctionId,
+                context.Saga.UserLogin,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedFinanceState)
         );
@@ -98,7 +98,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingBid"]),
                 context => new AuctionDeletingBid(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedBidState));
     }
@@ -113,7 +113,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingGateway"]),
                 context => new AuctionDeletingGateway(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedGatewayState));
     }
@@ -128,7 +128,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingImage"]),
                 context => new AuctionDeletingImage(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedImageState));
     }
@@ -143,7 +143,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingSearch"]),
                 context => new AuctionDeletingSearch(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedSearchState));
     }
@@ -158,8 +158,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingNotification"]),
                 context => new AuctionDeletingNotification(
-                context.Saga.Id,
-                context.Saga.AuctionAuthor,
+                context.Saga.AuctionId,
+                context.Saga.UserLogin,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedNotificationState));
     }
@@ -174,8 +174,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionDeletingElk"]),
                 context => new AuctionDeletingElk(
-                context.Saga.Id,
-                context.Saga.AuctionAuthor,
+                context.Saga.AuctionId,
+                context.Saga.UserLogin,
                 context.Saga.CorrelationId))
             .TransitionTo(AuctionDeletedElkState));
     }
@@ -187,7 +187,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Activity(p => p.OfType<CommitDeletingAuctionActivity>())
+            //.Activity(p => p.OfType<CommitDeletingAuctionActivity>())
             .TransitionTo(CommitAuctionDeletedState));
     }
 

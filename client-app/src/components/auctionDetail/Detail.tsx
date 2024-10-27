@@ -35,7 +35,7 @@ export default function Detail() {
     const handleDeleteAuction = async () => {
         setDeleteAuction(true);
         dispatch(setEventFlag({ eventName: 'AuctionDeleted', ready: false }));
-        const auctionDeleted: AuctionDeleted = { id: id!, correlationId: uuid.v4() as string };
+        const auctionDeleted: AuctionDeleted = { auctionId: id!, correlationId: uuid.v4() as string };
         await deleteAuctionProc(auctionDeleted);
     }
 
@@ -127,7 +127,7 @@ export default function Detail() {
                 </div>
                 <div className='grid grid-cols-[750px_1fr] gap-6 mt-3'>
                     <div className='flex items-center justify-center rounded-lg'>
-                        <ImageCard id={auctionDetail!.id} zooming={true} />
+                        <ImageCard id={auctionDetail!.auctionId} zooming={true} />
                     </div>
                     <BidList user={user} auction={auctionDetail!} />
                 </div>

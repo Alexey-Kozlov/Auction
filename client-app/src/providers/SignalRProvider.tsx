@@ -21,7 +21,7 @@ export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
 
     const [finishedAuction, setFinishedAuction] = useState<AuctionFinished>();
-    const finishedAuctionId = finishedAuction?.id ? finishedAuction.id : 'empty';
+    const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
     const auction = useGetAuctionQuery(finishedAuctionId, {
         skip: finishedAuctionId === 'empty'
     });
@@ -89,8 +89,8 @@ export default function SignalRProvider() {
                 })
 
                 connection.on('AuctionCreated', (auction: Auction) => {
-                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.id}));
-                    dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.id}));
+                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.auctionId}));
+                    dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.auctionId}));
                     if (user?.login !== auction.seller) {
                         return toast((p) => (
                             <AuctionCreatedToast auction={auction} toastId={p.id} />
@@ -100,8 +100,8 @@ export default function SignalRProvider() {
                 })
 
                 connection.on('AuctionUpdated', (auction: Auction) => {
-                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.id}));
-                    dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.id}));
+                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.auctionId}));
+                    dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.auctionId}));
                 })
 
                 connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
@@ -109,7 +109,7 @@ export default function SignalRProvider() {
                 })
 
                 connection.on('AuctionDeleted', (auction: any) => {
-                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.id }));
+                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.auctionId }));
                 })
 
                 connection.on('FinanceCreditAdd', (finance: any) => {
@@ -128,7 +128,7 @@ export default function SignalRProvider() {
 
                 connection.on('ElkIndex', (result: number) => {
                     dispatch(setEventFlag({ eventName: 'ElkIndex', ready: false }));
-                    const mes:Message = {message:result.toString(),correlationId:'',id:'',messageType:0};
+                    const mes:Message = {message:result.toString(),correlationId:'',auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
@@ -136,7 +136,7 @@ export default function SignalRProvider() {
 
                 connection.on('SetSnapShotDb', (result: number) => {
                     dispatch(setEventFlag({ eventName: 'SetSnapShotDb', ready: false }));
-                    const mes:Message = {message:result.toString(),correlationId:'',id:'',messageType:0};
+                    const mes:Message = {message:result.toString(),correlationId:'',auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
@@ -144,7 +144,7 @@ export default function SignalRProvider() {
 
                 connection.on('RestoreSnapShotDb', (result: number) => {
                     dispatch(setEventFlag({ eventName: 'RestoreSnapShotDb', ready: false }));
-                    const mes:Message = {message:result.toString(),correlationId:'',id:'',messageType:0};
+                    const mes:Message = {message:result.toString(),correlationId:'',auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });

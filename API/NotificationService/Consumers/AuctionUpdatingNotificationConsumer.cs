@@ -17,9 +17,7 @@ public class AuctionUpdatingNotificationConsumer : IConsumer<AuctionUpdatingNoti
     }
     public async Task Consume(ConsumeContext<AuctionUpdatingNotification> context)
     {
-        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - обновлен аукцион {context.Message.AuctionId}," +
-        $" автор - {context.Message.AuctionAuthor}, послано сообщение - {context.Message.AuctionAuthor}");
-        await _hubContext.Clients.Group(context.Message.AuctionAuthor).SendAsync("AuctionUpdated", context.Message);
+        await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("AuctionUpdated", context.Message);
         await _publishEndpoint.Publish(new AuctionUpdatedNotification(context.Message.CorrelationId));
     }
 }

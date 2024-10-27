@@ -11,7 +11,7 @@ export type Auction = {
   properties: string;
   description?: string;
   image?: string;
-  id: string;
+  auctionId: string;
   error?: string;
 };
 
@@ -104,7 +104,7 @@ export type ProcessingState = {
 };
 
 export type AuctionUpdated = {
-  id: string;
+  auctionId: string;
   title: string;
   properties: string;
   description: string;
@@ -116,18 +116,18 @@ export type AuctionUpdated = {
 
 export type AuctionFinished = {
   itemSold: boolean;
-  id: string;
+  auctionId: string;
   winner?: string;
   amount?: number;
 };
 
 export type AuctionDeleted = {
-  id: string;
+  auctionId: string;
   correlationId: string;
 };
 
 export type Message = {
-  id: string;
+  auctionId: string;
   message: string;
   messageType: number;
   correlationId: string;

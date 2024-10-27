@@ -58,7 +58,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             When(RequestAuctionFinishingEvent)
             .Then(context =>
             {
-                context.Saga.Id = context.Message.Id;
+                context.Saga.AuctionId = context.Message.Id;
                 context.Saga.Winner = context.Message.Winner;
                 context.Saga.ItemSold = context.Message.ItemSold;
                 context.Saga.Amount = context.Message.Amount;
@@ -81,7 +81,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionFinishingFinance"]),
                 context => new AuctionFinishingFinance(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
                 context.Saga.CorrelationId))
@@ -98,7 +98,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionFinishingSearch"]),
                 context => new AuctionFinishingSearch(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
                 context.Saga.Amount,
@@ -117,7 +117,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionFinishingNotification"]),
                 context => new AuctionFinishingNotification(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
                 context.Saga.Amount,
@@ -135,7 +135,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .Send(
                 new Uri(configuration["QueuePaths:AuctionFinishingElk"]),
                 context => new AuctionFinishingElk(
-                context.Saga.Id,
+                context.Saga.AuctionId,
                 context.Saga.ItemSold,
                 context.Saga.Winner,
                 context.Saga.Amount,

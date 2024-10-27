@@ -40,7 +40,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
             When(RequestElkSearchEvent)
             .Then(context =>
             {
-                context.Saga.Id = context.Message.Id;
+                context.Saga.AuctionId = context.Message.Id;
                 context.Saga.Term = context.Message.SearchTerm;
                 context.Saga.PageSize = context.Message.PageSize;
                 context.Saga.PageNumber = context.Message.PageNumber;

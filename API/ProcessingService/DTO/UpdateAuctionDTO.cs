@@ -1,7 +1,7 @@
 namespace ProcessingService.DTO;
 public record UpdateAuctionDTO
 (
-    Guid Id,
+    Guid AuctionId,
     string Title,
     string Properties,
     string Description,

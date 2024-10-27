@@ -19,9 +19,13 @@ public class BidProcessing
     {
         switch (context.Message.EntityType)
         {
-            //ProcessingService -> UpdatedAuction -> BidActivity
+            //ProcessingService -> UpdateAuction -> BidActivity
             case nameof(AuctionUpdatingBid):
                 await _publishEndpoint.Publish(new AuctionUpdateESBid(context.Message.CorrelationId));
+                break;
+            //ProcessingService -> CreateAuction -> BidActivity
+            case nameof(AuctionCreatingBid):
+                await _publishEndpoint.Publish(new AuctionCreateESBid(context.Message.CorrelationId));
                 break;
         }
     }

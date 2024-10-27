@@ -1,6 +1,6 @@
 using Common.Contracts;
 using MassTransit;
-using ProcessingService.Activities.AuctionUpdated;
+using ProcessingService.Activities.AuctionUpdate;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionState>
@@ -74,7 +74,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.Title = context.Message.Title;
                 context.Saga.Description = context.Message.Description;
                 context.Saga.Properties = context.Message.Properties;
-                context.Saga.AuctionAuthor = context.Message.AuctionAuthor;
+                context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
                 this.Image = context.Message.Image;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
@@ -171,7 +171,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.Title,
                 context.Saga.Properties,
                 context.Saga.Description,
-                context.Saga.AuctionAuthor,
+                context.Saga.UserLogin,
                 context.Saga.AuctionEnd,
                 context.Saga.CorrelationId))
             .TransitionTo(SearchState));
@@ -189,7 +189,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 new Uri(configuration["QueuePaths:AuctionUpdatingNotification"]),
                 context => new AuctionUpdatingNotification(
                 context.Saga.AuctionId,
-                context.Saga.AuctionAuthor,
+                context.Saga.UserLogin,
                 context.Saga.CorrelationId))
             .TransitionTo(NotificationState));
     }
@@ -209,7 +209,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.Title,
                 context.Saga.Properties,
                 context.Saga.Description,
-                context.Saga.AuctionAuthor,
+                context.Saga.UserLogin,
                 context.Saga.AuctionEnd,
                 context.Saga.CorrelationId))
             .TransitionTo(ElkState));

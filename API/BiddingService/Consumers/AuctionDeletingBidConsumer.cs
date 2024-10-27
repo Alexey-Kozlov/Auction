@@ -20,12 +20,12 @@ public class AuctionDeletingBidConsumer : IConsumer<AuctionDeletingBid>
     public async Task Consume(ConsumeContext<AuctionDeletingBid> context)
     {
         Console.WriteLine("--> Получение сообщения удалить аукцион");
-        var bids = await _context.Bids.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
+        var bids = await _context.Bids.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
         if (bids != null && bids.Count > 0)
         {
             _context.Bids.RemoveRange(bids);
         }
-        var auction = await _context.Auctions.FirstOrDefaultAsync(p => p.AuctionId == context.Message.Id);
+        var auction = await _context.Auctions.FirstOrDefaultAsync(p => p.AuctionId == context.Message.AuctionId);
         if (auction != null)
         {
             _context.Auctions.Remove(auction);

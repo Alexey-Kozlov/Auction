@@ -5,97 +5,76 @@ namespace Common.Contracts;
 
 public record RequestAuctionCreate
 (
-       Guid Id,
+       Guid AuctionId,
        int ReservePrice,
        DateTime AuctionEnd,
        string Properties,
        string Title,
        string Description,
        string Image,
-       string AuctionAuthor,
+       string UserLogin,
        Guid CorrelationId
 );
 
-public record AuctionCreating(
-      Guid Id,
-      string Title,
-      string Properties,
-      string Image,
-      string Description,
-      string AuctionAuthor,
-      DateTime AuctionEnd,
-      Guid CorrelationId,
-      int ReservePrice
-);
-
-public record AuctionCreated(
-      Guid CorrelationId
-);
+public record AuctionCreateESBid(Guid CorrelationId);
 
 public record AuctionCreatingBid(
-      Guid Id,
+      Guid AuctionId,
       DateTime AuctionEnd,
-      string AuctionAuthor,
+      string UserLogin,
       Guid CorrelationId,
       int ReservePrice
 );
 
-public record AuctionCreatedBid(
-      Guid CorrelationId
-);
+public record AuctionCreatedBid(Guid CorrelationId);
 public record AuctionCreatingImage(
-      Guid Id,
+      Guid AuctionId,
       string Image,
       Guid CorrelationId
 );
-public record AuctionCreatedImage(
-      Guid CorrelationId
-);
+public record AuctionCreatedImage(Guid CorrelationId);
+public record AuctionCreateESSearch(Guid CorrelationId);
 
 public record AuctionCreatingSearch(
-      Guid Id,
+      Guid AuctionId,
       string Title,
       string Properties,
       string Description,
-      string AuctionAuthor,
+      string UserLogin,
       DateTime AuctionEnd,
       Guid CorrelationId,
       int ReservePrice
 );
 
-public record AuctionCreatedSearch(
-      Guid CorrelationId
-);
+public record AuctionCreatedSearch(Guid CorrelationId);
+public record AuctionCreateESNotification(Guid CorrelationId);
 
 public record AuctionCreatingNotification(
-      Guid Id,
-      string AuctionAuthor,
+      Guid AuctionId,
+      string UserLogin,
       string Title,
       Guid CorrelationId
 );
 
-public record AuctionCreatedNotification(
-      Guid CorrelationId
-);
+public record AuctionCreatedNotification(Guid CorrelationId);
 
 public class AuctionCreatingElk
 {
-      public Guid Id { get; set; }
-      public string Title { get; set; }
-      public string Properties { get; set; }
-      public string Description { get; set; }
-      public string AuctionAuthor { get; set; }
-      public DateTime AuctionEnd { get; set; }
-      public DateTime AuctionCreated { get; set; }
-      public Guid CorrelationId { get; set; }
-      public int ReservePrice { get; set; }
-      public bool ItemSold { get; set; }
-      public string Winner { get; set; }
-      public int Amount { get; set; }
+    public Guid AuctionId { get; set; }
+    public string Title { get; set; }
+    public string Properties { get; set; }
+    public string Description { get; set; }
+    public string UserLogin { get; set; }
+    public DateTime AuctionEnd { get; set; }
+    public DateTime AuctionCreated { get; set; }
+    public Guid CorrelationId { get; set; }
+    public int ReservePrice { get; set; }
+    public bool ItemSold { get; set; }
+    public string Winner { get; set; }
+    public int Amount { get; set; }
 };
-public record AuctionCreatedElk(
-      Guid CorrelationId
-);
+public record AuctionCreatedElk(Guid CorrelationId);
+public record AuctionCreateESCommit(Guid CorrelationId);
 
 #endregion
 
@@ -103,20 +82,20 @@ public record AuctionCreatedElk(
 #region AuctionDelete
 public record RequestAuctionDelete(
       Guid CorrelationId,
-      string AuctionAuthor,
-      Guid Id
+      string UserLogin,
+      Guid AuctionId
 );
 public record AuctionDeleting(
-    Guid Id,
-    string AuctionAuthor,
+    Guid AuctionId,
+    string UserLogin,
     Guid CorrelationId
 );
 public record AuctionDeleted(
     Guid CorrelationId
 );
 public record AuctionDeletingFinance(
-    Guid Id,
-    string AuctionAuthor,
+    Guid AuctionId,
+    string UserLogin,
     Guid CorrelationId
 );
 public record AuctionDeletedFinance(
@@ -124,14 +103,14 @@ public record AuctionDeletedFinance(
 );
 
 public record AuctionDeletingBid(
-    Guid Id,
+    Guid AuctionId,
     Guid CorrelationId
 );
 public record AuctionDeletedBid(
     Guid CorrelationId
 );
 public record AuctionDeletingGateway(
-    Guid Id,
+    Guid AuctionId,
     Guid CorrelationId
 );
 public record AuctionDeletedGateway(
@@ -139,30 +118,30 @@ public record AuctionDeletedGateway(
 );
 
 public record AuctionDeletingImage(
-    Guid Id,
+    Guid AuctionId,
     Guid CorrelationId
 );
 public record AuctionDeletedImage(
     Guid CorrelationId
 );
 public record AuctionDeletingSearch(
-    Guid Id,
+    Guid AuctionId,
     Guid CorrelationId
 );
 public record AuctionDeletedSearch(
     Guid CorrelationId
 );
 public record AuctionDeletingNotification(
-    Guid Id,
-    string AuctionAuthor,
+    Guid AuctionId,
+    string UserLogin,
     Guid CorrelationId
 );
 public record AuctionDeletedNotification(
     Guid CorrelationId
 );
 public record AuctionDeletingElk(
-    Guid Id,
-    string AuctionAuthor,
+    Guid AuctionId,
+    string UserLogin,
     Guid CorrelationId
 );
 public record AuctionDeletedElk(
@@ -173,38 +152,63 @@ public record AuctionDeletedElk(
 
 
 #region AuctionUpdate
-
-
-public record AuctionUpdating(
-      Guid Id,
+public record RequestAuctionUpdate(
+      Guid AuctionId,
       string Title,
       string Properties,
       string Image,
       string Description,
-      string AuctionAuthor,
+      string UserLogin,
       DateTime AuctionEnd,
       Guid CorrelationId
 );
-
-public record AuctionUpdated(
+public record AuctionUpdateESBid(Guid CorrelationId);
+public record AuctionUpdatingBid(
+      Guid AuctionId,
+      DateTime AuctionEnd,
       Guid CorrelationId
 );
+public record AuctionUpdatedBid(Guid CorrelationId);
+public record AuctionUpdatingGateway(
+      Guid AuctionId,
+      Guid CorrelationId
+);
+public record AuctionUpdatedGateway(Guid CorrelationId);
+public record AuctionUpdatingImage(
+      Guid AuctionId,
+      string Image,
+      Guid CorrelationId
+);
+public record AuctionUpdatedImage(Guid CorrelationId);
+public record AuctionUpdateESSearch(Guid CorrelationId);
+public record AuctionUpdatingSearch(
+      Guid AuctionId,
+      string Title,
+      string Properties,
+      string Description,
+      string UserLogin,
+      DateTime AuctionEnd,
+      Guid CorrelationId
+);
+public record AuctionUpdatedSearch(Guid CorrelationId);
+public record AuctionUpdatingNotification(
+      Guid AuctionId,
+      string UserLogin,
+      Guid CorrelationId
+);
+public record AuctionUpdatedNotification(Guid CorrelationId);
+public record AuctionUpdatingElk(
+      Guid AuctionId,
+      string Title,
+      string Properties,
+      string Description,
+      string UserLogin,
+      DateTime AuctionEnd,
+      Guid CorrelationId
+);
+public record AuctionUpdatedElk(Guid CorrelationId);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+public record AuctionUpdateESCommit(Guid CorrelationId);
 
 #endregion
 
@@ -279,60 +283,3 @@ public record GetAuctionFinishState(Guid CorrelationId);
 
 ///////////////////////////////////////////////////
 ///
-public record RequestAuctionUpdate(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Image,
-      string Description,
-      string AuctionAuthor,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
-public record AuctionUpdateESBid(Guid CorrelationId);
-public record AuctionUpdatingBid(
-      Guid AuctionId,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
-public record AuctionUpdatedBid(Guid CorrelationId);
-public record AuctionUpdatingGateway(
-      Guid AuctionId,
-      Guid CorrelationId
-);
-public record AuctionUpdatedGateway(Guid CorrelationId);
-public record AuctionUpdatingImage(
-      Guid AuctionId,
-      string Image,
-      Guid CorrelationId
-);
-public record AuctionUpdatedImage(Guid CorrelationId);
-public record AuctionUpdateESSearch(Guid CorrelationId);
-public record AuctionUpdatingSearch(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Description,
-      string AuctionAuthor,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
-public record AuctionUpdatedSearch(Guid CorrelationId);
-public record AuctionUpdatingNotification(
-      Guid AuctionId,
-      string AuctionAuthor,
-      Guid CorrelationId
-);
-public record AuctionUpdatedNotification(Guid CorrelationId);
-public record AuctionUpdatingElk(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Description,
-      string AuctionAuthor,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
-public record AuctionUpdatedElk(Guid CorrelationId);
-
-public record AuctionUpdateESCommit(Guid CorrelationId);

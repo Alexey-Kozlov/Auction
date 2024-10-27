@@ -3,7 +3,7 @@ using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionUpdated;
+namespace ProcessingService.Activities.AuctionUpdate;
 
 public class SearchActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdatedImage>
 {
@@ -28,12 +28,15 @@ public class SearchActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
                 context.Saga.Title,
                 context.Saga.Properties,
                 context.Saga.Description,
-                context.Saga.AuctionAuthor,
+                context.Saga.UserLogin,
                 context.Saga.AuctionEnd,
                 context.Saga.CorrelationId
             ),
             nameof(AuctionUpdatingSearch),
-            _config["ServicesName:SearchService"], context.Message.CorrelationId);
+            _config["ServicesName:SearchService"],
+            context.Message.CorrelationId,
+            context.Saga.UserLogin,
+            context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 

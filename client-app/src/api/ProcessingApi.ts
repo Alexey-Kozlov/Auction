@@ -9,7 +9,6 @@ import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
 
 const processingApi = createApi({
-  //refetchOnMountOrArgChange: true,
   reducerPath: "processingApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + `/api/processing`,

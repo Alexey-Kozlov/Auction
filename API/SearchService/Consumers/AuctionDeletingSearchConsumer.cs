@@ -18,7 +18,7 @@ public class AuctionDeletingSearchConsumer : IConsumer<AuctionDeletingSearch>
     public async Task Consume(ConsumeContext<AuctionDeletingSearch> context)
     {
         Console.WriteLine("--> Получение сообщения удалить аукцион");
-        var item = await _context.Items.FirstOrDefaultAsync(p => p.Id == context.Message.Id);
+        var item = await _context.Items.FirstOrDefaultAsync(p => p.AuctionId == context.Message.AuctionId);
         if (item != null)
         {
             _context.Items.Remove(item);

@@ -39,11 +39,11 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             When(RequestElkIndexEvent)
             .Then(context =>
             {
-                context.Saga.Id = context.Message.Id;
+                context.Saga.AuctionId = context.Message.Id;
                 context.Saga.Title = context.Message.Item.Title;
                 context.Saga.Description = context.Message.Item.Description;
                 context.Saga.Properties = context.Message.Item.Properties;
-                context.Saga.AuctionAuthor = context.Message.Item.AuctionAuthor;
+                context.Saga.UserLogin = context.Message.Item.UserLogin;
                 context.Saga.AuctionEnd = context.Message.Item.AuctionEnd;
                 context.Saga.Amount = context.Message.Item.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;

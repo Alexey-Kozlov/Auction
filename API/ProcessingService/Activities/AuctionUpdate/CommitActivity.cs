@@ -4,7 +4,7 @@ using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionUpdated;
+namespace ProcessingService.Activities.AuctionUpdate;
 
 public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdatedElk>
 {
@@ -24,8 +24,13 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
 
     public async Task Execute(BehaviorContext<UpdateAuctionState, AuctionUpdatedElk> context, IBehavior<UpdateAuctionState, AuctionUpdatedElk> next)
     {
-        await _sendEventToES.SendItemToEventSourcing(context.Message, nameof(CommitESOperation),
-             _config["ServicesName:ProcessingService"], context.Message.CorrelationId);
+        await _sendEventToES.SendItemToEventSourcing(
+            new RequestCommitESOperation(context.Saga.CorrelationId),
+            nameof(CommitESUpdateAuctionOperation),
+            _config["ServicesName:ProcessingService"],
+            context.Message.CorrelationId,
+            context.Saga.UserLogin,
+            context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 

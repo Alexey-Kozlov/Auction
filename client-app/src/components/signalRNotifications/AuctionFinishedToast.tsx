@@ -10,13 +10,13 @@ type Props = {
 }
 
 export default function AuctionFinishedToast({ finishedAuction, auction }: Props) {
-    const { isLoading, data } = useGetImageForAuctionQuery(auction.id);
+    const { isLoading, data } = useGetImageForAuctionQuery(auction.auctionId);
     return (
         <div>
             <div className='flex flex-row-reverse' >
                 <button onClick={() => toast.dismiss()}>X</button>
             </div>
-            <NavLink to={`/auctions/${auction.id}`} className='flex flex-col items-center'>
+            <NavLink to={`/auctions/${auction.auctionId}`} className='flex flex-col items-center'>
                 <div className='flex flex-row items-center gap-2'>
                     <img src={!isLoading && (data?.result as AuctionImage)!.image ? (`data:image/png;base64 , ${data?.result['image']}`) : empty}
                         alt=''

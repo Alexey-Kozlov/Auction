@@ -13,10 +13,12 @@ public class CreateEventSourcingItemConsumer : IConsumer<BaseStateContract>
     private readonly SearchProcessing _searchProcessing;
     private readonly BidProcessing _bidProcessing;
     private readonly MainProcessing _mainProcessing;
+    public readonly IConfiguration _configuration;
 
     public CreateEventSourcingItemConsumer(ILogger<CreateEventSourcingItemConsumer> logger,
         InsertItemToEventSourcing insertItemToEventSourcing, NotificationProcessing notificationProcessing,
-        SearchProcessing searchProcessing, BidProcessing bidProcessing, MainProcessing mainProcessing)
+        SearchProcessing searchProcessing, BidProcessing bidProcessing, MainProcessing mainProcessing,
+        IConfiguration configuration)
     {
         _logger = logger;
         _insertItemToEventSourcing = insertItemToEventSourcing;
@@ -24,6 +26,7 @@ public class CreateEventSourcingItemConsumer : IConsumer<BaseStateContract>
         _searchProcessing = searchProcessing;
         _bidProcessing = bidProcessing;
         _mainProcessing = mainProcessing;
+        _configuration = configuration;
     }
 
     public async Task Consume(ConsumeContext<BaseStateContract> context)
@@ -34,16 +37,16 @@ public class CreateEventSourcingItemConsumer : IConsumer<BaseStateContract>
         //рассылаем сообщения для продолжения (RabbitMQ)
         switch (context.Message.ServiceName)
         {
-            case "BiddingService":
+            case var val when val == _configuration["ServicesName:BiddingService"]:
                 await _bidProcessing.Processing(context);
                 break;
-            case "SearchService":
+            case var val when val == _configuration["ServicesName:SearchService"]:
                 await _searchProcessing.Processing(context);
                 break;
-            case "NotificationService":
+            case var val when val == _configuration["ServicesName:NotificationService"]:
                 await _notificationProcessing.Processing(context);
                 break;
-            case "ProcessingService":
+            case var val when val == _configuration["ServicesName:ProcessingService"]:
                 await _mainProcessing.Processing(context);
                 break;
             default:

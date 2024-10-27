@@ -15,7 +15,7 @@ export default function ErrorMessageToast({ message, toastId }: Props) {
                 <div className='flex flex-row-reverse' >
                     <button onClick={() => toast.dismiss(toastId)}>X</button>
                 </div>
-                <NavLink to={`/auctions/${message.id}`} className='flex flex-col items-center'>
+                <NavLink to={`/auctions/${message.auctionId}`} className='flex flex-col items-center'>
                     <div className='flex flex-row  gap-2'>
                         <div>
                             <VscError size={36} />

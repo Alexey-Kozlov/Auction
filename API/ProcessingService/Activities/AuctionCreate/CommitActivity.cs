@@ -1,17 +1,18 @@
-using System.Reflection;
 using Common.Contracts;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.CreateAuctionStateMachine;
 
-namespace ProcessingService.Activities;
+namespace ProcessingService.Activities.AuctionCreate;
 
-public class CommitCreatingAuctionActivity : IStateMachineActivity<CreateAuctionState, AuctionCreatedElk>
+public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionCreatedElk>
 {
     private readonly SendEventToES _sendEventToES;
-    public CommitCreatingAuctionActivity(SendEventToES sendEventToES)
+    private readonly IConfiguration _config;
+    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
+        _config = config;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -22,8 +23,13 @@ public class CommitCreatingAuctionActivity : IStateMachineActivity<CreateAuction
 
     public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreatedElk> context, IBehavior<CreateAuctionState, AuctionCreatedElk> next)
     {
-        await _sendEventToES.SendItemToEventSourcing(context.Message, nameof(CommitESOperation),
-            Assembly.GetExecutingAssembly().GetName().Name, context.Message.CorrelationId);
+        await _sendEventToES.SendItemToEventSourcing(
+            new RequestCommitESOperation(context.Saga.CorrelationId),
+            nameof(CommitESCreateAuctionOperation),
+            _config["ServicesName:ProcessingService"],
+            context.Message.CorrelationId,
+            context.Saga.UserLogin,
+            context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -34,6 +40,6 @@ public class CommitCreatingAuctionActivity : IStateMachineActivity<CreateAuction
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-create2");
+        context.CreateScope("request-auction-update");
     }
 }

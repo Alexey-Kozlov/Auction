@@ -3,7 +3,7 @@ using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionUpdated;
+namespace ProcessingService.Activities.AuctionUpdate;
 
 public class BidActivity : IStateMachineActivity<UpdateAuctionState, RequestAuctionUpdate>
 {
@@ -23,10 +23,16 @@ public class BidActivity : IStateMachineActivity<UpdateAuctionState, RequestAuct
     public async Task Execute(BehaviorContext<UpdateAuctionState, RequestAuctionUpdate> context, IBehavior<UpdateAuctionState, RequestAuctionUpdate> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionUpdatingBid(context.Saga.AuctionId, context.Saga.AuctionEnd, context.Saga.CorrelationId),
+            new AuctionUpdatingBid(
+                context.Saga.AuctionId,
+                context.Saga.AuctionEnd,
+                context.Saga.CorrelationId
+                ),
             nameof(AuctionUpdatingBid),
             _config["ServicesName:BiddingService"],
-            context.Message.CorrelationId);
+            context.Message.CorrelationId,
+            context.Saga.UserLogin,
+            context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 

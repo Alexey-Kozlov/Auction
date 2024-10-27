@@ -8,6 +8,8 @@ public class BaseStateContract
     public string EntityType { get; set; }
     public string ServiceName { get; set; }
     public Guid CorrelationId { get; set; }
+    public string UserLogin { get; set; }
+    public Guid AuctionId { get; set; }
 }
 
 
@@ -143,6 +145,8 @@ public record RestoreSnapShotCompleted(
     string UserLogin,
     string SessionId
 );
-
-public record CommitESOperation(Guid CorrelationId);
+public record RequestCommitESOperation(Guid CorrelationId);
+public record CommitESUpdateAuctionOperation(Guid CorrelationId);
+public record CommitESCreateAuctionOperation(Guid CorrelationId);
+public record CommitESDeleteAuctionOperation(Guid CorrelationId);
 

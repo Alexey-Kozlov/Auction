@@ -18,7 +18,7 @@ type Props = {
 export default function BidList({ user, auction }: Props) {
     const dispatch = useDispatch();
     const [lastBidId, setLastBidId] = useState('');
-    const bidList = useGetBidsForAuctionQuery(auction?.id);
+    const bidList = useGetBidsForAuctionQuery(auction?.auctionId);
     const bidStore = useSelector((state: RootState) => state.bidStore);
     const bids = bidStore.bids;
     const open = bidStore.open;
@@ -55,7 +55,7 @@ export default function BidList({ user, auction }: Props) {
         if (!bidList.isLoading) {
             dispatch(setBids(bidList.data?.result));
         }
-    }, [auction?.id, bidList.isLoading, bidList.data?.result, dispatch]);
+    }, [auction?.auctionId, bidList.isLoading, bidList.data?.result, dispatch]);
 
     //закрытие аукциона
     useEffect(() => {
@@ -122,7 +122,7 @@ export default function BidList({ user, auction }: Props) {
                         Невозможно сделать заявку для собственного аукциона
                     </div>
                 ) : (
-                    <BidForm auctionId={auction?.id} highBid={bidRestriction()} bidList={bidList} />
+                    <BidForm auctionId={auction?.auctionId} highBid={bidRestriction()} bidList={bidList} />
                 )}
             </div>
         </div>

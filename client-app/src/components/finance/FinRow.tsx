@@ -16,7 +16,7 @@ export default function FinRow({ item }: Props) {
     return (
         <>
             <div>
-                {!auction.isLoading && auction.data?.result?.id && auction.status === 'fulfilled' ? (
+                {!auction.isLoading && auction.data?.result?.auctionId && auction.status === 'fulfilled' ? (
                     <NavLink to={`/auctions/${item.id}`} className='group'>
                         <ImageCard id={item.id} dopStyle=' max-h-20' zooming={false} />
                     </NavLink>

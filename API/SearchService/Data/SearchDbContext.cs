@@ -23,8 +23,8 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
 {
     public void Configure(EntityTypeBuilder<Item> builder)
     {
-        builder.ToTable("Items").HasKey(p => p.Id).HasName("PK_Id");
-        builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
+        builder.ToTable("Items").HasKey(p => p.AuctionId).HasName("PK_Id");
+        builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
         builder.Property(p => p.ReservePrice).HasColumnType("integer").HasColumnName("ReservePrice").IsRequired(true);
         builder.Property(p => p.Seller).HasColumnType("text").HasColumnName("Seller").IsRequired(false);
         builder.Property(p => p.Winner).HasColumnType("text").HasColumnName("Winner").IsRequired(false);
@@ -36,6 +36,6 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(p => p.Title).HasColumnType("text").HasColumnName("Title").IsRequired(true);
         builder.Property(p => p.Properties).HasColumnType("text").HasColumnName("Properties").IsRequired(false);
         builder.Property(p => p.Description).HasColumnType("text").HasColumnName("Description").IsRequired(false);
-        builder.HasIndex(p => p.Id).HasDatabaseName("PK_Items");
+        builder.HasIndex(p => p.AuctionId).HasDatabaseName("PK_Items");
     }
 }

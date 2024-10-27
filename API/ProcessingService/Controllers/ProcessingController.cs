@@ -59,7 +59,7 @@ public class ProcessingController : ControllerBase
     [HttpPost("updateauction")]
     public async Task<ApiResponse<object>> UpdateAuction([FromBody] UpdateAuctionDTO par)
     {
-        var auction = new RequestAuctionUpdate(par.Id, par.Title, par.Properties, par.Image, par.Description,
+        var auction = new RequestAuctionUpdate(par.AuctionId, par.Title, par.Properties, par.Image, par.Description,
         User.Identity.Name, par.AuctionEnd, par.CorrelationId);
 
         await _publishEndpoint.Publish(auction);

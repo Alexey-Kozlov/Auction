@@ -17,7 +17,7 @@ public class AuctionDeletingFinanceConsumer : IConsumer<AuctionDeletingFinance>
     {
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         //удаляем у всех записи откатов дебита, если есть
-        var rollbackItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id &&
+        var rollbackItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId &&
             p.Status == RecordStatus.Откат).ToListAsync();
         if (rollbackItems != null && rollbackItems.Count > 0)
         {
@@ -25,7 +25,7 @@ public class AuctionDeletingFinanceConsumer : IConsumer<AuctionDeletingFinance>
         }
 
         //удаляем все резервирования денег по данному аукциону
-        var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
+        var debitItems = await _dbContext.BalanceItems.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
         //правим финансы для каждого пользователя, участвующего в аукционе (кроме победителя)
         //возвращаем деньги за проигранный аукцион
         var balance = 0;

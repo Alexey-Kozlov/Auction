@@ -17,7 +17,7 @@ public class AuctionFinishingSearchConsumer : IConsumer<AuctionFinishingSearch>
     }
     public async Task Consume(ConsumeContext<AuctionFinishingSearch> consumeContext)
     {
-        var auction = await _context.Items.FirstOrDefaultAsync(p => p.Id == consumeContext.Message.Id);
+        var auction = await _context.Items.FirstOrDefaultAsync(p => p.AuctionId == consumeContext.Message.Id);
         if (auction != null)
         {
             if (consumeContext.Message.ItemSold)
@@ -30,7 +30,7 @@ public class AuctionFinishingSearchConsumer : IConsumer<AuctionFinishingSearch>
             Console.WriteLine($"{DateTime.Now} --> Получение сообщения - аукцион завершен");
             return;
         }
-        Console.WriteLine("Ошибка завершения аукциона " + auction.Id);
-        throw new Exception("Ошибка завершения аукциона " + auction.Id + " - аукцион не найден");
+        Console.WriteLine("Ошибка завершения аукциона " + auction.AuctionId);
+        throw new Exception("Ошибка завершения аукциона " + auction.AuctionId + " - аукцион не найден");
     }
 }

@@ -10,7 +10,7 @@ public record UpdateAuctionState : SagaStateMachineInstance
     public string Title { get; set; }
     public string Properties { get; set; }
     public string Description { get; set; }
-    public string AuctionAuthor { get; set; }
+    public string UserLogin { get; set; }
     public DateTime AuctionEnd { get; set; }
     public DateTime LastUpdated { get; set; }
     public string ErrorMessage { get; set; }

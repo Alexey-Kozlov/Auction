@@ -10,7 +10,7 @@ type Props = {
 }
 
 export default function FinanceUnsufficientToast({ message, toastId }: Props) {
-    const bidAuction = useGetDetailedViewDataQuery(message.id);
+    const bidAuction = useGetDetailedViewDataQuery(message.auctionId);
     const balance = useGetBalanceQuery(null);
     return (
         <div>

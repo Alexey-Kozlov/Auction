@@ -17,7 +17,7 @@ public class ElkIndexConsumer : IConsumer<ElkIndexCreating>
     public async Task Consume(ConsumeContext<ElkIndexCreating> consumeContext)
     {
         var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s =>
-            s.Query(q => q.Ids(i => i.Values(consumeContext.Message.Item.Id.ToString())))
+            s.Query(q => q.Ids(i => i.Values(consumeContext.Message.Item.AuctionId.ToString())))
         );
 
         if (elkResponse.IsValidResponse)
@@ -27,7 +27,7 @@ public class ElkIndexConsumer : IConsumer<ElkIndexCreating>
                 //обновление индекса
                 Console.WriteLine($"{DateTime.Now} - Обновление документа {consumeContext.Message.ItemNumber} {consumeContext.Message.Item.Title}");
                 await _client.Client.UpdateAsync<AuctionCreatingSearch, AuctionCreatingElk>(
-                    consumeContext.Message.Item.Id.ToString(),
+                    consumeContext.Message.Item.AuctionId.ToString(),
                     p => p.Doc(consumeContext.Message.Item));
             }
             else

@@ -21,12 +21,10 @@ public class NotificationProcessing
     {
         switch (context.Message.EntityType)
         {
-
-
-
-
+            //ProcessingService -> CreateActivity -> NotificationActivity                         
+            case nameof(AuctionCreatingNotification):
+                await _publishEndpoint.Publish(new AuctionCreateESNotification(context.Message.CorrelationId));
+                break;
         }
-
-
     }
 }

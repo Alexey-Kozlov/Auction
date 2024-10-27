@@ -27,6 +27,5 @@ public class AuctionCreatingElkConsumer : IConsumer<AuctionCreatingElk>
             Console.WriteLine(response.ElasticsearchServerError);
         }
         await _publishEndpoint.Publish(new AuctionCreatedElk(consumeContext.Message.CorrelationId));
-        Console.WriteLine($"{DateTime.Now} --> Получение сообщения создать аукцион");
     }
 }

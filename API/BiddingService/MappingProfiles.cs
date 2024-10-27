@@ -13,7 +13,7 @@ public class MappingProfiles : Profile
         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.AuctionId))
         .ForMember(dest => dest.BidId, opt => opt.MapFrom(src => src.BidId));
         CreateMap<AuctionCreatingBid, Auction>()
-            .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.AuctionAuthor));
+            .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.UserLogin));
         CreateMap<AuctionUpdatingBid, Auction>();
         CreateMap<Auction, Auction>();
     }
