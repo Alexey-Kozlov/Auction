@@ -17,13 +17,15 @@ public class NotificationProcessing
         _publishEndpoint = publishEndpoint;
         _context = context;
     }
-    public async Task Processing(ConsumeContext<BaseStateContract> context)
+    public async Task Processing(ConsumeContext<ESContract> context)
     {
         switch (context.Message.EntityType)
         {
-            //ProcessingService -> CreateActivity -> NotificationActivity                         
+            //ProcessingService -> Activities -> AuctionCreate -> NotificationActivity                         
             case nameof(AuctionCreatingNotification):
-                await _publishEndpoint.Publish(new AuctionCreateESNotification(context.Message.CorrelationId));
+                await _publishEndpoint.Publish(
+                    JsonSerializer.Deserialize<AuctionCreatingNotification>(context.Message.EventData)
+                );
                 break;
         }
     }

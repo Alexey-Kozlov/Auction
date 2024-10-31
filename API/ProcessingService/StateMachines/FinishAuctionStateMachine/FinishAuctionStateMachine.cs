@@ -19,7 +19,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedNotification> AuctionFinishedNotificationEvent { get; }
     public Event<AuctionFinishedSearch> AuctionFinishedSearchEvent { get; }
     public Event<AuctionFinishedElk> AuctionFinishedElkEvent { get; }
-    public Event<CommitAuctionFinishedContract> CommitAuctionFinishedEvent { get; }
+    //public Event<CommitAuctionFinishedContract> CommitAuctionFinishedEvent { get; }
     public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
     private IConfiguration configuration { get; }
 
@@ -34,7 +34,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         ConfigureAuctionFinishedSearch();
         ConfigureAuctionFinishedNotification();
         ConfigureAuctionFinishedElk();
-        ConfigureCommitFinishingAuction();
+        //ConfigureCommitFinishingAuction();
         ConfigureCompleted();
         ConfigureGetState();
     }
@@ -50,7 +50,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         Event(() => AuctionFinishedSearchEvent);
         Event(() => AuctionFinishedStateEvent);
         Event(() => AuctionFinishedElkEvent);
-        Event(() => CommitAuctionFinishedEvent);
+        //Event(() => CommitAuctionFinishedEvent);
     }
     private void ConfigureInitialState()
     {
@@ -155,16 +155,16 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .TransitionTo(CommitAuctionFinishedState));
     }
 
-    private void ConfigureCommitFinishingAuction()
-    {
-        During(CommitAuctionFinishedState,
-        When(CommitAuctionFinishedEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .TransitionTo(CompletedState));
-    }
+    // private void ConfigureCommitFinishingAuction()
+    // {
+    //     During(CommitAuctionFinishedState,
+    //     When(CommitAuctionFinishedEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .TransitionTo(CompletedState));
+    // }
 
     private void ConfigureCompleted()
     {

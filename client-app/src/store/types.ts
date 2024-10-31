@@ -90,12 +90,16 @@ export type NotifyUser = {
 export type FinanceItem = {
   id: string;
   itemId: string;
-  debit: number;
-  credit: number;
+  value: number;
   actionDate: Date;
   status: number;
-  balance: number;
 };
+
+export type FinanceCreate = {
+  amount: number;
+  userlogin: string;
+  sessionid: string;
+}
 
 export type ProcessingState = {
   eventName: string;

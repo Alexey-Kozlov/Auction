@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Common.Contracts;
 using FinanceService.Data;
-using FinanceService.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,16 +27,16 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
         var sendBalanse = new SendToSetSnapShot();
-        //получаем записи по таблице BalanceItem
-        foreach (var item in await _context.BalanceItems.ToListAsync())
+        //получаем записи по таблице FinanceItem
+        foreach (var item in await _context.FinanceItems.ToListAsync())
         {
             sendBalanse.SnapShotItems.Add(JsonSerializer.Serialize(item, item.GetType(), options));
         }
         sendBalanse.CorrelationId = consumeContext.Message.CorrelationId;
         sendBalanse.SessionId = consumeContext.Message.SessionId;
         sendBalanse.UserLogin = consumeContext.Message.UserLogin;
-        sendBalanse.ItemsType = nameof(BalanceItem);
-        sendBalanse.ProjectName = Assembly.GetExecutingAssembly().GetName().Name;
+        sendBalanse.ItemsType = nameof(FinanceItem);
+        sendBalanse.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendBalanse.CreateAt = consumeContext.Message.CreateAt;
         sendBalanse.RestoringOrder = 1;
         await _publishEndpoint.Publish(sendBalanse);

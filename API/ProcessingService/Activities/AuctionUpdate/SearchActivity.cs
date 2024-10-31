@@ -36,6 +36,7 @@ public class SearchActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
             _config["ServicesName:SearchService"],
             context.Message.CorrelationId,
             context.Saga.UserLogin,
+            OperationType.Update,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

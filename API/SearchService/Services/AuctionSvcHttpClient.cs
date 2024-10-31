@@ -1,5 +1,5 @@
-﻿using Common.Utils;
-using SearchService.Entities;
+﻿using Common.Contracts;
+using Common.Utils;
 
 namespace SearchService.Services;
 
@@ -14,8 +14,8 @@ public class AuctionSvcHttpClient
         _config = config;
     }
 
-    public async Task<ApiResponse<List<Item>>> GetItemsForSearchDb()
+    public async Task<ApiResponse<List<AuctionItem>>> GetItemsForSearchDb()
     {
-        return await _client.GetFromJsonAsync<ApiResponse<List<Item>>>(_config["AuctionServiceUrl"] + "/api/auctions");
+        return await _client.GetFromJsonAsync<ApiResponse<List<AuctionItem>>>(_config["AuctionServiceUrl"] + "/api/auctions");
     }
 }

@@ -3,8 +3,8 @@ import qs from 'query-string';
 import { useDispatch, useSelector } from 'react-redux';
 import { reset, setParams } from '../../store/paramSlice';
 import { RootState } from '../../store/store';
-import { FinanceItem, ProcessingState } from '../../store/types';
-import { useAddCreditMutation, useGetFinanceItemQuery } from '../../api/FinanceApi';
+import { FinanceItem, ProcessingState, User } from '../../store/types';
+import { useGetBalanceQuery, useGetFinanceItemQuery } from '../../api/FinanceApi';
 import { setFinanceItems } from '../../store/financeSlice';
 import AppPagination from '../auctionList/AddPagination';
 import { Button } from 'flowbite-react';
@@ -13,16 +13,20 @@ import * as Yup from 'yup';
 import TextInput from '../inputComponents/TextInput';
 import FinTable from './FinTable';
 import { setEventFlag } from '../../store/processingSlice';
+import { useFinanceCreateMutation } from '../../api/ProcessingApi';
 
 export default function FinListings() {
     const dispatch = useDispatch();
     const [isWaiting, setIsWaiting] = useState(false);
-    const [addCredit] = useAddCreditMutation();
+    const [addCredit] = useFinanceCreateMutation();
     const params = useSelector((state: RootState) => state.paramStore);
     const financeItems: FinanceItem[] = useSelector((state: RootState) => state.financeStore).items;
     const url = qs.stringifyUrl({ url: '', query: { ...params, pageSize: 5 } });
     const financeData = useGetFinanceItemQuery(url);
+    const balance = useGetBalanceQuery(null);
     const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
+    const sessionId = useSelector((state: RootState) => state.paramStore).sessionId;
+    const user: User = useSelector((state: RootState) => state.authStore);
 
     useEffect(() => {
         if (financeData.data && !financeData.isLoading) {
@@ -38,10 +42,11 @@ export default function FinListings() {
     }, [dispatch])
 
     useEffect(() => {
-        const eventStateFinanceCreditAdd = procState.find(p => p.eventName === 'FinanceCreditAdd' && p.ready);
+        const eventStateFinanceCreditAdd = procState.find(p => p.eventName === 'FinanceCreate' && p.ready);
         if (eventStateFinanceCreditAdd) {
-            dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: false }));
+            dispatch(setEventFlag({ eventName: 'FinanceCreate', ready: false }));
             financeData.refetch();
+            balance.refetch();
             setIsWaiting(false);
         }
     }, [procState, dispatch, financeData]);
@@ -59,10 +64,14 @@ export default function FinListings() {
                 enableReinitialize
                 onSubmit={async (values, { setErrors }) => {
                     dispatch(reset(null));
-                    dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: false }));
+                    dispatch(setEventFlag({ eventName: 'FinanceCreate', ready: false }));
                     setIsWaiting(true);
-                    await addCredit(values.amount);
-
+                    await addCredit({
+                        amount: values.amount,
+                        sessionid:sessionId,
+                        userlogin:user.login
+                    });
+                    values.amount = 0;
                 }
                 }
                 validationSchema={Yup.object({
@@ -73,34 +82,40 @@ export default function FinListings() {
 
                 })}
             >
-                {({ handleSubmit, setFieldValue, isSubmitting, errors, isValid, dirty }) => (
+                {({ handleSubmit, isSubmitting, errors, isValid, dirty }) => (
                     <Form onSubmit={handleSubmit} autoComplete='off'>
-                        <div className='w-[900px] m-auto flex items-center'>
-                            <div className=''>
-                                <TextInput
-                                    name='amount'
-                                    placeholder='Сумма'
-                                    label='Сумма для зачисления'
-                                    labellWidth='w-[250px]'
-                                    inputWidth='w-[237px]'
-                                    onChange={() => { }}
-                                    required
-                                    controlsAlign='w-[600px]'
-                                />
+                        <div className='flex justify-between  items-center'>
+                            <div className='w-24'></div>
+                            <div className='flex items-center content-center'>
+                                <div className=''>
+                                    <TextInput
+                                        name='amount'
+                                        placeholder='Сумма'
+                                        label='Сумма для зачисления'
+                                        labellWidth='w-[250px]'
+                                        inputWidth='w-[237px]'
+                                        onChange={() => { }}
+                                        required
+                                        controlsAlign='w-[600px]'
+                                    />
+                                </div>
+                                <Button
+                                    className=''
+                                    disabled={!isValid || !dirty || isSubmitting}
+                                    isProcessing={isSubmitting || isWaiting}
+                                    type='submit'>Добавить сумму
+                                </Button>
                             </div>
-
-                            <Button
-                                className=''
-                                disabled={!isValid || !dirty || isSubmitting}
-                                isProcessing={isSubmitting || isWaiting}
-                                type='submit'>Добавить сумму
-                            </Button>
-                        </div>
+                            <div className='w-40'>
+                                <div className='mx-auto text-center font-bold'>Баланс :</div>
+                                <div className='mx-auto text-center font-bold text-2xl text-blue-700'>
+                                    {balance.data?.result ?? 0} р.
+                                </div>
+                            </div>
+                        </div>                            
                     </Form>
                 )}
             </Formik>
-
-
             <div className='mt-5'>
                 {
                     financeItems.length === 0 ? (

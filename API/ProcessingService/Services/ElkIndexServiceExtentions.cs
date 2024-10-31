@@ -1,5 +1,3 @@
-using Common.Contracts;
-using Common.Utils;
 using MassTransit;
 using ProcessingService.Data;
 using ProcessingService.StateMachines.ElkIndexStateMachine;

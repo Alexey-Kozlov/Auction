@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { User } from "./types";
 import { jwtDecode } from "jwt-decode";
-import { boolean } from "yup";
 
 export const emptyUserState: User = {
   name: "",

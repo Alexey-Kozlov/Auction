@@ -2,54 +2,56 @@ using System.Text.Json;
 using Common.Contracts;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
-using MassTransit.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services;
 
 public class InsertItemToEventSourcing
 {
-    private readonly EventSourcingDbContext _context;
+    private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
 
-    public InsertItemToEventSourcing(EventSourcingDbContext context, IConfiguration configuration)
+    public InsertItemToEventSourcing(EventSourcingDbContext dbContext, IConfiguration configuration)
     {
-        _context = context;
+        _dbContext = dbContext;
         _configuration = configuration;
     }
-    public async Task Processing(BaseStateContract context)
+    public async Task Processing(ESContract context)
     {
-
-        _context.EventsLogs.Add(new EventsLog
-        {
-            CorrelationId = context.CorrelationId,
-            CreateAt = DateTime.UtcNow,
-            Commited = false,
-            EntityType = context.EntityType,
-            ServiceName = context.ServiceName,
-            EventData = JsonDocument.Parse(context.EventData),
-            LogicVersion = int.Parse(_configuration["LogicVersion"]),
-            UserLogin = context.UserLogin,
-            AuctionId = context.AuctionId
-        });
-        await _context.SaveChangesAsync();
+        //доьбавляем новое событие в EventsLog либо завершаем распределенную транзакцию
+        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         switch (context.EntityType)
         {
             case nameof(CommitESUpdateAuctionOperation):
             case nameof(CommitESCreateAuctionOperation):
             case nameof(CommitESDeleteAuctionOperation):
-                //при поступлении таких сообщений из Кафки - делаем коммит операций данного CorrelationId
-                var items = await _context.EventsLogs.Where(p => p.CorrelationId == context.CorrelationId).ToListAsync();
+            case nameof(CommitESFinanceOperation):
+                //при поступлении таких сообщений из Кафки - делаем коммит операций данного CorrelationId,
+                //тем самым завершая распределенную транзакцию
+                var items = await _dbContext.EventsLogs.Where(p => p.CorrelationId == context.CorrelationId).ToListAsync();
                 foreach (var item in items)
                 {
                     item.Commited = true;
                 }
-                await _context.SaveChangesAsync();
                 break;
             default:
+                //если не завершение транзакции - пишем в лог
+                _dbContext.EventsLogs.Add(new EventsLog
+                {
+                    CorrelationId = context.CorrelationId,
+                    CreateAt = DateTime.UtcNow,
+                    Commited = false,
+                    EntityType = context.EntityType,
+                    ServiceName = context.ServiceName,
+                    EventData = JsonDocument.Parse(context.EventData),
+                    LogicVersion = int.Parse(_configuration["LogicVersion"]),
+                    UserLogin = context.UserLogin,
+                    AuctionId = context.AuctionId,
+                    OperationType = context.OperationType
+                });
                 break;
         }
-
-
+        await _dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 }

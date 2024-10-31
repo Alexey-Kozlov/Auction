@@ -14,19 +14,19 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public State CompletedState { get; }
 
     public Event<RequestBidPlace> RequestBidPlaceEvent { get; }
-    public Event<AfterBidPlacedContract> AfterBidPlacedEventSourcingEvent { get; }
+    //public Event<AfterBidPlacedContract> AfterBidPlacedEventSourcingEvent { get; }
     public Event<BidFinanceGranted> BidFinanceGrantedEvent { get; }
     public Event<GetCurrentBid> GetCurrentBidEvent { get; }
     public Event<BidPlaced> BidPlacedEvent { get; }
     public Event<BidSearchPlaced> BidSearchPlacedEvent { get; }
     public Event<BidNotificationProcessed> BidNotificationProcessedEvent { get; }
-    public Event<CommitBidPlacedContract> CommitBidPlacedEvent { get; }
+    //public Event<CommitBidPlacedContract> CommitBidPlacedEvent { get; }
     public Event<GetBidPlaceState> GetBidPlaceStateEvent { get; }
     public Event<Fault<BidFinanceGranting>> BidFinanceGrantedFaultedEvent { get; }
     public Event<Fault<BidPlacing>> BidPlacedFaultedEvent { get; }
     public Event<Fault<BidSearchPlacing>> BidSearchPlacedFaultedEvent { get; }
     public Event<Fault<BidNotificationProcessing>> BidNotificationFaultedEvent { get; }
-    public Event<CommitBidPlacedErrorContract> ErrorBidEventSourcingCommitEvent { get; }
+    //public Event<CommitBidPlacedErrorContract> ErrorBidEventSourcingCommitEvent { get; }
     private IConfiguration configuration { get; }
 
 
@@ -34,7 +34,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         configuration = services.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         InstanceState(state => state.CurrentState);
-        ConfigureGetLastBid();
+        //ConfigureGetLastBid();
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureFinanceGranting();
@@ -42,7 +42,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureBidPlaced();
         ConfigureBidSearchPlaced();
         ConfigureBidNotificationProcessed();
-        ConfigureCommitBidPlaced();
+        //ConfigureCommitBidPlaced();
         ConfigureCompleted();
         ConfigureAny();
     }
@@ -55,14 +55,14 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             //иначе первый раз после рестарта не срабатывает событие
             p.InsertOnInitial = true;
         });
-        Event(() => AfterBidPlacedEventSourcingEvent);
+        //Event(() => AfterBidPlacedEventSourcingEvent);
         Event(() => BidFinanceGrantedEvent);
         Event(() => GetCurrentBidEvent);
         Event(() => BidPlacedEvent);
         Event(() => BidSearchPlacedEvent);
         Event(() => BidNotificationProcessedEvent);
         Event(() => GetBidPlaceStateEvent);
-        Event(() => CommitBidPlacedEvent);
+        //Event(() => CommitBidPlacedEvent);
         Event(() => BidFinanceGrantedFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
         Event(() => BidPlacedFaultedEvent, x => x.CorrelateById(
@@ -71,7 +71,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             context => context.Message.Message.CorrelationId));
         Event(() => BidNotificationFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
-        Event(() => ErrorBidEventSourcingCommitEvent);
+        // Event(() => ErrorBidEventSourcingCommitEvent);
     }
     private void ConfigureInitialState()
     {
@@ -95,26 +95,26 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         );
     }
 
-    private void ConfigureGetLastBid()
-    {
-        //поступил AfterBidPlacedContract - после создания записи в логе EventSourcing
-        During(GetCurrentBidState,
-        When(AfterBidPlacedEventSourcingEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            //получаем максимальную сделанную ставку по указанному аукциону
-            //данные о текущей ставке получаем из Bids
-            .Send(
-                new Uri(configuration["QueuePaths:GetLastBidPlaced"]),
-                context => new GetLastBidPlaced(
-                context.Saga.AuctionId,
-                context.Saga.CorrelationId
-            ))
-            .TransitionTo(FinanceGrantedState)
-        );
-    }
+    // private void ConfigureGetLastBid()
+    // {
+    //     //поступил AfterBidPlacedContract - после создания записи в логе EventSourcing
+    //     During(GetCurrentBidState,
+    //     When(AfterBidPlacedEventSourcingEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         //получаем максимальную сделанную ставку по указанному аукциону
+    //         //данные о текущей ставке получаем из Bids
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:GetLastBidPlaced"]),
+    //             context => new GetLastBidPlaced(
+    //             context.Saga.AuctionId,
+    //             context.Saga.CorrelationId
+    //         ))
+    //         .TransitionTo(FinanceGrantedState)
+    //     );
+    // }
 
     private void ConfigureFinanceGranting()
     {
@@ -305,30 +305,30 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         );
     }
 
-    private void ConfigureCommitBidPlaced()
-    {
-        //поступила CommitBidPlacedContract
-        During(CommitBidPlacedState,
-        When(CommitBidPlacedEvent)
-        //успешно прошла фиксация новой ставки в EventSourcing
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .TransitionTo(CompletedState),
-        When(ErrorBidEventSourcingCommitEvent)
-        //ошибка фиксации новой ставки в EventSourcing
-        //поступил CommitBidPlacedErrorContract - ничего не корректируем, 
-        //фиксируем в логе Саги эту ошибку, уже ничего не сделать
-            .Then(context =>
-            {
-                context.Saga.ErrorMessage = $"Ошибка подтверждения записи в EventSourcing - {context.Message.ExceptionItem.Message}";
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .TransitionTo(CompletedState)
-        );
+    // private void ConfigureCommitBidPlaced()
+    // {
+    //     //поступила CommitBidPlacedContract
+    //     During(CommitBidPlacedState,
+    //     When(CommitBidPlacedEvent)
+    //     //успешно прошла фиксация новой ставки в EventSourcing
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .TransitionTo(CompletedState),
+    //     When(ErrorBidEventSourcingCommitEvent)
+    //     //ошибка фиксации новой ставки в EventSourcing
+    //     //поступил CommitBidPlacedErrorContract - ничего не корректируем, 
+    //     //фиксируем в логе Саги эту ошибку, уже ничего не сделать
+    //         .Then(context =>
+    //         {
+    //             context.Saga.ErrorMessage = $"Ошибка подтверждения записи в EventSourcing - {context.Message.ExceptionItem.Message}";
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .TransitionTo(CompletedState)
+    //     );
 
-    }
+    // }
 
     private void ConfigureCompleted()
     {

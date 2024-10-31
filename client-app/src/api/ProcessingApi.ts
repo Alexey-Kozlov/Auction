@@ -3,6 +3,7 @@ import {
   ApiResponseNet,
   AuctionDeleted,
   AuctionUpdated,
+  FinanceCreate,
   PlaceBidParams,
 } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
@@ -93,6 +94,24 @@ const processingApi = createApi({
       },
       invalidatesTags: ["processing"],
     }),
+    financeCreate: builder.mutation<ApiResponseNet<{}>, FinanceCreate>({
+      query: (params) => ({
+        url: "/financecreate",
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(params),
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["processing"],
+    }),    
   }),
 });
 
@@ -101,5 +120,6 @@ export const {
   useCreateAuctionMutation,
   useUpdateAuctionMutation,
   useDeleteAuctionMutation,
+  useFinanceCreateMutation
 } = processingApi;
 export default processingApi;

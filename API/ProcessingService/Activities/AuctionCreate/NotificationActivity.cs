@@ -33,6 +33,7 @@ public class NotificationActivity : IStateMachineActivity<CreateAuctionState, Au
             _config["ServicesName:NotificationService"],
             context.Message.CorrelationId,
             context.Saga.UserLogin,
+            OperationType.Insert,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

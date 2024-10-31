@@ -15,17 +15,22 @@ public class BidProcessing
     {
         _publishEndpoint = publishEndpoint;
     }
-    public async Task Processing(ConsumeContext<BaseStateContract> context)
+    public async Task Processing(ConsumeContext<ESContract> context)
     {
         switch (context.Message.EntityType)
         {
-            //ProcessingService -> UpdateAuction -> BidActivity
+            //ProcessingService -> Activities -> AuctionUpdate -> BidActivity
             case nameof(AuctionUpdatingBid):
-                await _publishEndpoint.Publish(new AuctionUpdateESBid(context.Message.CorrelationId));
+                //обновили ES, теперь посылаем сообщение на обновление в BiddingSDervice
+                await _publishEndpoint.Publish(
+                    JsonSerializer.Deserialize<AuctionUpdatingBid>(context.Message.EventData)
+                );
                 break;
-            //ProcessingService -> CreateAuction -> BidActivity
+            //ProcessingService -> Activities -> AuctionCreate -> BidActivity
             case nameof(AuctionCreatingBid):
-                await _publishEndpoint.Publish(new AuctionCreateESBid(context.Message.CorrelationId));
+                await _publishEndpoint.Publish(
+                    JsonSerializer.Deserialize<AuctionCreatingBid>(context.Message.EventData)
+                );
                 break;
         }
     }

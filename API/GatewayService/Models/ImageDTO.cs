@@ -1,2 +1,2 @@
 namespace GatewayService.Models;
-public record ImageDTO(string Id, string Image);
+public record ImageDTO(string AuctionId, string Image);

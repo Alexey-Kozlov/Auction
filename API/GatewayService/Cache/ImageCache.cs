@@ -16,29 +16,29 @@ public class ImageCache
         _config = config;
     }
 
-    public async Task<string> GetImage(string imageId)
+    public async Task<string> GetImage(string auctionId)
     {
-        var _image = await _cache.GetStringAsync(imageId);
+        var _image = await _cache.GetStringAsync(auctionId);
         ImageDTO imageDto = null;
         if (_image == null)
         {
-            Console.WriteLine($"{DateTime.Now} - Изображение {imageId} НЕ найдено в кеше, получаем из микросервиса ImageService");
-            imageDto = await _client.GetImage(imageId);
+            Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} НЕ найдено в кеше, получаем из микросервиса ImageService");
+            imageDto = await _client.GetImage(auctionId);
             if (string.IsNullOrEmpty(imageDto.Image))
             {
-                Console.WriteLine($"{DateTime.Now} - Изображение {imageId} не найдено в GRPC Image");
+                Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} не найдено в GRPC Image");
                 return "";
             }
-            await _cache.SetStringAsync(imageId, imageDto.Image, new DistributedCacheEntryOptions
+            await _cache.SetStringAsync(auctionId, imageDto.Image, new DistributedCacheEntryOptions
             {
                 SlidingExpiration = TimeSpan.FromDays(Double.Parse(_config["CacheImageExpirationDays"]))
             });
             _image = imageDto.Image;
-            Console.WriteLine($"{DateTime.Now} - Изображение {imageId} записано и извлечено из кеша");
+            Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} записано и извлечено из кеша");
         }
         else
         {
-            Console.WriteLine($"{DateTime.Now} - Изображение {imageId} извлечено из кеша");
+            Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} извлечено из кеша");
         }
         return _image ?? "не найдено";
     }

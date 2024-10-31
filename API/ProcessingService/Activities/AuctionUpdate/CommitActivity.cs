@@ -1,4 +1,3 @@
-using System.Reflection;
 using Common.Contracts;
 using Common.Utils;
 using MassTransit;
@@ -30,6 +29,7 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
             _config["ServicesName:ProcessingService"],
             context.Message.CorrelationId,
             context.Saga.UserLogin,
+            OperationType.Insert,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

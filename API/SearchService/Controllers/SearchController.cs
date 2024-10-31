@@ -1,7 +1,7 @@
+using Common.Contracts;
 using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.DTO;
-using SearchService.Entities;
 
 namespace SearchService.Controllers;
 
@@ -17,14 +17,14 @@ public class SearchController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ApiResponse<Item>> SearchItemById(string id)
+    public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)
     {
         //поиск по id
         return await _search.SearchItemById(id);
     }
 
     [HttpGet]
-    public async Task<ApiResponse<PagedResult<List<Item>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
+    public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
     {
         //если заполнен параметр SearchAdv - это означает, что поступил запрос на поиск
         //в ElasticSearch. В этом случае направляем запрос через шину сообщений в сервис ElasticSearchService

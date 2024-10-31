@@ -1,34 +1,39 @@
 using Common.Contracts;
 using MassTransit;
-using ProcessingService.Activities;
+using ProcessingService.Activities.AuctionDelete;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionState>
 {
-    public State AuctionDeletedState { get; }
-    public State AuctionDeletedFinanceState { get; }
-    public State AuctionDeletedBidState { get; }
-    public State AuctionDeletedGatewayState { get; }
-    public State AuctionDeletedImageState { get; }
-    public State AuctionDeletedNotificationState { get; }
-    public State AuctionDeletedSearchState { get; }
-    public State AuctionDeletedElkState { get; }
-    public State CommitAuctionDeletedState { get; }
+    public State ESFinanceState { get; }
+    public State FinanceState { get; }
+    public State ESBidState { get; }
+    public State BidState { get; }
+    public State GatewayState { get; }
+    public State ImageState { get; }
+    public State ESSearchState { get; }
+    public State SearchState { get; }
+    public State ElkState { get; }
+    public State ESNotificationState { get; }
+    public State NotificationState { get; }
+    public State CommitState { get; }
     public State CompletedState { get; }
     public State FaultedState { get; }
 
-    public Event<RequestAuctionDelete> RequestAuctionDeletingEvent { get; }
-    public Event<AuctionDeleted> AuctionDeletedEvent { get; }
-    public Event<AuctionDeletedFinance> AuctionDeletedFinanceEvent { get; }
-    public Event<AuctionDeletedBid> AuctionDeletedBidEvent { get; }
-    public Event<AuctionDeletedGateway> AuctionDeletedGatewayEvent { get; }
-    public Event<AuctionDeletedImage> AuctionDeletedImageEvent { get; }
-    public Event<AuctionDeletedNotification> AuctionDeletedNotificationEvent { get; }
-    public Event<AuctionDeletedSearch> AuctionDeletedSearchEvent { get; }
-    public Event<AuctionDeletedElk> AuctionDeletedElkEvent { get; }
-    public Event<CommitAuctionDeletedContract> CommitAuctionDeletedEvent { get; }
-    public Event<GetAuctionDeleteState> AuctionDeletedStateEvent { get; }
+    public Event<RequestAuctionDelete> RequestEvent { get; }
+    public Event<AuctionDeleteESFinance> ESFinanceEvent { get; }
+    public Event<AuctionDeletedFinance> FinanceEvent { get; }
+    public Event<AuctionDeleteESBid> ESBidEvent { get; }
+    public Event<AuctionDeletedBid> BidEvent { get; }
+    public Event<AuctionDeletedGateway> GatewayEvent { get; }
+    public Event<AuctionDeletedImage> ImageEvent { get; }
+    public Event<AuctionDeleteESSearch> ESSearchEvent { get; }
+    public Event<AuctionDeletedSearch> SearchEvent { get; }
+    public Event<AuctionDeletedElk> ElkEvent { get; }
+    public Event<AuctionDeleteESNotification> ESNotificationEvent { get; }
+    public Event<AuctionDeletedNotification> NotificationEvent { get; }
+    public Event<AuctionDeleteESCommit> CommitEvent { get; }
     private IConfiguration configuration { get; }
 
     public DeleteAuctionStateMachine(IServiceProvider services)
@@ -37,43 +42,60 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureAuctionDeletedFinance();
-        ConfigureAuctionDeletedBid();
-        ConfigureAuctionDeletedGateway();
-        ConfigureAuctionDeletedImage();
-        ConfigureAuctionDeletedSearch();
-        ConfigureAuctionDeletedNotification();
-        ConfigureAuctionDeletedElk();
-        ConfigureCommitDeletingAuction();
-        ConfigureCompleted();
-        ConfigureGetState();
+        // ConfigureAuctionDeletedFinance();
+        // ConfigureAuctionDeletedBid();
+        // ConfigureAuctionDeletedGateway();
+        // ConfigureAuctionDeletedImage();
+        // ConfigureAuctionDeletedSearch();
+        // ConfigureAuctionDeletedNotification();
+        // ConfigureAuctionDeletedElk();
+        // ConfigureCommitDeletingAuction();
+        // ConfigureCompleted();
+        // ConfigureGetState();
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionDeletingEvent, p =>
+        Event(() => RequestEvent, p =>
         {
             p.InsertOnInitial = true;
         });
-        Event(() => AuctionDeletedEvent);
-        Event(() => AuctionDeletedFinanceEvent);
-        Event(() => AuctionDeletedBidEvent);
-        Event(() => AuctionDeletedGatewayEvent);
-        Event(() => AuctionDeletedImageEvent);
-        Event(() => AuctionDeletedNotificationEvent);
-        Event(() => AuctionDeletedSearchEvent);
-        Event(() => AuctionDeletedStateEvent);
-        Event(() => AuctionDeletedElkEvent);
-        Event(() => CommitAuctionDeletedEvent);
+        Event(() => ESFinanceEvent);
+        Event(() => FinanceEvent);
+        Event(() => ESBidEvent);
+        Event(() => BidEvent);
+        Event(() => GatewayEvent);
+        Event(() => ImageEvent);
+        Event(() => ESSearchEvent);
+        Event(() => SearchEvent);
+        Event(() => ElkEvent);
+        Event(() => ESNotificationEvent);
+        Event(() => NotificationEvent);
+        Event(() => CommitEvent);
     }
     private void ConfigureInitialState()
     {
         Initially(
-            When(RequestAuctionDeletingEvent)
+            When(RequestEvent)
             .Then(context =>
             {
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
+            //Создание записи по обновлению аукциона в сервисе FinanceService
+            .Activity(p => p.OfType<FinanceActivity>())
+            .TransitionTo(ESFinanceState)
+        );
+    }
+
+    private void ConfigureESFinanceState()
+    {
+        During(ESFinanceState,
+        When(ESFinanceEvent)
+            .Then(context =>
+            {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //посылаем в FinanceService - для корректировки счетов пользователя
@@ -83,137 +105,136 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.AuctionId,
                 context.Saga.UserLogin,
                 context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedFinanceState)
-        );
+            .TransitionTo(FinanceState));
     }
 
-    private void ConfigureAuctionDeletedFinance()
-    {
-        During(AuctionDeletedFinanceState,
-        When(AuctionDeletedFinanceEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingBid"]),
-                context => new AuctionDeletingBid(
-                context.Saga.AuctionId,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedBidState));
-    }
-    private void ConfigureAuctionDeletedBid()
-    {
-        During(AuctionDeletedBidState,
-        When(AuctionDeletedBidEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingGateway"]),
-                context => new AuctionDeletingGateway(
-                context.Saga.AuctionId,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedGatewayState));
-    }
-    private void ConfigureAuctionDeletedGateway()
-    {
-        During(AuctionDeletedGatewayState,
-        When(AuctionDeletedGatewayEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingImage"]),
-                context => new AuctionDeletingImage(
-                context.Saga.AuctionId,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedImageState));
-    }
-    private void ConfigureAuctionDeletedImage()
-    {
-        During(AuctionDeletedImageState,
-        When(AuctionDeletedImageEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingSearch"]),
-                context => new AuctionDeletingSearch(
-                context.Saga.AuctionId,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedSearchState));
-    }
-    private void ConfigureAuctionDeletedSearch()
-    {
-        During(AuctionDeletedSearchState,
-        When(AuctionDeletedSearchEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingNotification"]),
-                context => new AuctionDeletingNotification(
-                context.Saga.AuctionId,
-                context.Saga.UserLogin,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedNotificationState));
-    }
-    private void ConfigureAuctionDeletedNotification()
-    {
-        During(AuctionDeletedNotificationState,
-        When(AuctionDeletedNotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingElk"]),
-                context => new AuctionDeletingElk(
-                context.Saga.AuctionId,
-                context.Saga.UserLogin,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionDeletedElkState));
-    }
-    private void ConfigureAuctionDeletedElk()
-    {
-        During(AuctionDeletedElkState,
-        When(AuctionDeletedElkEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            //.Activity(p => p.OfType<CommitDeletingAuctionActivity>())
-            .TransitionTo(CommitAuctionDeletedState));
-    }
+    // private void ConfigureFinanceState()
+    // {
+    //     During(FinanceState,
+    //     When(AuctionDeletedFinanceEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:AuctionDeletingBid"]),
+    //             context => new AuctionDeletingBid(
+    //             context.Saga.AuctionId,
+    //             context.Saga.CorrelationId))
+    //         .TransitionTo(AuctionDeletedBidState));
+    // }
+    // private void ConfigureAuctionDeletedBid()
+    // {
+    //     During(AuctionDeletedBidState,
+    //     When(AuctionDeletedBidEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:AuctionDeletingGateway"]),
+    //             context => new AuctionDeletingGateway(
+    //             context.Saga.AuctionId,
+    //             context.Saga.CorrelationId))
+    //         .TransitionTo(AuctionDeletedGatewayState));
+    // }
+    // private void ConfigureAuctionDeletedGateway()
+    // {
+    //     During(AuctionDeletedGatewayState,
+    //     When(AuctionDeletedGatewayEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:AuctionDeletingImage"]),
+    //             context => new AuctionDeletingImage(
+    //             context.Saga.AuctionId,
+    //             context.Saga.CorrelationId))
+    //         .TransitionTo(AuctionDeletedImageState));
+    // }
+    // private void ConfigureAuctionDeletedImage()
+    // {
+    //     During(AuctionDeletedImageState,
+    //     When(AuctionDeletedImageEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:AuctionDeletingSearch"]),
+    //             context => new AuctionDeletingSearch(
+    //             context.Saga.AuctionId,
+    //             context.Saga.CorrelationId))
+    //         .TransitionTo(AuctionDeletedSearchState));
+    // }
+    // private void ConfigureAuctionDeletedSearch()
+    // {
+    //     During(AuctionDeletedSearchState,
+    //     When(AuctionDeletedSearchEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:AuctionDeletingNotification"]),
+    //             context => new AuctionDeletingNotification(
+    //             context.Saga.AuctionId,
+    //             context.Saga.UserLogin,
+    //             context.Saga.CorrelationId))
+    //         .TransitionTo(AuctionDeletedNotificationState));
+    // }
+    // private void ConfigureAuctionDeletedNotification()
+    // {
+    //     During(AuctionDeletedNotificationState,
+    //     When(AuctionDeletedNotificationEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .Send(
+    //             new Uri(configuration["QueuePaths:AuctionDeletingElk"]),
+    //             context => new AuctionDeletingElk(
+    //             context.Saga.AuctionId,
+    //             context.Saga.UserLogin,
+    //             context.Saga.CorrelationId))
+    //         .TransitionTo(AuctionDeletedElkState));
+    // }
+    // private void ConfigureAuctionDeletedElk()
+    // {
+    //     During(AuctionDeletedElkState,
+    //     When(AuctionDeletedElkEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         //.Activity(p => p.OfType<CommitDeletingAuctionActivity>())
+    //         .TransitionTo(CommitAuctionDeletedState));
+    // }
 
-    private void ConfigureCommitDeletingAuction()
-    {
-        During(CommitAuctionDeletedState,
-        When(CommitAuctionDeletedEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .TransitionTo(CompletedState));
-    }
+    // private void ConfigureCommitDeletingAuction()
+    // {
+    //     During(CommitAuctionDeletedState,
+    //     When(CommitAuctionDeletedEvent)
+    //         .Then(context =>
+    //         {
+    //             context.Saga.LastUpdated = DateTime.UtcNow;
+    //         })
+    //         .TransitionTo(CompletedState));
+    // }
 
-    private void ConfigureCompleted()
-    {
-        During(CompletedState);
-    }
+    // private void ConfigureCompleted()
+    // {
+    //     During(CompletedState);
+    // }
 
 
-    private void ConfigureGetState()
-    {
-        DuringAny(
-            When(AuctionDeletedStateEvent)
-                .Respond(x => x.Saga)
-        );
-    }
+    // private void ConfigureGetState()
+    // {
+    //     DuringAny(
+    //         When(AuctionDeletedStateEvent)
+    //             .Respond(x => x.Saga)
+    //     );
+    // }
 
 }

@@ -32,6 +32,7 @@ public class BidActivity : IStateMachineActivity<UpdateAuctionState, RequestAuct
             _config["ServicesName:BiddingService"],
             context.Message.CorrelationId,
             context.Saga.UserLogin,
+            OperationType.Update,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

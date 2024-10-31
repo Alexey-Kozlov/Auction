@@ -37,7 +37,7 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         notifObject.SessionId = consumeContext.Message.SessionId;
         notifObject.UserLogin = consumeContext.Message.UserLogin;
         notifObject.ItemsType = nameof(NotifyUser);
-        notifObject.ProjectName = Assembly.GetExecutingAssembly().GetName().Name;
+        notifObject.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         notifObject.CreateAt = consumeContext.Message.CreateAt;
         notifObject.RestoringOrder = 1;
         await _publishEndpoint.Publish(notifObject);

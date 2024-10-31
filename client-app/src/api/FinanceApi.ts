@@ -40,7 +40,8 @@ const financeApi = createApi({
       query: () => ({
         url: "/getbalance",
       }),
-      transformResponse: (response: ApiResponseNet<number>, meta: any) => {
+      transformResponse: (
+        response: ApiResponseNet<number>, meta: any) => {
         PostApiProcess(response);
         return response;
       },
@@ -49,30 +50,11 @@ const financeApi = createApi({
       },
       providesTags: ["finance"],
     }),
-    addCredit: builder.mutation<ApiResponseNet<number>, number>({
-      query: (params) => ({
-        url: "/addcredit",
-        method: "post",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ amount: params }),
-      }),
-      transformResponse: (response: ApiResponseNet<number>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["finance"],
-    }),
   }),
 });
 
 export const {
   useGetFinanceItemQuery,
-  useGetBalanceQuery,
-  useAddCreditMutation,
+  useGetBalanceQuery
 } = financeApi;
 export default financeApi;

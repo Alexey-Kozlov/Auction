@@ -14,17 +14,21 @@ public class MainProcessing
         _publishEndpoint = publishEndpoint;
         _context = context;
     }
-    public async Task Processing(ConsumeContext<BaseStateContract> context)
+    public async Task Processing(ConsumeContext<ESContract> context)
     {
         switch (context.Message.EntityType)
         {
-            //ProcessingService -> UpdatedActivity -> CommitActivity                         
+            //ProcessingService -> Activities -> AuctionUpdate -> CommitActivity                         
             case nameof(CommitESUpdateAuctionOperation):
                 await _publishEndpoint.Publish(new AuctionUpdateESCommit(context.Message.CorrelationId));
                 break;
-            //ProcessingService -> CreatedActivity -> CommitActivity                         
+            //ProcessingService -> Activities -> AuctionCreate -> CommitActivity                         
             case nameof(CommitESCreateAuctionOperation):
                 await _publishEndpoint.Publish(new AuctionCreateESCommit(context.Message.CorrelationId));
+                break;
+            //ProcessingService -> Activities -> Finance -> CommitActivity                         
+            case nameof(CommitESFinanceOperation):
+                await _publishEndpoint.Publish(new FinanceCreateESCommit(context.Message.CorrelationId));
                 break;
         }
 

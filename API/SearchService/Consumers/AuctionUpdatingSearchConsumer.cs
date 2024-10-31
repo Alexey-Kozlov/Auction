@@ -3,7 +3,6 @@ using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
-using SearchService.Entities;
 
 namespace SearchService.Consumers;
 
@@ -21,7 +20,7 @@ public class AuctionUpdatingSearchConsumer : IConsumer<AuctionUpdatingSearch>
     }
     public async Task Consume(ConsumeContext<AuctionUpdatingSearch> context)
     {
-        var updatedItem = _mapper.Map<Item>(context.Message);
+        var updatedItem = _mapper.Map<AuctionItem>(context.Message);
         var item = await _context.Items.FirstOrDefaultAsync(p => p.AuctionId == updatedItem.AuctionId);
         if (item == null)
         {

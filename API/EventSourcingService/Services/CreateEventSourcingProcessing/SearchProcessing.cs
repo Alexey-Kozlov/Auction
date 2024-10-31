@@ -15,17 +15,21 @@ public class SearchProcessing
     {
         _publishEndpoint = publishEndpoint;
     }
-    public async Task Processing(ConsumeContext<BaseStateContract> context)
+    public async Task Processing(ConsumeContext<ESContract> context)
     {
         switch (context.Message.EntityType)
         {
-            //ProcessingService -> UpdatedActivity -> SearchActivity                         
+            //ProcessingService -> Activities -> AuctionUpdate -> SearchActivity                         
             case nameof(AuctionUpdatingSearch):
-                await _publishEndpoint.Publish(new AuctionUpdateESSearch(context.Message.CorrelationId));
+                await _publishEndpoint.Publish(
+                    JsonSerializer.Deserialize<AuctionUpdatingSearch>(context.Message.EventData)
+                );
                 break;
-            //ProcessingService -> CreatedActivity -> SearchActivity                         
+            //ProcessingService -> Activities -> AuctionCreate -> SearchActivity                         
             case nameof(AuctionCreatingSearch):
-                await _publishEndpoint.Publish(new AuctionCreateESSearch(context.Message.CorrelationId));
+                await _publishEndpoint.Publish(
+                    JsonSerializer.Deserialize<AuctionCreatingSearch>(context.Message.EventData)
+                );
                 break;
         }
     }

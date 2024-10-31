@@ -112,8 +112,8 @@ export default function SignalRProvider() {
                     dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.auctionId }));
                 })
 
-                connection.on('FinanceCreditAdd', (finance: any) => {
-                    dispatch(setEventFlag({ eventName: 'FinanceCreditAdd', ready: true}));
+                connection.on('FinanceCreate', (finance: any) => {
+                    dispatch(setEventFlag({ eventName: 'FinanceCreate', ready: true}));
                 })
 
                 connection.on('SessionId', (id: any) => {

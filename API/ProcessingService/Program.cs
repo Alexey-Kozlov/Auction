@@ -10,7 +10,6 @@ using ProcessingService.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
-using ProcessingService;
 using Common.Contracts;
 using Confluent.Kafka;
 using Common.Utils.Vault;
@@ -72,6 +71,7 @@ builder.Services.AddMassTransit(p =>
     p.AddBidPlacedMassTransitConfigurator();
     p.ElkSearchMassTransitConfigurator();
     p.ElkIndexMassTransitConfigurator();
+    p.FinanceMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
     {
@@ -93,7 +93,7 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
     });
     busConfigurator.AddRider(r =>
     {
-        r.AddProducer<BaseStateContract>(builder.Configuration["Kafka_Topic_Event"], new ProducerConfig
+        r.AddProducer<ESContract>(builder.Configuration["Kafka_Topic_Event"], new ProducerConfig
         {
             MessageMaxBytes = 30485880,
             QueueBufferingMaxKbytes = 40000

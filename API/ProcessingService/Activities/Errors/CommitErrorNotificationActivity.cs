@@ -6,9 +6,9 @@ namespace ProcessingService.Activities.Errors;
 
 public class CommitErrorNotificationActivity : IStateMachineActivity<BidPlacedState, Fault<BidNotificationProcessing>>
 {
-    private readonly ITopicProducer<BaseStateContract> _topicProducer;
+    private readonly ITopicProducer<ESContract> _topicProducer;
     private readonly ILogger<CommitErrorNotificationActivity> _logger;
-    public CommitErrorNotificationActivity(ITopicProducer<BaseStateContract> topicProducer,
+    public CommitErrorNotificationActivity(ITopicProducer<ESContract> topicProducer,
         ILogger<CommitErrorNotificationActivity> logger)
     {
         _topicProducer = topicProducer;
@@ -23,11 +23,11 @@ public class CommitErrorNotificationActivity : IStateMachineActivity<BidPlacedSt
 
     public async Task Execute(BehaviorContext<BidPlacedState, Fault<BidNotificationProcessing>> context, IBehavior<BidPlacedState, Fault<BidNotificationProcessing>> next)
     {
-        var message = new CommitBidErrorContract();
-        message.CorrelationId = context.Saga.CorrelationId;
+        //var message = new CommitBidErrorContract();
+        //message.CorrelationId = context.Saga.CorrelationId;
         //message.Type = nameof(CommitBidErrorContract);
         //message.Data = context.Message.Exceptions[0].Message;
-        await _topicProducer.Produce(message);
+        //await _topicProducer.Produce(message);
         await next.Execute(context).ConfigureAwait(false);
     }
 

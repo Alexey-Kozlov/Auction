@@ -4,9 +4,6 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
 using SearchService.DTO;
-using SearchService.Entities;
-using System.Net;
-using AutoMapper;
 
 namespace SearchService.Services;
 
@@ -14,17 +11,16 @@ public class SearchService
 {
     private readonly SearchDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IMapper _mapper;
-    public SearchService(IMapper mapper, SearchDbContext context, IPublishEndpoint publishEndpoint)
+
+    public SearchService(SearchDbContext context, IPublishEndpoint publishEndpoint)
     {
-        _mapper = mapper;
         _context = context;
         _publishEndpoint = publishEndpoint;
     }
 
     //SQL поиск по частичному точному совпадению в полях title, properties
     //также производим сортировку и фильтрацию по категориям
-    public async Task<ApiResponse<PagedResult<List<Item>>>> SqlSearchItems(SearchParamsDTO searchParams)
+    public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SqlSearchItems(SearchParamsDTO searchParams)
     {
         var query = _context.Items.AsQueryable();
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
@@ -75,11 +71,11 @@ public class SearchService
             pageCount = (itemsCount + searchParams.PageSize - 1) / searchParams.PageSize;
         }
 
-        return new ApiResponse<PagedResult<List<Item>>>
+        return new ApiResponse<PagedResult<List<AuctionItem>>>
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
-            Result = new PagedResult<List<Item>>()
+            Result = new PagedResult<List<AuctionItem>>()
             {
                 Results = result,
                 PageCount = pageCount,
@@ -88,7 +84,7 @@ public class SearchService
         };
     }
 
-    public async Task<ApiResponse<PagedResult<List<Item>>>> ElkSearchItems(SearchParamsDTO searchParams)
+    public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> ElkSearchItems(SearchParamsDTO searchParams)
     {
         //посылаем сообщение для поиска в ELK
         await _publishEndpoint.Publish(new ElkSearchRequest(Guid.NewGuid(), Guid.NewGuid(),
@@ -97,7 +93,7 @@ public class SearchService
         Console.WriteLine($"Поиск ELK - '{searchParams.SearchAdv}' сессия - {searchParams.SessionId}");
 
         //посылаем null в качестве результата для отображения заставки ожидания
-        return new ApiResponse<PagedResult<List<Item>>>
+        return new ApiResponse<PagedResult<List<AuctionItem>>>
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
@@ -105,10 +101,10 @@ public class SearchService
         };
     }
 
-    public async Task<ApiResponse<Item>> SearchItemById(string id)
+    public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)
     {
         var item = await _context.Items.Where(p => p.AuctionId == Guid.Parse(id)).FirstOrDefaultAsync();
-        return new ApiResponse<Item>
+        return new ApiResponse<AuctionItem>
         {
             IsSuccess = true,
             StatusCode = System.Net.HttpStatusCode.OK,

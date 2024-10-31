@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Common.Contracts;
 
 namespace EventSourcingService.Entities;
 
@@ -17,6 +18,7 @@ public class EventsLog : IDisposable
     public int LogicVersion { get; set; }
     public Guid? AuctionId { get; set; }
     public string UserLogin { get; set; }
+    public OperationType OperationType { get; set; }
 
     public void Dispose() => EventData?.Dispose();
 

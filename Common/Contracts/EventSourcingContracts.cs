@@ -2,74 +2,23 @@ using System.Text.Json;
 
 namespace Common.Contracts;
 
-public class BaseStateContract
+public class ESContract
 {
     public string EventData { get; set; }
     public string EntityType { get; set; }
     public string ServiceName { get; set; }
     public Guid CorrelationId { get; set; }
     public string UserLogin { get; set; }
-    public Guid AuctionId { get; set; }
+    public Guid? AuctionId { get; set; }
+    public OperationType OperationType { get; set; }
 }
 
-
-public class CommitAuctionUpdatingContract : BaseStateContract;
-
-public record CommitAuctionUpdatedContract
-(
-    Guid CorrelationId
-);
-
-public class CommitAuctionCreatingContract : BaseStateContract { }
-public record CommitAuctionCreatedContract
-(
-    Guid CorrelationId
-);
-
-
-public class CommitAuctionDeletingContract : BaseStateContract { }
-
-public record CommitAuctionDeletedContract
-(
-    Guid CorrelationId
-);
-
-public record AfterBidPlacedContract
-(
-    Guid CorrelationId
-);
-
-public class CommitBidPlacingContract : BaseStateContract { }
-
-public record CommitBidPlacedContract
-(
-    Guid CorrelationId
-);
-public record CommitBidPlacedErrorContract
-(
+public record SendAllItems<T>(
+    string UserLogin,
+    string SessionId,
     Guid CorrelationId,
-    Exception ExceptionItem
+    DateTime CreateAt
 );
-
-public class CommitBidErrorContract : BaseStateContract
-{
-
-}
-
-public record CommitErrorSavedContract
-(
-    Guid CorrelationId
-);
-
-public class CommitAuctionFinishingContract : BaseStateContract { }
-
-public record CommitAuctionFinishedContract
-(
-    Guid CorrelationId
-);
-
-
-public record SendAllItems<T>(string UserLogin, string SessionId, Guid CorrelationId, DateTime CreateAt);
 
 public class SendToSetSnapShot
 {
@@ -78,7 +27,7 @@ public class SendToSetSnapShot
     public string SessionId { get; set; }
     public List<string> SnapShotItems { get; set; } = new();
     public string ItemsType { get; set; }
-    public string ProjectName { get; set; }
+    public string ServiceName { get; set; }
     public DateTime CreateAt { get; set; }
     public int RestoringOrder { get; set; }
 }
@@ -97,22 +46,6 @@ public record EventSourcingInitialized(
     string UserLogin,
     string SessionId
 );
-
-public class AuctionItem
-{
-    public Guid Id { get; set; }
-    public int ReservePrice { get; set; }
-    public string Seller { get; set; }
-    public string Winner { get; set; }
-    public int SoldAmount { get; set; }
-    public int CurrentHighBid { get; set; }
-    public DateTime CreateAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public DateTime AuctionEnd { get; set; }
-    public string Title { get; set; }
-    public string Properties { get; set; }
-    public string Description { get; set; }
-}
 
 public record RestoreSnapShotDb(
     string SessionId,
@@ -150,3 +83,15 @@ public record CommitESUpdateAuctionOperation(Guid CorrelationId);
 public record CommitESCreateAuctionOperation(Guid CorrelationId);
 public record CommitESDeleteAuctionOperation(Guid CorrelationId);
 
+public record FinanceCreateMessage(
+    FinanceItem FinanceItem,
+    OperationType OperationType,
+    Guid CorrelationId
+);
+
+public enum OperationType
+{
+    Delete, //0
+    Update, //1
+    Insert  //2
+}

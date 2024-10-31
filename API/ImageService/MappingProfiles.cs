@@ -40,7 +40,7 @@ public class MappingProfiles : Profile
         );
 
         CreateMap<ImageItem, ImageDTO>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.AuctionId, opt => opt.MapFrom(src => src.AuctionId.ToString()))
             .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
             {
                 if (src.Image != null && src.Image.Length > 0)

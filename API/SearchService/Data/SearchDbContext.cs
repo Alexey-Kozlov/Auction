@@ -1,6 +1,6 @@
+using Common.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SearchService.Entities;
 
 namespace SearchService.Data;
 
@@ -10,7 +10,7 @@ public class SearchDbContext : DbContext
     {
     }
 
-    public DbSet<Item> Items { get; set; }
+    public DbSet<AuctionItem> Items { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,9 +19,9 @@ public class SearchDbContext : DbContext
     }
 }
 
-public class ItemConfiguration : IEntityTypeConfiguration<Item>
+public class ItemConfiguration : IEntityTypeConfiguration<AuctionItem>
 {
-    public void Configure(EntityTypeBuilder<Item> builder)
+    public void Configure(EntityTypeBuilder<AuctionItem> builder)
     {
         builder.ToTable("Items").HasKey(p => p.AuctionId).HasName("PK_Id");
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);

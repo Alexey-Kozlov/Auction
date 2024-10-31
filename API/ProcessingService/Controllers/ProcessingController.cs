@@ -88,6 +88,21 @@ public class ProcessingController : ControllerBase
         };
     }
 
+    [Authorize]
+    [HttpPost("FinanceCreate")]
+    public async Task<ApiResponse<object>> FinanceCreate(FinanceAddCreditDTO param)
+    {
+        //Добавление денег на счет
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new RequestCreateFinance(param.Amount, userLogin, Guid.NewGuid(), param.SessionId));
+        return new ApiResponse<object>
+        {
+            StatusCode = HttpStatusCode.Accepted,
+            IsSuccess = true,
+            Result = { }
+        };
+    }
+
     [Authorize(Roles = "Admin")]
     [HttpPost("SetSnapShotDb")]
     public async Task SetSnapShotDb(SessionDTO param)

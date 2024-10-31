@@ -10,12 +10,12 @@ using AuctionService.Metrics;
 using Npgsql;
 using Common.Contracts;
 using EventSourcingService.Data;
-using EventSourcingService;
 using SearchService.Consumers;
 using Common.Utils.Vault;
 using EventSourcingService.Consumers;
 using EventSourcingService.Services.CreateEventSourcingProcessing;
 using EventSourcingService.Services;
+using EventSourcingService.Services.FinanceProcessing;
 
 internal class Program
 {
@@ -41,10 +41,8 @@ internal class Program
             conStrBuilder.Username = builder.Configuration["pg:username"];
             conStrBuilder.Database = builder.Configuration["pg:database"];
             conStrBuilder.Host = builder.Configuration["pg:host"];
-
             options.UseNpgsql(conStrBuilder.ConnectionString);
-
-        });
+        }, ServiceLifetime.Transient, ServiceLifetime.Transient);
         builder.Services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.AddConsumersFromNamespaceContaining<CreateDbSnapShotConsumer>();
@@ -72,7 +70,7 @@ internal class Program
                 r.UsingKafka((context, k) =>
                 {
                     k.Host(builder.Configuration["Kafka_Host"]);
-                    k.TopicEndpoint<BaseStateContract>(builder.Configuration["Kafka_Topic_Event"], "consumerGroup", e =>
+                    k.TopicEndpoint<ESContract>(builder.Configuration["Kafka_Topic_Event"], "consumerGroup", e =>
                     {
                         e.ConfigureConsumer<CreateEventSourcingItemConsumer>(context);
                         e.CreateIfMissing();
@@ -125,6 +123,8 @@ internal class Program
         builder.Services.AddScoped<SearchProcessing>();
         builder.Services.AddScoped<BidProcessing>();
         builder.Services.AddScoped<MainProcessing>();
+        builder.Services.AddScoped<FinanceProcessing>();
+        builder.Services.AddScoped<DeleteAuctionFinanceService>();
 
         var app = builder.Build();
 

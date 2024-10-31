@@ -14,7 +14,7 @@ public class GrpcImageClient
         _config = config;
     }
 
-    public async Task<ImageDTO> GetImage(string id)
+    public async Task<ImageDTO> GetImage(string AuctionId)
     {
         Console.WriteLine($"{DateTime.Now} Вызов GrpcImage сервер");
         var channel = GrpcChannel.ForAddress(_config["GrpcImage"], new GrpcChannelOptions
@@ -23,12 +23,12 @@ public class GrpcImageClient
             MaxReceiveMessageSize = int.MaxValue
         });
         var client = new GrpcImage.GrpcImageClient(channel);
-        var request = new GetImageRequest { Id = id };
+        var request = new GetImageRequest { AuctionId = AuctionId };
 
         try
         {
             var reply = await client.GetImageAsync(request);
-            var imageDto = new ImageDTO(id, reply.Image.Image);
+            var imageDto = new ImageDTO(AuctionId, reply.Image.Image);
             return imageDto;
         }
         catch (RpcException ex)
@@ -36,15 +36,15 @@ public class GrpcImageClient
             if (ex.StatusCode == StatusCode.NotFound)
             {
                 Console.WriteLine($"{DateTime.Now} Изображение в БД не найдено");
-                return new ImageDTO(id, "");
+                return new ImageDTO(AuctionId, "");
             }
             Console.WriteLine($"{DateTime.Now} Ошибка GRPC Image - {ex.Message}");
-            return new ImageDTO(id, "");
+            return new ImageDTO(AuctionId, "");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"{DateTime.Now} Невозможно вызвать GRPC Image сервер - {ex.Message}");
-            return new ImageDTO(id, "");
+            return new ImageDTO(AuctionId, "");
         }
     }
 }

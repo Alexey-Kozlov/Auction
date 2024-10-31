@@ -28,7 +28,7 @@ public class AuctionUpdatingImageConsumer : IConsumer<AuctionUpdatingImage>
         }
         Console.WriteLine($"{DateTime.Now} Получение сообщения обновить изображение для аукциона");
         var updatedItem = _mapper.Map<ImageItem>(consumeContext.Message);
-        var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == updatedItem.Id);
+        var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == updatedItem.AuctionId);
         if (item != null)
         {
             _mapper.Map(updatedItem, item);

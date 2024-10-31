@@ -1,10 +1,7 @@
-﻿using System.Reflection;
-using AutoMapper;
+﻿using AutoMapper;
 using Common.Contracts;
-using Common.Utils;
 using MassTransit;
 using SearchService.Data;
-using SearchService.Entities;
 
 namespace SearchService.Consumers;
 
@@ -22,7 +19,7 @@ public class AuctionCreatingSearchConsumer : IConsumer<AuctionCreatingSearch>
     }
     public async Task Consume(ConsumeContext<AuctionCreatingSearch> context)
     {
-        var newItem = _mapper.Map<Item>(context.Message);
+        var newItem = _mapper.Map<AuctionItem>(context.Message);
         await _context.AddAsync(newItem);
         await _context.SaveChangesAsync();
         await _publishEndpoint.Publish(new AuctionCreatedSearch(context.Message.CorrelationId));

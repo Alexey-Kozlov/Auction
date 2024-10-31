@@ -1,7 +1,7 @@
 import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
 import { FinanceItem } from '../../store/types';
 import NumberWithSpaces from '../../utils/NumberWithSpaces';
-import { Checkbox } from 'flowbite-react';
+import { GrMoney } from "react-icons/gr";
 import ImageCard from '../auctionList/ImageCard';
 import { NavLink } from 'react-router-dom';
 
@@ -15,27 +15,24 @@ export default function FinRow({ item }: Props) {
     });
     return (
         <>
-            <div>
+            <div className='flex items-center'>{`${new Date(item.actionDate).toLocaleDateString('ru-RU')} 
+                ${new Date(item?.actionDate).toLocaleTimeString('ru-RU')}`}</div>
+            <div className='flex items-center'>
                 {!auction.isLoading && auction.data?.result?.auctionId && auction.status === 'fulfilled' ? (
                     <NavLink to={`/auctions/${item.id}`} className='group'>
                         <ImageCard id={item.id} dopStyle=' max-h-20' zooming={false} />
                     </NavLink>
-                ) : ""}
+                ) : <GrMoney size={30} />}
             </div>
-            <div>{!auction.isLoading && auction.data?.result?.title && auction.status === 'fulfilled' ? (
+            <div className='flex items-center'>{!auction.isLoading && auction.data?.result?.title && auction.status === 'fulfilled' ? (
                 <NavLink to={`/auctions/${item.id}`} className='group'>
                     {auction.data?.result?.title}
                 </NavLink>
             )
                 : ""}</div>
-            <div className='font-bold'>{NumberWithSpaces(item.balance)}</div>
-            <div>{`${new Date(item.actionDate).toLocaleDateString('ru-RU')} 
-                        ${new Date(item?.actionDate).toLocaleTimeString('ru-RU')}`}</div>
-            <div>{item.credit === 0 ? '' : NumberWithSpaces(item.credit)}</div>
-            <div>{item.debit === 0 ? '' : NumberWithSpaces(item.debit)}</div>
-            <div>
-                <Checkbox checked={item.status === 1} disabled />
-            </div>
+
+            <div className='flex items-center'>{item.status === 0 ? 'Приход' : 'Расход'}</div>
+            <div className='flex items-center'>{item.value === 0 ? '0' : NumberWithSpaces(item.value)}</div>
         </>
     )
 }

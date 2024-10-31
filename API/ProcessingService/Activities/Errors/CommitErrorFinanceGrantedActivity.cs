@@ -6,9 +6,9 @@ namespace ProcessingService.Activities.Errors;
 
 public class CommitErrorFinanceGrantedActivity : IStateMachineActivity<BidPlacedState, Fault<BidFinanceGranting>>
 {
-    private readonly ITopicProducer<BaseStateContract> _topicProducer;
+    private readonly ITopicProducer<ESContract> _topicProducer;
     private readonly ILogger<CommitErrorFinanceGrantedActivity> _logger;
-    public CommitErrorFinanceGrantedActivity(ITopicProducer<BaseStateContract> topicProducer,
+    public CommitErrorFinanceGrantedActivity(ITopicProducer<ESContract> topicProducer,
         ILogger<CommitErrorFinanceGrantedActivity> logger)
     {
         _topicProducer = topicProducer;
@@ -23,11 +23,11 @@ public class CommitErrorFinanceGrantedActivity : IStateMachineActivity<BidPlaced
 
     public async Task Execute(BehaviorContext<BidPlacedState, Fault<BidFinanceGranting>> context, IBehavior<BidPlacedState, Fault<BidFinanceGranting>> next)
     {
-        var message = new CommitBidErrorContract();
-        message.CorrelationId = context.Saga.CorrelationId;
+        //var message = new CommitBidErrorContract();
+        //message.CorrelationId = context.Saga.CorrelationId;
         //message.Type = nameof(CommitBidErrorContract);
         //message.Data = $"{context.Message.Exceptions[0].Message}";
-        await _topicProducer.Produce(message);
+        //await _topicProducer.Produce(message);
         await next.Execute(context).ConfigureAwait(false);
     }
 

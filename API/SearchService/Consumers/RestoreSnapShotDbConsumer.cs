@@ -2,7 +2,6 @@
 using Common.Contracts;
 using MassTransit;
 using SearchService.Data;
-using SearchService.Entities;
 
 namespace SearchService.Consumers;
 
@@ -24,7 +23,7 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<SearchSe
             //восстанавливаем тип BalanceItem
             foreach (var items in item.Items)
             {
-                var searchItem = JsonSerializer.Deserialize<Item>(items);
+                var searchItem = JsonSerializer.Deserialize<AuctionItem>(items);
                 await _context.Items.AddAsync(searchItem);
                 itemCounter++;
             }

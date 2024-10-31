@@ -9,22 +9,22 @@ public static class MiddlewsreExtentions
     {
         //получаем изображения из кеша - сервис с использованием reddis
         //это штатный функционал
-        app.MapGet("/api/images/{id}", async (string id, ImageCache imageCache) =>
+        app.MapGet("/api/images/{auctionid}", async (string auctionid, ImageCache imageCache) =>
         {
-            var img = await imageCache.GetImage(id);
+            var img = await imageCache.GetImage(auctionid);
             return new ApiResponse<ImageDTO>()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
                 IsSuccess = true,
-                Result = new ImageDTO(id, img)
+                Result = new ImageDTO(auctionid, img)
             };
         });
 
         //дополнительный функционал - можно вызывать изображение в виде файла - 
         //для штатного вызова из HTML, например, через <img src="адрес данного сервиса">
-        app.MapGet("/api/images_file/{id}", async (string id, ImageCache imageCache) =>
+        app.MapGet("/api/images_file/{auctionid}", async (string auctionid, ImageCache imageCache) =>
         {
-            var img = await imageCache.GetImage(id);
+            var img = await imageCache.GetImage(auctionid);
             return Results.File(Convert.FromBase64String(img), contentType: "image/png");
         });
 
