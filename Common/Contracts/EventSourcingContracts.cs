@@ -6,7 +6,7 @@ public class ESContract
 {
     public string EventData { get; set; }
     public string EntityType { get; set; }
-    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
     public Guid CorrelationId { get; set; }
     public string UserLogin { get; set; }
     public Guid? AuctionId { get; set; }
@@ -83,10 +83,14 @@ public record CommitESUpdateAuctionOperation(Guid CorrelationId);
 public record CommitESCreateAuctionOperation(Guid CorrelationId);
 public record CommitESDeleteAuctionOperation(Guid CorrelationId);
 
-public record FinanceCreateMessage(
-    FinanceItem FinanceItem,
+public record ActionMessage<T>(
+    T ActionItem,
     OperationType OperationType,
     Guid CorrelationId
+);
+public record ActionMessageList<T>(
+    List<ActionMessage<T>> ActionItemsList,
+    string CallBackType
 );
 
 public enum OperationType
@@ -95,3 +99,4 @@ public enum OperationType
     Update, //1
     Insert  //2
 }
+

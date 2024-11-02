@@ -22,7 +22,7 @@ public class AuctionFinishingNotificationConsumer : IConsumer<AuctionFinishingNo
     }
     public async Task Consume(ConsumeContext<AuctionFinishingNotification> context)
     {
-        var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
+        var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
         Console.WriteLine($"{DateTime.Now} --> Получено сообщение - аукцион '{context.Message.Id}' завершен, рассылка уведомлений для " +
             $"{String.Join(',', auctionNotifyList.Select(p => p.UserLogin))}");
         await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("AuctionFinished", context.Message);

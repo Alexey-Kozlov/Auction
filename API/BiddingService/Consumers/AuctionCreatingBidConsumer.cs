@@ -1,9 +1,6 @@
-﻿using System.Reflection;
-using AutoMapper;
+﻿using AutoMapper;
 using BiddingService.Data;
-using BiddingService.Entities;
 using Common.Contracts;
-using Common.Utils;
 using MassTransit;
 
 namespace BiddingService.Consumers;
@@ -22,7 +19,7 @@ public class AuctionCreatingBidConsumer : IConsumer<AuctionCreatingBid>
     }
     public async Task Consume(ConsumeContext<AuctionCreatingBid> context)
     {
-        var auction = _mapper.Map<Auction>(context.Message);
+        var auction = _mapper.Map<AuctionBidItem>(context.Message);
         _context.Auctions.Add(auction);
         await _context.SaveChangesAsync();
         await _publishEndpoint.Publish(new AuctionCreatedBid(context.Message.CorrelationId));

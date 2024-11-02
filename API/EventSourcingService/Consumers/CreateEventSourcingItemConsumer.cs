@@ -8,7 +8,6 @@ namespace EventSourcingService.Consumers;
 public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
 {
     private readonly ILogger<CreateEventSourcingItemConsumer> _logger;
-    private readonly InsertItemToEventSourcing _insertItemToEventSourcing;
     private readonly NotificationProcessing _notificationProcessing;
     private readonly SearchProcessing _searchProcessing;
     private readonly BidProcessing _bidProcessing;
@@ -17,12 +16,11 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     public readonly IConfiguration _configuration;
 
     public CreateEventSourcingItemConsumer(ILogger<CreateEventSourcingItemConsumer> logger,
-        InsertItemToEventSourcing insertItemToEventSourcing, NotificationProcessing notificationProcessing,
+        NotificationProcessing notificationProcessing,
         SearchProcessing searchProcessing, BidProcessing bidProcessing, MainProcessing mainProcessing,
         IConfiguration configuration, FinanceProcessing financeProcessing)
     {
         _logger = logger;
-        _insertItemToEventSourcing = insertItemToEventSourcing;
         _notificationProcessing = notificationProcessing;
         _searchProcessing = searchProcessing;
         _bidProcessing = bidProcessing;
@@ -34,24 +32,22 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     public async Task Consume(ConsumeContext<ESContract> context)
     {
         //var ctx = context.ReceiveContext as KafkaReceiveContext<Ignore, ESContract>;
-        //сохраняем новое сообщение в БД EventSourcing
-        await _insertItemToEventSourcing.Processing(context.Message);
         //рассылаем сообщения для продолжения (RabbitMQ)
-        switch (context.Message.ServiceName)
+        switch (context.Message.EntityType)
         {
-            case var val when val == _configuration["ServicesName:BiddingService"]:
+            case nameof(AuctionBidItem):
                 await _bidProcessing.Processing(context);
                 break;
-            case var val when val == _configuration["ServicesName:SearchService"]:
+            case nameof(AuctionItem):
                 await _searchProcessing.Processing(context);
                 break;
-            case var val when val == _configuration["ServicesName:NotificationService"]:
+            case "11":
                 await _notificationProcessing.Processing(context);
                 break;
-            case var val when val == _configuration["ServicesName:ProcessingService"]:
+            case nameof(CommitESUpdateAuctionOperation):
                 await _mainProcessing.Processing(context);
                 break;
-            case var val when val == _configuration["ServicesName:FinanceService"]:
+            case "22":
                 await _financeProcessing.Processing(context);
                 break;
             default:

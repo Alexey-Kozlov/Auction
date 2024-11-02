@@ -22,10 +22,10 @@ public class AuctionDeletingNotificationConsumer : IConsumer<AuctionDeletingNoti
     }
     public async Task Consume(ConsumeContext<AuctionDeletingNotification> context)
     {
-        var items = await _context.NotifyUser.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
+        var items = await _context.NotifyItems.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
         if (items != null && items.Count > 0)
         {
-            _context.NotifyUser.RemoveRange(items);
+            _context.NotifyItems.RemoveRange(items);
             await _context.SaveChangesAsync();
         }
         await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("AuctionDeleted", context.Message);

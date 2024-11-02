@@ -12,10 +12,10 @@ public class DbInitializer
         var httpClient = scope.ServiceProvider.GetRequiredService<AuctionSvcHttpClient>();
         var items = await httpClient.GetItemsForSearchDb();
         var _context = scope.ServiceProvider.GetRequiredService<SearchDbContext>();
-        var isSearchItems = await _context.Items.AnyAsync();
+        var isSearchItems = await _context.AuctionItems.AnyAsync();
         if (items.Result.Count > 0 && !isSearchItems)
         {
-            await _context.Items.AddRangeAsync(items.Result);
+            await _context.AuctionItems.AddRangeAsync(items.Result);
             await _context.SaveChangesAsync();
         }
     }

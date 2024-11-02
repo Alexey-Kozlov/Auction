@@ -68,12 +68,10 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                     CorrelationId = Guid.NewGuid(),
                     CreateAt = consumeContext.Message.CreateAt,
                     Commited = true,
-                    ServiceName = consumeContext.Message.ServiceName,
                     EventData = JsonDocument.Parse(item),
                     SnapShotId = consumeContext.Message.CorrelationId,
                     EntityType = consumeContext.Message.ItemsType,
                     RestoringOrder = consumeContext.Message.RestoringOrder,
-                    LogicVersion = int.Parse(_configuration["LogicVersion"]),
                     UserLogin = userLogin,
                     AuctionId = auctionId,
                     OperationType = OperationType.Insert

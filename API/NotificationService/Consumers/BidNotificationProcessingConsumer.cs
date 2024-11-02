@@ -3,7 +3,6 @@ using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
-using NotificationService.Entities;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
@@ -28,17 +27,17 @@ public class BidNotificationProcessingConsumer : IConsumer<BidNotificationProces
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         try
         {
-            var auctionNotifyList = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
+            var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == context.Message.Id).ToListAsync();
             //если в списке нет пользователя, сделавшего ставку - добавляем его в рассылку
             var bidUser = auctionNotifyList.FirstOrDefault(p => p.UserLogin == context.Message.Bidder);
             if (bidUser == null)
             {
-                var notifyUser = new NotifyUser
+                var notifyUser = new NotifyItem
                 {
                     AuctionId = context.Message.Id,
                     UserLogin = context.Message.Bidder
                 };
-                _dbContext.NotifyUser.Add(notifyUser);
+                _dbContext.NotifyItems.Add(notifyUser);
                 await _dbContext.SaveChangesAsync();
                 auctionNotifyList.Add(notifyUser);
             }

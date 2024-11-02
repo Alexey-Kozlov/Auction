@@ -23,17 +23,17 @@ public class SearchActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
     public async Task Execute(BehaviorContext<UpdateAuctionState, AuctionUpdatedImage> context, IBehavior<UpdateAuctionState, AuctionUpdatedImage> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionUpdatingSearch(
-                context.Saga.AuctionId,
-                context.Saga.Title,
-                context.Saga.Properties,
-                context.Saga.Description,
-                context.Saga.UserLogin,
-                context.Saga.AuctionEnd,
-                context.Saga.CorrelationId
-            ),
-            nameof(AuctionUpdatingSearch),
-            _config["ServicesName:SearchService"],
+            new AuctionItem
+            {
+                AuctionEnd = context.Saga.AuctionEnd,
+                AuctionId = context.Saga.AuctionId,
+                Title = context.Saga.Title,
+                Properties = context.Saga.Properties,
+                Description = context.Saga.Description,
+                Seller = context.Saga.UserLogin
+            },
+            nameof(AuctionItem),
+            "Common.Contracts.AuctionUpdatedSearch",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Update,

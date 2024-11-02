@@ -14,8 +14,6 @@ public class EventsLog : IDisposable
     public Guid? SnapShotId { get; set; }
     public string EntityType { get; set; }
     public int? RestoringOrder { get; set; }
-    public string ServiceName { get; set; }
-    public int LogicVersion { get; set; }
     public Guid? AuctionId { get; set; }
     public string UserLogin { get; set; }
     public OperationType OperationType { get; set; }

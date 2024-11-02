@@ -19,7 +19,6 @@ public class AuctionDeletingBidConsumer : IConsumer<AuctionDeletingBid>
     }
     public async Task Consume(ConsumeContext<AuctionDeletingBid> context)
     {
-        Console.WriteLine("--> Получение сообщения удалить аукцион");
         var bids = await _context.Bids.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
         if (bids != null && bids.Count > 0)
         {
@@ -31,7 +30,7 @@ public class AuctionDeletingBidConsumer : IConsumer<AuctionDeletingBid>
             _context.Auctions.Remove(auction);
         }
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Удален аукцион - " + auction.AuctionId + ", продавец - " + auction.Seller);
+
         if (bids.Count > 0)
         {
             _logger.LogInformation("Удалены " + bids.Count.ToString() + " ставок для этого аукциона");

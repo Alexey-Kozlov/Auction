@@ -10,10 +10,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public State SearchState { get; }
     public State ElkState { get; }
     public State NotificationState { get; }
-    public State ESCommitState { get; }
     public State CommitState { get; }
     public State CompletedState { get; }
-    public State FaultedState { get; }
 
 
     public Event<RequestAuctionCreate> RequestEvent { get; }

@@ -23,13 +23,14 @@ public class BidActivity : IStateMachineActivity<UpdateAuctionState, RequestAuct
     public async Task Execute(BehaviorContext<UpdateAuctionState, RequestAuctionUpdate> context, IBehavior<UpdateAuctionState, RequestAuctionUpdate> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionUpdatingBid(
-                context.Saga.AuctionId,
-                context.Saga.AuctionEnd,
-                context.Saga.CorrelationId
-                ),
-            nameof(AuctionUpdatingBid),
-            _config["ServicesName:BiddingService"],
+            new AuctionBidItem
+            {
+                AuctionEnd = context.Saga.AuctionEnd,
+                AuctionId = context.Saga.AuctionId,
+                Seller = context.Saga.UserLogin
+            },
+            nameof(AuctionBidItem),
+            "Common.Contracts.AuctionUpdatedBid",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Update,

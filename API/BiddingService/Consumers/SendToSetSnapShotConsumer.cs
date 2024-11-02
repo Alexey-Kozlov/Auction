@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
 using BiddingService.Data;
-using BiddingService.Entities;
 using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +38,7 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendAuctions.CorrelationId = consumeContext.Message.CorrelationId;
         sendAuctions.SessionId = consumeContext.Message.SessionId;
         sendAuctions.UserLogin = consumeContext.Message.UserLogin;
-        sendAuctions.ItemsType = nameof(Auction);
+        sendAuctions.ItemsType = nameof(AuctionBidItem);
         sendAuctions.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendAuctions.CreateAt = consumeContext.Message.CreateAt;
         sendAuctions.RestoringOrder = 1;
@@ -56,7 +55,7 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendBids.CorrelationId = consumeContext.Message.CorrelationId;
         sendBids.SessionId = consumeContext.Message.SessionId;
         sendBids.UserLogin = consumeContext.Message.UserLogin;
-        sendBids.ItemsType = nameof(Bid);
+        sendBids.ItemsType = nameof(BidItem);
         sendBids.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendBids.CreateAt = consumeContext.Message.CreateAt;
         sendBids.RestoringOrder = 2;

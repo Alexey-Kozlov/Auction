@@ -23,13 +23,12 @@ public class NotificationActivity : IStateMachineActivity<CreateAuctionState, Au
     public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreatedSearch> context, IBehavior<CreateAuctionState, AuctionCreatedSearch> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionCreatingNotification(
-                context.Saga.AuctionId,
-                context.Saga.UserLogin,
-                context.Saga.Title,
-                context.Saga.CorrelationId
-            ),
-            nameof(AuctionCreatingNotification),
+            new NotifyItem
+            {
+                AuctionId = context.Saga.AuctionId,
+                UserLogin = context.Saga.UserLogin
+            },
+            nameof(NotifyItem),
             _config["ServicesName:NotificationService"],
             context.Message.CorrelationId,
             context.Saga.UserLogin,

@@ -97,18 +97,12 @@ public record RequestAuctionDelete(
       string UserLogin,
       Guid AuctionId
 );
-public record AuctionDeleteESFinance(Guid CorrelationId);
-public record AuctionDeletingFinance(
-    Guid AuctionId,
-    string UserLogin,
-    Guid CorrelationId
-);
-public record AuctionDeleteESBid(Guid CorrelationId);
 public record AuctionDeletedFinance(Guid CorrelationId);
 
 public record AuctionDeletingBid(
-    Guid AuctionId,
-    Guid CorrelationId
+      Guid AuctionId,
+      Guid CorrelationId,
+      string UserLogin
 );
 public record AuctionDeletedBid(Guid CorrelationId);
 public record AuctionDeletingGateway(
@@ -162,7 +156,10 @@ public record AuctionUpdatingBid(
       DateTime AuctionEnd,
       Guid CorrelationId
 );
-public record AuctionUpdatedBid(Guid CorrelationId);
+public class AuctionUpdatedBid
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionUpdatingGateway(
       Guid AuctionId,
       Guid CorrelationId
@@ -183,7 +180,10 @@ public record AuctionUpdatingSearch(
       DateTime AuctionEnd,
       Guid CorrelationId
 );
-public record AuctionUpdatedSearch(Guid CorrelationId);
+public class AuctionUpdatedSearch
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionUpdatingNotification(
       Guid AuctionId,
       string UserLogin,

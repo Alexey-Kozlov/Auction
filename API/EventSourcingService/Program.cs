@@ -15,7 +15,6 @@ using Common.Utils.Vault;
 using EventSourcingService.Consumers;
 using EventSourcingService.Services.CreateEventSourcingProcessing;
 using EventSourcingService.Services;
-using EventSourcingService.Services.FinanceProcessing;
 
 internal class Program
 {
@@ -124,7 +123,6 @@ internal class Program
         builder.Services.AddScoped<BidProcessing>();
         builder.Services.AddScoped<MainProcessing>();
         builder.Services.AddScoped<FinanceProcessing>();
-        builder.Services.AddScoped<DeleteAuctionFinanceService>();
 
         var app = builder.Build();
 

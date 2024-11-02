@@ -6,32 +6,23 @@ using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionState>
 {
-    public State ESFinanceState { get; }
     public State FinanceState { get; }
-    public State ESBidState { get; }
     public State BidState { get; }
     public State GatewayState { get; }
     public State ImageState { get; }
-    public State ESSearchState { get; }
     public State SearchState { get; }
     public State ElkState { get; }
-    public State ESNotificationState { get; }
     public State NotificationState { get; }
     public State CommitState { get; }
     public State CompletedState { get; }
-    public State FaultedState { get; }
 
     public Event<RequestAuctionDelete> RequestEvent { get; }
-    public Event<AuctionDeleteESFinance> ESFinanceEvent { get; }
     public Event<AuctionDeletedFinance> FinanceEvent { get; }
-    public Event<AuctionDeleteESBid> ESBidEvent { get; }
     public Event<AuctionDeletedBid> BidEvent { get; }
     public Event<AuctionDeletedGateway> GatewayEvent { get; }
     public Event<AuctionDeletedImage> ImageEvent { get; }
-    public Event<AuctionDeleteESSearch> ESSearchEvent { get; }
     public Event<AuctionDeletedSearch> SearchEvent { get; }
     public Event<AuctionDeletedElk> ElkEvent { get; }
-    public Event<AuctionDeleteESNotification> ESNotificationEvent { get; }
     public Event<AuctionDeletedNotification> NotificationEvent { get; }
     public Event<AuctionDeleteESCommit> CommitEvent { get; }
     private IConfiguration configuration { get; }
@@ -59,16 +50,12 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         {
             p.InsertOnInitial = true;
         });
-        Event(() => ESFinanceEvent);
         Event(() => FinanceEvent);
-        Event(() => ESBidEvent);
         Event(() => BidEvent);
         Event(() => GatewayEvent);
         Event(() => ImageEvent);
-        Event(() => ESSearchEvent);
         Event(() => SearchEvent);
         Event(() => ElkEvent);
-        Event(() => ESNotificationEvent);
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
     }
@@ -84,27 +71,23 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
-            //Создание записи по обновлению аукциона в сервисе FinanceService
+            //Удаление записей по деньгам в сервисе FinanceService
             .Activity(p => p.OfType<FinanceActivity>())
-            .TransitionTo(ESFinanceState)
+            .TransitionTo(FinanceState)
         );
     }
 
-    private void ConfigureESFinanceState()
+    private void ConfigureFinanceState()
     {
-        During(ESFinanceState,
-        When(ESFinanceEvent)
+        During(FinanceState,
+        When(FinanceEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //посылаем в FinanceService - для корректировки счетов пользователя
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionDeletingFinance"]),
-                context => new AuctionDeletingFinance(
-                context.Saga.AuctionId,
-                context.Saga.UserLogin,
-                context.Saga.CorrelationId))
+            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
+            //Удаление записей по обновлению аукциона в сервисе BiddingService
+            .Activity(p => p.OfType<BidActivity>())
             .TransitionTo(FinanceState));
     }
 

@@ -3,7 +3,6 @@ using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
-using NotificationService.Entities;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
@@ -20,11 +19,11 @@ public class SetNotificationConsumer : IConsumer<UserNotificationSet>
     }
     public async Task Consume(ConsumeContext<UserNotificationSet> context)
     {
-        var userNotify = await _dbContext.NotifyUser.Where(p => p.AuctionId == context.Message.AuctionId &&
+        var userNotify = await _dbContext.NotifyItems.Where(p => p.AuctionId == context.Message.AuctionId &&
             p.UserLogin == context.Message.UserLogin).FirstOrDefaultAsync();
         if (userNotify == null)
         {
-            _dbContext.NotifyUser.Add(new NotifyUser
+            _dbContext.NotifyItems.Add(new NotifyItem
             {
                 AuctionId = context.Message.AuctionId,
                 UserLogin = context.Message.UserLogin

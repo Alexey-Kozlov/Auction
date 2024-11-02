@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
 using BiddingService.Data;
-using BiddingService.Entities;
 using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +33,7 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<BiddingS
             {
                 foreach (var bids in item.Items)
                 {
-                    var bid = JsonSerializer.Deserialize<Bid>(bids);
+                    var bid = JsonSerializer.Deserialize<BidItem>(bids);
                     await _context.Bids.AddAsync(bid);
                     bidCounter++;
                 }
@@ -44,7 +43,7 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<BiddingS
             {
                 foreach (var auctions in item.Items)
                 {
-                    var auction = JsonSerializer.Deserialize<Auction>(auctions);
+                    var auction = JsonSerializer.Deserialize<AuctionBidItem>(auctions);
                     await _context.Auctions.AddAsync(auction);
                     auctionCounter++;
                 }

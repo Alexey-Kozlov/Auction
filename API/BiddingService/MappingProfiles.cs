@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using BiddingService.DTO;
-using BiddingService.Entities;
 using Common.Contracts;
 
 namespace BiddingService;
@@ -9,12 +8,12 @@ public class MappingProfiles : Profile
 {
     public MappingProfiles()
     {
-        CreateMap<Bid, BidDTO>()
+        CreateMap<BidItem, BidDTO>()
         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.AuctionId))
         .ForMember(dest => dest.BidId, opt => opt.MapFrom(src => src.BidId));
-        CreateMap<AuctionCreatingBid, Auction>()
-            .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.UserLogin));
-        CreateMap<AuctionUpdatingBid, Auction>();
-        CreateMap<Auction, Auction>();
+        // CreateMap<AuctionCreatingBid, AuctionItem>()
+        //     .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.UserLogin));
+        // CreateMap<AuctionUpdatingBid, AuctionItem>();
+        CreateMap<AuctionItem, AuctionItem>();
     }
 }

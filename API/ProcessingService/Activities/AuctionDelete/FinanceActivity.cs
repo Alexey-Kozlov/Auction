@@ -23,12 +23,15 @@ public class FinanceActivity : IStateMachineActivity<DeleteAuctionState, Request
     public async Task Execute(BehaviorContext<DeleteAuctionState, RequestAuctionDelete> context, IBehavior<DeleteAuctionState, RequestAuctionDelete> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionDeletingFinance(
-                context.Saga.AuctionId,
-                context.Saga.UserLogin,
-                context.Saga.CorrelationId
-                ),
-            nameof(AuctionDeletingFinance),
+            new FinanceItem
+            {
+                ActionDate = DateTime.UtcNow,
+                AuctionId = context.Message.AuctionId,
+                Id = Guid.NewGuid(),
+                Status = FinanceRecordStatus.Приход,
+                UserLogin = context.Message.UserLogin
+            },
+            nameof(FinanceItem),
             _config["ServicesName:FinanceService"],
             context.Message.CorrelationId,
             context.Saga.UserLogin,

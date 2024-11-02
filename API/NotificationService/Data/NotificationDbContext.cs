@@ -1,4 +1,4 @@
-﻿using NotificationService.Entities;
+﻿using Common.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,7 +9,7 @@ public class NotificationDbContext : DbContext
     public NotificationDbContext(DbContextOptions options) : base(options)
     {
     }
-    public DbSet<NotifyUser> NotifyUser { get; set; }
+    public DbSet<NotifyItem> NotifyItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,13 +18,13 @@ public class NotificationDbContext : DbContext
     }
 }
 
-public class NotifyUserConfiguration : IEntityTypeConfiguration<NotifyUser>
+public class NotifyUserConfiguration : IEntityTypeConfiguration<NotifyItem>
 {
-    public void Configure(EntityTypeBuilder<NotifyUser> builder)
+    public void Configure(EntityTypeBuilder<NotifyItem> builder)
     {
-        builder.ToTable("NotifyUser").HasKey(p => new { p.UserLogin, p.AuctionId }).HasName("PK_NotifyUserId");
+        builder.ToTable("NotifyItems").HasKey(p => new { p.UserLogin, p.AuctionId }).HasName("PK_NotifyUserId");
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(true);
-        builder.Property(p => p.UserLogin).HasColumnType("text").HasColumnName("UserLogin").IsRequired(true);
+        builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(true);
         builder.HasIndex("AuctionId", "UserLogin").IsUnique(true).HasDatabaseName("IX_NotifyUser_AuctionId_UserLogin");
     }
 }

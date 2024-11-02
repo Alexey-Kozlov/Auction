@@ -22,14 +22,15 @@ public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreate
 
     public async Task Execute(BehaviorContext<FinanceState, RequestCreateFinance> context, IBehavior<FinanceState, RequestCreateFinance> next)
     {
-        var financeItem = new FinanceItem();
-        financeItem.Id = Guid.NewGuid();
-        financeItem.ActionDate = DateTime.UtcNow;
-        financeItem.Status = FinanceRecordStatus.Приход;
-        financeItem.UserLogin = context.Saga.UserLogin;
-        financeItem.Value = context.Saga.Amount;
         await _sendEventToES.SendItemToEventSourcing(
-            financeItem,
+            new FinanceItem
+            {
+                ActionDate = DateTime.UtcNow,
+                Id = Guid.NewGuid(),
+                Status = FinanceRecordStatus.Приход,
+                UserLogin = context.Message.UserLogin,
+                Value = context.Saga.Amount
+            },
             nameof(FinanceItem),
             _config["ServicesName:FinanceService"],
             context.Message.CorrelationId,

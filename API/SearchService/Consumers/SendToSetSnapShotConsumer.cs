@@ -31,7 +31,7 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         };
         var sendObject = new SendToSetSnapShot();
         var items = new List<AuctionItem>();
-        _mapper.Map(await _context.Items.ToListAsync(), items);
+        _mapper.Map(await _context.AuctionItems.ToListAsync(), items);
         foreach (var item in items)
         {
             sendObject.SnapShotItems.Add(JsonSerializer.Serialize(item, item.GetType(), options));

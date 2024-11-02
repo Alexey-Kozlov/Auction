@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Common.Contracts;
 
 public record RequestBidPlace(
@@ -76,3 +78,26 @@ public record BidNotificationProcessed(
 
 
 public record GetBidPlaceState(Guid CorrelationId);
+
+public class AuctionBidItem
+{
+     public Guid AuctionId { get; set; }
+     public DateTime AuctionEnd { get; set; }
+     public string Seller { get; set; }
+     public int ReservePrice { get; set; }
+     public bool Finished { get; set; }
+     public ICollection<BidItem> Bids { get; set; }
+}
+
+public class BidItem
+{
+     public Guid BidId { get; set; }
+     public Guid AuctionId { get; set; }
+     public string Bidder { get; set; }
+     public DateTime BidTime { get; set; } = DateTime.UtcNow;
+     public int Amount { get; set; }
+     [JsonIgnore]
+     public AuctionBidItem Auction { get; set; }
+}
+
+

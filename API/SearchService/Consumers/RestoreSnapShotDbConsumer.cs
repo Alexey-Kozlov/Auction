@@ -24,7 +24,7 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<SearchSe
             foreach (var items in item.Items)
             {
                 var searchItem = JsonSerializer.Deserialize<AuctionItem>(items);
-                await _context.Items.AddAsync(searchItem);
+                await _context.AuctionItems.AddAsync(searchItem);
                 itemCounter++;
             }
         }

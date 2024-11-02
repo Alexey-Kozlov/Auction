@@ -17,7 +17,7 @@ public class AuctionFinishingSearchConsumer : IConsumer<AuctionFinishingSearch>
     }
     public async Task Consume(ConsumeContext<AuctionFinishingSearch> consumeContext)
     {
-        var auction = await _context.Items.FirstOrDefaultAsync(p => p.AuctionId == consumeContext.Message.Id);
+        var auction = await _context.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == consumeContext.Message.Id);
         if (auction != null)
         {
             if (consumeContext.Message.ItemSold)

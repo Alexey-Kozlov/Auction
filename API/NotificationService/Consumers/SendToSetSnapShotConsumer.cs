@@ -5,7 +5,6 @@ using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
-using NotificationService.Entities;
 
 namespace NotificationService.Consumers;
 
@@ -29,14 +28,14 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         };
         var notifObject = new SendToSetSnapShot();
         var items = new List<AuctionItem>();
-        foreach (var item in await _context.NotifyUser.ToArrayAsync())
+        foreach (var item in await _context.NotifyItems.ToArrayAsync())
         {
             notifObject.SnapShotItems.Add(JsonSerializer.Serialize(item, item.GetType(), options));
         }
         notifObject.CorrelationId = consumeContext.Message.CorrelationId;
         notifObject.SessionId = consumeContext.Message.SessionId;
         notifObject.UserLogin = consumeContext.Message.UserLogin;
-        notifObject.ItemsType = nameof(NotifyUser);
+        notifObject.ItemsType = nameof(NotifyItem);
         notifObject.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         notifObject.CreateAt = consumeContext.Message.CreateAt;
         notifObject.RestoringOrder = 1;

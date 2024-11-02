@@ -22,7 +22,7 @@ public class SearchService
     //также производим сортировку и фильтрацию по категориям
     public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SqlSearchItems(SearchParamsDTO searchParams)
     {
-        var query = _context.Items.AsQueryable();
+        var query = _context.AuctionItems.AsQueryable();
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
             query = query.Where(p => p.Title.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||
@@ -103,7 +103,7 @@ public class SearchService
 
     public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)
     {
-        var item = await _context.Items.Where(p => p.AuctionId == Guid.Parse(id)).FirstOrDefaultAsync();
+        var item = await _context.AuctionItems.Where(p => p.AuctionId == Guid.Parse(id)).FirstOrDefaultAsync();
         return new ApiResponse<AuctionItem>
         {
             IsSuccess = true,

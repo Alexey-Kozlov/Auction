@@ -2,7 +2,6 @@
 using Common.Contracts;
 using MassTransit;
 using NotificationService.Data;
-using NotificationService.Entities;
 
 namespace NotificationService.Consumers;
 
@@ -24,8 +23,8 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<Notifica
             //восстанавливаем тип BalanceItem
             foreach (var items in item.Items)
             {
-                var notifyItem = JsonSerializer.Deserialize<NotifyUser>(items);
-                await _context.NotifyUser.AddAsync(notifyItem);
+                var notifyItem = JsonSerializer.Deserialize<NotifyItem>(items);
+                await _context.NotifyItems.AddAsync(notifyItem);
                 notifyCounter++;
             }
         }

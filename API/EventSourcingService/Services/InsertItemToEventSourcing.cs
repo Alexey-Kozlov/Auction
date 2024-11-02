@@ -42,9 +42,7 @@ public class InsertItemToEventSourcing
                     CreateAt = DateTime.UtcNow,
                     Commited = false,
                     EntityType = context.EntityType,
-                    ServiceName = context.ServiceName,
                     EventData = JsonDocument.Parse(context.EventData),
-                    LogicVersion = int.Parse(_configuration["LogicVersion"]),
                     UserLogin = context.UserLogin,
                     AuctionId = context.AuctionId,
                     OperationType = context.OperationType

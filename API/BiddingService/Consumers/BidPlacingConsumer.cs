@@ -1,5 +1,4 @@
 ﻿using BiddingService.Data;
-using BiddingService.Entities;
 using BiddingService.Exceptions;
 using Common.Contracts;
 using MassTransit;
@@ -42,31 +41,22 @@ public class BidPlacingConsumer : IConsumer<BidPlacing>
                     "Невозможно подать предложение для собственного аукциона");
             };
 
-            var bid = new Bid
+            var bid = new BidItem
             {
                 Amount = context.Message.Amount,
                 AuctionId = context.Message.Id,
                 Bidder = context.Message.Bidder
             };
 
-            if (auction.AuctionEnd < DateTime.UtcNow)
-            {
-                bid.BidStatus = BidStatus.Завершено;
-            }
-            else
-            {
-                var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.Id)
-                    .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
 
-                if ((highBid != null && context.Message.Amount > highBid.Amount) || highBid == null)
-                {
-                    bid.BidStatus = BidStatus.Принято;
-                }
-                if (highBid != null && context.Message.Amount <= highBid.Amount)
-                {
-                    throw new Exception("Ошибка ставки - ставка меньше существующей ставки");
-                }
+            var highBid = await _dbContext.Bids.Where(p => p.AuctionId == context.Message.Id)
+                .OrderByDescending(p => p.Amount).FirstOrDefaultAsync();
+
+            if (highBid != null && context.Message.Amount <= highBid.Amount)
+            {
+                throw new Exception("Ошибка ставки - ставка меньше существующей ставки");
             }
+
             await _dbContext.Bids.AddAsync(bid);
 
             await _dbContext.SaveChangesAsync();

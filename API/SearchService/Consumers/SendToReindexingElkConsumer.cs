@@ -25,7 +25,7 @@ public class SendToReindexingElkConsumer : IConsumer<SendAllItems<SendToReindexi
     public async Task Consume(ConsumeContext<SendAllItems<SendToReindexingElk>> consumeContext)
     {
         var sendObject = new SendToReindexingElk();
-        _mapper.Map(await _context.Items.ToListAsync(), sendObject.AuctionItems);
+        _mapper.Map(await _context.AuctionItems.ToListAsync(), sendObject.AuctionItems);
         sendObject.SessionId = consumeContext.Message.SessionId;
         sendObject.UserLogin = consumeContext.Message.UserLogin;
         await _elkReindexingService.ReindexElkItems(sendObject);

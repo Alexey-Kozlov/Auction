@@ -35,10 +35,7 @@ public class FinanceItem
      public DateTime ActionDate { get; set; }
      public FinanceRecordStatus Status { get; set; }
 }
-public record FinanceAddCredit(List<FinanceCreateMessage> FinanceActionsList);
 
-public record FinanceCorrectionStart(List<(FinanceItem, OperationType)> FinanceActionsList);
-public record FinanceCorrectionEnd();
 public enum FinanceRecordStatus
 {
      Приход,

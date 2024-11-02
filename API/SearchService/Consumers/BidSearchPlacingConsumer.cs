@@ -23,7 +23,7 @@ public class BidSearchPlacingConsumer : IConsumer<BidSearchPlacing>
         {
             //throw new Exception("");  //для теста отработки компенсирующих транзакций
 
-            var auction = await _context.Items.FirstOrDefaultAsync(p => p.AuctionId == consumerContext.Message.Id);
+            var auction = await _context.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == consumerContext.Message.Id);
             if (consumerContext.Message.Amount <= auction.CurrentHighBid)
             {
                 throw new Exception($"Ошибка обновления ставки в Search");

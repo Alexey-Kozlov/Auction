@@ -34,8 +34,6 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.Property(p => p.SnapShotId).HasColumnType("uuid").HasColumnName("SnapShotId").IsRequired(false);
         builder.Property(p => p.EntityType).HasColumnType("varchar(50)").HasColumnName("EntityType").IsRequired(true);
         builder.Property(p => p.RestoringOrder).HasColumnType("smallint").HasColumnName("RestoringOrder").IsRequired(false);
-        builder.Property(p => p.ServiceName).HasColumnType("varchar(20)").HasColumnName("ServiceName").IsRequired(true);
-        builder.Property(p => p.LogicVersion).HasColumnType("smallint").HasColumnName("LogicVersion").IsRequired(true);
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
         builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(false);
         builder.Property(p => p.OperationType).HasColumnType("smallint").HasColumnName("OperationType").IsRequired(true);
@@ -43,7 +41,5 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_EventsLog_CorrelationId");
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_EventsLog_AuctionId");
         builder.HasIndex(p => p.UserLogin).HasDatabaseName("IX_EventsLog_UserLogin");
-        builder.HasIndex(p => p.OperationType).HasDatabaseName("IX_EventsLog_OperationType");
-        builder.HasIndex(p => new { p.ServiceName, p.Commited }).HasDatabaseName("IX_EventsLog_ServiceName");
     }
 }
