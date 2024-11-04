@@ -36,7 +36,7 @@ public class SearchActivity : IStateMachineActivity<CreateAuctionState, AuctionC
                 UpdatedAt = DateTime.UtcNow
             },
             nameof(AuctionItem),
-            _config["ServicesName:SearchService"],
+            "Common.Contracts.AuctionCreatedSearch",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Insert,

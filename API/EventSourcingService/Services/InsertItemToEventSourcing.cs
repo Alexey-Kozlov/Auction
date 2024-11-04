@@ -22,11 +22,8 @@ public class InsertItemToEventSourcing
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         switch (context.EntityType)
         {
-            case nameof(CommitESUpdateAuctionOperation):
-            case nameof(CommitESCreateAuctionOperation):
-            case nameof(CommitESDeleteAuctionOperation):
-            case nameof(CommitESFinanceOperation):
-                //при поступлении таких сообщений из Кафки - делаем коммит операций данного CorrelationId,
+            case nameof(CommitESOperation):
+                //делаем коммит операций данного CorrelationId,
                 //тем самым завершая распределенную транзакцию
                 var items = await _dbContext.EventsLogs.Where(p => p.CorrelationId == context.CorrelationId).ToListAsync();
                 foreach (var item in items)

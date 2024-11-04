@@ -32,7 +32,7 @@ public class FinanceActivity : IStateMachineActivity<DeleteAuctionState, Request
                 UserLogin = context.Message.UserLogin
             },
             nameof(FinanceItem),
-            _config["ServicesName:FinanceService"],
+            "Common.Contracts.AuctionDeletedFinance",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Delete,

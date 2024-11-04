@@ -134,13 +134,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //посылаем в NotificationService - для рассылки уведомлений об изменениях в данном аукционе
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionUpdatingNotification"]),
-                context => new AuctionUpdatingNotification(
-                context.Saga.AuctionId,
-                context.Saga.UserLogin,
-                context.Saga.CorrelationId))
+            .Activity(p => p.OfType<NotificationActivity>())
             .TransitionTo(NotificationState));
     }
     private void ConfigureNotificationState()

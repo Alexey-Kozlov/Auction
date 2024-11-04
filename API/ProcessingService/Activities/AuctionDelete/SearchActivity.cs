@@ -5,11 +5,11 @@ using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
 namespace ProcessingService.Activities.AuctionDelete;
 
-public class BidActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeletedFinance>
+public class SearchActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeletedImage>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
-    public BidActivity(SendEventToES sendEventToES, IConfiguration config)
+    public SearchActivity(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
         _config = config;
@@ -20,16 +20,16 @@ public class BidActivity : IStateMachineActivity<DeleteAuctionState, AuctionDele
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedFinance> context, IBehavior<DeleteAuctionState, AuctionDeletedFinance> next)
+    public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedImage> context, IBehavior<DeleteAuctionState, AuctionDeletedImage> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionBidItem
+            new AuctionItem
             {
                 AuctionId = context.Saga.AuctionId,
                 Seller = context.Saga.UserLogin
             },
-            nameof(AuctionBidItem),
-            "Common.Contracts.AuctionDeletedBid",
+            nameof(AuctionItem),
+            "Common.Contracts.AuctionDeletedSearch",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Delete,
@@ -37,7 +37,7 @@ public class BidActivity : IStateMachineActivity<DeleteAuctionState, AuctionDele
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<DeleteAuctionState, AuctionDeletedFinance, TException> context, IBehavior<DeleteAuctionState, AuctionDeletedFinance> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<DeleteAuctionState, AuctionDeletedImage, TException> context, IBehavior<DeleteAuctionState, AuctionDeletedImage> next) where TException : Exception
     {
         return next.Faulted(context);
     }

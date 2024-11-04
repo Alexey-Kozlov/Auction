@@ -13,6 +13,7 @@ public class ESContract
     public OperationType OperationType { get; set; }
 }
 
+//указываем generic T для создания разных типов сообщений
 public record SendAllItems<T>(
     string UserLogin,
     string SessionId,
@@ -24,12 +25,11 @@ public class SendToSetSnapShot
 {
     public Guid CorrelationId { get; set; } = Guid.NewGuid();
     public string UserLogin { get; set; }
-    public string SessionId { get; set; }
     public List<string> SnapShotItems { get; set; } = new();
     public string ItemsType { get; set; }
-    public string ServiceName { get; set; }
     public DateTime CreateAt { get; set; }
     public int RestoringOrder { get; set; }
+    public string SessionId { get; set; }
 }
 
 public class SendToReindexingElk
@@ -79,19 +79,21 @@ public record RestoreSnapShotCompleted(
     string SessionId
 );
 public record RequestCommitESOperation(Guid CorrelationId);
-public record CommitESUpdateAuctionOperation(Guid CorrelationId);
-public record CommitESCreateAuctionOperation(Guid CorrelationId);
-public record CommitESDeleteAuctionOperation(Guid CorrelationId);
+public record CommitESOperation(Guid CorrelationId);
 
-public record ActionMessage<T>(
-    T ActionItem,
-    OperationType OperationType,
-    Guid CorrelationId
-);
-public record ActionMessageList<T>(
-    List<ActionMessage<T>> ActionItemsList,
-    string CallBackType
-);
+public class ActionMessage<T>
+{
+    public T ActionItem { get; set; }
+    public OperationType OperationType { get; set; }
+    public Guid CorrelationId { get; set; }
+};
+
+public class ActionMessageList<T>
+{
+    public List<ActionMessage<T>> ActionItemsList { get; set; }
+    public string CallBackType { get; set; }
+    public List<string> Properties { get; set; } = null;
+}
 
 public enum OperationType
 {

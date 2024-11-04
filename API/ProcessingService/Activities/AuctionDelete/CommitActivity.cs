@@ -1,11 +1,11 @@
 using Common.Contracts;
 using Common.Utils;
 using MassTransit;
-using ProcessingService.StateMachines.UpdateAuctionStateMachine;
+using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionUpdate;
+namespace ProcessingService.Activities.AuctionDelete;
 
-public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdatedElk>
+public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeletedNotification>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -21,20 +21,20 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
     }
 
 
-    public async Task Execute(BehaviorContext<UpdateAuctionState, AuctionUpdatedElk> context, IBehavior<UpdateAuctionState, AuctionUpdatedElk> next)
+    public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedNotification> context, IBehavior<DeleteAuctionState, AuctionDeletedNotification> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.AuctionUpdateESCommit",
+            "Common.Contracts.AuctionDeleteESCommit",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            OperationType.Delete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<UpdateAuctionState, AuctionUpdatedElk, TException> context, IBehavior<UpdateAuctionState, AuctionUpdatedElk> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<DeleteAuctionState, AuctionDeletedNotification, TException> context, IBehavior<DeleteAuctionState, AuctionDeletedNotification> next) where TException : Exception
     {
         return next.Faulted(context);
     }

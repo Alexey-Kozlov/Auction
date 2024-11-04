@@ -42,7 +42,7 @@ builder.Services.AddScoped<ElkReindexingService>();
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionCreatingSearchConsumer>();
+    p.AddConsumersFromNamespaceContaining<AuctionSearchConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
     p.UsingRabbitMq((context, config) =>
     {

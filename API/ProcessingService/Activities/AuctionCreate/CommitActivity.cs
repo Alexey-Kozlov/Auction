@@ -25,8 +25,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
-            nameof(CommitESCreateAuctionOperation),
-            _config["ServicesName:ProcessingService"],
+            nameof(CommitESOperation),
+            "Common.Contracts.AuctionCreateESCommit",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Insert,

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Common.Contracts;
 using EventSourcingService.Data;
+using EventSourcingService.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,40 +40,62 @@ public class FinanceProcessing
 
     private async Task FinanceCreate(ESContract context)
     {
-        // using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
-        // //делаем объект по обновлению балансабаланс
-        // var updateBalance = await GetBalance(context);
+        //крайний SnapShot
+        var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
+            .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
+        //получаем из EventSourcing записи по деньгам по данному пользователю, SnapShot
+        var financeItems = await _dbContext.EventsLogs.Where(p =>
+            (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+            p.EntityType == nameof(FinanceItem) &&
+            p.UserLogin == context.UserLogin &&
+            p.CreateAt >= lastSnapShotId.CreateAt
+        ).ToListAsync();
 
-        // //делаем объект для добавления денег
-        // var addFinance = new FinanceCreateMessage(JsonSerializer.Deserialize<FinanceItem>(context.EventData),
-        //      OperationType.Insert, context.CorrelationId);
-
-        // await _dbContext.SaveChangesAsync();
-        // await transaction.CommitAsync();
-        // var financeToDo = new List<FinanceCreateMessage>
-        // {
-        //     addFinance,
-        //     updateBalance
-        // };
-        // await _publishEndpoint.Publish(new FinanceAddCredit(financeToDo));
+        //пишем в ES лог
+        await _insertItemToEventSourcing.Processing(context);
+        var balance = GetBalance(financeItems,
+                            JsonSerializer.Deserialize<FinanceItem>(context.EventData).Value);
+        balance.UserLogin = context.UserLogin;
+        //посылаем в FinanceService для обновления БД
+        var sendFinanceItem = new ActionMessageList<FinanceItem>
+        {
+            ActionItemsList = new List<ActionMessage<FinanceItem>>
+                {
+                    //объект для создания платежа а FinanceService
+                    new ActionMessage<FinanceItem>
+                    {
+                        ActionItem = JsonSerializer.Deserialize<FinanceItem>(context.EventData),
+                        OperationType = OperationType.Insert,
+                        CorrelationId = context.CorrelationId
+                    },
+                    //объект для обновления баланса а FinanceService
+                    new ActionMessage<FinanceItem>
+                    {
+                        ActionItem = balance,
+                        OperationType = OperationType.Update,
+                        CorrelationId = context.CorrelationId
+                    }
+                },
+            CallBackType = context.CallBackType
+        };
+        await _publishEndpoint.Publish(sendFinanceItem);
     }
 
     private async Task FinanceDelete(ESContract context)
     {
-        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
-        var deleteItem = JsonSerializer.Deserialize<FinanceItem>(context.EventData);
         //крайний SnapShot
-        var lastSnapShotId = _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
-            .OrderBy(p => p.CreateAt).FirstOrDefaultAsync().Result.SnapShotId;
-        //получаем из EventSourcing записи по данному аукциону, SnapShot
-        var financeItem = await _dbContext.EventsLogs.FirstOrDefaultAsync(p =>
-            p.SnapShotId == lastSnapShotId &&
-            //p.ServiceName == context.ServiceName &&
-            p.AuctionId == context.AuctionId
-        );
+        var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
+            .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
+        //получаем из EventSourcing записи по деньгам по данному пользователю, SnapShot
+        var financeItems = await _dbContext.EventsLogs.Where(p =>
+            (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+            p.EntityType == nameof(FinanceItem) &&
+            p.UserLogin == context.UserLogin &&
+            p.CreateAt >= lastSnapShotId.CreateAt
+        ).ToListAsync();
         //если были ставки по данному аукциону - то были списаны деньги
-        //тогда financeItem не нулевая, делаем компенсирующую запись
-        if (financeItem != null)
+        var auctionItem = financeItems.FirstOrDefault(p => p.AuctionId == context.AuctionId);
+        if (auctionItem != null)
         {
             //делаем запись для удаления из финансов, пишем в ES
             JsonSerializerOptions options = new()
@@ -81,48 +104,46 @@ public class FinanceProcessing
                 WriteIndented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
-            deleteItem.Value = JsonSerializer.Deserialize<FinanceItem>(context.EventData).Value;
+            var deleteItem = JsonSerializer.Deserialize<FinanceItem>(auctionItem.EventData);
+            deleteItem.ActionDate = DateTime.UtcNow;
             context.EventData = JsonSerializer.Serialize(deleteItem, deleteItem.GetType(), options);
+            //пишем в ES лог
             await _insertItemToEventSourcing.Processing(context);
+            var balance = GetBalance(financeItems, deleteItem.Value);
+            balance.UserLogin = context.UserLogin;
             var sendFinanceItem = new ActionMessageList<FinanceItem>
-            (
-                new List<ActionMessage<FinanceItem>>
+            {
+                ActionItemsList = new List<ActionMessage<FinanceItem>>
                 {
                     //объект для удаления платежа а FinanceService
                     new ActionMessage<FinanceItem>
-                    (
-                        deleteItem,
-                        context.OperationType,
-                        context.CorrelationId
-                    ),
+                    {
+                        ActionItem = deleteItem,
+                        OperationType = OperationType.Delete,
+                        CorrelationId = context.CorrelationId
+                    },
                     //объект для обновления баланса а FinanceService
                     new ActionMessage<FinanceItem>
-                    (
-                        await GetBalance(context),
-                        OperationType.Update,
-                        context.CorrelationId
-                    )
+                    {
+                        ActionItem = balance,
+                        OperationType = OperationType.Update,
+                        CorrelationId = context.CorrelationId
+                    }
                 },
-                context.CallBackType
-            );
+                CallBackType = context.CallBackType
+            };
             await _publishEndpoint.Publish(sendFinanceItem);
         }
         else
         {
             //нет платежей - возвращаемся в state machine
-            await _publishEndpoint.Publish(new AuctionDeletedFinance(context.CorrelationId));
+            await _publishEndpoint.Publish(new AuctionDeletedFinance { CorrelationId = context.CorrelationId });
         }
-        //посылаем в сервис BiddingService для обновления в БД сервиса
-        await transaction.CommitAsync();
+
     }
 
-    private async Task<FinanceItem> GetBalance(ESContract context)
+    private FinanceItem GetBalance(List<EventsLog> items, int correctValue)
     {
-        //получаем записи по пользователю
-        var items = await _dbContext.EventsLogs.Where(p =>
-            //p.ServiceName == context.ServiceName &&
-            p.UserLogin == context.UserLogin)
-            .ToListAsync();
         var financeItems = new List<FinanceItem>();
         foreach (var item in items)
         {
@@ -132,17 +153,15 @@ public class FinanceProcessing
         int? credit = financeItems.Where(p => p.Status == FinanceRecordStatus.Приход).Sum(p => p.Value);
         //получаем сумму дебита
         int? debit = financeItems.Where(p => p.Status == FinanceRecordStatus.Расход).Sum(p => p.Value);
-        //баланс
-        var balance = (credit ?? 0) - (debit ?? 0);
+        //баланс, добавляем деньги от удаленного аукциона
+        var balance = (credit ?? 0) - (debit ?? 0) + correctValue;
 
         //делаем объект на обновление баланса
-        var balanceItem = JsonSerializer.Deserialize<FinanceItem>(context.EventData);
+        var balanceItem = new FinanceItem();
         balanceItem.Id = Guid.NewGuid();
         balanceItem.Value = balance;
         balanceItem.Status = FinanceRecordStatus.Баланс;
-        balanceItem.UserLogin = context.UserLogin;
         balanceItem.ActionDate = DateTime.UtcNow;
-
         return balanceItem;
     }
 }

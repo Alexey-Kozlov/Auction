@@ -1,7 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Common.Contracts;
 using EventSourcingService.Data;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;
 
@@ -28,11 +30,8 @@ public class BidProcessing
                 case OperationType.Insert:
                     await AuctionBidAction(context.Message);
                     break;
-                //ProcessingService -> Activities -> AuctionDelete -> BidActivity
                 case OperationType.Delete:
-                    await _publishEndpoint.Publish(
-                        JsonSerializer.Deserialize<AuctionDeletingBid>(context.Message.EventData)
-                    );
+                    await AuctionDeleteBidAction(context.Message);
                     break;
             }
         }
@@ -40,29 +39,89 @@ public class BidProcessing
 
     private async Task AuctionBidAction(ESContract context)
     {
-        //делаем запись в ES об обновлении Entity AuctionBidItem (время окончания аукциона) в сервисе BiddingService
         var auctionItem = JsonSerializer.Deserialize<AuctionBidItem>(context.EventData);
-        //записали в ES запись об обновлении даты окончания аукциона
+        //делаем запись в ES лог об обновлении Entity AuctionBidItem (время окончания аукциона) 
+        //или добавлении новой записи в сервисе BiddingService
         await _insertItemToEventSourcing.Processing(context);
-        //делаем объект на обновление даты окончания AuctionBidItem в сервисе BiddingService
+        //делаем объект на изменение данных в сервисе BiddingService
         var updateItem = new ActionMessageList<AuctionBidItem>
-        (
-            new List<ActionMessage<AuctionBidItem>>
+        {
+            ActionItemsList = new List<ActionMessage<AuctionBidItem>>
             {
                 new ActionMessage<AuctionBidItem>
-                (
-                    auctionItem,
-                    context.OperationType,
-                    context.CorrelationId
-                )
+                {
+                     ActionItem = auctionItem,
+                     OperationType = context.OperationType,
+                     CorrelationId = context.CorrelationId
+                }
             },
-            context.CallBackType
-        );
+            CallBackType = context.CallBackType
+        };
         //посылаем в сервис BiddingService для обновления в БД сервиса
         await _publishEndpoint.Publish(updateItem);
     }
 
+    private async Task AuctionDeleteBidAction(ESContract context)
+    {
+        //Удаление AuctionBidItem и всех BidItem этого аукциона (если они есть)
 
-
-
+        var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
+            .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
+        //получаем из EventSourcing записи по BidItem по данному пользователю, SnapShot
+        var eventItems = await _dbContext.EventsLogs.Where(p =>
+            (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+            p.EntityType == nameof(BidItem) &&
+            p.AuctionId == context.AuctionId &&
+            p.CreateAt >= lastSnapShotId.CreateAt
+        ).ToListAsync();
+        var deleteAuctionBid = JsonSerializer.Deserialize<AuctionBidItem>(context.EventData);
+        //делаем запись в ES лог об удалении AuctionBidItem
+        await _insertItemToEventSourcing.Processing(context);
+        //объект для отправки в BidService для правки БД
+        var complexBidItem = new ComplexAuctionBidItem();
+        complexBidItem.auctionBidItem = deleteAuctionBid;
+        if (eventItems.Count() > 0)
+        {
+            //есть BidItem для данного аукциона
+            var bidItems = new List<BidItem>();
+            foreach (var item in eventItems)
+            {
+                bidItems.Add(JsonSerializer.Deserialize<BidItem>(item.EventData));
+            }
+            //делаем записи в ES лог об удалении BidItem данного аукциона
+            JsonSerializerOptions options = new()
+            {
+                ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            foreach (var bidItem in bidItems)
+            {
+                context.EventData = JsonSerializer.Serialize(bidItem, bidItem.GetType(), options);
+                //пишем в ES лог
+                await _insertItemToEventSourcing.Processing(context);
+                complexBidItem.bidItems.Add(bidItem);
+            }
+            //объект для удаления AuctionBidItem а BidService
+            var deleteAuctionBidItem = new ActionMessageList<ComplexAuctionBidItem>
+            {
+                ActionItemsList = new List<ActionMessage<ComplexAuctionBidItem>>
+                {
+                     new ActionMessage<ComplexAuctionBidItem>
+                    {
+                        ActionItem = complexBidItem,
+                        OperationType = OperationType.Delete,
+                        CorrelationId = context.CorrelationId
+                    }
+                },
+                CallBackType = context.CallBackType
+            };
+            await _publishEndpoint.Publish(deleteAuctionBidItem);
+        }
+        else
+        {
+            //нет bids - возвращаемся в state machine
+            await _publishEndpoint.Publish(new AuctionDeletedBid { CorrelationId = context.CorrelationId });
+        }
+    }
 }

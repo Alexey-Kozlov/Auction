@@ -1,4 +1,5 @@
-﻿using Common.Contracts;
+﻿using System.Reflection;
+using Common.Contracts;
 using FinanceService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,14 @@ public class AuctionFinanceConsumer : IConsumer<ActionMessageList<FinanceItem>>
 {
     private readonly FinanceDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IConfiguration _configuration;
 
-    public AuctionFinanceConsumer(FinanceDbContext dbContext, IPublishEndpoint publishEndpoint)
+    public AuctionFinanceConsumer(FinanceDbContext dbContext, IPublishEndpoint publishEndpoint,
+         IConfiguration configuration)
     {
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
+        _configuration = configuration;
     }
     public async Task Consume(ConsumeContext<ActionMessageList<FinanceItem>> context)
     {
@@ -24,9 +28,8 @@ public class AuctionFinanceConsumer : IConsumer<ActionMessageList<FinanceItem>>
             {
                 case OperationType.Update:
                     //обновляем баланс
-                    var item = await CheckExistItem(financeItem);
+                    var item = await CheckExistItem(financeItem, true);
                     item.Value = financeItem.ActionItem.Value;
-                    await _dbContext.SaveChangesAsync();
                     break;
                 //удаляем платеж в случае удаления аукциона
                 case OperationType.Delete:
@@ -35,22 +38,37 @@ public class AuctionFinanceConsumer : IConsumer<ActionMessageList<FinanceItem>>
                     break;
                 case OperationType.Insert:
                     _dbContext.FinanceItems.Add(financeItem.ActionItem);
-                    await _dbContext.SaveChangesAsync();
-                    await _publishEndpoint.Publish(new FinanceCreated(correlationId));
                     break;
             }
         }
-        //если в списке объектов есть "удаление" - это удаление аукциона
-        if (context.Message.ActionItemsList.Any(p => p.OperationType == OperationType.Delete))
-        {
-            await _publishEndpoint.Publish(new AuctionDeletedFinance(correlationId));
-        }
+        await _dbContext.SaveChangesAsync();
+        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+        await _publishEndpoint.Publish(sendObject);
 
     }
 
-    private async Task<FinanceItem> CheckExistItem(ActionMessage<FinanceItem> actionItem)
+    private async Task<FinanceItem> CheckExistItem(ActionMessage<FinanceItem> actionItem, bool isBalance = false)
     {
-        var item = await _dbContext.FinanceItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId);
+        //если нет записи баланса - создаем
+        if (isBalance)
+        {
+            var balanceItem = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
+            p.AuctionId == actionItem.ActionItem.AuctionId &&
+            p.UserLogin == actionItem.ActionItem.UserLogin &&
+            p.Status == FinanceRecordStatus.Баланс);
+            if (balanceItem == null)
+            {
+                await _dbContext.FinanceItems.AddAsync(actionItem.ActionItem);
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+        var item = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
+            p.AuctionId == actionItem.ActionItem.AuctionId &&
+            p.UserLogin == actionItem.ActionItem.UserLogin &&
+            ((!isBalance && p.Status != FinanceRecordStatus.Баланс) ||
+            (isBalance && p.Status == FinanceRecordStatus.Баланс)));
         if (item == null)
         {
             Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись " + actionItem.ActionItem.AuctionId + " не найдена.");

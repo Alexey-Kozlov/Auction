@@ -10,16 +10,15 @@ public record RequestCreateFinance(
      Guid CorrelationId,
      string SessionId
 );
-public record FinanceCreating(
+
+public record FinanceCreated
+{
+     public Guid CorrelationId { get; set; }
+}
+public record FinanceCreatingNotification(
      int Amount,
      string UserLogin,
      Guid CorrelationId
-);
-public record FinanceCreated(Guid CorrelationId);
-public record FinanceCreatingNotification(
-     Guid CorrelationId,
-     string SessionId,
-     string UserLogin
 );
 public record FinanceNotificationCreated(Guid CorrelationId);
 public record FinanceCreateESCommit(Guid CorrelationId);

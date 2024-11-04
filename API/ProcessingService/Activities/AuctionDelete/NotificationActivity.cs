@@ -1,11 +1,11 @@
 using Common.Contracts;
 using Common.Utils;
 using MassTransit;
-using ProcessingService.StateMachines.CreateAuctionStateMachine;
+using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
-namespace ProcessingService.Activities.AuctionCreate;
+namespace ProcessingService.Activities.AuctionDelete;
 
-public class NotificationActivity : IStateMachineActivity<CreateAuctionState, AuctionCreatedSearch>
+public class NotificationActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeletedElk>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -20,7 +20,7 @@ public class NotificationActivity : IStateMachineActivity<CreateAuctionState, Au
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreatedSearch> context, IBehavior<CreateAuctionState, AuctionCreatedSearch> next)
+    public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedElk> context, IBehavior<DeleteAuctionState, AuctionDeletedElk> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new NotifyItem
@@ -29,15 +29,15 @@ public class NotificationActivity : IStateMachineActivity<CreateAuctionState, Au
                 UserLogin = context.Saga.UserLogin
             },
             nameof(NotifyItem),
-            "Common.Contracts.AuctionCreatedNotification",
+            "Common.Contracts.AuctionDeletedNotification",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            OperationType.Delete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<CreateAuctionState, AuctionCreatedSearch, TException> context, IBehavior<CreateAuctionState, AuctionCreatedSearch> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<DeleteAuctionState, AuctionDeletedElk, TException> context, IBehavior<DeleteAuctionState, AuctionDeletedElk> next) where TException : Exception
     {
         return next.Faulted(context);
     }

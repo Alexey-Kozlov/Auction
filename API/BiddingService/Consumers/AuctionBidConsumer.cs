@@ -30,10 +30,6 @@ public class AuctionBidConsumer : IConsumer<ActionMessageList<AuctionBidItem>>
                     var item = await CheckExistItem(actionItem);
                     item.AuctionEnd = actionItem.ActionItem.AuctionEnd;
                     break;
-                case OperationType.Delete:
-                    var delItem = await CheckExistItem(actionItem);
-                    _dbContext.Auctions.Remove(delItem);
-                    break;
                 case OperationType.Insert:
                     _dbContext.Auctions.Add(actionItem.ActionItem);
                     break;

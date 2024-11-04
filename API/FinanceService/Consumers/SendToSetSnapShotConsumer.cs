@@ -36,7 +36,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendBalanse.SessionId = consumeContext.Message.SessionId;
         sendBalanse.UserLogin = consumeContext.Message.UserLogin;
         sendBalanse.ItemsType = nameof(FinanceItem);
-        sendBalanse.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendBalanse.CreateAt = consumeContext.Message.CreateAt;
         sendBalanse.RestoringOrder = 1;
         await _publishEndpoint.Publish(sendBalanse);

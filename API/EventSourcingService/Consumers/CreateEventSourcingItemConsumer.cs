@@ -36,18 +36,19 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         switch (context.Message.EntityType)
         {
             case nameof(AuctionBidItem):
+            case nameof(BidItem):
                 await _bidProcessing.Processing(context);
                 break;
             case nameof(AuctionItem):
                 await _searchProcessing.Processing(context);
                 break;
-            case "11":
+            case nameof(NotifyItem):
                 await _notificationProcessing.Processing(context);
                 break;
-            case nameof(CommitESUpdateAuctionOperation):
+            case nameof(CommitESOperation):
                 await _mainProcessing.Processing(context);
                 break;
-            case "22":
+            case nameof(FinanceItem):
                 await _financeProcessing.Processing(context);
                 break;
             default:

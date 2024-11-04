@@ -3,7 +3,7 @@ import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@micros
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
-import { Auction, AuctionFinished, Bid, Message, PagedResult, User } from '../store/types';
+import { Auction, AuctionFinished, Bid, FinanceItem, Message, PagedResult, User } from '../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
@@ -16,6 +16,9 @@ import InfoMessageToast from '../components/signalRNotifications/InfoMessageToas
 import FinanceUnsufficientToast from '../components/signalRNotifications/FinanceUnsufficientToast';
 import { setData } from '../store/auctionSlice';
 import { setParams } from '../store/paramSlice';
+import AuctionUpdatedToast from '../components/signalRNotifications/AuctionUpdatedToast';
+import AuctionDeletedToast from '../components/signalRNotifications/AuctionDeletedToast';
+import FinanceCreatedToast from '../components/signalRNotifications/FinanceCreatedToast';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -102,6 +105,10 @@ export default function SignalRProvider() {
                 connection.on('AuctionUpdated', (auction: Auction) => {
                     dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.auctionId}));
                     dispatch(setEventFlag({ eventName: 'ImageChanged', ready: true, itemId: auction.auctionId}));
+                    return toast((p) => (
+                        <AuctionUpdatedToast auction={auction} toastId={p.id} />
+                    ),
+                    { duration: 5000 });                    
                 })
 
                 connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
@@ -110,10 +117,18 @@ export default function SignalRProvider() {
 
                 connection.on('AuctionDeleted', (auction: any) => {
                     dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: auction.auctionId }));
+                    return toast((p) => (
+                        <AuctionDeletedToast auction={auction} toastId={p.id} />
+                    ),
+                    { duration: 5000 }); 
                 })
 
-                connection.on('FinanceCreate', (finance: any) => {
+                connection.on('FinanceCreate', (finance: FinanceItem) => {
                     dispatch(setEventFlag({ eventName: 'FinanceCreate', ready: true}));
+                    return toast((p) => (
+                        <FinanceCreatedToast finance={finance} toastId={p.id} />
+                    ),
+                    { duration: 5000 }); 
                 })
 
                 connection.on('SessionId', (id: any) => {

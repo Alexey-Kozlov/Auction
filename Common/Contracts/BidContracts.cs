@@ -100,4 +100,10 @@ public class BidItem
      public AuctionBidItem Auction { get; set; }
 }
 
+public class ComplexAuctionBidItem
+{
+     public AuctionBidItem auctionBidItem { get; set; }
+     public List<BidItem> bidItems { get; set; }
+}
+
 

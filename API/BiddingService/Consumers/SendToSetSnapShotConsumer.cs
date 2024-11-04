@@ -39,7 +39,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendAuctions.SessionId = consumeContext.Message.SessionId;
         sendAuctions.UserLogin = consumeContext.Message.UserLogin;
         sendAuctions.ItemsType = nameof(AuctionBidItem);
-        sendAuctions.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendAuctions.CreateAt = consumeContext.Message.CreateAt;
         sendAuctions.RestoringOrder = 1;
 
@@ -56,7 +55,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendBids.SessionId = consumeContext.Message.SessionId;
         sendBids.UserLogin = consumeContext.Message.UserLogin;
         sendBids.ItemsType = nameof(BidItem);
-        sendBids.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendBids.CreateAt = consumeContext.Message.CreateAt;
         sendBids.RestoringOrder = 2;
         await _publishEndpoint.Publish(sendBids);

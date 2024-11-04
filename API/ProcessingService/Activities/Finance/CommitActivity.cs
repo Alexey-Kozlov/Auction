@@ -25,8 +25,8 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceNotific
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
-            nameof(CommitESFinanceOperation),
-            _config["ServicesName:ProcessingService"],
+            nameof(CommitESOperation),
+            "Common.Contracts.FinanceCreateESCommit",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Insert,

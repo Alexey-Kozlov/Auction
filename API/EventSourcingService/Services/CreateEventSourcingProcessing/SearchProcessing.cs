@@ -20,43 +20,29 @@ public class SearchProcessing
     }
     public async Task Processing(ConsumeContext<ESContract> context)
     {
-
-        switch (context.Message.OperationType)
-        {
-            case OperationType.Update:
-            case OperationType.Insert:
-                await AuctionAction(context.Message);
-                break;
-            //ProcessingService -> Activities -> AuctionDelete -> BidActivity
-            case OperationType.Delete:
-                await _publishEndpoint.Publish(
-                    JsonSerializer.Deserialize<AuctionDeletingBid>(context.Message.EventData)
-                );
-                break;
-        }
-
+        await AuctionAction(context.Message);
     }
 
     private async Task AuctionAction(ESContract context)
     {
         //делаем запись в ES об обновлении Entity AuctionItem
         var auctionItem = JsonSerializer.Deserialize<AuctionItem>(context.EventData);
-        //записали в ES запись об обновлении даты окончания аукциона
+        //записали в ES лог действие
         await _insertItemToEventSourcing.Processing(context);
-        //делаем объект на обновление даты окончания AuctionItem в сервисе SearchService
+        //делаем объект на изменение данных в сервисе SearchService
         var updateItem = new ActionMessageList<AuctionItem>
-        (
-            new List<ActionMessage<AuctionItem>>
+        {
+            ActionItemsList = new List<ActionMessage<AuctionItem>>
             {
                 new ActionMessage<AuctionItem>
-                (
-                    auctionItem,
-                    context.OperationType,
-                    context.CorrelationId
-                )
+                {
+                    ActionItem = auctionItem,
+                    OperationType = context.OperationType,
+                    CorrelationId = context.CorrelationId
+                }
             },
-            context.CallBackType
-        );
+            CallBackType = context.CallBackType
+        };
         //посылаем в сервис SearchService для обновления в БД сервиса
         await _publishEndpoint.Publish(updateItem);
     }

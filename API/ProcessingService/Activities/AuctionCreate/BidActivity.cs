@@ -31,7 +31,7 @@ public class BidActivity : IStateMachineActivity<CreateAuctionState, RequestAuct
                 ReservePrice = context.Saga.ReservePrice
             },
             nameof(AuctionBidItem),
-            _config["ServicesName:BiddingService"],
+            "Common.Contracts.AuctionCreatedBid",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Insert,

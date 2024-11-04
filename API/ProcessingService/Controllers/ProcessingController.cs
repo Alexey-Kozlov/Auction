@@ -76,7 +76,7 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> DeleteAuction([FromBody] DeleteAuctionDTO par)
     {
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var reqAuctionDelete = new RequestAuctionDelete(par.CorrelationId, auctionAuthor, par.Id);
+        var reqAuctionDelete = new RequestAuctionDelete(par.CorrelationId, auctionAuthor, par.AuctionId);
 
         await _publishEndpoint.Publish(reqAuctionDelete);
 

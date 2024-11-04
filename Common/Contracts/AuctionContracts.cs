@@ -31,7 +31,11 @@ public record RequestAuctionCreate
        Guid CorrelationId
 );
 
-public record AuctionCreatedBid(Guid CorrelationId);
+public class AuctionCreatedBid
+{
+      public Guid CorrelationId { get; set; }
+}
+
 public record AuctionCreatingBid(
       Guid AuctionId,
       DateTime AuctionEnd,
@@ -58,7 +62,10 @@ public record AuctionCreatingSearch(
       int ReservePrice
 );
 
-public record AuctionCreatedSearch(Guid CorrelationId);
+public class AuctionCreatedSearch
+{
+      public Guid CorrelationId { get; set; }
+}
 
 public record AuctionCreatingNotification(
       Guid AuctionId,
@@ -67,7 +74,10 @@ public record AuctionCreatingNotification(
       Guid CorrelationId
 );
 
-public record AuctionCreatedNotification(Guid CorrelationId);
+public class AuctionCreatedNotification
+{
+      public Guid CorrelationId { get; set; }
+}
 
 public class AuctionCreatingElk
 {
@@ -85,7 +95,10 @@ public class AuctionCreatingElk
       public int Amount { get; set; }
 };
 public record AuctionCreatedElk(Guid CorrelationId);
-public record AuctionCreateESCommit(Guid CorrelationId);
+public class AuctionCreateESCommit
+{
+      public Guid CorrelationId { get; set; }
+}
 
 #endregion
 
@@ -97,14 +110,20 @@ public record RequestAuctionDelete(
       string UserLogin,
       Guid AuctionId
 );
-public record AuctionDeletedFinance(Guid CorrelationId);
+public class AuctionDeletedFinance
+{
+      public Guid CorrelationId { get; set; }
+}
 
 public record AuctionDeletingBid(
       Guid AuctionId,
       Guid CorrelationId,
       string UserLogin
 );
-public record AuctionDeletedBid(Guid CorrelationId);
+public class AuctionDeletedBid
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionDeletingGateway(
     Guid AuctionId,
     Guid CorrelationId
@@ -121,21 +140,30 @@ public record AuctionDeletingSearch(
     Guid AuctionId,
     Guid CorrelationId
 );
-public record AuctionDeletedSearch(Guid CorrelationId);
+public class AuctionDeletedSearch
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionDeleteESNotification(Guid CorrelationId);
 public record AuctionDeletingNotification(
     Guid AuctionId,
     string UserLogin,
     Guid CorrelationId
 );
-public record AuctionDeletedNotification(Guid CorrelationId);
+public class AuctionDeletedNotification
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionDeletingElk(
     Guid AuctionId,
     string UserLogin,
     Guid CorrelationId
 );
 public record AuctionDeletedElk(Guid CorrelationId);
-public record AuctionDeleteESCommit(Guid CorrelationId);
+public class AuctionDeleteESCommit
+{
+      public Guid CorrelationId { get; set; }
+}
 
 #endregion
 
@@ -189,7 +217,10 @@ public record AuctionUpdatingNotification(
       string UserLogin,
       Guid CorrelationId
 );
-public record AuctionUpdatedNotification(Guid CorrelationId);
+public record AuctionUpdatedNotification
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionUpdatingElk(
       Guid AuctionId,
       string Title,
@@ -201,7 +232,10 @@ public record AuctionUpdatingElk(
 );
 public record AuctionUpdatedElk(Guid CorrelationId);
 
-public record AuctionUpdateESCommit(Guid CorrelationId);
+public class AuctionUpdateESCommit
+{
+      public Guid CorrelationId { get; set; }
+}
 
 #endregion
 

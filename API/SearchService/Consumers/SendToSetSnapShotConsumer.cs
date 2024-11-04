@@ -40,7 +40,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendObject.SessionId = consumeContext.Message.SessionId;
         sendObject.UserLogin = consumeContext.Message.UserLogin;
         sendObject.ItemsType = nameof(AuctionItem);
-        sendObject.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
         sendObject.CreateAt = consumeContext.Message.CreateAt;
         sendObject.RestoringOrder = 1;
         await _publishEndpoint.Publish(sendObject);

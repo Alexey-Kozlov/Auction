@@ -1,40 +1,39 @@
+using System.Reflection;
+using BiddingService.Data;
 using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using BiddingService.Data;
+
 
 namespace BiddingService.Consumers;
 
-public class AuctionDeletingBidConsumer : IConsumer<AuctionDeletingBid>
+public class AuctionDeletingBidConsumer : IConsumer<ActionMessageList<ComplexAuctionBidItem>>
 {
-    private readonly BidDbContext _context;
-    private readonly ILogger<AuctionDeletingBidConsumer> _logger;
+    private readonly BidDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IConfiguration _configuration;
 
-    public AuctionDeletingBidConsumer(BidDbContext context, ILogger<AuctionDeletingBidConsumer> logger, IPublishEndpoint publishEndpoint)
+    public AuctionDeletingBidConsumer(BidDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
     {
-        _context = context;
-        _logger = logger;
+        _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
+        _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<AuctionDeletingBid> context)
+    public async Task Consume(ConsumeContext<ActionMessageList<ComplexAuctionBidItem>> context)
     {
-        var bids = await _context.Bids.Where(p => p.AuctionId == context.Message.AuctionId).ToListAsync();
-        if (bids != null && bids.Count > 0)
-        {
-            _context.Bids.RemoveRange(bids);
-        }
-        var auction = await _context.Auctions.FirstOrDefaultAsync(p => p.AuctionId == context.Message.AuctionId);
-        if (auction != null)
-        {
-            _context.Auctions.Remove(auction);
-        }
-        await _context.SaveChangesAsync();
-
-        if (bids.Count > 0)
-        {
-            _logger.LogInformation("Удалены " + bids.Count.ToString() + " ставок для этого аукциона");
-        }
-        await _publishEndpoint.Publish(new AuctionDeletedBid(context.Message.CorrelationId));
+        var correlationId = context.Message.ActionItemsList[0].CorrelationId;
+        var auctionBidItem = context.Message.ActionItemsList[0].ActionItem.auctionBidItem;
+        var bids = context.Message.ActionItemsList[0].ActionItem.bidItems;
+        //удаляем ставки Bid
+        _dbContext.Bids.RemoveRange(bids);
+        //удаляем AuctionBid
+        _dbContext.Auctions.Remove(auctionBidItem);
+        await _dbContext.SaveChangesAsync();
+        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+        await _publishEndpoint.Publish(sendObject);
     }
+
+
 }

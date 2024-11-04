@@ -70,9 +70,9 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             .Send(
                 new Uri(configuration["QueuePaths:FinanceCreatingNotification"]),
                 context => new FinanceCreatingNotification(
-                context.Saga.CorrelationId,
-                context.Saga.SessionId,
-                context.Saga.UserLogin
+                context.Saga.Amount,
+                context.Saga.UserLogin,
+                context.Saga.CorrelationId
                 ))
             .TransitionTo(NotificationState));
     }

@@ -32,7 +32,7 @@ public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreate
                 Value = context.Saga.Amount
             },
             nameof(FinanceItem),
-            _config["ServicesName:FinanceService"],
+            "Common.Contracts.FinanceCreated",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             OperationType.Insert,

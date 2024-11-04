@@ -39,19 +39,17 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                 try
                 {
                     //получаем пользователя - инициатора события
-                    switch (consumeContext.Message.ServiceName)
+                    switch (consumeContext.Message.ItemsType)
                     {
-                        case var val when val == _configuration["ServicesName:BiddingService"]:
-                            if (!document.RootElement.TryGetProperty("Bidder", out jsonElement))
-                            {
-                                document.RootElement.TryGetProperty("Seller", out jsonElement);
-                            }
+                        case nameof(BidItem):
+                            document.RootElement.TryGetProperty("Bidder", out jsonElement);
                             break;
-                        case var val when val == _configuration["ServicesName:SearchService"]:
+                        case nameof(AuctionBidItem):
+                        case nameof(AuctionItem):
                             document.RootElement.TryGetProperty("Seller", out jsonElement);
                             break;
-                        case var val when val == _configuration["ServicesName:FinanceService"]:
-                        case var val1 when val1 == _configuration["ServicesName:NotificationService"]:
+                        case nameof(FinanceItem):
+                        case nameof(NotifyItem):
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
                             break;
                     }
@@ -79,7 +77,7 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
             }
             await _context.SaveChangesAsync();
             _logger.LogInformation($"{DateTime.Now} --> Получение сообщения - произвести первоначальную инициализацию записей в БД, записано - {i} записей");
-            await _publishEndpoint.Publish(new EventSourcingInitialized($"Произведена запись текущего состояния БД {consumeContext.Message.ServiceName}" +
+            await _publishEndpoint.Publish(new EventSourcingInitialized($"Произведена запись текущего состояния БД {consumeContext.Message.ItemsType}" +
             $" в EventSourcing, сохранено - {i} записей",
                     consumeContext.Message.CorrelationId, consumeContext.Message.UserLogin, consumeContext.Message.SessionId));
         });
