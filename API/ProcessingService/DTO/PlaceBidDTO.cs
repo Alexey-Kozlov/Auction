@@ -1,7 +1,7 @@
 namespace ProcessingService.DTO;
 public record PlaceBidDTO
 (
-     Guid Id,
+     Guid AuctionId,
      int Amount,
      Guid CorrelationId
 );

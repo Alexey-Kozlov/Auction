@@ -44,7 +44,7 @@ public class BidNotificationProcessingConsumer : IConsumer<BidNotificationProces
             Console.WriteLine($"{DateTime.Now} --> Получено сообщение - заявка от {context.Message.Bidder} - " +
                 $"{context.Message.Amount} руб. размещена, рассылка уведомлений для {String.Join(',', auctionNotifyList.Select(p => p.UserLogin))}");
             await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", context.Message);
-            await _publishEndpoint.Publish(new BidNotificationProcessed(context.Message.CorrelationId));
+            // await _publishEndpoint.Publish(new BidNotificationProcessed(context.Message.CorrelationId));
             await transaction.CommitAsync();
         }
         catch (Exception e)

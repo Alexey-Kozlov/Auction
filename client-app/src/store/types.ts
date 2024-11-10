@@ -17,7 +17,7 @@ export type Auction = {
 
 export type Bid = {
   bidId: string;
-  id: string;
+  auctionId: string;
   bidder: string;
   bidTime: string;
   amount: number;
@@ -73,12 +73,12 @@ export type ObjectResponse<T> = {
 
 export type PlaceBidParams = {
   amount: number;
-  id: string;
+  auctionId: string;
   correlationId: string;
 };
 
 export type AuctionImage = {
-  id: string;
+  auctionId: string;
   image: string;
 };
 
@@ -88,7 +88,7 @@ export type NotifyUser = {
 };
 
 export type FinanceItem = {
-  id: string;
+  auctionId: string;
   itemId: string;
   value: number;
   actionDate: Date;

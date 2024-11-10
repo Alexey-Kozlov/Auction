@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Common.Contracts;
 
 public record RequestBidPlace(
-     Guid Id,
+     Guid AuctionId,
      string Bidder,
      int Amount,
      Guid CorrelationId
@@ -14,9 +14,10 @@ public record BidFinanceGranting(
      int Amount,
      Guid CorrelationId
 );
-public record BidFinanceGranted(
-     Guid CorrelationId
-);
+public class BidFinanceGranted
+{
+     public Guid CorrelationId { get; set; }
+};
 public record GetCurrentBid(
      Guid CorrelationId,
      int CurrentHighBid
@@ -49,10 +50,10 @@ public record BidPlacing(
      int Amount,
      Guid CorrelationId
 );
-public record BidPlaced(
-     Guid BidId,
-     Guid CorrelationId
-);
+public class BidPlaced
+{
+     public Guid CorrelationId { get; set; }
+};
 public record RollbackBidPlaced(
     Guid BidId,
     Guid CorrelationId
@@ -63,18 +64,24 @@ public record BidSearchPlacing(
      int Amount,
      Guid CorrelationId
 );
-public record BidSearchPlaced(
-     Guid CorrelationId
-);
+public class BidSearchPlaced
+{
+     public Guid CorrelationId { get; set; }
+};
 public record BidNotificationProcessing(
      Guid Id,
      string Bidder,
      int Amount,
      Guid CorrelationId
 );
-public record BidNotificationProcessed(
-     Guid CorrelationId
-);
+public class BidNotificationProcessed
+{
+     public Guid CorrelationId { get; set; }
+};
+public class BidCreateESCommit
+{
+     public Guid CorrelationId { get; set; }
+};
 
 
 public record GetBidPlaceState(Guid CorrelationId);

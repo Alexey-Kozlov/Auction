@@ -33,7 +33,52 @@ public class NotificationProcessing
             case OperationType.Update:
                 await NotificationUpdateAction(context.Message);
                 break;
+            case OperationType.Bid:
+                await BidAction(context.Message);
+                break;
         }
+    }
+
+    private async Task BidAction(ESContract context)
+    {
+        var bidItem = JsonSerializer.Deserialize<NotifyItem>(context.EventData);
+
+        //проверки на наличие уведомления для этого аукциона.
+        //Если нет уведомления - делаем
+        var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
+            .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
+        //получаем из EventSourcing записи по NotifyItem по данному пользователю, SnapShot
+        var auctionBidItem = await _dbContext.EventsLogs.Where(p =>
+            (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+            p.EntityType == nameof(NotifyItem) &&
+            p.AuctionId == context.AuctionId &&
+            p.UserLogin == bidItem.UserLogin &&
+            p.CreateAt >= lastSnapShotId.CreateAt
+        ).OrderByDescending(p => p.Version).FirstOrDefaultAsync();
+
+        var newNotifyItem = new ActionMessageList<NotifyItem>
+        {
+            ActionItemsList = new List<ActionMessage<NotifyItem>>
+                {
+                    new ActionMessage<NotifyItem>
+                    {
+                        ActionItem = JsonSerializer.Deserialize<NotifyItem>(context.EventData),
+                        OperationType = OperationType.Bid,
+                        CorrelationId = context.CorrelationId
+                    }
+                },
+            CallBackType = context.CallBackType,
+            Properties = new List<string> { "false" }
+        };
+        if (auctionBidItem == null || auctionBidItem.OperationType == OperationType.Delete)
+        {
+            //уведомления нет - создаем новое в ES лог
+            await _insertItemToEventSourcing.Processing(context);
+            //делаем пометку - нужно создать запись в БД о подписке
+            newNotifyItem.Properties = new List<string> { "true" };
+        }
+        //объект для добавления NotifyItem а NotificationService
+        await _publishEndpoint.Publish(newNotifyItem);
     }
 
 
@@ -41,7 +86,7 @@ public class NotificationProcessing
     {
         var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
             .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
-        //получаем из EventSourcing записи по NotifyItem по данному пользователю, SnapShot
+        //получаем из EventSourcing записи по NotifyItem по данному аукциону, SnapShot
         var eventItems = await _dbContext.EventsLogs.Where(p =>
             (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
             p.EntityType == nameof(NotifyItem) &&
@@ -54,24 +99,8 @@ public class NotificationProcessing
             p.OperationType != OperationType.Delete &&
             p.EntityType == "AuctionItem").OrderByDescending(p => p.Version).FirstOrDefaultAsync();
         var auctionTitle = JsonSerializer.Deserialize<AuctionItem>(auctionTitleJson.EventData);
-        //объект для отправки в NotifyService для правки БД
-        var deleteNotifyItem = new ActionMessageList<NotifyItem>
-        {
-            ActionItemsList = new List<ActionMessage<NotifyItem>>
-            {
-                new ActionMessage<NotifyItem>
-                {
-                    ActionItem = JsonSerializer.Deserialize<NotifyItem>(context.EventData),
-                    OperationType = OperationType.Delete,
-                    CorrelationId = context.CorrelationId
-                }
-            },
-            CallBackType = context.CallBackType,
-            Properties = new List<string>
-            {
-                auctionTitle.Title
-            }
-        };
+
+        //если есть уведомления для данного аукциона - делаем объект для отправки в NotifyService для правки БД
         if (eventItems.Count() > 0)
         {
             //есть NotifyItem для данного аукциона
@@ -103,10 +132,19 @@ public class NotificationProcessing
                 );
             }
             //объект для удаления NotifyItem а NotificationService
-            deleteNotifyItem.ActionItemsList = listNotifyItem;
+            var deleteNotifyItem = new ActionMessageList<NotifyItem>
+            {
+                ActionItemsList = listNotifyItem,
+                CallBackType = context.CallBackType,
+                Properties = new List<string>
+                {
+                    auctionTitle.Title
+                }
+            };
+            await _publishEndpoint.Publish(deleteNotifyItem);
         }
 
-        await _publishEndpoint.Publish(deleteNotifyItem);
+
     }
     private async Task NotificationInsertAction(ESContract context)
     {

@@ -128,10 +128,7 @@ export default function FinListings() {
                         </div>
                     </>
                     )}
-
             </div>
-
-
         </div>
     )
 

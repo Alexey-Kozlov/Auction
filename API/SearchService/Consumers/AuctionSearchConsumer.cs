@@ -30,14 +30,19 @@ public class AuctionSearchConsumer : IConsumer<ActionMessageList<AuctionItem>>
             switch (actionItem.OperationType)
             {
                 case OperationType.Update:
-                    _mapper.Map(actionItem.ActionItem, await CheckExistItem(actionItem));
+                    var updateItem = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId);
+                    _mapper.Map(actionItem.ActionItem, updateItem);
                     break;
                 case OperationType.Delete:
-                    var delItem = await CheckExistItem(actionItem);
-                    _dbContext.AuctionItems.Remove(delItem);
+                    var deleteItem = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId);
+                    _dbContext.AuctionItems.Remove(deleteItem);
                     break;
                 case OperationType.Insert:
                     _dbContext.AuctionItems.Add(actionItem.ActionItem);
+                    break;
+                case OperationType.Bid:
+                    var updateItem2 = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId);
+                    updateItem2.CurrentHighBid = actionItem.ActionItem.CurrentHighBid;
                     break;
             }
         }
@@ -46,15 +51,5 @@ public class AuctionSearchConsumer : IConsumer<ActionMessageList<AuctionItem>>
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
         await _publishEndpoint.Publish(sendObject);
-    }
-    private async Task<AuctionItem> CheckExistItem(ActionMessage<AuctionItem> actionItem)
-    {
-        var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId);
-        if (item == null)
-        {
-            Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись " + actionItem.ActionItem.AuctionId + " не найдена.");
-            throw new Exception($"{DateTime.Now} Ошибка обновления записи - запись " + actionItem.ActionItem.AuctionId + " не найдена.");
-        }
-        return item;
     }
 }

@@ -45,7 +45,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
                             dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false}));
                             await placeBid({
                                 amount: values.amount,
-                                id: auctionId,
+                                auctionId: auctionId,
                                 correlationId: uuid.v4() as string
                             });
                             values.amount = 0;

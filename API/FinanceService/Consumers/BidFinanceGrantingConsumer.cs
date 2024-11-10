@@ -101,7 +101,7 @@ public class BidFinanceGrantingConsumer : IConsumer<BidFinanceGranting>
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            await context.Publish(new BidFinanceGranted(context.Message.CorrelationId));
+            //await context.Publish(new BidFinanceGranted(context.Message.CorrelationId));
             Console.WriteLine($"{DateTime.Now} Выполнено сообщение по резервированию денег, - " +
                      context.Message.Amount + ", " + context.Message.Bidder);
         }

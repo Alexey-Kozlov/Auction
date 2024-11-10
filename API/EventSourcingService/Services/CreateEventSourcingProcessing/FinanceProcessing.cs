@@ -25,16 +25,111 @@ public class FinanceProcessing
     {
         switch (context.Message.OperationType)
         {
-            //ProcessingService -> Activities -> AuctionDelete -> FinanceActivity                         
             case OperationType.Delete:
-                //вызываем сервис по корректировке платежей по аукциону
+                //удаление аукциона - корректировке платежей по аукциону
                 await FinanceDelete(context.Message);
                 break;
-            //ProcessingService -> Activities -> Finance -> FinanceActivity                         
             case OperationType.Insert:
-                //вызываем сервис по добавлению денег
+                //поступило пополнение баланса - добавлению денег
                 await FinanceCreate(context.Message);
                 break;
+            case OperationType.Bid:
+                //поступила новая ставка - списание денег на ставку
+                await MakeBid(context.Message);
+                break;
+        }
+    }
+
+    private async Task MakeBid(ESContract context)
+    {
+        try
+        {
+            /*запускаем обработку, выполняется:
+            - корректирующая запись по отмене прежней ставки (платежа ро ней), если была        
+            - расчет баланса для текущего пользователя
+            - если ставка превышает баланс - исключение с откатом всех изменений
+            - пишем в лог списание денег на новую ставку
+            - возвращаются: запись с текущим балансом (Status=2) и запись для отмены платежа (Status=0, если есть)
+            */
+            //получили баланс
+            var result = await _dbContext.financeplacebid(
+                context.CorrelationId,
+                context.AuctionId ?? Guid.NewGuid(),
+                context.EventData,
+                context.UserLogin).ToListAsync();
+            var balance = result.FirstOrDefault(p => p.status == FinanceRecordStatus.Баланс);
+            var correct = result.FirstOrDefault(p => p.status == FinanceRecordStatus.Приход);
+
+            //посылаем в FinanceService для обновления БД
+            var sendFinanceItem = new ActionMessageList<FinanceItem>
+            {
+                ActionItemsList = new List<ActionMessage<FinanceItem>>
+                {
+                    //объект для создания ставки а FinanceService
+                    new ActionMessage<FinanceItem>
+                    {
+                        ActionItem = JsonSerializer.Deserialize<FinanceItem>(context.EventData),
+                        OperationType = OperationType.Insert,
+                        CorrelationId = context.CorrelationId
+                    },
+                    //объект для обновления баланса а FinanceService
+                    new ActionMessage<FinanceItem>
+                    {
+                        ActionItem = new FinanceItem
+                        {
+                            ActionDate = DateTime.UtcNow,
+                            AuctionId = context.AuctionId,
+                            Id = Guid.NewGuid(),
+                            Status = FinanceRecordStatus.Баланс,
+                            UserLogin = context.UserLogin,
+                            Value = balance.value
+                        },
+                        OperationType = OperationType.Update,
+                        CorrelationId = context.CorrelationId
+                    }
+                },
+                CallBackType = context.CallBackType
+            };
+            if (correct != null)
+            {
+                sendFinanceItem.ActionItemsList.Add(
+                    new ActionMessage<FinanceItem>
+                    {
+                        ActionItem = new FinanceItem
+                        {
+                            ActionDate = DateTime.UtcNow,
+                            AuctionId = context.AuctionId,
+                            Id = Guid.NewGuid(),
+                            Status = FinanceRecordStatus.Приход,
+                            UserLogin = correct.userlogin,
+                            Value = correct.value
+                        },
+                        OperationType = OperationType.Delete,
+                        CorrelationId = context.CorrelationId
+                    }
+                );
+            }
+            await _publishEndpoint.Publish(sendFinanceItem);
+        }
+        catch (Npgsql.PostgresException e)
+        {
+            //ошибка при выполнении транзакции в БД, в т.ч. штатные - при нехватке денег на ставку
+            Fault<BidFinanceGranted> per = new FaultMessage<BidFinanceGranted>(
+                context.CorrelationId,
+                e.MessageText,
+                new BidFinanceGranted { CorrelationId = context.CorrelationId }
+            );
+            await _publishEndpoint.Publish(per);
+        }
+        catch (Exception e)
+        {
+            //все остальные ошибки программы
+            Fault<BidFinanceGranted> per = new FaultMessage<BidFinanceGranted>(
+                context.CorrelationId,
+                e.Message,
+                new BidFinanceGranted { CorrelationId = context.CorrelationId }
+            );
+            await _publishEndpoint.Publish(per);
         }
     }
 
@@ -164,4 +259,68 @@ public class FinanceProcessing
         balanceItem.ActionDate = DateTime.UtcNow;
         return balanceItem;
     }
+}
+
+public class FaultMessage<T> : Fault<T>
+{
+    private Guid _correlationId;
+    private string _message;
+    private T _sendObject;
+    public FaultMessage(Guid correlationId, string message, T sendObject)
+    {
+        _correlationId = correlationId;
+        _message = message;
+        _sendObject = sendObject;
+    }
+    public Guid FaultId => _correlationId;
+
+    public Guid? FaultedMessageId => Guid.NewGuid();
+
+    public DateTime Timestamp => DateTime.UtcNow;
+
+    public ExceptionInfo[] Exceptions => [new MyExceptionInfo(_message)];
+
+    public HostInfo Host => new MyHostInfo();
+
+    public string[] FaultMessageTypes => [];
+
+    public T Message => _sendObject;
+}
+
+public class MyExceptionInfo : ExceptionInfo
+{
+    private string _message;
+    public MyExceptionInfo(string message)
+    {
+        _message = message;
+    }
+    public string ExceptionType => "FinanceException";
+
+    public ExceptionInfo InnerException => null;
+
+    public string StackTrace => "";
+
+    public string Message => _message;
+
+    public string Source => "";
+    public IDictionary<string, object> Data => null;
+}
+
+public class MyHostInfo : HostInfo
+{
+    public string MachineName => null;
+
+    public string ProcessName => null;
+
+    public int ProcessId => System.Diagnostics.Process.GetCurrentProcess().Id;
+
+    public string Assembly => null;
+
+    public string AssemblyVersion => null;
+
+    public string FrameworkVersion => null;
+
+    public string MassTransitVersion => null;
+
+    public string OperatingSystemVersion => null;
 }

@@ -7,33 +7,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BiddingService.Consumers;
 
-public class AuctionBidConsumer : IConsumer<ActionMessageList<AuctionBidItem>>
+public class BidConsumer : IConsumer<ActionMessageList<BidItem>>
 {
     private readonly BidDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public AuctionBidConsumer(BidDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public BidConsumer(BidDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
     {
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<ActionMessageList<AuctionBidItem>> context)
+    public async Task Consume(ConsumeContext<ActionMessageList<BidItem>> context)
     {
         var correlationId = context.Message.ActionItemsList[0].CorrelationId;
         foreach (var actionItem in context.Message.ActionItemsList)
         {
-            switch (actionItem.OperationType)
-            {
-                case OperationType.Update:
-                    var item = await _dbContext.Auctions.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId);
-                    item.AuctionEnd = actionItem.ActionItem.AuctionEnd;
-                    break;
-                case OperationType.Insert:
-                    _dbContext.Auctions.Add(actionItem.ActionItem);
-                    break;
-            }
+            _dbContext.Bids.Add(actionItem.ActionItem);
         }
         await _dbContext.SaveChangesAsync();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +

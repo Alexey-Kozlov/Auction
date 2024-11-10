@@ -79,16 +79,14 @@ export default function SignalRProvider() {
                 }
                 connection.on('BidPlaced', (bid: Bid) => {
                     //устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-                    dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true, itemId: bid.id}));
+                    dispatch(setEventFlag({ eventName: 'BidPlaced', ready: true, itemId: bid.auctionId}));
                     dispatch(setEventFlag({ eventName: 'WaiterHide', ready: true }));
                     //для обновления плашки ставки на страничке аукциона в списке аукционов
-                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: bid.id}));
-                    if (user?.login !== bid.bidder) {
-                        return toast((p) => (
-                            <BidCreatedToast id={bid.id} toastId={p.id} />
-                        ),
-                            { duration: 5000 });
-                    }
+                    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true, itemId: bid.auctionId}));
+                    return toast((p) => (
+                        <BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
+                    ),
+                    { duration: 5000 });
                 })
 
                 connection.on('AuctionCreated', (auction: Auction) => {

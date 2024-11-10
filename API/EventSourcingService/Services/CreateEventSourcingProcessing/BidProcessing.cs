@@ -22,6 +22,7 @@ public class BidProcessing
     }
     public async Task Processing(ConsumeContext<ESContract> context)
     {
+        //делаем операции с аукционом - создание, изменение, удаление
         if (context.Message.EntityType == nameof(AuctionBidItem))
         {
             switch (context.Message.OperationType)
@@ -35,6 +36,63 @@ public class BidProcessing
                     break;
             }
         }
+        //делаем ставку
+        if (context.Message.EntityType == nameof(BidItem))
+        {
+            await BidAction(context.Message);
+        }
+    }
+
+    private async Task BidAction(ESContract context)
+    {
+        var bidItem = JsonSerializer.Deserialize<BidItem>(context.EventData);
+
+        //проверки на наличие связанного аукциона объектов и наличие более высоких ставок
+        var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
+            .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
+        //получаем из EventSourcing записи по BidItem по данному пользователю, SnapShot
+        var auctionBidItem = await _dbContext.EventsLogs.Where(p =>
+            (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+            p.EntityType == nameof(AuctionBidItem) &&
+            p.AuctionId == context.AuctionId &&
+            p.CreateAt >= lastSnapShotId.CreateAt
+        ).OrderByDescending(p => p.Version).FirstOrDefaultAsync();
+        if (auctionBidItem == null || auctionBidItem.OperationType == OperationType.Delete)
+        {
+            Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись аукциона " + context.AuctionId + " не найдена.");
+            throw new Exception($"{DateTime.Now} Ошибка обновления записи - запись аукциона " + context.AuctionId + " не найдена.");
+        }
+        var bids = await _dbContext.EventsLogs.Where(p =>
+            (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+            p.EntityType == nameof(BidItem) &&
+            p.AuctionId == context.AuctionId &&
+            p.CreateAt >= lastSnapShotId.CreateAt
+        ).Select(p => p.EventData).ToListAsync();
+        var bidItems = new List<BidItem>();
+        bidItems.AddRange(bids.Select(p => p.Deserialize<BidItem>()).OrderByDescending(p => p.BidTime));
+        if (bidItems.Any() && bidItems[0].Amount >= bidItem.Amount)
+        {
+            Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись аукциона " + context.AuctionId + " не найдена.");
+            throw new Exception($"Ошибка новой ставки - ставка {bidItem.Amount} меньше или равна существующей ставке - {bidItems[0].Amount}");
+        }
+        //делаем запись в ES лог о создании ставки
+        await _insertItemToEventSourcing.Processing(context);
+        //делаем объект на изменение данных в сервисе BiddingService
+        var updateItem = new ActionMessageList<BidItem>
+        {
+            ActionItemsList = new List<ActionMessage<BidItem>>
+            {
+                new ActionMessage<BidItem>
+                {
+                     ActionItem = bidItem,
+                     OperationType = context.OperationType,
+                     CorrelationId = context.CorrelationId
+                }
+            },
+            CallBackType = context.CallBackType
+        };
+        //посылаем в сервис BiddingService для обновления в БД сервиса
+        await _publishEndpoint.Publish(updateItem);
     }
 
     private async Task AuctionBidAction(ESContract context)
@@ -43,6 +101,26 @@ public class BidProcessing
         //делаем запись в ES лог об обновлении Entity AuctionBidItem (время окончания аукциона) 
         //или добавлении новой записи в сервисе BiddingService
         await _insertItemToEventSourcing.Processing(context);
+
+        //проверка - если обновление - есть ли такой объект в ES лог
+        if (context.OperationType == OperationType.Update)
+        {
+            var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
+                .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
+            //получаем из EventSourcing записи по BidItem по данному пользователю, SnapShot
+            var auctionBidItem = await _dbContext.EventsLogs.Where(p =>
+                (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
+                p.EntityType == nameof(AuctionBidItem) &&
+                p.AuctionId == context.AuctionId &&
+                p.CreateAt >= lastSnapShotId.CreateAt
+            ).OrderByDescending(p => p.Version).FirstOrDefaultAsync();
+            if (auctionBidItem == null || auctionBidItem.OperationType == OperationType.Delete)
+            {
+                Console.WriteLine($"{DateTime.Now} Ошибка обновления записи - запись аукциона " + context.AuctionId + " не найдена.");
+                throw new Exception($"{DateTime.Now} Ошибка обновления записи - запись аукциона " + context.AuctionId + " не найдена.");
+            }
+        }
+
         //делаем объект на изменение данных в сервисе BiddingService
         var updateItem = new ActionMessageList<AuctionBidItem>
         {

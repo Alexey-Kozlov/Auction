@@ -18,7 +18,8 @@ public class FinanceCreatingNotificationConsumer : IConsumer<FinanceCreatingNoti
     }
     public async Task Consume(ConsumeContext<FinanceCreatingNotification> context)
     {
-        await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("FinanceCreate", context.Message);
+        await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("FinanceCreate",
+        new { value = context.Message.Amount });
         await _publishEndpoint.Publish(new FinanceNotificationCreated(context.Message.CorrelationId));
     }
 }

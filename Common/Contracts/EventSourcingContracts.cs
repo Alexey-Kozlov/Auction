@@ -99,6 +99,7 @@ public enum OperationType
 {
     Delete, //0
     Update, //1
-    Insert  //2
+    Insert,  //2
+    Bid     //3
 }
 

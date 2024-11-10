@@ -30,7 +30,7 @@ public class BidSearchPlacingConsumer : IConsumer<BidSearchPlacing>
             }
             auction.CurrentHighBid = consumerContext.Message.Amount;
             await _context.SaveChangesAsync();
-            await _publishEndpoint.Publish(new BidSearchPlaced(consumerContext.Message.CorrelationId));
+            //await _publishEndpoint.Publish(new BidSearchPlaced(consumerContext.Message.CorrelationId));
             await transaction.CommitAsync();
         }
         catch (Exception e)

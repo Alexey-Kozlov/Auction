@@ -55,7 +55,6 @@ public class AuctionFinanceConsumer : IConsumer<ActionMessageList<FinanceItem>>
         if (isBalance)
         {
             var balanceItem = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
-            p.AuctionId == actionItem.ActionItem.AuctionId &&
             p.UserLogin == actionItem.ActionItem.UserLogin &&
             p.Status == FinanceRecordStatus.Баланс);
             if (balanceItem == null)
@@ -65,9 +64,9 @@ public class AuctionFinanceConsumer : IConsumer<ActionMessageList<FinanceItem>>
             }
         }
         var item = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
-            p.AuctionId == actionItem.ActionItem.AuctionId &&
             p.UserLogin == actionItem.ActionItem.UserLogin &&
-            ((!isBalance && p.Status != FinanceRecordStatus.Баланс) ||
+            ((!isBalance && p.Status == FinanceRecordStatus.Расход &&
+                p.AuctionId == actionItem.ActionItem.AuctionId) ||
             (isBalance && p.Status == FinanceRecordStatus.Баланс)));
         if (item == null)
         {

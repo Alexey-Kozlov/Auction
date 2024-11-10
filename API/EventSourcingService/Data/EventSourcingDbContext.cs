@@ -1,4 +1,5 @@
-﻿using EventSourcingService.Entities;
+﻿using Common.Contracts;
+using EventSourcingService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,13 +12,19 @@ public class EventSourcingDbContext : DbContext
     }
 
     public DbSet<EventsLog> EventsLogs { get; set; }
+    public IQueryable<FinanceItemSql> financeplacebid(
+        Guid correlationid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => financeplacebid(correlationid, auctionid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
+        modelBuilder.HasDbFunction(() => financeplacebid(default, default, default, default));
     }
-
 }
 
 public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
