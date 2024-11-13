@@ -1,0 +1,42 @@
+CREATE OR REPLACE PROCEDURE public.getbalance(
+	IN userlogin_par character varying,
+	INOUT balance integer)
+LANGUAGE 'plpgsql'
+AS $BODY$
+declare
+	i record;
+	lastSnapShotId uuid;
+	lastSnapShotCreated timestamp;	
+BEGIN
+CREATE TEMP TABLE IF NOT EXISTS tmp(EventData jsonb);
+delete from tmp;
+
+select "EventsLog"."SnapShotId","EventsLog"."CreateAt" from public."EventsLog" 
+where not "EventsLog"."SnapShotId" is null order by "EventsLog"."CreateAt" desc limit 1 
+into lastSnapShotId,lastSnapShotCreated;
+--получаем баланс по текущему пользователю
+insert into tmp(EventData)
+    SELECT 
+	"EventsLog"."EventData"
+	FROM public."EventsLog"
+	where  "EventsLog"."EntityType" = 'FinanceItem' and 
+	("EventsLog"."SnapShotId" = lastSnapShotId or "EventsLog"."SnapShotId" is null) and
+	"EventsLog"."UserLogin" = userlogin_par and
+	"EventsLog"."CreateAt" >= lastSnapShotCreated;
+
+	for i in 
+	select cast(tmp."eventdata" ->> 'Value' as int) as "Value",
+	cast(tmp."eventdata" ->> 'Status' as int) as "Status" 
+	from tmp
+	loop
+		if i."Status" = 0
+		then
+			balance = balance + i."Value";
+		else
+			balance = balance - i."Value";
+		end if;
+	end loop;
+	
+
+END;
+$BODY$;

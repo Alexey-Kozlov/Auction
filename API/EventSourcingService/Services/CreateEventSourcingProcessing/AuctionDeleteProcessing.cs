@@ -1,21 +1,16 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Common.Contracts;
 using Common.Contracts.EventSourcing;
 using EventSourcingService.Data;
-using EventSourcingService.Entities;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;
 
-public class FinanceProcessing
+public class AuctionDeleteProcessing
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly InsertItemToEventSourcing _insertItemToEventSourcing;
 
-    public FinanceProcessing(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
+    public AuctionDeleteProcessing(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
         EventSourcingDbContext dbContext)
     {
         _publishEndpoint = publishEndpoint;
@@ -24,21 +19,7 @@ public class FinanceProcessing
     }
     public async Task Processing(ConsumeContext<ESContract> context)
     {
-        // switch (context.Message.OperationType)
-        // {
-        //     case OperationType.Delete:
-        //         //удаление аукциона - корректировке платежей по аукциону
-        //         await FinanceDelete(context.Message);
-        //         break;
-        //     case OperationType.Insert:
-        //         //поступило пополнение баланса - добавлению денег
-        //         await FinanceCreate(context.Message);
-        //         break;
-        //     case OperationType.Bid:
-        //         //поступила новая ставка - списание денег на ставку
-        //         await MakeBid(context.Message);
-        //         break;
-        // }
+
     }
 
     // private async Task MakeBid(ESContract context)
@@ -53,70 +34,70 @@ public class FinanceProcessing
     //         - возвращаются: запись с текущим балансом (Status=2) и запись для отмены платежа (Status=0, если есть)
     //         */
     //         //получили баланс
-    //         var result = await _dbContext.financeplacebid(
+    //         var result = await _dbContext.placebid(
     //             context.CorrelationId,
     //             context.AuctionId ?? Guid.NewGuid(),
     //             context.EventData,
     //             context.UserLogin).ToListAsync();
-    //         var balance = result.FirstOrDefault(p => p.status == FinanceRecordStatus.Баланс);
-    //         var correct = result.FirstOrDefault(p => p.status == FinanceRecordStatus.Приход);
 
     //         //посылаем в FinanceService для обновления БД
     //         var sendFinanceItem = new ActionMessageList<FinanceItem>
     //         {
-    //             ActionItemsList = new List<ActionMessage<FinanceItem>>
-    //             {
-    //                 //объект для создания ставки а FinanceService
-    //                 new ActionMessage<FinanceItem>
-    //                 {
-    //                     ActionItem = JsonSerializer.Deserialize<FinanceItem>(context.EventData),
-    //                     OperationType = OperationType.Insert,
-    //                     CorrelationId = context.CorrelationId
-    //                 },
-    //                 //объект для обновления баланса а FinanceService
-    //                 new ActionMessage<FinanceItem>
-    //                 {
-    //                     ActionItem = new FinanceItem
-    //                     {
-    //                         ActionDate = DateTime.UtcNow,
-    //                         AuctionId = context.AuctionId,
-    //                         Id = Guid.NewGuid(),
-    //                         Status = FinanceRecordStatus.Баланс,
-    //                         UserLogin = context.UserLogin,
-    //                         Value = balance.value
-    //                     },
-    //                     OperationType = OperationType.Update,
-    //                     CorrelationId = context.CorrelationId
-    //                 }
-    //             },
+    //             ActionItemsList = new List<ActionMessage<FinanceItem>>(),
     //             CallBackType = context.CallBackType
     //         };
-    //         if (correct != null)
+    //         foreach (var finItem in result)
     //         {
-    //             sendFinanceItem.ActionItemsList.Add(
-    //                 new ActionMessage<FinanceItem>
-    //                 {
-    //                     ActionItem = new FinanceItem
+    //             if (finItem.status == FinanceRecordStatus.Баланс)
+    //             {
+    //                 //записи для правки баланса финансов
+    //                 sendFinanceItem.ActionItemsList.Add(
+    //                     new ActionMessage<FinanceItem>
     //                     {
-    //                         ActionDate = DateTime.UtcNow,
-    //                         AuctionId = context.AuctionId,
-    //                         Id = Guid.NewGuid(),
-    //                         Status = FinanceRecordStatus.Приход,
-    //                         UserLogin = correct.userlogin,
-    //                         Value = correct.value
-    //                     },
-    //                     OperationType = OperationType.Delete,
-    //                     CorrelationId = context.CorrelationId
-    //                 }
-    //             );
-    //         }
+    //                         ActionItem = new FinanceItem
+    //                         {
+    //                             ActionDate = DateTime.UtcNow,
+    //                             AuctionId = context.AuctionId,
+    //                             Id = Guid.NewGuid(),
+    //                             Status = FinanceRecordStatus.Баланс,
+    //                             UserLogin = finItem.userlogin,
+    //                             Value = finItem.value
+    //                         },
+    //                         OperationType = OperationType.Update,
+    //                         CorrelationId = context.CorrelationId
+    //                     }
+    //                 );
+    //             }
+    //             else
+    //             {
+    //                 //записи для создания/удаления записи о ставке
+    //                 sendFinanceItem.ActionItemsList.Add(
+    //                     new ActionMessage<FinanceItem>
+    //                     {
+    //                         ActionItem = new FinanceItem
+    //                         {
+    //                             ActionDate = DateTime.UtcNow,
+    //                             AuctionId = context.AuctionId,
+    //                             Id = Guid.NewGuid(),
+    //                             Status = finItem.status,
+    //                             UserLogin = finItem.userlogin,
+    //                             Value = finItem.value
+    //                         },
+    //                         OperationType = finItem.status == FinanceRecordStatus.Приход ?
+    //                             OperationType.Delete : OperationType.Insert,
+    //                         CorrelationId = context.CorrelationId
+    //                     }
+    //                 );
+    //             }
+
+    //         };
+
     //         await _publishEndpoint.Publish(sendFinanceItem);
     //     }
     //     catch (Npgsql.PostgresException e)
     //     {
     //         //ошибка при выполнении транзакции в БД, в т.ч. штатные - при нехватке денег на ставку
     //         Fault<BidFinanceGranted> per = new FaultMessage<BidFinanceGranted>(
-    //             context.CorrelationId,
     //             e.MessageText,
     //             new BidFinanceGranted { CorrelationId = context.CorrelationId }
     //         );
@@ -126,7 +107,6 @@ public class FinanceProcessing
     //     {
     //         //все остальные ошибки программы
     //         Fault<BidFinanceGranted> per = new FaultMessage<BidFinanceGranted>(
-    //             context.CorrelationId,
     //             e.Message,
     //             new BidFinanceGranted { CorrelationId = context.CorrelationId }
     //         );
@@ -136,22 +116,20 @@ public class FinanceProcessing
 
     // private async Task FinanceCreate(ESContract context)
     // {
-    //     //крайний SnapShot
-    //     var lastSnapShotId = await _dbContext.EventsLogs.Where(p => p.SnapShotId != null)
-    //         .OrderBy(p => p.CreateAt).FirstOrDefaultAsync();
-    //     //получаем из EventSourcing записи по деньгам по данному пользователю, SnapShot
-    //     var financeItems = await _dbContext.EventsLogs.Where(p =>
-    //         (p.SnapShotId == lastSnapShotId.SnapShotId || p.SnapShotId == null) &&
-    //         p.EntityType == nameof(FinanceItem) &&
-    //         p.UserLogin == context.UserLogin &&
-    //         p.CreateAt >= lastSnapShotId.CreateAt
-    //     ).ToListAsync();
+    //     /*запускаем обработку, выполняется:     
+    //     - расчет баланса для текущего пользователя
+    //     - пишем в лог приход денег
+    //     - возвращаются: запись с текущим балансом (Status=2)
+    //     */
+    //     //получили баланс
+    //     var result = await _dbContext.finance_create(
+    //         context.CorrelationId,
+    //         context.AuctionId ?? Guid.NewGuid(),
+    //         context.EventData,
+    //         context.UserLogin).ToListAsync();
 
-    //     //пишем в ES лог
-    //     await _insertItemToEventSourcing.Processing(context);
-    //     var balance = GetBalance(financeItems,
-    //                         JsonSerializer.Deserialize<FinanceItem>(context.EventData).Value);
-    //     balance.UserLogin = context.UserLogin;
+    //     var balance = result.FirstOrDefault(p => p.status == FinanceRecordStatus.Баланс);
+
     //     //посылаем в FinanceService для обновления БД
     //     var sendFinanceItem = new ActionMessageList<FinanceItem>
     //     {
@@ -167,7 +145,15 @@ public class FinanceProcessing
     //                 //объект для обновления баланса а FinanceService
     //                 new ActionMessage<FinanceItem>
     //                 {
-    //                     ActionItem = balance,
+    //                     ActionItem = new FinanceItem
+    //                     {
+    //                         ActionDate = DateTime.UtcNow,
+    //                         AuctionId = context.AuctionId,
+    //                         Id = Guid.NewGuid(),
+    //                         Status = FinanceRecordStatus.Баланс,
+    //                         UserLogin = balance.userlogin,
+    //                         Value = balance.value
+    //                     },
     //                     OperationType = OperationType.Update,
     //                     CorrelationId = context.CorrelationId
     //                 }
@@ -238,7 +224,6 @@ public class FinanceProcessing
 
     // }
 
-    // private FinanceItem GetBalance(List<EventsLog> items, int correctValue)
     // {
     //     var financeItems = new List<FinanceItem>();
     //     foreach (var item in items)
@@ -247,13 +232,13 @@ public class FinanceProcessing
     //     }
     //     //получаем сумму средита
     //     int? credit = financeItems.Where(p => p.Status == FinanceRecordStatus.Приход).Sum(p => p.Value);
-    //     //получаем сумму дебита
-    //     int? debit = financeItems.Where(p => p.Status == FinanceRecordStatus.Расход).Sum(p => p.Value);
-    //     //баланс, добавляем деньги от удаленного аукциона
-    //     var balance = (credit ?? 0) - (debit ?? 0) + correctValue;
+    // //получаем сумму дебита
+    // int? debit = financeItems.Where(p => p.Status == FinanceRecordStatus.Расход).Sum(p => p.Value);
+    // //баланс, добавляем деньги от удаленного аукциона
+    // var balance = (credit ?? 0) - (debit ?? 0) + correctValue;
 
-    //     //делаем объект на обновление баланса
-    //     var balanceItem = new FinanceItem();
+    // //делаем объект на обновление баланса
+    // var balanceItem = new FinanceItem();
     //     balanceItem.Id = Guid.NewGuid();
     //     balanceItem.Value = balance;
     //     balanceItem.Status = FinanceRecordStatus.Баланс;

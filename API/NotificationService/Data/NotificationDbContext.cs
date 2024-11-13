@@ -1,4 +1,5 @@
 ﻿using Common.Contracts;
+using Common.Contracts.Notification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

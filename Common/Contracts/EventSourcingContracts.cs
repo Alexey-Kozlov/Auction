@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Common.Contracts.Auction;
+using Common.Contracts.Processing;
 
-namespace Common.Contracts;
+namespace Common.Contracts.EventSourcing;
 
 public class ESContract
 {
@@ -10,7 +12,7 @@ public class ESContract
     public Guid CorrelationId { get; set; }
     public string UserLogin { get; set; }
     public Guid? AuctionId { get; set; }
-    public OperationType OperationType { get; set; }
+    public Command Command { get; set; }
 }
 
 //указываем generic T для создания разных типов сообщений
@@ -28,7 +30,6 @@ public class SendToSetSnapShot
     public List<string> SnapShotItems { get; set; } = new();
     public string ItemsType { get; set; }
     public DateTime CreateAt { get; set; }
-    public int RestoringOrder { get; set; }
     public string SessionId { get; set; }
 }
 
@@ -64,7 +65,6 @@ public class RestoreSnapShotItem
 {
     public List<JsonDocument> Items { get; set; }
     public string ItemsType { get; set; }
-    public int? RestoringOrder { get; set; }
 }
 
 public record FinanceServiceType();
@@ -84,7 +84,7 @@ public record CommitESOperation(Guid CorrelationId);
 public class ActionMessage<T>
 {
     public T ActionItem { get; set; }
-    public OperationType OperationType { get; set; }
+    public Command Command { get; set; }
     public Guid CorrelationId { get; set; }
 };
 
@@ -95,11 +95,12 @@ public class ActionMessageList<T>
     public List<string> Properties { get; set; } = null;
 }
 
-public enum OperationType
+public class ReturnResultSql
 {
-    Delete, //0
-    Update, //1
-    Insert,  //2
-    Bid     //3
+    public Guid auctionid { get; set; }
+    public string userlogin { get; set; }
+    public string eventdata { get; set; }
+    public int crud { get; set; }
+    public string entitytype { get; set; }
+    public string tmp { get; set; }
 }
-

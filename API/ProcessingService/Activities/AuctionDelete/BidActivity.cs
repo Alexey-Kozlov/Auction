@@ -23,12 +23,12 @@ public class BidActivity : IStateMachineActivity<DeleteAuctionState, AuctionDele
     public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedFinance> context, IBehavior<DeleteAuctionState, AuctionDeletedFinance> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionBidItem
+            new BidItem
             {
                 AuctionId = context.Saga.AuctionId,
-                Seller = context.Saga.UserLogin
+                Bidder = context.Saga.UserLogin
             },
-            nameof(AuctionBidItem),
+            nameof(BidItem),
             "Common.Contracts.AuctionDeletedBid",
             context.Message.CorrelationId,
             context.Saga.UserLogin,

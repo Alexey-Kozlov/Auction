@@ -18,7 +18,7 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<SearchSe
     public async Task Consume(ConsumeContext<RestoreSnapShotItems<SearchServiceType>> consumeContext)
     {
         var itemCounter = 0;
-        foreach (var item in consumeContext.Message.Items.OrderBy(p => p.RestoringOrder))
+        foreach (var item in consumeContext.Message.Items)
         {
             //восстанавливаем тип BalanceItem
             foreach (var items in item.Items)

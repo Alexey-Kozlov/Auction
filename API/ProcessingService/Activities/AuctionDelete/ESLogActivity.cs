@@ -1,15 +1,17 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Finance;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
 namespace ProcessingService.Activities.AuctionDelete;
 
-public class FinanceActivity : IStateMachineActivity<DeleteAuctionState, RequestAuctionDelete>
+public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAuctionDelete>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
-    public FinanceActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
         _config = config;
@@ -26,16 +28,16 @@ public class FinanceActivity : IStateMachineActivity<DeleteAuctionState, Request
             new FinanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                AuctionId = context.Message.AuctionId,
+                AuctionId = context.Message.AuctionId, //важно
                 Id = Guid.NewGuid(),
-                Status = FinanceRecordStatus.Приход,
-                UserLogin = context.Message.UserLogin
+                Status = FinanceRecordStatus.Приход, //не важно
+                UserLogin = context.Message.UserLogin //важно
             },
             nameof(FinanceItem),
             "Common.Contracts.AuctionDeletedFinance",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Delete,
+            OperationType.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
@@ -47,6 +49,6 @@ public class FinanceActivity : IStateMachineActivity<DeleteAuctionState, Request
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-auction");
     }
 }

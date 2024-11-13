@@ -37,7 +37,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionBidConsumer>();
+    p.AddConsumersFromNamespaceContaining<BidConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("bids", false));
     p.UsingRabbitMq((context, config) =>
     {

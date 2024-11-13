@@ -13,7 +13,6 @@ import { setEventFlag } from '../store/processingSlice';
 import ErrorMessageToast from '../components/signalRNotifications/ErrorMessageToast';
 import WarningMessageToast from '../components/signalRNotifications/WarningMessageToast';
 import InfoMessageToast from '../components/signalRNotifications/InfoMessageToast';
-import FinanceUnsufficientToast from '../components/signalRNotifications/FinanceUnsufficientToast';
 import { setData } from '../store/auctionSlice';
 import { setParams } from '../store/paramSlice';
 import AuctionUpdatedToast from '../components/signalRNotifications/AuctionUpdatedToast';
@@ -141,7 +140,7 @@ export default function SignalRProvider() {
 
                 connection.on('ElkIndex', (result: number) => {
                     dispatch(setEventFlag({ eventName: 'ElkIndex', ready: false }));
-                    const mes:Message = {message:result.toString(),correlationId:'',auctionId:'',messageType:0};
+                    const mes:Message = {message:result.toString(),auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
@@ -149,7 +148,7 @@ export default function SignalRProvider() {
 
                 connection.on('SetSnapShotDb', (result: number) => {
                     dispatch(setEventFlag({ eventName: 'SetSnapShotDb', ready: false }));
-                    const mes:Message = {message:result.toString(),correlationId:'',auctionId:'',messageType:0};
+                    const mes:Message = {message:result.toString(),auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
@@ -157,7 +156,7 @@ export default function SignalRProvider() {
 
                 connection.on('RestoreSnapShotDb', (result: number) => {
                     dispatch(setEventFlag({ eventName: 'RestoreSnapShotDb', ready: false }));
-                    const mes:Message = {message:result.toString(),correlationId:'',auctionId:'',messageType:0};
+                    const mes:Message = {message:result.toString(),auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
@@ -180,12 +179,6 @@ export default function SignalRProvider() {
                         case 2:
                             return toast((p) => (
                                 <InfoMessageToast message={message} toastId={p.id} />
-                            ),
-                                { duration: 5000 });
-
-                        case 3:
-                            return toast((p) => (
-                                <FinanceUnsufficientToast message={message} toastId={p.id} />
                             ),
                                 { duration: 5000 });
 

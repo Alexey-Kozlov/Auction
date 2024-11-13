@@ -1,4 +1,4 @@
-namespace Common.Contracts;
+namespace Common.Contracts.Notification;
 
 public class NotifyItem
 {
@@ -12,3 +12,16 @@ public record UserNotificationSet(
 );
 
 public record UserNotificationAdded(Guid CorrelationId);
+
+public record FaultNotificationMessage(
+     string UserLogin,
+     string Message,
+     MessageType MessageType,
+     Guid? AuctionId);
+
+public enum MessageType
+{
+     Ошибка,
+     Предупреждение,
+     Сообщение
+}

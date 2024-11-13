@@ -1,5 +1,5 @@
 using System.Reflection;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;

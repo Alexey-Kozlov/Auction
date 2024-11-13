@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
 using Microsoft.EntityFrameworkCore;

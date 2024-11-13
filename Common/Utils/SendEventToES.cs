@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Processing;
 using MassTransit;
 
 namespace Common.Utils;

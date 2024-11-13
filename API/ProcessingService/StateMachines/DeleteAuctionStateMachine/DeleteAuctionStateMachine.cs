@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
 using MassTransit;
 using ProcessingService.Activities.AuctionDelete;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
@@ -69,9 +69,12 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //Удаление записей по деньгам в сервисе FinanceService
-            .Activity(p => p.OfType<FinanceActivity>())
-            .TransitionTo(FinanceState)
+            //посылаем через Кафку, выполнение всех операций в ES лог для удаления аукциона:
+            // - Удаление записей по деньгам в сервисе FinanceService
+            // - Удаление всех ставок в сервисе BiddingService
+            // - Удаление записи в сервисе SearchService
+            .Activity(p => p.OfType<ESLogActivity>())
+            .TransitionTo(CompletedState)
         );
     }
 
@@ -84,7 +87,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //Удаление записей (ставки) в сервисе BiddingService
-            .Activity(p => p.OfType<BidActivity>())
+            //.Activity(p => p.OfType<BidActivity>())
             .TransitionTo(BidState));
     }
 

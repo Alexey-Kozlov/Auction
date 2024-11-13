@@ -134,7 +134,7 @@ export type Message = {
   auctionId: string;
   message: string;
   messageType: number;
-  correlationId: string;
+  userLogin?: string;
 };
 
 export type Session = {

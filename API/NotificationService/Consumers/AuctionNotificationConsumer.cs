@@ -53,6 +53,11 @@ public class AuctionNotificationConsumer : IConsumer<ActionMessageList<NotifyIte
                     if (context.Message.Properties != null && context.Message.Properties[0] == "true")
                     {
                         _dbContext.NotifyItems.Add(actionItem.ActionItem);
+                        auctionNotifyList.Add(new NotifyItem
+                        {
+                            AuctionId = actionItem.ActionItem.AuctionId,
+                            UserLogin = context.Message.ActionItemsList[0].ActionItem.UserLogin
+                        });
                     }
                     await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", auctionCreatingNotification);
                     break;

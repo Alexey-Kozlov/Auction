@@ -1,11 +1,6 @@
-using System.Reflection;
-using System.Text.Json;
 using Common.Contracts;
 using EventSourcingService.Data;
-using EventSourcingService.Entities;
-using EventSourcingService.Services;
 using MassTransit;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace SearchService.Consumers;
@@ -34,17 +29,15 @@ public class RestoreDbSnapShotConsumer : IConsumer<RestoreSnapShotDb>
             //получили наименования проектов, т.е. БД для восстановления
             items.Clear();
             foreach (var projectItems in allItems.Where(p => p.EntityType == projectItem)
-                .Select(p => (p.RestoringOrder, p.EntityType)).Distinct())
+                .Select(p => p.EntityType).Distinct())
             {
                 //добавляем запись по типу данных проекта, в каждой записи - все записи БД данного типа (в коллекции Items)
                 //для всех проектов в коллекции items будет по 1 записи (Finance, Notification, Search)
                 //Для проекта Bidding будут 2 записи - для типов Bid и Auction, в нем 2 такие таблицы нужно восстанавливать
                 items.Add(new RestoreSnapShotItem
                 {
-                    RestoringOrder = projectItems.RestoringOrder,
                     ItemsType = projectItems.EntityType,
                     Items = allItems.Where(p => p.EntityType == projectItem
-                        && p.RestoringOrder == projectItems.RestoringOrder
                         && p.EntityType == projectItems.EntityType)
                         .Select(p => p.EventData).ToList()
                 });

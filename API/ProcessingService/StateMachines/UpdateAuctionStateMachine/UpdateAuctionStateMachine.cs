@@ -73,7 +73,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             })
             //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
             //Создание записи по обновлению аукциона в сервисе BiddingService (обновление времени окончания)
-            .Activity(p => p.OfType<BidActivity>())
+            //.Activity(p => p.OfType<BidActivity>())
             .TransitionTo(BidState)
         );
     }

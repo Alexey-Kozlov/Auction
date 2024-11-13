@@ -41,7 +41,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendObject.UserLogin = consumeContext.Message.UserLogin;
         sendObject.ItemsType = nameof(AuctionItem);
         sendObject.CreateAt = consumeContext.Message.CreateAt;
-        sendObject.RestoringOrder = 1;
         await _publishEndpoint.Publish(sendObject);
 
         Console.WriteLine("--> Получение сообщения выполнить снапшот текущй БД в EventSourcing");

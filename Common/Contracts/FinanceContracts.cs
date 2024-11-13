@@ -1,4 +1,4 @@
-namespace Common.Contracts;
+namespace Common.Contracts.Finance;
 
 public record FinanceCreate(
      int Amount,
@@ -21,13 +21,16 @@ public record FinanceCreatingNotification(
      Guid CorrelationId
 );
 public record FinanceNotificationCreated(Guid CorrelationId);
-public record FinanceCreateESCommit(Guid CorrelationId);
+public class FinanceCreateESCommit
+{
+     public Guid CorrelationId { get; set; }
+}
 
 public record CommitESFinanceOperation(Guid CorrelationId);
 
 public class FinanceItem
 {
-     public Guid Id { get; set; }
+     public Guid FinanceId { get; set; }
      public Guid? AuctionId { get; set; }
      public string UserLogin { get; set; }
      public int Value { get; set; }
@@ -35,15 +38,6 @@ public class FinanceItem
      public FinanceRecordStatus Status { get; set; }
 }
 
-public class FinanceItemSql
-{
-     public Guid id { get; set; }
-     public Guid auctionid { get; set; }
-     public string userlogin { get; set; }
-     public int value { get; set; }
-     public DateTime actiondate { get; set; }
-     public FinanceRecordStatus status { get; set; }
-}
 
 public enum FinanceRecordStatus
 {

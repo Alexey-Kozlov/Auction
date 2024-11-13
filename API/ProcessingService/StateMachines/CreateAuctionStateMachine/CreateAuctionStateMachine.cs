@@ -69,9 +69,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 context.Saga.ReservePrice = context.Message.ReservePrice;
                 this.Image = context.Message.Image;
             })
-            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
+            //посылаем через Кафку
             //Создание записи по обновлению аукциона в сервисе BiddingService (обновление времени окончания)
-            .Activity(p => p.OfType<BidActivity>())
             .TransitionTo(BidState)
         );
     }

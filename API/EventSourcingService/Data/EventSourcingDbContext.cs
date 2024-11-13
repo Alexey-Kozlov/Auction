@@ -1,4 +1,5 @@
-﻿using Common.Contracts;
+﻿using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
 using EventSourcingService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,18 +13,28 @@ public class EventSourcingDbContext : DbContext
     }
 
     public DbSet<EventsLog> EventsLogs { get; set; }
-    public IQueryable<FinanceItemSql> financeplacebid(
+    // public IQueryable<FinanceItemSql> placebid(
+    //     Guid correlationid,
+    //     Guid auctionid,
+    //     string eventdata,
+    //     string userLogin) =>
+    //     FromExpression(() => placebid(correlationid, auctionid, eventdata, userLogin));
+    // public IQueryable<FinanceItemSql> finance_create(
+    //     Guid correlationid,
+    //     Guid auctionid,
+    //     string eventdata,
+    //     string userLogin) =>
+    //     FromExpression(() => finance_create(correlationid, auctionid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> auction_delete(
         Guid correlationid,
         Guid auctionid,
-        string eventdata,
         string userLogin) =>
-        FromExpression(() => financeplacebid(correlationid, auctionid, eventdata, userLogin));
-
+        FromExpression(() => auction_delete(correlationid, auctionid, eventdata, userLogin));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
-        modelBuilder.HasDbFunction(() => financeplacebid(default, default, default, default));
+        modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
     }
 }
 
@@ -40,13 +51,14 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.Property(p => p.Description).HasColumnType("text").HasColumnName("Description").IsRequired(false);
         builder.Property(p => p.SnapShotId).HasColumnType("uuid").HasColumnName("SnapShotId").IsRequired(false);
         builder.Property(p => p.EntityType).HasColumnType("varchar(50)").HasColumnName("EntityType").IsRequired(true);
-        builder.Property(p => p.RestoringOrder).HasColumnType("smallint").HasColumnName("RestoringOrder").IsRequired(false);
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
         builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(false);
-        builder.Property(p => p.OperationType).HasColumnType("smallint").HasColumnName("OperationType").IsRequired(true);
+        builder.Property(p => p.Command).HasColumnType("smallint").HasColumnName("Command").IsRequired(true);
+        builder.Property(p => p.CRUD).HasColumnType("smallint").HasColumnName("CRUD").IsRequired(true);
         builder.HasIndex(p => p.Version).HasDatabaseName("PK_EventsLog");
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_EventsLog_CorrelationId");
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_EventsLog_AuctionId");
+        builder.HasIndex(p => p.EntityType).HasDatabaseName("IX_EventsLog_EntityType");
         builder.HasIndex(p => p.UserLogin).HasDatabaseName("IX_EventsLog_UserLogin");
     }
 }

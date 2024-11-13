@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Notification;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
@@ -32,7 +34,7 @@ public class NotificationActivity : IStateMachineActivity<DeleteAuctionState, Au
             "Common.Contracts.AuctionDeletedNotification",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Delete,
+            OperationType.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

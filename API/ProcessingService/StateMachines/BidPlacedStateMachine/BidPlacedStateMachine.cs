@@ -1,7 +1,6 @@
 using Common.Contracts;
 using MassTransit;
 using ProcessingService.Activities.Bid;
-using ProcessingService.Activities.Errors;
 
 namespace ProcessingService.StateMachines.BidPlacedStateMachine;
 public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
@@ -12,6 +11,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public State NotificationState { get; }
     public State ESCommitState { get; }
     public State CompletedState { get; }
+
 
     public Event<RequestBidPlace> RequestEvent { get; }
     public Event<BidFinanceGranted> FinanceEvent { get; }
@@ -56,7 +56,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         Event(() => CommitEvent);
         Event(() => FinanceFaultedEvent, x => x.CorrelateById(
             context => context.Message.Message.CorrelationId));
-        //Event(() => CommitBidPlacedEvent);
         // Event(() => BidFinanceGrantedFaultedEvent, x => x.CorrelateById(
         //     context => context.Message.Message.CorrelationId));
 
@@ -80,9 +79,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.BidId = Guid.NewGuid();
             })
+            .TransitionTo(FinanceState)
             //делаем запись о списании денег, посылаем в лог в EventSourcing
             .Activity(p => p.OfType<FinanceActivity>())
-            .TransitionTo(FinanceState)
         );
     }
 
@@ -99,21 +98,21 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Activity(p => p.OfType<BidActivity>())
             .TransitionTo(BidState),
         When(FinanceFaultedEvent)
-            //рассылка сообщения об ошибках при размещении денег
+            //обработка ошибок пайплайна
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .TransitionTo(CompletedState)
             .Send(
-                new Uri(configuration["QueuePaths:RollbackBidPlaced"]),
-                context => new RollbackBidPlaced(
-                context.Saga.BidId,
-                context.Saga.CorrelationId
+                new Uri(configuration["QueuePaths:FaultedNotification"]),
+                context => new FaultMessageSending(
+                context.Saga.CorrelationId,
+                context.Message.Exceptions[0].Message,
+                context.Saga.Bidder
             ))
-        .Then(context =>
-        {
-            context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
-            context.Saga.LastUpdated = DateTime.UtcNow;
-        })
-        .TransitionTo(CompletedState)
 
-            );
+        );
     }
 
     private void ConfigureBidPState()
@@ -129,17 +128,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             //запись о новой ставке в Search для публикации  
             .Activity(p => p.OfType<SearchActivity>())
             .TransitionTo(SearchState)
-        //поступил ранее посланный BidFinanceGranting, случилось исключение при его обработке
-        //ошибка при создании записи в аукционе о новой ставке - ничего не делаем, переходим на 
-        //конечный этап обработки ошибок      
-        // When(BidFinanceGrantedFaultedEvent)
-        //     .Then(context =>
-        //     {
-        //         context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
-        //         context.Saga.LastUpdated = DateTime.UtcNow;
-        //     })
-        //     .Activity(p => p.OfType<CommitErrorFinanceGrantedActivity>())
-        //     .TransitionTo(CompletedState)
         );
     }
 
@@ -157,28 +145,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             })
             .Activity(p => p.OfType<NotificationActivity>())
             .TransitionTo(NotificationState));
-        //поступил ранее посланный BidPlacing, случилось исключение при его обработке
-        //ошибка при создании записи в аукционе о новой ставке - делаем корректирующую транзакцию для отмены
-        //ранее списанных денег и выход на ошибочное окончание процесса           
-        // When(BidPlacedFaultedEvent)
-        //     .Then(context =>
-        //     {
-        //         context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
-        //         context.Saga.LastUpdated = DateTime.UtcNow;
-        //     })
-        //     //посылаем запрос на отмену списания денег со счета
-        //     //FinanceService -> Consumers -> RollbackBidFinanceGrantedConsumer
-        //     .Send(
-        //         new Uri(configuration["QueuePaths:RollbackBidFinanceGranted"]),
-        //         context => new RollbackBidFinanceGranted(
-        //         context.Saga.AuctionId,
-        //         context.Saga.Bidder,
-        //         context.Saga.Amount,
-        //         context.Saga.CorrelationId
-        //     ))
-        //     .Activity(p => p.OfType<CommitErrorBidPlacedActivity>())
-        //     .TransitionTo(CompletedState)
-        // );
     }
 
     private void ConfigureNotificationState()
@@ -192,37 +158,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             //посылаем запрос о подтверждении транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(ESCommitState));
-        //ошибка при создании записи о новой ставке, исключение при обработке BidSearchPlacing - 
-        //делаем корректирующую транзакции для отмены:
-        //-в микросервисе Finance - о ранее списанных на эту ставку деньгах 
-        //-в микросервисе Bid - о новой записи - новая ставка
-        //и выход на ошибочное окончание процесса           
-        // When(BidSearchPlacedFaultedEvent)
-        //     .Then(context =>
-        //     {
-        //         context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
-        //         context.Saga.LastUpdated = DateTime.UtcNow;
-        //     })
-        //     //отменяем списание денег
-        //     //FinanceService -> Consumers -> RollbackBidFinanceGrantedConsumer
-        //     .Send(
-        //         new Uri(configuration["QueuePaths:RollbackBidFinanceGranted"]),
-        //         context => new RollbackBidFinanceGranted(
-        //         context.Saga.AuctionId,
-        //         context.Saga.Bidder,
-        //         context.Saga.Amount,
-        //         context.Saga.CorrelationId
-        //     ))
-        //     //отменяем запись о новой ставке
-        //     .Send(
-        //         new Uri(configuration["QueuePaths:RollbackBidPlaced"]),
-        //         context => new RollbackBidPlaced(
-        //         context.Saga.BidId,
-        //         context.Saga.CorrelationId
-        //     ))
-        //     .Activity(p => p.OfType<CommitErrorBidSearchPlaceActivity>())
-        //     .TransitionTo(CompletedState)
-        // );
     }
 
     private void ConfigureESCommitState()
@@ -233,58 +168,14 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
+            .Send(
+                new Uri(configuration["QueuePaths:RollbackBidPlaced"]),
+                context => new RollbackBidPlaced(
+                context.Saga.BidId,
+                context.Saga.CorrelationId
+            ))
             .TransitionTo(CompletedState));
     }
-
-    //private void ConfigureBidNotificationProcessed()
-    //{
-    //поступила BidNotificationProcessed
-    // During(UserNotificationSetState,
-    // When(BidNotificationProcessedEvent)
-    // //успешно создали рассылку уведомлений
-    //     .Then(context =>
-    //     {
-    //         context.Saga.LastUpdated = DateTime.UtcNow;
-    //     })
-
-    //     .TransitionTo(CompletedState));
-    // When(BidNotificationFaultedEvent)
-    // //ошибка рассылки уведомлений
-    // //поступил BidNotificationProcessing - ничего не корректируем, просто переходим на обработку ошибок
-    //     .Then(context =>
-    //     {
-    //         context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
-    //         context.Saga.LastUpdated = DateTime.UtcNow;
-    //     })
-    //     .Activity(p => p.OfType<CommitErrorNotificationActivity>())
-    //     .TransitionTo(CompletedState)
-    // );
-    // }
-
-    // private void ConfigureCommitBidPlaced()
-    // {
-    //     //поступила CommitBidPlacedContract
-    //     During(CommitBidPlacedState,
-    //     When(CommitBidPlacedEvent)
-    //     //успешно прошла фиксация новой ставки в EventSourcing
-    //         .Then(context =>
-    //         {
-    //             context.Saga.LastUpdated = DateTime.UtcNow;
-    //         })
-    //         .TransitionTo(CompletedState),
-    //     When(ErrorBidEventSourcingCommitEvent)
-    //     //ошибка фиксации новой ставки в EventSourcing
-    //     //поступил CommitBidPlacedErrorContract - ничего не корректируем, 
-    //     //фиксируем в логе Саги эту ошибку, уже ничего не сделать
-    //         .Then(context =>
-    //         {
-    //             context.Saga.ErrorMessage = $"Ошибка подтверждения записи в EventSourcing - {context.Message.ExceptionItem.Message}";
-    //             context.Saga.LastUpdated = DateTime.UtcNow;
-    //         })
-    //         .TransitionTo(CompletedState)
-    //     );
-
-    // }
 
     private void ConfigureCompleted()
     {

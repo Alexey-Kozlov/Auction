@@ -35,23 +35,23 @@ public class CheckAuctionFinished : BackgroundService
             var endpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
             var _context = scope.ServiceProvider.GetRequiredService<BidDbContext>();
 
-            var finishedAuctions = await _context.Auctions.Where(p => p.AuctionEnd <= DateTime.UtcNow && !p.Finished).ToListAsync();
-            if (finishedAuctions.Count == 0) return;
+            //var finishedAuctions = await _context.Auctions.Where(p => p.AuctionEnd <= DateTime.UtcNow && !p.Finished).ToListAsync();
+            // if (finishedAuctions.Count == 0) return;
 
-            _logger.LogInformation("==> Найдено {count} аукционов, которые завершились", finishedAuctions.Count);
+            // _logger.LogInformation("==> Найдено {count} аукционов, которые завершились", finishedAuctions.Count);
 
-            foreach (var auction in finishedAuctions)
-            {
-                auction.Finished = true;
-                await _context.SaveChangesAsync();
-                var winningBid = await _context.Bids.Where(p =>
-                p.AuctionId == auction.AuctionId)
-                .OrderByDescending(p => p.Amount)
-                .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
+            // foreach (var auction in finishedAuctions)
+            // {
+            //     auction.Finished = true;
+            //     await _context.SaveChangesAsync();
+            //     var winningBid = await _context.Bids.Where(p =>
+            //     p.AuctionId == auction.AuctionId)
+            //     .OrderByDescending(p => p.Amount)
+            //     .ThenBy(p => p.BidTime).FirstOrDefaultAsync();
 
-                await endpoint.Publish(new RequestAuctionFinish(auction.AuctionId, winningBid != null, winningBid?.Bidder,
-                    (winningBid == null ? 0 : winningBid.Amount), Guid.NewGuid()), stoppingToken);
-            }
+            //     await endpoint.Publish(new RequestAuctionFinish(auction.AuctionId, winningBid != null, winningBid?.Bidder,
+            //         (winningBid == null ? 0 : winningBid.Amount), Guid.NewGuid()), stoppingToken);
+            // }
         }
         catch (Exception ex)
         {

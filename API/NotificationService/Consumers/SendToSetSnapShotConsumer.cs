@@ -37,7 +37,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         notifObject.UserLogin = consumeContext.Message.UserLogin;
         notifObject.ItemsType = nameof(NotifyItem);
         notifObject.CreateAt = consumeContext.Message.CreateAt;
-        notifObject.RestoringOrder = 1;
         await _publishEndpoint.Publish(notifObject);
 
         Console.WriteLine("--> Получение сообщения выполнить снапшот текущй БД в EventSourcing");

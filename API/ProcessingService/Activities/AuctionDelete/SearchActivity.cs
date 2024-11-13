@@ -1,4 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
@@ -32,7 +33,7 @@ public class SearchActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             "Common.Contracts.AuctionDeletedSearch",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Delete,
+            OperationType.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

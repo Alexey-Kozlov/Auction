@@ -1,4 +1,6 @@
-namespace Common.Contracts;
+using Common.Contracts.Auction;
+
+namespace Common.Contracts.ELKSearch;
 
 public record ElkSearchRequest(
      Guid Id,

@@ -1,4 +1,4 @@
-namespace Common.Contracts;
+namespace Common.Contracts.Auction;
 
 public class AuctionItem
 {

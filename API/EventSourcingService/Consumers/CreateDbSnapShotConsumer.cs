@@ -44,7 +44,6 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                         case nameof(BidItem):
                             document.RootElement.TryGetProperty("Bidder", out jsonElement);
                             break;
-                        case nameof(AuctionBidItem):
                         case nameof(AuctionItem):
                             document.RootElement.TryGetProperty("Seller", out jsonElement);
                             break;
@@ -69,7 +68,6 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                     EventData = JsonDocument.Parse(item),
                     SnapShotId = consumeContext.Message.CorrelationId,
                     EntityType = consumeContext.Message.ItemsType,
-                    RestoringOrder = consumeContext.Message.RestoringOrder,
                     UserLogin = userLogin,
                     AuctionId = auctionId,
                     OperationType = OperationType.Insert

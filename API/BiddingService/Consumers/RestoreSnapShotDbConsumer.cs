@@ -22,37 +22,23 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<BiddingS
     public async Task Consume(ConsumeContext<RestoreSnapShotItems<BiddingServiceType>> consumeContext)
     {
         var bidCounter = 0;
-        var auctionCounter = 0;
-        foreach (var item in consumeContext.Message.Items.OrderBy(p => p.RestoringOrder))
+        foreach (var item in consumeContext.Message.Items)
         {
             //очищаем данные
             await _context.Bids.ExecuteDeleteAsync();
-            await _context.Auctions.ExecuteDeleteAsync();
             //восстанавливаем тип Bid
-            if (item.ItemsType == "Bid")
+
+            foreach (var bids in item.Items)
             {
-                foreach (var bids in item.Items)
-                {
-                    var bid = JsonSerializer.Deserialize<BidItem>(bids);
-                    await _context.Bids.AddAsync(bid);
-                    bidCounter++;
-                }
-            }
-            //восстанавливаем тип Auction
-            else
-            {
-                foreach (var auctions in item.Items)
-                {
-                    var auction = JsonSerializer.Deserialize<AuctionBidItem>(auctions);
-                    await _context.Auctions.AddAsync(auction);
-                    auctionCounter++;
-                }
+                var bid = JsonSerializer.Deserialize<BidItem>(bids);
+                await _context.Bids.AddAsync(bid);
+                bidCounter++;
             }
         }
         await _context.SaveChangesAsync();
-        await _publishEndpoint.Publish(new RestoreSnapShotCompleted($"Успешно восстановлено {bidCounter} записей Bid и {auctionCounter} записей Auction",
+        await _publishEndpoint.Publish(new RestoreSnapShotCompleted($"Успешно восстановлено {bidCounter} записей Bid",
             Guid.NewGuid(), consumeContext.Message.UserLogin, consumeContext.Message.SessionId));
-        Console.WriteLine($"{DateTime.Now} --> Восстановлено {bidCounter} записей Bid и {auctionCounter} записей Auction");
+        Console.WriteLine($"{DateTime.Now} --> Восстановлено {bidCounter} записей Bid");
 
     }
 }

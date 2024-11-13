@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using Common.Contracts.Processing;
 
-namespace Common.Contracts;
+namespace Common.Contracts.Bid;
 
 public record RequestBidPlace(
      Guid AuctionId,
@@ -14,7 +15,7 @@ public record BidFinanceGranting(
      int Amount,
      Guid CorrelationId
 );
-public class BidFinanceGranted
+public class BidFinanceGranted : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
 };
@@ -86,16 +87,6 @@ public class BidCreateESCommit
 
 public record GetBidPlaceState(Guid CorrelationId);
 
-public class AuctionBidItem
-{
-     public Guid AuctionId { get; set; }
-     public DateTime AuctionEnd { get; set; }
-     public string Seller { get; set; }
-     public int ReservePrice { get; set; }
-     public bool Finished { get; set; }
-     public ICollection<BidItem> Bids { get; set; }
-}
-
 public class BidItem
 {
      public Guid BidId { get; set; }
@@ -103,13 +94,10 @@ public class BidItem
      public string Bidder { get; set; }
      public DateTime BidTime { get; set; } = DateTime.UtcNow;
      public int Amount { get; set; }
-     [JsonIgnore]
-     public AuctionBidItem Auction { get; set; }
 }
 
-public class ComplexAuctionBidItem
+public class AuctionBidItems
 {
-     public AuctionBidItem auctionBidItem { get; set; }
      public List<BidItem> bidItems { get; set; }
 }
 
