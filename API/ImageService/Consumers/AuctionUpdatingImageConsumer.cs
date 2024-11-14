@@ -1,9 +1,9 @@
 ﻿using ImageService.Data;
 using AutoMapper;
-using Common.Contracts;
 using ImageService.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Common.Contracts.Auction;
 
 namespace ImageService.Consumers;
 

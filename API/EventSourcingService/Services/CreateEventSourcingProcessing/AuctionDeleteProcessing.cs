@@ -4,13 +4,13 @@ using MassTransit;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;
 
-public class AuctionDeleteProcessing
+public class AuctionDeleteProcessing1
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly InsertItemToEventSourcing _insertItemToEventSourcing;
 
-    public AuctionDeleteProcessing(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
+    public AuctionDeleteProcessing1(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
         EventSourcingDbContext dbContext)
     {
         _publishEndpoint = publishEndpoint;

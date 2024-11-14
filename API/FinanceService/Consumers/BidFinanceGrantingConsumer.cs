@@ -1,6 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Bid;
 using FinanceService.Data;
-using FinanceService.Exceptions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

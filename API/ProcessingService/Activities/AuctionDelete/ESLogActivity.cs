@@ -29,15 +29,15 @@ public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAu
             {
                 ActionDate = DateTime.UtcNow,
                 AuctionId = context.Message.AuctionId, //важно
-                Id = Guid.NewGuid(),
+                FinanceId = Guid.NewGuid(), //не важно
                 Status = FinanceRecordStatus.Приход, //не важно
                 UserLogin = context.Message.UserLogin //важно
             },
             nameof(FinanceItem),
-            "Common.Contracts.AuctionDeletedFinance",
+            "Common.Contracts.Processing.ESLog_AuctionDeleted",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.AuctionDelete,
+            Command.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

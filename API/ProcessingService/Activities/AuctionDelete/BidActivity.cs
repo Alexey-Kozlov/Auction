@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Bid;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
@@ -32,7 +34,7 @@ public class BidActivity : IStateMachineActivity<DeleteAuctionState, AuctionDele
             "Common.Contracts.AuctionDeletedBid",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Delete,
+            Command.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

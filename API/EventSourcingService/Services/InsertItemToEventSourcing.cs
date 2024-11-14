@@ -32,18 +32,18 @@ public class InsertItemToEventSourcing
                 }
                 break;
             default:
-                //если не завершение транзакции - пишем в лог
-                _dbContext.EventsLogs.Add(new EventsLog
-                {
-                    CorrelationId = context.CorrelationId,
-                    CreateAt = DateTime.UtcNow,
-                    Commited = false,
-                    EntityType = context.EntityType,
-                    EventData = JsonDocument.Parse(context.EventData),
-                    UserLogin = context.UserLogin,
-                    AuctionId = context.AuctionId,
-                    OperationType = context.OperationType
-                });
+                // //если не завершение транзакции - пишем в лог
+                // _dbContext.EventsLogs.Add(new EventsLog
+                // {
+                //     CorrelationId = context.CorrelationId,
+                //     CreateAt = DateTime.UtcNow,
+                //     Commited = false,
+                //     EntityType = context.EntityType,
+                //     EventData = JsonDocument.Parse(context.EventData),
+                //     UserLogin = context.UserLogin,
+                //     AuctionId = context.AuctionId,
+                //     OperationType = context.OperationType
+                // });
                 break;
         }
         await _dbContext.SaveChangesAsync();

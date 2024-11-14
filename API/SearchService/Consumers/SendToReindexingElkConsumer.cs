@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
@@ -28,7 +28,7 @@ public class SendToReindexingElkConsumer : IConsumer<SendAllItems<SendToReindexi
         _mapper.Map(await _context.AuctionItems.ToListAsync(), sendObject.AuctionItems);
         sendObject.SessionId = consumeContext.Message.SessionId;
         sendObject.UserLogin = consumeContext.Message.UserLogin;
-        await _elkReindexingService.ReindexElkItems(sendObject);
+        //await _elkReindexingService.ReindexElkItems(sendObject);
         Console.WriteLine("--> Получение сообщения передать все записи из БД");
     }
 }

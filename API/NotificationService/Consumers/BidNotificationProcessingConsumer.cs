@@ -1,4 +1,5 @@
-﻿using Common.Contracts;
+﻿using Common.Contracts.Bid;
+using Common.Contracts.Notification;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,5 @@
 ﻿using Common.Contracts;
+using Common.Contracts.Auction;
 using GatewayService.Cache;
 using MassTransit;
 

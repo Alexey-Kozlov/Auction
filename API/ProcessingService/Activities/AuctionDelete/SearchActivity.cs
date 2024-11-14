@@ -33,7 +33,7 @@ public class SearchActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             "Common.Contracts.AuctionDeletedSearch",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.AuctionDelete,
+            Command.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

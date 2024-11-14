@@ -29,7 +29,7 @@ public class EventSourcingDbContext : DbContext
         Guid correlationid,
         Guid auctionid,
         string userLogin) =>
-        FromExpression(() => auction_delete(correlationid, auctionid, eventdata, userLogin));
+        FromExpression(() => auction_delete(correlationid, auctionid, userLogin));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

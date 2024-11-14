@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Common.Utils;
 using NotificationService.Data;
 using NotificationService.DTO;
-using Common.Contracts;
+using Common.Contracts.Notification;
 
 namespace NotificationService.Controllers;
 

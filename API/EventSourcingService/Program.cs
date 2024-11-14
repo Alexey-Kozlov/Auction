@@ -13,8 +13,8 @@ using EventSourcingService.Data;
 using SearchService.Consumers;
 using Common.Utils.Vault;
 using EventSourcingService.Consumers;
-using EventSourcingService.Services.CreateEventSourcingProcessing;
 using EventSourcingService.Services;
+using Common.Contracts.EventSourcing;
 
 internal class Program
 {
@@ -42,6 +42,7 @@ internal class Program
             conStrBuilder.Host = builder.Configuration["pg:host"];
             options.UseNpgsql(conStrBuilder.ConnectionString);
         }, ServiceLifetime.Transient, ServiceLifetime.Transient);
+
         builder.Services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.AddConsumersFromNamespaceContaining<CreateDbSnapShotConsumer>();
@@ -118,11 +119,7 @@ internal class Program
 
         builder.Services.AddSingleton<AuctionMetrics>();
         builder.Services.AddScoped<InsertItemToEventSourcing>();
-        builder.Services.AddScoped<NotificationProcessing>();
-        builder.Services.AddScoped<SearchProcessing>();
-        builder.Services.AddScoped<BidProcessing>();
-        builder.Services.AddScoped<MainProcessing>();
-        builder.Services.AddScoped<FinanceProcessing>();
+        builder.Services.AddScoped<AuctionDeleteProcessing>();
 
         var app = builder.Build();
 

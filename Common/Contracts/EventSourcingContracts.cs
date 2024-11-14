@@ -84,7 +84,6 @@ public record CommitESOperation(Guid CorrelationId);
 public class ActionMessage<T>
 {
     public T ActionItem { get; set; }
-    public Command Command { get; set; }
     public Guid CorrelationId { get; set; }
 };
 

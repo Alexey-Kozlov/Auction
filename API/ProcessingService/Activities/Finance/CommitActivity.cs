@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.FinanceStateMachine;
@@ -29,7 +31,7 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceNotific
             "Common.Contracts.FinanceCreateESCommit",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            Command.FinanceCreate,
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

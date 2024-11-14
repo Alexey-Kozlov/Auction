@@ -31,7 +31,7 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             "Common.Contracts.AuctionCreateESCommit",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.AuctionCreate,
+            Command.AuctionCreate,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

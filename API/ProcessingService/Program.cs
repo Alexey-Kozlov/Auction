@@ -12,6 +12,7 @@ using Npgsql;
 using Common.Contracts;
 using Confluent.Kafka;
 using Common.Utils.Vault;
+using Common.Contracts.EventSourcing;
 
 var builder = WebApplication.CreateBuilder(args);
 

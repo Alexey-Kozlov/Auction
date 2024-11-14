@@ -1,4 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
 using Common.Utils;
 using MassTransit;
 

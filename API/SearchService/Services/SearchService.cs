@@ -1,5 +1,6 @@
+using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
 using Common.Utils;
-using Common.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;

@@ -1,4 +1,4 @@
-﻿using Common.Contracts;
+﻿using Common.Contracts.EventSourcing;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.Hubs;

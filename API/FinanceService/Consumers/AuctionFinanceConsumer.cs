@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
 using FinanceService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -24,22 +25,22 @@ public class AuctionFinanceConsumer : IConsumer<ActionMessageList<FinanceItem>>
         var correlationId = context.Message.ActionItemsList[0].CorrelationId;
         foreach (var financeItem in context.Message.ActionItemsList)
         {
-            switch (financeItem.OperationType)
-            {
-                case OperationType.Update:
-                    //обновляем баланс
-                    var item = await CheckExistItem(financeItem, true);
-                    item.Value = financeItem.ActionItem.Value;
-                    break;
-                //удаляем платеж в случае удаления аукциона
-                case OperationType.Delete:
-                    var delItem = await CheckExistItem(financeItem);
-                    _dbContext.FinanceItems.Remove(delItem);
-                    break;
-                case OperationType.Insert:
-                    _dbContext.FinanceItems.Add(financeItem.ActionItem);
-                    break;
-            }
+            // switch (financeItem.OperationType)
+            // {
+            //     case OperationType.Update:
+            //         //обновляем баланс
+            //         var item = await CheckExistItem(financeItem, true);
+            //         item.Value = financeItem.ActionItem.Value;
+            //         break;
+            //     //удаляем платеж в случае удаления аукциона
+            //     case OperationType.Delete:
+            //         var delItem = await CheckExistItem(financeItem);
+            //         _dbContext.FinanceItems.Remove(delItem);
+            //         break;
+            //     case OperationType.Insert:
+            //         _dbContext.FinanceItems.Add(financeItem.ActionItem);
+            //         break;
+            // }
         }
         await _dbContext.SaveChangesAsync();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +

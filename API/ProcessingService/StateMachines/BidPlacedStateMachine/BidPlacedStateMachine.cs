@@ -1,4 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Bid;
+using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.Bid;
 

@@ -2,7 +2,8 @@
 using System.Text.Json.Serialization;
 using AutoMapper;
 using BiddingService.Data;
-using Common.Contracts;
+using Common.Contracts.Bid;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

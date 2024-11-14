@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

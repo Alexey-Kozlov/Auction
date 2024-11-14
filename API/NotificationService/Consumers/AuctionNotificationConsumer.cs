@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Notification;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -33,39 +35,39 @@ public class AuctionNotificationConsumer : IConsumer<ActionMessageList<NotifyIte
             auctionTitle,
             Guid.NewGuid()
         );
-        foreach (var actionItem in context.Message.ActionItemsList)
-        {
-            switch (actionItem.OperationType)
-            {
-                case OperationType.Delete:
-                    var delItem = await _dbContext.NotifyItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId &&
-                        p.UserLogin == actionItem.ActionItem.UserLogin);
-                    _dbContext.NotifyItems.Remove(delItem);
-                    await _hubContext.Clients.Group(actionItem.ActionItem.UserLogin).SendAsync("AuctionDeleted", auctionCreatingNotification);
-                    break;
-                case OperationType.Insert:
-                    _dbContext.NotifyItems.Add(actionItem.ActionItem);
-                    await _hubContext.Clients.All.SendAsync("AuctionCreated", auctionCreatingNotification);
-                    break;
-                case OperationType.Bid:
-                    var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == actionItem.ActionItem.AuctionId).ToListAsync();
-                    //проверяем параметр Properties, если "true" - добавляем запись о рассылке уведомлений в БД
-                    if (context.Message.Properties != null && context.Message.Properties[0] == "true")
-                    {
-                        _dbContext.NotifyItems.Add(actionItem.ActionItem);
-                        auctionNotifyList.Add(new NotifyItem
-                        {
-                            AuctionId = actionItem.ActionItem.AuctionId,
-                            UserLogin = context.Message.ActionItemsList[0].ActionItem.UserLogin
-                        });
-                    }
-                    await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", auctionCreatingNotification);
-                    break;
-                case OperationType.Update:
-                    await _hubContext.Clients.Group(actionItem.ActionItem.UserLogin).SendAsync("AuctionUpdated", auctionCreatingNotification);
-                    break;
-            }
-        }
+        // foreach (var actionItem in context.Message.ActionItemsList)
+        // {
+        //     switch (actionItem.OperationType)
+        //     {
+        //         case OperationType.Delete:
+        //             var delItem = await _dbContext.NotifyItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId &&
+        //                 p.UserLogin == actionItem.ActionItem.UserLogin);
+        //             _dbContext.NotifyItems.Remove(delItem);
+        //             await _hubContext.Clients.Group(actionItem.ActionItem.UserLogin).SendAsync("AuctionDeleted", auctionCreatingNotification);
+        //             break;
+        //         case OperationType.Insert:
+        //             _dbContext.NotifyItems.Add(actionItem.ActionItem);
+        //             await _hubContext.Clients.All.SendAsync("AuctionCreated", auctionCreatingNotification);
+        //             break;
+        //         case OperationType.Bid:
+        //             var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == actionItem.ActionItem.AuctionId).ToListAsync();
+        //             //проверяем параметр Properties, если "true" - добавляем запись о рассылке уведомлений в БД
+        //             if (context.Message.Properties != null && context.Message.Properties[0] == "true")
+        //             {
+        //                 _dbContext.NotifyItems.Add(actionItem.ActionItem);
+        //                 auctionNotifyList.Add(new NotifyItem
+        //                 {
+        //                     AuctionId = actionItem.ActionItem.AuctionId,
+        //                     UserLogin = context.Message.ActionItemsList[0].ActionItem.UserLogin
+        //                 });
+        //             }
+        //             await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", auctionCreatingNotification);
+        //             break;
+        //         case OperationType.Update:
+        //             await _hubContext.Clients.Group(actionItem.ActionItem.UserLogin).SendAsync("AuctionUpdated", auctionCreatingNotification);
+        //             break;
+        //     }
+        // }
 
         await _dbContext.SaveChangesAsync();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +

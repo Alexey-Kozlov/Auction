@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Notification;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.CreateAuctionStateMachine;
@@ -32,7 +34,7 @@ public class NotificationActivity : IStateMachineActivity<CreateAuctionState, Au
             "Common.Contracts.AuctionCreatedNotification",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            Command.AuctionCreate,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

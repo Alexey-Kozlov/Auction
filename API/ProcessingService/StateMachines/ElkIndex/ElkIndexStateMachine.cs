@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.ELKSearch;
 using MassTransit;
 
 namespace ProcessingService.StateMachines.ElkIndexStateMachine;

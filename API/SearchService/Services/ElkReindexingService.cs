@@ -1,5 +1,7 @@
 using AutoMapper;
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 
 namespace SearchService.Services;

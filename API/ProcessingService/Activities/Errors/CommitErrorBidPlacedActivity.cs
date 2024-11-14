@@ -1,4 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Bid;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 using ProcessingService.StateMachines.BidPlacedStateMachine;
 

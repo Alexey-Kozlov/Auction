@@ -1,5 +1,10 @@
 using System.Text.Json;
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Bid;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
+using Common.Contracts.Notification;
+using Common.Contracts.Processing;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
 using EventSourcingService.Services;
@@ -70,7 +75,7 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                     EntityType = consumeContext.Message.ItemsType,
                     UserLogin = userLogin,
                     AuctionId = auctionId,
-                    OperationType = OperationType.Insert
+                    Command = Command.MakeSnapShot
                 });
             }
             await _context.SaveChangesAsync();

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 using SearchService.Data;
 
@@ -24,7 +25,7 @@ public class RestoreSnapShotDbConsumer : IConsumer<RestoreSnapShotItems<SearchSe
             foreach (var items in item.Items)
             {
                 var searchItem = JsonSerializer.Deserialize<AuctionItem>(items);
-                await _context.AuctionItems.AddAsync(searchItem);
+                //await _context.AuctionItems.AddAsync(searchItem);
                 itemCounter++;
             }
         }

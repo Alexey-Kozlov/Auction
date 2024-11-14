@@ -1,7 +1,10 @@
 ﻿using System.Net;
 using System.Security.Claims;
+using Common.Contracts.Auction;
+using Common.Contracts.Bid;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
 using Common.Utils;
-using Common.Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

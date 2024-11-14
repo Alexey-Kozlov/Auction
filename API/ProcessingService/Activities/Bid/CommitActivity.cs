@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Bid;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.BidPlacedStateMachine;
@@ -29,7 +31,7 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidNotificat
             "Common.Contracts.BidCreateESCommit",
             context.Message.CorrelationId,
             context.Saga.Bidder,
-            OperationType.Bid,
+            Command.PlaceBid,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.Finance;
 using MassTransit;
 using ProcessingService.Activities.Finance;
 

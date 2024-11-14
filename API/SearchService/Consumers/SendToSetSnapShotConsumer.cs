@@ -1,8 +1,8 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.EventSourcing;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;

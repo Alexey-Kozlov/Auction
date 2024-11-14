@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
 using Common.Utils;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.DTO;

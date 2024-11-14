@@ -34,7 +34,7 @@ public class NotificationActivity : IStateMachineActivity<DeleteAuctionState, Au
             "Common.Contracts.AuctionDeletedNotification",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.AuctionDelete,
+            Command.AuctionDelete,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

@@ -1,7 +1,8 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Notification;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;

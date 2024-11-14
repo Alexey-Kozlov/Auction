@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
+using Common.Contracts.Finance;
 using Common.Utils;
-using Common.Contracts;
 using FinanceService.Data;
 using FinanceService.DTO;
 using MassTransit;
@@ -64,7 +64,7 @@ public class FinanceController : ControllerBase
             resultDTO.Add(new BalanceItemDTO
             {
                 AuctionId = item.AuctionId.HasValue ? item.AuctionId.Value : null,
-                ItemId = item.Id,
+                ItemId = item.FinanceId,
                 UserLogin = item.UserLogin,
                 Status = item.Status,
                 ActionDate = item.ActionDate,

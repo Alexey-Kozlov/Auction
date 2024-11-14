@@ -1,6 +1,6 @@
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
-using EventSourcingService.Services.CreateEventSourcingProcessing;
+using EventSourcingService.Services;
 using MassTransit;
 
 namespace EventSourcingService.Consumers;
@@ -18,9 +18,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     {
         //var ctx = context.ReceiveContext as KafkaReceiveContext<Ignore, ESContract>;
         //рассылаем сообщения для продолжения (RabbitMQ)
-        switch (context.Message.OperationType)
+        switch (context.Message.Command)
         {
-            case OperationType.AuctionDelete:
+            case Command.AuctionDelete:
                 await _auctionDeleteProcessing.Processing(context);
                 break;
             // case nameof(AuctionItem):

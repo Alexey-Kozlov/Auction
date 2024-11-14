@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Notification;
 using MassTransit;
 using NotificationService.Data;
 

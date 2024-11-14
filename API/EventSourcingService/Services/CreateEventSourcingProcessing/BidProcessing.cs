@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;
 
-public class BidProcessing
+public class BidProcessing1
 {
     // private readonly IPublishEndpoint _publishEndpoint;
     // private readonly EventSourcingDbContext _dbContext;

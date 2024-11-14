@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
 using FinanceService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

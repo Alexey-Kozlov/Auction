@@ -1,4 +1,4 @@
-﻿using Common.Contracts;
+﻿using Common.Contracts.Bid;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;

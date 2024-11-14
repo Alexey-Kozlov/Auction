@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Bid;
+using Common.Contracts.Notification;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.BidPlacedStateMachine;
@@ -32,7 +34,7 @@ public class NotificationActivity : IStateMachineActivity<BidPlacedState, BidSea
             "Common.Contracts.BidNotificationProcessed",
             context.Message.CorrelationId,
             context.Saga.Bidder,
-            OperationType.Bid,
+            Command.PlaceBid,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

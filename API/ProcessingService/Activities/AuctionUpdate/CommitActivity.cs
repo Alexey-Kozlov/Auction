@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.UpdateAuctionStateMachine;
@@ -29,7 +31,7 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
             "Common.Contracts.AuctionUpdateESCommit",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            Command.AuctionUpdate,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

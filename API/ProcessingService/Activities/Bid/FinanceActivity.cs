@@ -1,4 +1,6 @@
-using Common.Contracts;
+using Common.Contracts.Bid;
+using Common.Contracts.Finance;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.BidPlacedStateMachine;
@@ -26,7 +28,7 @@ public class FinanceActivity : IStateMachineActivity<BidPlacedState, RequestBidP
             new FinanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                Id = Guid.NewGuid(),
+                FinanceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 Status = FinanceRecordStatus.Расход,
                 UserLogin = context.Saga.Bidder,
@@ -36,7 +38,7 @@ public class FinanceActivity : IStateMachineActivity<BidPlacedState, RequestBidP
             "Common.Contracts.BidFinanceGranted",
             context.Message.CorrelationId,
             context.Saga.Bidder,
-            OperationType.Bid,
+            Command.PlaceBid,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

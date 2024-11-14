@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;
 
-public class SearchProcessing
+public class SearchProcessing1
 {
     // private readonly IPublishEndpoint _publishEndpoint;
     // private readonly EventSourcingDbContext _dbContext;

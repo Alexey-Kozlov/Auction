@@ -1,4 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Auction;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.CreateAuctionStateMachine;
@@ -39,7 +40,7 @@ public class SearchActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             "Common.Contracts.AuctionCreatedSearch",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            Command.AuctionCreate,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

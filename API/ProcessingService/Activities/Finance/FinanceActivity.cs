@@ -1,4 +1,5 @@
-using Common.Contracts;
+using Common.Contracts.Finance;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.FinanceStateMachine;
@@ -26,7 +27,7 @@ public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreate
             new FinanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                Id = Guid.NewGuid(),
+                FinanceId = Guid.NewGuid(),
                 Status = FinanceRecordStatus.Приход,
                 UserLogin = context.Message.UserLogin,
                 Value = context.Saga.Amount
@@ -35,7 +36,7 @@ public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreate
             "Common.Contracts.FinanceCreated",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            OperationType.Insert,
+            Command.FinanceCreate,
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

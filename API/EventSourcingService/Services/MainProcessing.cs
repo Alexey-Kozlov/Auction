@@ -2,7 +2,7 @@ using System.Reflection;
 using Common.Contracts.EventSourcing;
 using MassTransit;
 
-namespace EventSourcingService.Services.CreateEventSourcingProcessing;
+namespace EventSourcingService.Services;
 
 public class MainProcessing
 {

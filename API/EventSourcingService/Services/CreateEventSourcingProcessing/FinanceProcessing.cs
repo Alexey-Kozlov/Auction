@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services.CreateEventSourcingProcessing;
 
-public class FinanceProcessing
+public class FinanceProcessing1
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly InsertItemToEventSourcing _insertItemToEventSourcing;
 
-    public FinanceProcessing(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
+    public FinanceProcessing1(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
         EventSourcingDbContext dbContext)
     {
         _publishEndpoint = publishEndpoint;

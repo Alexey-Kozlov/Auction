@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.Finance;
 
 namespace FinanceService.DTO;
 
