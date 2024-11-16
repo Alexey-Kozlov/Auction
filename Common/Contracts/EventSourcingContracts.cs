@@ -103,3 +103,8 @@ public class ReturnResultSql
     public string entitytype { get; set; }
     public string tmp { get; set; }
 }
+
+public class ReturnCommitSql
+{
+    public bool result { get; set; }
+}

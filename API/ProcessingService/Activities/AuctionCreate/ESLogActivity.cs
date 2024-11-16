@@ -6,11 +6,11 @@ using ProcessingService.StateMachines.CreateAuctionStateMachine;
 
 namespace ProcessingService.Activities.AuctionCreate;
 
-public class SearchActivity : IStateMachineActivity<CreateAuctionState, AuctionCreatedImage>
+public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAuctionCreate>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
-    public SearchActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
         _config = config;
@@ -21,7 +21,7 @@ public class SearchActivity : IStateMachineActivity<CreateAuctionState, AuctionC
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreatedImage> context, IBehavior<CreateAuctionState, AuctionCreatedImage> next)
+    public async Task Execute(BehaviorContext<CreateAuctionState, RequestAuctionCreate> context, IBehavior<CreateAuctionState, RequestAuctionCreate> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new AuctionItem
@@ -37,7 +37,7 @@ public class SearchActivity : IStateMachineActivity<CreateAuctionState, AuctionC
                 UpdatedAt = DateTime.UtcNow
             },
             nameof(AuctionItem),
-            "Common.Contracts.AuctionCreatedSearch",
+            "Common.Contracts.Processing.ESLog_AuctionCreated",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionCreate,
@@ -45,7 +45,7 @@ public class SearchActivity : IStateMachineActivity<CreateAuctionState, AuctionC
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<CreateAuctionState, AuctionCreatedImage, TException> context, IBehavior<CreateAuctionState, AuctionCreatedImage> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<CreateAuctionState, RequestAuctionCreate, TException> context, IBehavior<CreateAuctionState, RequestAuctionCreate> next) where TException : Exception
     {
         return next.Faulted(context);
     }

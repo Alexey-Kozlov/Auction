@@ -1,3 +1,5 @@
+using Common.Contracts.Processing;
+
 namespace Common.Contracts.Auction;
 
 public class AuctionItem
@@ -94,12 +96,18 @@ public class AuctionCreatingElk
       public string Winner { get; set; }
       public int Amount { get; set; }
 };
-public record AuctionCreatedElk(Guid CorrelationId);
+public class AuctionCreatedElk
+{
+      public Guid CorrelationId { get; set; }
+}
 public class AuctionCreateESCommit
 {
       public Guid CorrelationId { get; set; }
 }
-
+public class AuctionCreateComplete
+{
+      public Guid CorrelationId { get; set; }
+}
 #endregion
 
 
@@ -128,13 +136,19 @@ public record AuctionDeletingGateway(
     Guid AuctionId,
     Guid CorrelationId
 );
-public record AuctionDeletedGateway(Guid CorrelationId);
+public class AuctionDeletedGateway
+{
+      public Guid CorrelationId { get; set; }
+}
 
 public record AuctionDeletingImage(
     Guid AuctionId,
     Guid CorrelationId
 );
-public record AuctionDeletedImage(Guid CorrelationId);
+public class AuctionDeletedImage
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionDeleteESSearch(Guid CorrelationId);
 public record AuctionDeletingSearch(
     Guid AuctionId,
@@ -159,8 +173,16 @@ public record AuctionDeletingElk(
     string UserLogin,
     Guid CorrelationId
 );
-public record AuctionDeletedElk(Guid CorrelationId);
+public class AuctionDeletedElk
+{
+      public Guid CorrelationId { get; set; }
+}
 public class AuctionDeleteESCommit
+{
+      public Guid CorrelationId { get; set; }
+}
+
+public class AuctionDeleteComplete
 {
       public Guid CorrelationId { get; set; }
 }
@@ -237,6 +259,11 @@ public class AuctionUpdateESCommit
       public Guid CorrelationId { get; set; }
 }
 
+public class AuctionUpdateComplete
+{
+      public Guid CorrelationId { get; set; }
+}
+
 #endregion
 
 
@@ -298,6 +325,11 @@ public record AuctionFinishingElk(
 public record AuctionFinishedElk(
     Guid CorrelationId
 );
+
+public class AuctionFinishComplete
+{
+      public Guid CorrelationId { get; set; }
+}
 
 #endregion
 

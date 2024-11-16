@@ -7,7 +7,7 @@ using ProcessingService.StateMachines.CreateAuctionStateMachine;
 
 namespace ProcessingService.Activities.AuctionCreate;
 
-public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionCreatedElk>
+public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionCreateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -23,12 +23,12 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
     }
 
 
-    public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreatedElk> context, IBehavior<CreateAuctionState, AuctionCreatedElk> next)
+    public async Task Execute(BehaviorContext<CreateAuctionState, AuctionCreateESCommit> context, IBehavior<CreateAuctionState, AuctionCreateESCommit> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.AuctionCreateESCommit",
+            "Common.Contracts.Auction.AuctionCreateComplete",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionCreate,
@@ -36,7 +36,7 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<CreateAuctionState, AuctionCreatedElk, TException> context, IBehavior<CreateAuctionState, AuctionCreatedElk> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<CreateAuctionState, AuctionCreateESCommit, TException> context, IBehavior<CreateAuctionState, AuctionCreateESCommit> next) where TException : Exception
     {
         return next.Faulted(context);
     }

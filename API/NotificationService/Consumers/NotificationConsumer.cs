@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
+using System.Text.Json;
 using Common.Contracts.Auction;
-using Common.Contracts.EventSourcing;
 using Common.Contracts.Notification;
+using Common.Contracts.Processing;
 using MassTransit;
+using MassTransit.NewIdProviders;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
@@ -10,14 +12,14 @@ using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
-public class AuctionNotificationConsumer : IConsumer<ActionMessageList<NotifyItem>>
+public class NotificationConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly NotificationDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public AuctionNotificationConsumer(IHubContext<NotificationHub> hubContext,
+    public NotificationConsumer(IHubContext<NotificationHub> hubContext,
     NotificationDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
     {
         _hubContext = hubContext;
@@ -25,16 +27,43 @@ public class AuctionNotificationConsumer : IConsumer<ActionMessageList<NotifyIte
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<ActionMessageList<NotifyItem>> context)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {
-        var correlationId = context.Message.ActionItemsList[0].CorrelationId;
-        var auctionTitle = context.Message.Properties?[0] ?? "";
-        var auctionCreatingNotification = new AuctionCreatingNotification(
-            context.Message.ActionItemsList[0].ActionItem.AuctionId,
-            context.Message.ActionItemsList[0].ActionItem.UserLogin,
-            auctionTitle,
-            Guid.NewGuid()
-        );
+        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        var correlationId = context.Message.CorrelationId;
+        foreach (var item in context.Message.DataObjects)
+        {
+            var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
+            var notify = new AuctionCreatingNotification
+            (typedItem.AuctionId, typedItem.UserLogin, "", context.Message.CorrelationId);
+            switch (item.CRUD)
+            {
+                case CRUD.Create:
+                    await _dbContext.NotifyItems.AddAsync(new NotifyItem
+                    {
+                        AuctionId = typedItem.AuctionId,
+                        UserLogin = typedItem.UserLogin
+                    });
+                    await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
+                    break;
+                case CRUD.Update:
+
+                    break;
+                case CRUD.Delete:
+                    //удаляем запись
+                    var delItem = await _dbContext.NotifyItems.Where(p =>
+                        p.AuctionId == typedItem.AuctionId &&
+                        p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
+                    if (delItem == null)
+                    {
+                        throw new Exception($"Запись для удаления не найдена");
+                    }
+                    _dbContext.NotifyItems.Remove(delItem);
+                    await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionDeleted", notify);
+                    break;
+            }
+        }
+
         // foreach (var actionItem in context.Message.ActionItemsList)
         // {
         //     switch (actionItem.OperationType)
@@ -70,6 +99,7 @@ public class AuctionNotificationConsumer : IConsumer<ActionMessageList<NotifyIte
         // }
 
         await _dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

@@ -26,14 +26,26 @@ public class SearchConsumer : IConsumer<DataForProcessingServicesList<AuctionIte
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
     {
-        var typedItem = JsonSerializer.Deserialize<AuctionItem>(context.Message.DataObjects[0].Data);
         var correlationId = context.Message.CorrelationId;
-        var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == typedItem.AuctionId);
-        if (item != null)
+        foreach (var auctionItem in context.Message.DataObjects)
         {
-            throw new Exception($"Запись для удаления не найдена");
+            var typedItem = JsonSerializer.Deserialize<AuctionItem>(auctionItem.Data);
+            switch (auctionItem.CRUD)
+            {
+                case CRUD.Delete:
+                    var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == typedItem.AuctionId);
+                    if (item != null)
+                    {
+                        throw new Exception($"Запись для удаления не найдена");
+                    }
+                    _dbContext.AuctionItems.Remove(item);
+                    break;
+                case CRUD.Create:
+                    await _dbContext.AuctionItems.AddAsync(typedItem);
+                    break;
+            }
         }
-        _dbContext.AuctionItems.Remove(item);
+
         await _dbContext.SaveChangesAsync();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

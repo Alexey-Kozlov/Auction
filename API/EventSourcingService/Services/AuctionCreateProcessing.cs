@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcingService.Services;
 
-public class AuctionDeleteProcessing
+public class AuctionCreateProcessing
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
 
-    public AuctionDeleteProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
+    public AuctionCreateProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
         IConfiguration configuration)
     {
         _publishEndpoint = publishEndpoint;
@@ -24,19 +24,15 @@ public class AuctionDeleteProcessing
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
     {
         //В процедуре Postgres делаем:
-        //- запись в ES лог об удалении аукциона
-        //- запись в ES лог об удалении последнего платежа (если были ставки)
-        //- записи в ES лог об удалении всех ставок (если были)
-        //- записи в ES лог об удалении всех уведомлений (если были)
+        //- запись в ES лог о создании аукциона
+        //- записи в ES лог о создании уведомления для пользователя, создавшего аукцион
         //Формирование списка корректирующих записей:
-        //- запись удаленного аукциона - для удаления из сервиса SearchService
-        //- если были - запись удаленного платежа - для удаления из сервиса FinanceService у соответствующего пользователя
-        //- если были - запись обновления денежного баланса - для обновления баланса в сервисе FinanceService у соответствующего пользователя
-        //- если были - записи удаленных ставок - для удаления из сервиса BiddingService
-        //- если были - записи удаленных уведомлений - для удаления из сервиса NotificationService
-        var result = await _dbContext.auction_delete(
+        //- запись созданного аукциона - для добавления в сервис SearchService
+        //- запись созданного уведомления - для добавления в сервис NotificationService
+        var result = await _dbContext.auction_create(
             context.Message.CorrelationId,
             context.Message.AuctionId ?? Guid.NewGuid(),
+            context.Message.EventData,
             context.Message.UserLogin).ToListAsync();
         //возвращаем список записей для изменения соответствующих БД в нужных сервисах
         var listItems = new DataForProcessingServicesList

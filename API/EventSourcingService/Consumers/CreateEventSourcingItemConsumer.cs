@@ -8,33 +8,34 @@ namespace EventSourcingService.Consumers;
 public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
 {
     private readonly AuctionDeleteProcessing _auctionDeleteProcessing;
+    private readonly AuctionCreateProcessing _auctionCreateProcessing;
+    private readonly ESLogCommitProcessing _eSLogCommitProcessing;
 
-    public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing)
+    public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing,
+        ESLogCommitProcessing eSLogCommitProcessing,
+        AuctionCreateProcessing auctionCreateProcessing)
     {
         _auctionDeleteProcessing = auctionDeleteProcessing;
+        _eSLogCommitProcessing = eSLogCommitProcessing;
+        _auctionCreateProcessing = auctionCreateProcessing;
     }
 
     public async Task Consume(ConsumeContext<ESContract> context)
     {
         //var ctx = context.ReceiveContext as KafkaReceiveContext<Ignore, ESContract>;
+        if (context.Message.EntityType == nameof(CommitESOperation))
+        {
+            await _eSLogCommitProcessing.CommitESLog(context);
+        }
         //рассылаем сообщения для продолжения (RabbitMQ)
         switch (context.Message.Command)
         {
             case Command.AuctionDelete:
-                await _auctionDeleteProcessing.Processing(context);
+                await _auctionDeleteProcessing.ProcessESLog(context);
                 break;
-            // case nameof(AuctionItem):
-            //     await _searchProcessing.Processing(context);
-            //     break;
-            // case nameof(NotifyItem):
-            //     await _notificationProcessing.Processing(context);
-            //     break;
-            // case nameof(CommitESOperation):
-            //     await _mainProcessing.Processing(context);
-            //     break;
-            // case nameof(FinanceItem):
-            //     await _financeProcessing.Processing(context);
-            //     break;
+            case Command.AuctionCreate:
+                await _auctionCreateProcessing.ProcessESLog(context);
+                break;
             default:
                 break;
         }

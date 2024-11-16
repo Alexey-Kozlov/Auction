@@ -7,7 +7,7 @@ using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
 namespace ProcessingService.Activities.AuctionDelete;
 
-public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeletedNotification>
+public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionDeleteESCommit>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -23,12 +23,12 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
     }
 
 
-    public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeletedNotification> context, IBehavior<DeleteAuctionState, AuctionDeletedNotification> next)
+    public async Task Execute(BehaviorContext<DeleteAuctionState, AuctionDeleteESCommit> context, IBehavior<DeleteAuctionState, AuctionDeleteESCommit> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.AuctionDeleteESCommit",
+            "Common.Contracts.Auction.AuctionDeleteComplete",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionDelete,
@@ -36,7 +36,7 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<DeleteAuctionState, AuctionDeletedNotification, TException> context, IBehavior<DeleteAuctionState, AuctionDeletedNotification> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<DeleteAuctionState, AuctionDeleteESCommit, TException> context, IBehavior<DeleteAuctionState, AuctionDeleteESCommit> next) where TException : Exception
     {
         return next.Faulted(context);
     }

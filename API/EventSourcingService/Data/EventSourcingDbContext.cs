@@ -1,5 +1,4 @@
 ﻿using Common.Contracts.EventSourcing;
-using Common.Contracts.Finance;
 using EventSourcingService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,28 +12,30 @@ public class EventSourcingDbContext : DbContext
     }
 
     public DbSet<EventsLog> EventsLogs { get; set; }
-    // public IQueryable<FinanceItemSql> placebid(
-    //     Guid correlationid,
-    //     Guid auctionid,
-    //     string eventdata,
-    //     string userLogin) =>
-    //     FromExpression(() => placebid(correlationid, auctionid, eventdata, userLogin));
-    // public IQueryable<FinanceItemSql> finance_create(
-    //     Guid correlationid,
-    //     Guid auctionid,
-    //     string eventdata,
-    //     string userLogin) =>
-    //     FromExpression(() => finance_create(correlationid, auctionid, eventdata, userLogin));
+
+    public IQueryable<ReturnResultSql> auction_create(
+        Guid correlationid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => auction_create(correlationid, auctionid, eventdata, userLogin));
     public IQueryable<ReturnResultSql> auction_delete(
         Guid correlationid,
         Guid auctionid,
         string userLogin) =>
         FromExpression(() => auction_delete(correlationid, auctionid, userLogin));
+    public IQueryable<ReturnCommitSql> commit_operation(
+        Guid correlationid) =>
+        FromExpression(() => commit_operation(correlationid));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
+        modelBuilder.HasDbFunction(() => auction_create(default, default, default, default));
         modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
+        modelBuilder.HasDbFunction(() => commit_operation(default));
+        modelBuilder.Entity<ReturnCommitSql>().HasNoKey();
+        modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }
 
