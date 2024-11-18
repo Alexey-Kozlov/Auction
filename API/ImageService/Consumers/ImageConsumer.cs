@@ -31,6 +31,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<AuctionItem
             if (item != null)
             {
                 _context.Images.Remove(item);
+                await _context.SaveChangesAsync();
             }
         }
         if (context.Message.DataObjects[0].CRUD == CRUD.Create)
@@ -43,8 +44,9 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<AuctionItem
                          .Replace("data:image/jpeg;base64,", "")
                          .Replace("data:image/jpg;base64,", ""))
             });
+            await _context.SaveChangesAsync();
         }
-        await _context.SaveChangesAsync();
+
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

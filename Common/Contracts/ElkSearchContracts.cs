@@ -38,12 +38,9 @@ public record ElkSearchResponseCompleted(
      Guid CorrelationId
 );
 
-public record ElkIndexRequest(
-     Guid Id,
+public record RequestElkIndex(
+     string UserLogin,
      Guid CorrelationId,
-     AuctionCreatingElk Item,
-     bool LastItem,
-     int ItemNumber,
      string SessionId
 );
 
@@ -54,21 +51,29 @@ public record ElkIndexCreating(
 );
 
 public record ElkIndexCreated(
-     Guid CorrelationId,
-     ResultType Result
-);
-
-public record ElkIndexResponse(
-     Guid CorrelationId,
-     ResultType Result,
-     bool LastItem,
-     int ItemNumber,
-     string SessionId
-);
-
-public record ElkIndexResponseCompleted(
      Guid CorrelationId
 );
+public class ElkIndexReset
+{
+     public Guid CorrelationId { get; set; }
+}
+
+
+public class ElkIndexResponse
+{
+     public Guid CorrelationId { get; set; }
+     public int ItemNumber { get; set; }
+     public string SessionId { get; set; }
+}
+
+public class ElkIndexCompleted
+{
+     public Guid CorrelationId { get; set; }
+}
+public class ElkIndexEnd
+{
+     public Guid CorrelationId { get; set; }
+}
 
 public enum ResultType
 {

@@ -34,7 +34,7 @@ public class SearchConsumer : IConsumer<DataForProcessingServicesList<AuctionIte
             {
                 case CRUD.Delete:
                     var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p => p.AuctionId == typedItem.AuctionId);
-                    if (item != null)
+                    if (item == null)
                     {
                         throw new Exception($"Запись для удаления не найдена");
                     }

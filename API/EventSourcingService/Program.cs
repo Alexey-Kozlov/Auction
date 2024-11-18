@@ -118,7 +118,7 @@ internal class Program
             );
 
         builder.Services.AddSingleton<AuctionMetrics>();
-        builder.Services.AddScoped<InsertItemToEventSourcing>();
+        builder.Services.AddScoped<ElkIndexProcessing>();
         builder.Services.AddScoped<AuctionDeleteProcessing>();
         builder.Services.AddScoped<AuctionCreateProcessing>();
         builder.Services.AddScoped<ESLogCommitProcessing>();

@@ -34,7 +34,7 @@ builder.Services.AddDbContext<ImageDbContext>(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionCreatingImageConsumer>();
+    p.AddConsumersFromNamespaceContaining<ImageConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("image", false));
     p.UsingRabbitMq((context, config) =>
     {

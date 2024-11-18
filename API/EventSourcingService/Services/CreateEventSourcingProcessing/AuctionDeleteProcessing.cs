@@ -8,14 +8,14 @@ public class AuctionDeleteProcessing1
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
-    private readonly InsertItemToEventSourcing _insertItemToEventSourcing;
 
-    public AuctionDeleteProcessing1(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
+
+    public AuctionDeleteProcessing1(IPublishEndpoint publishEndpoint,
         EventSourcingDbContext dbContext)
     {
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
-        _insertItemToEventSourcing = insertItemToEventSourcing;
+
     }
     public async Task Processing(ConsumeContext<ESContract> context)
     {

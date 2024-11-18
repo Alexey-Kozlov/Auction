@@ -24,9 +24,15 @@ public class EventSourcingDbContext : DbContext
         Guid auctionid,
         string userLogin) =>
         FromExpression(() => auction_delete(correlationid, auctionid, userLogin));
-    public IQueryable<ReturnCommitSql> commit_operation(
+    public IQueryable<ReturnStringSql> commit_operation(
         Guid correlationid) =>
         FromExpression(() => commit_operation(correlationid));
+    public IQueryable<ReturnStringSql> index_elk(
+        Guid correlationid,
+        string userLogin) =>
+        FromExpression(() => index_elk(correlationid, userLogin));
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -34,7 +40,8 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => auction_create(default, default, default, default));
         modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
         modelBuilder.HasDbFunction(() => commit_operation(default));
-        modelBuilder.Entity<ReturnCommitSql>().HasNoKey();
+        modelBuilder.HasDbFunction(() => index_elk(default, default));
+        modelBuilder.Entity<ReturnStringSql>().HasNoKey();
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }

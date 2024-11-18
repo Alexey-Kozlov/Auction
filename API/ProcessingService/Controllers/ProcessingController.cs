@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Utils;
@@ -122,7 +123,7 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем реиндексацию ELK
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new SendAllItems<SendToReindexingElk>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
+        await _publishEndpoint.Publish(new RequestElkIndex(userLogin, Guid.NewGuid(), param.SessionId));
         _logger.LogInformation($"Послан запрос на переиндексацию ELK");
     }
 

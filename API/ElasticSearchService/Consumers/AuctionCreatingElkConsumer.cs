@@ -1,10 +1,11 @@
 ﻿using Common.Contracts.Auction;
+using Common.Contracts.Processing;
 using ElasticSearchService.Services;
 using MassTransit;
 
 namespace ElasticSearchService.Consumers;
 
-public class AuctionCreatingElkConsumer : IConsumer<AuctionCreatingElk>
+public class AuctionCreatingElkConsumer : IConsumer<DataForProcessingServicesList<AuctionCreatingElk>>
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ElkClient _client;
@@ -14,7 +15,7 @@ public class AuctionCreatingElkConsumer : IConsumer<AuctionCreatingElk>
         _publishEndpoint = publishEndpoint;
         _client = client;
     }
-    public async Task Consume(ConsumeContext<AuctionCreatingElk> consumeContext)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionCreatingElk>> consumeContext)
     {
         var response = await _client.Client.IndexAsync(consumeContext.Message);
 
@@ -26,6 +27,6 @@ public class AuctionCreatingElkConsumer : IConsumer<AuctionCreatingElk>
         {
             Console.WriteLine(response.ElasticsearchServerError);
         }
-        await _publishEndpoint.Publish(new AuctionCreatedElk(consumeContext.Message.CorrelationId));
+        //await _publishEndpoint.Publish(new AuctionCreatedElk(consumeContext.Message.CorrelationId));
     }
 }

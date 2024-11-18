@@ -10,14 +10,17 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     private readonly AuctionDeleteProcessing _auctionDeleteProcessing;
     private readonly AuctionCreateProcessing _auctionCreateProcessing;
     private readonly ESLogCommitProcessing _eSLogCommitProcessing;
+    private readonly ElkIndexProcessing _elkIndexProcessing;
 
     public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing,
         ESLogCommitProcessing eSLogCommitProcessing,
-        AuctionCreateProcessing auctionCreateProcessing)
+        AuctionCreateProcessing auctionCreateProcessing,
+        ElkIndexProcessing elkIndexProcessing)
     {
         _auctionDeleteProcessing = auctionDeleteProcessing;
         _eSLogCommitProcessing = eSLogCommitProcessing;
         _auctionCreateProcessing = auctionCreateProcessing;
+        _elkIndexProcessing = elkIndexProcessing;
     }
 
     public async Task Consume(ConsumeContext<ESContract> context)
@@ -27,17 +30,23 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         {
             await _eSLogCommitProcessing.CommitESLog(context);
         }
-        //рассылаем сообщения для продолжения (RabbitMQ)
-        switch (context.Message.Command)
+        else
         {
-            case Command.AuctionDelete:
-                await _auctionDeleteProcessing.ProcessESLog(context);
-                break;
-            case Command.AuctionCreate:
-                await _auctionCreateProcessing.ProcessESLog(context);
-                break;
-            default:
-                break;
+            //рассылаем сообщения для продолжения (RabbitMQ)
+            switch (context.Message.Command)
+            {
+                case Command.AuctionDelete:
+                    await _auctionDeleteProcessing.ProcessESLog(context);
+                    break;
+                case Command.AuctionCreate:
+                    await _auctionCreateProcessing.ProcessESLog(context);
+                    break;
+                case Command.IndexELK:
+                    await _elkIndexProcessing.ProcessElkIndex(context);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

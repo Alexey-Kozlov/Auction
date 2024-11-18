@@ -1,4 +1,3 @@
-using System.Reflection.Emit;
 using MassTransit;
 
 namespace Common.Contracts.Processing;
@@ -100,7 +99,8 @@ public enum Command
     FinanceCreate,  //3
     PlaceBid,       //4
     MakeSnapShot,   //5
-    RestoreSnapShot //6
+    RestoreSnapShot,//6
+    IndexELK        //7
 }
 
 public enum CRUD
@@ -111,12 +111,13 @@ public enum CRUD
     Read        //3
 }
 
-public record DataForProcessingServicesList<T>
-(
-    List<DataForProcessingService> DataObjects,
-    Guid CorrelationId,
-    string CallBackType = null
-);
+public class DataForProcessingServicesList<T>
+{
+    public List<DataForProcessingService> DataObjects { get; set; }
+    public Guid CorrelationId { get; set; }
+    public string Props { get; set; }
+    public string CallBackType { get; set; } = null;
+};
 
 public class ESLog_AuctionDeleted
 {
@@ -142,6 +143,13 @@ public class ESLog_PlaceBid
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+}
+public class ESLog_ElkIndex
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int BatchCount { get; set; }
+    public int AllItemsCount { get; set; }
 }
 public class ESLog_MakeSnapShot
 {

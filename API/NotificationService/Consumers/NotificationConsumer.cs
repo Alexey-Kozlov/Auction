@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -31,37 +32,20 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
     {
         using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         var correlationId = context.Message.CorrelationId;
+        var title = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
         foreach (var item in context.Message.DataObjects)
         {
-            var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
-            var notify = new AuctionCreatingNotification
-            (typedItem.AuctionId, typedItem.UserLogin, "", context.Message.CorrelationId);
-            switch (item.CRUD)
+            //селектор по типу объекта уведомления
+            switch (item.DataType)
             {
-                case CRUD.Create:
-                    await _dbContext.NotifyItems.AddAsync(new NotifyItem
-                    {
-                        AuctionId = typedItem.AuctionId,
-                        UserLogin = typedItem.UserLogin
-                    });
-                    await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
+                case "ElkIndex":
+                    await ProcessElkIndex(item);
                     break;
-                case CRUD.Update:
-
-                    break;
-                case CRUD.Delete:
-                    //удаляем запись
-                    var delItem = await _dbContext.NotifyItems.Where(p =>
-                        p.AuctionId == typedItem.AuctionId &&
-                        p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
-                    if (delItem == null)
-                    {
-                        throw new Exception($"Запись для удаления не найдена");
-                    }
-                    _dbContext.NotifyItems.Remove(delItem);
-                    await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionDeleted", notify);
+                case "NotifyItem":
+                    await ProcessNotifyItem(item, title, correlationId);
                     break;
             }
+
         }
 
         // foreach (var actionItem in context.Message.ActionItemsList)
@@ -104,5 +88,50 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
         await _publishEndpoint.Publish(sendObject);
+    }
+
+    private async Task ProcessElkIndex(DataForProcessingService item)
+    {
+        var typedItem = JsonSerializer.Deserialize<ElkIndexResponse>(item.Data);
+        await _hubContext.Clients.Group(typedItem.SessionId).SendAsync("ElkIndex",
+                $"Проиндексировано - {typedItem.ItemNumber} записей");
+    }
+    private async Task ProcessNotifyItem(DataForProcessingService item, string title, Guid correlationId)
+    {
+        var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
+        var notify = new AuctionCreatingNotification
+        {
+            Title = title,
+            CorrelationId = correlationId,
+            AuctionId = typedItem.AuctionId,
+            UserLogin = typedItem.UserLogin
+        };
+
+        switch (item.CRUD)
+        {
+            case CRUD.Create:
+                await _dbContext.NotifyItems.AddAsync(new NotifyItem
+                {
+                    AuctionId = typedItem.AuctionId,
+                    UserLogin = typedItem.UserLogin
+                });
+                await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
+                break;
+            case CRUD.Update:
+
+                break;
+            case CRUD.Delete:
+                //удаляем запись
+                var delItem = await _dbContext.NotifyItems.Where(p =>
+                    p.AuctionId == typedItem.AuctionId &&
+                    p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
+                if (delItem == null)
+                {
+                    throw new Exception($"Запись для удаления не найдена");
+                }
+                _dbContext.NotifyItems.Remove(delItem);
+                await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionDeleted", notify);
+                break;
+        }
     }
 }

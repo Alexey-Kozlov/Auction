@@ -13,14 +13,14 @@ public class FinanceProcessing1
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
-    private readonly InsertItemToEventSourcing _insertItemToEventSourcing;
 
-    public FinanceProcessing1(IPublishEndpoint publishEndpoint, InsertItemToEventSourcing insertItemToEventSourcing,
+
+    public FinanceProcessing1(IPublishEndpoint publishEndpoint,
         EventSourcingDbContext dbContext)
     {
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
-        _insertItemToEventSourcing = insertItemToEventSourcing;
+
     }
     public async Task Processing(ConsumeContext<ESContract> context)
     {

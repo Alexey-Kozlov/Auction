@@ -104,7 +104,7 @@ public class ReturnResultSql
     public string tmp { get; set; }
 }
 
-public class ReturnCommitSql
+public class ReturnStringSql
 {
-    public bool result { get; set; }
+    public string eventdata { get; set; }
 }

@@ -21,6 +21,7 @@ builder.Configuration.AddVault(options =>
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
 builder.Services.AddControllers();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddDbContext<SearchDbContext>(options =>
 {
     var conStrBuilder = new NpgsqlConnectionStringBuilder();
@@ -33,7 +34,7 @@ builder.Services.AddDbContext<SearchDbContext>(options =>
 });
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<AuctionCreatingElkConsumer>();
+    p.AddConsumersFromNamespaceContaining<ElkConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("elk", false));
     p.UsingRabbitMq((context, config) =>
     {

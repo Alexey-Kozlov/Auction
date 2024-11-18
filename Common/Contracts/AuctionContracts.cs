@@ -69,12 +69,13 @@ public class AuctionCreatedSearch
       public Guid CorrelationId { get; set; }
 }
 
-public record AuctionCreatingNotification(
-      Guid AuctionId,
-      string UserLogin,
-      string Title,
-      Guid CorrelationId
-);
+public class AuctionCreatingNotification
+{
+      public Guid AuctionId { get; set; }
+      public string UserLogin { get; set; }
+      public string Title { get; set; }
+      public Guid CorrelationId { get; set; }
+}
 
 public class AuctionCreatedNotification
 {
