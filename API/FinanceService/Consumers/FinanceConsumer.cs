@@ -31,26 +31,20 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
             {
                 case CRUD.Create:
                     //добавляем новое поступление денег на счет
-                    //await _dbContext.FinanceItems.AddAsync(item.FinanceItem);
+                    await _dbContext.FinanceItems.AddAsync(typedItem);
                     break;
                 case CRUD.Update:
                     //обновляем запись текущего баланса
-                    // var finItem = await _dbContext.FinanceItems.Where(p => p.UserLogin == item.FinanceItem.UserLogin &&
-                    // p.Status == FinanceRecordStatus.Баланс).FirstOrDefaultAsync();
-                    // if (finItem == null)
-                    // {
-                    //     var newBalance = new FinanceItem();
-                    //     newBalance.ActionDate = item.FinanceItem.ActionDate;
-                    //     newBalance.Id = item.FinanceItem.Id;
-                    //     newBalance.Status = item.FinanceItem.Status;
-                    //     newBalance.UserLogin = item.FinanceItem.UserLogin;
-                    //     newBalance.Value = item.FinanceItem.Value;
-                    //     await _dbContext.FinanceItems.AddAsync(newBalance);
-                    // }
-                    // else
-                    // {
-                    //     finItem.Value = item.FinanceItem.Value;
-                    // }
+                    var finItem = await _dbContext.FinanceItems.Where(p => p.UserLogin == typedItem.UserLogin &&
+                        p.Status == FinanceRecordStatus.Баланс).FirstOrDefaultAsync();
+                    if (finItem == null)
+                    {
+                        await _dbContext.FinanceItems.AddAsync(typedItem);
+                    }
+                    else
+                    {
+                        finItem.Value = typedItem.Value;
+                    }
                     break;
                 case CRUD.Delete:
                     //удаляем запись

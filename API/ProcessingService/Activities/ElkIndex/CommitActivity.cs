@@ -1,14 +1,14 @@
 using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
-using ProcessingService.StateMachines.UpdateAuctionStateMachine;
+using ProcessingService.StateMachines.ElkIndexStateMachine;
 
+namespace ProcessingService.Activities.ElkIndex;
 
-namespace ProcessingService.Activities.AuctionUpdate;
-
-public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdateESCommit>
+public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCommit>
 {
     private readonly SendEventToES _sendEventToES;
     public CommitActivity(SendEventToES sendEventToES)
@@ -22,20 +22,20 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
     }
 
 
-    public async Task Execute(BehaviorContext<UpdateAuctionState, AuctionUpdateESCommit> context, IBehavior<UpdateAuctionState, AuctionUpdateESCommit> next)
+    public async Task Execute(BehaviorContext<ElkIndexState, ElkIndexESCommit> context, IBehavior<ElkIndexState, ElkIndexESCommit> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.Auction.AuctionUpdateComplete",
+            "Common.Contracts.ELKSearch.ElkIndexEnd",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
-            Command.AuctionUpdate,
-            context.Saga.AuctionId);
+            Command.IndexELK,
+            null);
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<UpdateAuctionState, AuctionUpdateESCommit, TException> context, IBehavior<UpdateAuctionState, AuctionUpdateESCommit> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<ElkIndexState, ElkIndexESCommit, TException> context, IBehavior<ElkIndexState, ElkIndexESCommit> next) where TException : Exception
     {
         return next.Faulted(context);
     }

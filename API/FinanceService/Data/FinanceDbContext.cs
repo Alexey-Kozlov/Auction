@@ -24,7 +24,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<FinanceItem>
     public void Configure(EntityTypeBuilder<FinanceItem> builder)
     {
         builder.ToTable("FinanceItems").HasKey(p => p.FinanceId).HasName("PK_Id");
-        builder.Property(p => p.FinanceId).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
+        builder.Property(p => p.FinanceId).HasColumnType("uuid").HasColumnName("FinanceId").IsRequired(true);
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
         builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(true);
         builder.Property(p => p.Value).HasColumnType("integer").HasColumnName("Value").HasPrecision(14, 2).IsRequired(true);

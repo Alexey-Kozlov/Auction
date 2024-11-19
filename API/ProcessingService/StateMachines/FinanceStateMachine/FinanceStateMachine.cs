@@ -1,4 +1,7 @@
+using System.Text.Json;
 using Common.Contracts.Finance;
+using Common.Contracts.Notification;
+using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.Finance;
 
@@ -7,14 +10,16 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
 {
     public State FinanceState { get; }
     public State NotificationState { get; }
-    public State ESCommitState { get; }
+    public State CommitState { get; }
     public State CompletedState { get; }
 
 
     public Event<RequestCreateFinance> RequestEvent { get; }
+    public Event<ESLog_FinanceCreated> EsLogEvent { get; }
     public Event<FinanceCreated> FinanceEvent { get; }
     public Event<FinanceNotificationCreated> NotificationEvent { get; }
     public Event<FinanceCreateESCommit> CommitEvent { get; }
+    public Event<FinanceCreateComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }
 
     public FinanceStateMachine(IServiceProvider services)
@@ -25,7 +30,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         ConfigureInitialState();
         ConfigureFinanceState();
         ConfigureNotificationState();
-        ConfigureESCommitState();
+        ConfigureCommitState();
         ConfigureCompleted();
     }
     private void ConfigureEvents()
@@ -34,9 +39,11 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         {
             p.InsertOnInitial = true;
         });
+        Event(() => EsLogEvent);
         Event(() => FinanceEvent);
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
+        Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
     {
@@ -50,9 +57,10 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //посылаем через Кафку в EventSourcingService -> CreateEventSourcingItemConsumer
-            //Создание записи по добавлению денег в сервисе FinanceService
-            .Activity(p => p.OfType<FinanceActivity>())
+            //посылаем через Кафку, выполнение всех операций в ES лог для пополнения счета пользователя
+            // - Добавление записей по деньгам в сервисе FinanceService
+            // - Возвращаем FinanceItem и обновленный баланс
+            .Activity(p => p.OfType<ESLogActivity>())
             .TransitionTo(FinanceState)
         );
     }
@@ -60,20 +68,20 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     private void ConfigureFinanceState()
     {
         During(FinanceState,
-        //создали записи в ES и FinanceService о поступлении денег
-        When(FinanceEvent)
+        When(EsLogEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //делаем рассылку о поступлении денег, сервис NotificationService
-            .Send(
-                new Uri(configuration["QueuePaths:FinanceCreatingNotification"]),
-                context => new FinanceCreatingNotification(
-                context.Saga.Amount,
-                context.Saga.UserLogin,
-                context.Saga.CorrelationId
-                ))
+                //делаем рассылку для создания новой записи поступления денег и корректировки баланса в FinanceService
+                .Send(
+                new Uri(configuration["QueuePaths:FinanceConsumer"]),
+                context => new DataForProcessingServicesList<FinanceItem>
+                {
+                    DataObjects = context.Message.DataItems.DataObjects,
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Finance.FinanceNotificationCreated"
+                })
             .TransitionTo(NotificationState));
     }
 
@@ -85,25 +93,53 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
-            .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(ESCommitState));
+            .Send(
+                new Uri(configuration["QueuePaths:NotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>
+                    {
+                        new DataForProcessingService
+                        {
+                            CRUD = CRUD.Create,
+                            DataType = nameof(FinanceItem),
+                            Data = JsonSerializer.Serialize(new NotifyItem
+                            {
+                                AuctionId = Guid.NewGuid(),
+                                UserLogin = context.Saga.UserLogin
+                            })
+                        }
+                    },
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Finance.FinanceCreateESCommit",
+                    Props = context.Saga.Amount.ToString()
+                })
+            .TransitionTo(CommitState));
     }
 
-    private void ConfigureESCommitState()
+    private void ConfigureCommitState()
     {
-        During(ESCommitState,
+        During(CommitState,
         When(CommitEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
+            //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
+            .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
     }
 
     private void ConfigureCompleted()
     {
-        During(CompletedState);
+        During(CompletedState,
+        When(CompleteEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            .Finalize()
+        );
     }
 
 }

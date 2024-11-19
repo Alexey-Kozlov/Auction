@@ -38,7 +38,6 @@ builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
     config.Timeout = TimeSpan.FromSeconds(300);
 });
 builder.Services.AddScoped<SearchService.Services.SearchService>();
-builder.Services.AddScoped<ElkReindexingService>();
 
 builder.Services.AddMassTransit(p =>
 {

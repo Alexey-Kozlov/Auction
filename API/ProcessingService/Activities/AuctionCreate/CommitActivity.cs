@@ -10,11 +10,9 @@ namespace ProcessingService.Activities.AuctionCreate;
 public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionCreateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
+    public CommitActivity(SendEventToES sendEventToES)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
     }
 
     public void Accept(StateMachineVisitor visitor)

@@ -121,7 +121,9 @@ internal class Program
         builder.Services.AddScoped<ElkIndexProcessing>();
         builder.Services.AddScoped<AuctionDeleteProcessing>();
         builder.Services.AddScoped<AuctionCreateProcessing>();
+        builder.Services.AddScoped<AuctionUpdateProcessing>();
         builder.Services.AddScoped<ESLogCommitProcessing>();
+        builder.Services.AddScoped<FinanceCreateProcessing>();
 
         var app = builder.Build();
 

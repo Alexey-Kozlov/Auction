@@ -20,7 +20,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public State NotificationState { get; }
     public State CommitState { get; }
     public State CompletedState { get; }
-    public State EndState { get; }
+
 
     public Event<RequestAuctionDelete> RequestEvent { get; }
     public Event<ESLog_AuctionDeleted> EsLogEvent { get; }
@@ -51,7 +51,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         ConfigureNotificationState();
         ConfigureCommitState();
         ConfigureCompletedState();
-        ConfigureEndState();
     }
     private void ConfigureEvents()
     {
@@ -281,13 +280,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .TransitionTo(EndState)
+            .Finalize()
         );
-    }
-
-    private void ConfigureEndState()
-    {
-        During(EndState);
     }
 
 }

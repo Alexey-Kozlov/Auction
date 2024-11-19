@@ -5,9 +5,9 @@ using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
+using Common.Utils;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
-using EventSourcingService.Services;
 using MassTransit;
 
 namespace SearchService.Consumers;

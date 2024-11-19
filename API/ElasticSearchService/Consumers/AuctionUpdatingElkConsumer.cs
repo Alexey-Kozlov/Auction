@@ -24,6 +24,9 @@ public class AuctionUpdatingElkConsumer : IConsumer<AuctionUpdatingElk>
         {
             Console.WriteLine(response.ElasticsearchServerError);
         }
-        await _publishEndpoint.Publish(new AuctionUpdatedElk(consumeContext.Message.CorrelationId));
+        await _publishEndpoint.Publish(new AuctionUpdatedElk
+        {
+            CorrelationId = consumeContext.Message.CorrelationId
+        });
     }
 }

@@ -13,15 +13,15 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     public State ElkIndexState { get; }
     public State NotificationState { get; }
     public State CompletedState { get; }
-    public State FaultedState { get; }
+    public State CommitState { get; }
 
     public Event<ElkIndexReset> ResetIndexEvent { get; }
     public Event<RequestElkIndex> RequestElkIndexEvent { get; }
     public Event<ESLog_ElkIndex> EsLogEvent { get; }
     public Event<ElkIndexCompleted> NotificationEvent { get; }
     public Event<ElkIndexEnd> EndEvent { get; }
+    public Event<ElkIndexESCommit> CommitEvent { get; }
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
     private ElkIndexResponse elkIndexResponse { get; set; }
     private Guid InstanceCorrelationId { get; set; }
     private int CurrentBatchCount { get; set; }
@@ -37,6 +37,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         ConfigureResetIndexState();
         ConfigureElkIndexState();
         ConfigureNotificationState();
+        ConfigureCommitState();
         ConfigureCompleted();
     }
     private void ConfigureEvents()
@@ -48,6 +49,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         Event(() => ResetIndexEvent);
         Event(() => EsLogEvent);
         Event(() => NotificationEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => CommitEvent);
         Event(() => EndEvent);
     }
     private void ConfigureInitialState()
@@ -83,6 +85,10 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
 
             .TransitionTo(ResetIndexState)
         );
+
+        //ВАЖНО! Этот оператор для подавления ошибки - что сообщение не было принято и обработано
+        //без этого оператора будут ошибки, т.к. у нас генерируется много сообщений в сервис ElasticSearchService
+        //и принимаются оттуда же без передачи в конкретное состояние.
         OnUnhandledEvent(async e => await e.Ignore());
     }
     private void ConfigureResetIndexState()
@@ -93,7 +99,8 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            //посылаем через Кафку, запрос на индексацию всех записей аукционов:
+            //посылаем через Кафку, запрос на индексацию всех записей аукционов.
+            //возвращаются пачки записей для переиндексации из ES лога
             .Activity(p => p.OfType<ESLogActivity>())
             .TransitionTo(ElkIndexState)
         );
@@ -106,34 +113,45 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         When(EsLogEvent)
             .Then(context =>
             {
-                //получили список аукционов для индексации
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 if (context.Message.DataItems != null)
                 {
-                    ListItems = context.Message.DataItems;
+                    //если DataItems != null - это пришел набор записей из ES лог
+                    //сохраняем:
+                    //AllBatchCount - общее количество наборов записей
+                    //ItemNumber - общее количество индексированных записей
                     AllBatchCount = context.Message.BatchCount;
                     context.Saga.ItemNumber = context.Message.AllItemsCount;
                 }
                 else
                 {
+                    //если DataItems == null - это пришел ответ из ElasticSearchService, после индексации
+                    //посланного туда набора записей.Увеличиваем счетчик индексированных наборов записей.
                     lock (locker)
                     {
                         CurrentBatchCount++;
                     }
                 }
             })
-
+            //если DataItems != null - это пришел набор записей из ES лог, посылаем этот набор в ElasticSearchService
+            //для индексации, обратно вернется сообщение СЮДА ЖЕ, в ЭТОТ ЖЕ МЕТОД! Отличительный признак сообщения
+            //из ElasticSearchService - у него DataItems == null
+            //Сколько сообщений пошлем в ElasticSearchService, столько же ответов сюда вернется.
+            //Проверка на null - чтобы не было бесконечного цикла посылки и приема сообщений
             .If(context => context.Message.DataItems != null,
                 p => p
+                //посылаем сообщение в ElasticSearchService для идексации пакета записей из ES лог
                 .Send(
                 new Uri(configuration["QueuePaths:ElkConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects,
+                    DataObjects = context.Message.DataItems.DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Processing.ESLog_ElkIndex"
                 })
             )
+            //Если переданное общее количество переданных пакетов соответствует счетчику обработанных пакетов -
+            //означает, что все пакеты из ES лог обработаны и можно посылать уведомление об окончания индексации
             .If(context => AllBatchCount == CurrentBatchCount,
                 p => p
                 .Then(context =>
@@ -159,7 +177,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 elkIndexResponse = new ElkIndexResponse
                 {
                     CorrelationId = context.Saga.CorrelationId,
-                    ItemNumber = context.Saga.ItemNumber,
+                    ItemNumber = context.Saga.ItemNumber, //общее количнство индексированных записей
                     SessionId = context.Saga.SessionId
                 };
             })
@@ -178,10 +196,23 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                         }
                     },
                     CorrelationId = elkIndexResponse.CorrelationId,
-                    CallBackType = "Common.Contracts.ELKSearch.ElkIndexEnd"
+                    CallBackType = "Common.Contracts.ELKSearch.ElkIndexESCommit"
                 })
-            .TransitionTo(CompletedState)
+            .TransitionTo(CommitState)
         );
+    }
+
+    private void ConfigureCommitState()
+    {
+        During(CommitState,
+        When(CommitEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
+            .Activity(p => p.OfType<CommitActivity>())
+            .TransitionTo(CompletedState));
     }
 
     private void ConfigureCompleted()

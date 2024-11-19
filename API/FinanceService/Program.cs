@@ -77,6 +77,7 @@ builder.Services.AddOpenTelemetry()
 );
 
 var app = builder.Build();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 app.UseAuthentication();

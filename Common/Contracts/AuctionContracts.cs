@@ -69,7 +69,7 @@ public class AuctionCreatedSearch
       public Guid CorrelationId { get; set; }
 }
 
-public class AuctionCreatingNotification
+public class AuctionNotification
 {
       public Guid AuctionId { get; set; }
       public string UserLogin { get; set; }
@@ -221,7 +221,10 @@ public record AuctionUpdatingImage(
       string Image,
       Guid CorrelationId
 );
-public record AuctionUpdatedImage(Guid CorrelationId);
+public record AuctionUpdatedImage
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionUpdatingSearch(
       Guid AuctionId,
       string Title,
@@ -253,7 +256,10 @@ public record AuctionUpdatingElk(
       DateTime AuctionEnd,
       Guid CorrelationId
 );
-public record AuctionUpdatedElk(Guid CorrelationId);
+public record AuctionUpdatedElk
+{
+      public Guid CorrelationId { get; set; }
+}
 
 public class AuctionUpdateESCommit
 {

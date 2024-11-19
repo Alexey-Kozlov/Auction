@@ -96,7 +96,7 @@ public class ActionMessageList<T>
 
 public class ReturnResultSql
 {
-    public Guid auctionid { get; set; }
+    public Guid? auctionid { get; set; }
     public string userlogin { get; set; }
     public string eventdata { get; set; }
     public int crud { get; set; }

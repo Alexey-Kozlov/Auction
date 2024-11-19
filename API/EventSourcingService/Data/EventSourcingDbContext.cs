@@ -24,6 +24,13 @@ public class EventSourcingDbContext : DbContext
         Guid auctionid,
         string userLogin) =>
         FromExpression(() => auction_delete(correlationid, auctionid, userLogin));
+    public IQueryable<ReturnResultSql> auction_update(
+        Guid correlationid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin));
+
     public IQueryable<ReturnStringSql> commit_operation(
         Guid correlationid) =>
         FromExpression(() => commit_operation(correlationid));
@@ -31,14 +38,20 @@ public class EventSourcingDbContext : DbContext
         Guid correlationid,
         string userLogin) =>
         FromExpression(() => index_elk(correlationid, userLogin));
-
+    public IQueryable<ReturnResultSql> finance_create(
+        Guid correlationid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => finance_create(correlationid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
         modelBuilder.HasDbFunction(() => auction_create(default, default, default, default));
+        modelBuilder.HasDbFunction(() => auction_update(default, default, default, default));
         modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
+        modelBuilder.HasDbFunction(() => finance_create(default, default, default));
         modelBuilder.HasDbFunction(() => commit_operation(default));
         modelBuilder.HasDbFunction(() => index_elk(default, default));
         modelBuilder.Entity<ReturnStringSql>().HasNoKey();
@@ -68,5 +81,7 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_EventsLog_AuctionId");
         builder.HasIndex(p => p.EntityType).HasDatabaseName("IX_EventsLog_EntityType");
         builder.HasIndex(p => p.UserLogin).HasDatabaseName("IX_EventsLog_UserLogin");
+        builder.HasIndex(p => p.CRUD).HasDatabaseName("IX_EventsLog_CRUD");
+        builder.HasIndex(p => p.SnapShotId).HasDatabaseName("IX_EventsLog_SnapShotId");
     }
 }

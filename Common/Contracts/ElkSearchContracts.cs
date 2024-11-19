@@ -74,6 +74,10 @@ public class ElkIndexEnd
 {
      public Guid CorrelationId { get; set; }
 }
+public class ElkIndexESCommit
+{
+     public Guid CorrelationId { get; set; }
+}
 
 public enum ResultType
 {

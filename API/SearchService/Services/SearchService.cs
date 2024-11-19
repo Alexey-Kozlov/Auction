@@ -91,8 +91,6 @@ public class SearchService
         await _publishEndpoint.Publish(new ElkSearchRequest(Guid.NewGuid(), Guid.NewGuid(),
             searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, searchParams.SessionId));
 
-        Console.WriteLine($"Поиск ELK - '{searchParams.SearchAdv}' сессия - {searchParams.SessionId}");
-
         //посылаем null в качестве результата для отображения заставки ожидания
         return new ApiResponse<PagedResult<List<AuctionItem>>>
         {

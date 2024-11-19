@@ -92,15 +92,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 ListItems = context.Message.DataItems;
-                if (!string.IsNullOrEmpty(Image))
-                {
-                    var auction_str = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList()[0].Data;
-                    var auction_item = JsonSerializer.Deserialize<AuctionItem>(auction_str);
-                    auction_item.Winner = Image;
-                    auction_str = JsonSerializer.Serialize(auction_item);
-                    ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList()[0].Data = auction_str;
-                }
-
             })
             //Создание изображения аукциона в сервисе  (если было сделано)
             //Важно! Для передачи изображения в сервис ImageService используем неиспользуемое в этом
@@ -114,7 +105,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                     {
                         DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionCreatedSearch"
+                        CallBackType = "Common.Contracts.Auction.AuctionCreatedSearch",
+                        Props = string.IsNullOrEmpty(Image) ? "" : Image
                     }),
                 p => p
                 .Publish(new AuctionCreatedSearch

@@ -1,6 +1,5 @@
 using System.Reflection;
 using Common.Contracts.EventSourcing;
-using Common.Contracts.Processing;
 using EventSourcingService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-namespace EventSourcingService.Services;
+namespace Common.Utils;
 
 public class AwaitLocker
 {
@@ -17,7 +17,6 @@ public class AwaitLocker
         }
     }
 
-    // overloading variant for non-void methods with return type (generic T)
     public async Task<T> LockAsync<T>(Func<Task<T>> worker)
     {
         await _semaphore.WaitAsync();

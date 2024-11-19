@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
+using Common.Contracts.Finance;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -41,8 +42,11 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
                 case "ElkIndex":
                     await ProcessElkIndex(item);
                     break;
-                case "NotifyItem":
+                case nameof(NotifyItem):
                     await ProcessNotifyItem(item, title, correlationId);
+                    break;
+                case nameof(FinanceItem):
+                    await ProcessFinanceItem(item, title);
                     break;
             }
 
@@ -99,7 +103,7 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
     private async Task ProcessNotifyItem(DataForProcessingService item, string title, Guid correlationId)
     {
         var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
-        var notify = new AuctionCreatingNotification
+        var notify = new AuctionNotification
         {
             Title = title,
             CorrelationId = correlationId,
@@ -110,15 +114,11 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
         switch (item.CRUD)
         {
             case CRUD.Create:
-                await _dbContext.NotifyItems.AddAsync(new NotifyItem
-                {
-                    AuctionId = typedItem.AuctionId,
-                    UserLogin = typedItem.UserLogin
-                });
+                await _dbContext.NotifyItems.AddAsync(typedItem);
                 await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
                 break;
             case CRUD.Update:
-
+                await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionUpdated", notify);
                 break;
             case CRUD.Delete:
                 //удаляем запись
@@ -134,4 +134,11 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
                 break;
         }
     }
+
+    private async Task ProcessFinanceItem(DataForProcessingService item, string amount)
+    {
+        var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
+        await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("FinanceCreate", new { value = amount });
+    }
+
 }

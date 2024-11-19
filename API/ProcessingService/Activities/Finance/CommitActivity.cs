@@ -7,7 +7,7 @@ using ProcessingService.StateMachines.FinanceStateMachine;
 
 namespace ProcessingService.Activities.Finance;
 
-public class CommitActivity : IStateMachineActivity<FinanceState, FinanceNotificationCreated>
+public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -23,12 +23,12 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceNotific
     }
 
 
-    public async Task Execute(BehaviorContext<FinanceState, FinanceNotificationCreated> context, IBehavior<FinanceState, FinanceNotificationCreated> next)
+    public async Task Execute(BehaviorContext<FinanceState, FinanceCreateESCommit> context, IBehavior<FinanceState, FinanceCreateESCommit> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.FinanceCreateESCommit",
+            "Common.Contracts.Finance.FinanceCreateComplete",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.FinanceCreate,
@@ -36,7 +36,7 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceNotific
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<FinanceState, FinanceNotificationCreated, TException> context, IBehavior<FinanceState, FinanceNotificationCreated> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<FinanceState, FinanceCreateESCommit, TException> context, IBehavior<FinanceState, FinanceCreateESCommit> next) where TException : Exception
     {
         return next.Faulted(context);
     }

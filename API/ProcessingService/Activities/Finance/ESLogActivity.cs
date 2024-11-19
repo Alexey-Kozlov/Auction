@@ -6,11 +6,11 @@ using ProcessingService.StateMachines.FinanceStateMachine;
 
 namespace ProcessingService.Activities.Finance;
 
-public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreateFinance>
+public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFinance>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
-    public FinanceActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
         _config = config;
@@ -30,10 +30,10 @@ public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreate
                 FinanceId = Guid.NewGuid(),
                 Status = FinanceRecordStatus.Приход,
                 UserLogin = context.Message.UserLogin,
-                Value = context.Saga.Amount
+                Value = context.Message.Amount
             },
             nameof(FinanceItem),
-            "Common.Contracts.FinanceCreated",
+            "Common.Contracts.Processing.ESLog_FinanceCreated",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.FinanceCreate,
@@ -48,6 +48,6 @@ public class FinanceActivity : IStateMachineActivity<FinanceState, RequestCreate
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-auction");
     }
 }
