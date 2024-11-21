@@ -124,6 +124,7 @@ internal class Program
         builder.Services.AddScoped<AuctionUpdateProcessing>();
         builder.Services.AddScoped<ESLogCommitProcessing>();
         builder.Services.AddScoped<FinanceCreateProcessing>();
+        builder.Services.AddScoped<BidPlaceProcessing>();
 
         var app = builder.Build();
 

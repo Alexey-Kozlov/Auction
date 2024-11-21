@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Common.Contracts.Processing;
 
 namespace Common.Contracts.Bid;
@@ -83,7 +82,10 @@ public class BidCreateESCommit
 {
      public Guid CorrelationId { get; set; }
 };
-
+public class BidComplete
+{
+     public Guid CorrelationId { get; set; }
+};
 
 public record GetBidPlaceState(Guid CorrelationId);
 

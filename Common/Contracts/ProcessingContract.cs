@@ -139,7 +139,7 @@ public class ESLog_FinanceCreated
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
-public class ESLog_PlaceBid
+public class ESLog_PlaceBid : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }

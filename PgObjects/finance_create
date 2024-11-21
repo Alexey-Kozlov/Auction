@@ -1,9 +1,12 @@
+-- FUNCTION: public.finance_create(uuid, text, text)
+
+-- DROP FUNCTION IF EXISTS public.finance_create(uuid, text, text);
+
 CREATE OR REPLACE FUNCTION public.finance_create(
 	correlationid_par uuid,
-	auctionid_par uuid,
-	eventdata_par1 text,
+	eventdata_par text,
 	userlogin_par text)
-    RETURNS TABLE(id uuid, auctionid uuid, userlogin character varying, value integer, actiondate timestamp without time zone, status smallint) 
+    RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -11,37 +14,34 @@ CREATE OR REPLACE FUNCTION public.finance_create(
 
 AS $BODY$
 declare
-	i record;
+	eventdata jsonb;
 	balance int = 0;
-	eventdata_par jsonb;
 BEGIN    
-CREATE TEMP TABLE IF NOT EXISTS tmp(EventData jsonb);
-CREATE TEMP TABLE IF NOT EXISTS finance(id uuid,auctionid uuid,userlogin varchar(256),value int,actiondate timestamp,status smallint);
-CREATE TEMP TABLE IF NOT EXISTS eventlog("Version" integer, "CorrelationId" uuid, "CreateAt" timestamp with time zone,
-"EventData" jsonb, "Commited" boolean, "Description" text, "SnapShotId" uuid, "EntityType" character varying(50),
-"RestoringOrder" smallint, "AuctionId" uuid, "UserLogin" character varying(256), "OperationType" smallint);
-delete from tmp;
-delete from finance;
-delete from eventlog;
---получаем jsonb из поступившего сообщения
-eventdata_par = cast(eventdata_par1 as jsonb);
+CREATE TEMP TABLE IF NOT EXISTS ret("eventdata" text,  "crud" smallint, "entitytype" varchar(50));
 
---получаем баланс по текущему пользователю
+delete from ret;
+eventdata = cast(eventdata_par as jsonb);
+
+--создаем запись в ES лог о создании поступления денег, Command=3 - 'FinanceCreate', CRUD=0 - Create
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+values (correlationid_par, now(), eventdata, false, 'FinanceItem', null, userlogin_par, 3, 0);
+
+--возвращаем запись для создания записи о поступлении денег, CRUD=0 - Create
+insert into ret("eventdata", "crud", "entitytype")
+values(eventdata, 0, 'FinanceItem');
+
+--получаем баланс по пользователю, которому делаем поступление денег
 call getbalance(userlogin_par,balance);
+--возвращаем запись для обновления баланса, CRUD=1 - Update, Status=2 - Balance
+eventdata = eventdata || 
+	jsonb_build_object('ActionDate', now(), 'Value', balance, 'Status', 2, 'FinanceId', gen_random_uuid());
+insert into ret("eventdata", "crud", "entitytype")
+values(eventdata, 1, 'FinanceItem');
 
---добавляем приход в баланс
-balance = balance + cast(eventdata_par ->> 'Value' as int);	
-
---делаем новый приход
-insert into public."EventsLog"("CorrelationId", "CreateAt","EventData", "Commited", 
-	"Description", "SnapShotId", "EntityType","RestoringOrder", "AuctionId", "UserLogin", "OperationType") 
-values(correlationid_par,now(),eventdata_par,false,'',null,'FinanceItem',0,auctionid_par,userlogin_par,2);
-
---возвращаем баланс
-insert into finance(id,auctionid,userlogin,value,actiondate,status)
-values(gen_random_uuid(),auctionid_par,userlogin_par,balance,now(),2);
-
-return query select finance."id", finance."auctionid",finance."userlogin",finance."value",finance."actiondate",finance."status"
-	from finance;
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
 END;
 $BODY$;
+
+ALTER FUNCTION public.finance_create(uuid, text, text)
+    OWNER TO admin;

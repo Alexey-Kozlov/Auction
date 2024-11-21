@@ -31,10 +31,10 @@ public class EventSourcingDbContext : DbContext
         string userLogin) =>
         FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin));
 
-    public IQueryable<ReturnStringSql> commit_operation(
+    public IQueryable<ReturnResultSql> commit_operation(
         Guid correlationid) =>
         FromExpression(() => commit_operation(correlationid));
-    public IQueryable<ReturnStringSql> index_elk(
+    public IQueryable<ReturnResultSql> index_elk(
         Guid correlationid,
         string userLogin) =>
         FromExpression(() => index_elk(correlationid, userLogin));
@@ -43,6 +43,12 @@ public class EventSourcingDbContext : DbContext
         string eventdata,
         string userLogin) =>
         FromExpression(() => finance_create(correlationid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> place_bid(
+        Guid correlationid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => place_bid(correlationid, auctionid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,7 +60,7 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => finance_create(default, default, default));
         modelBuilder.HasDbFunction(() => commit_operation(default));
         modelBuilder.HasDbFunction(() => index_elk(default, default));
-        modelBuilder.Entity<ReturnStringSql>().HasNoKey();
+        modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }

@@ -94,7 +94,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(
-                new Uri(configuration["QueuePaths:NotificationConsumer"]),
+                new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = new List<DataForProcessingService>

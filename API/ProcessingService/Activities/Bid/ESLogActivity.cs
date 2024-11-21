@@ -1,4 +1,3 @@
-using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.Processing;
 using Common.Utils;
@@ -7,11 +6,11 @@ using ProcessingService.StateMachines.BidPlacedStateMachine;
 
 namespace ProcessingService.Activities.Bid;
 
-public class SearchActivity : IStateMachineActivity<BidPlacedState, BidPlaced>
+public class ESLogActivity : IStateMachineActivity<BidPlacedState, RequestBidPlace>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
-    public SearchActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
         _config = config;
@@ -22,18 +21,19 @@ public class SearchActivity : IStateMachineActivity<BidPlacedState, BidPlaced>
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<BidPlacedState, BidPlaced> context, IBehavior<BidPlacedState, BidPlaced> next)
+    public async Task Execute(BehaviorContext<BidPlacedState, RequestBidPlace> context, IBehavior<BidPlacedState, RequestBidPlace> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new AuctionItem
+            new BidItem
             {
+                BidId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
-                CurrentHighBid = context.Saga.Amount,
-                Seller = context.Saga.Bidder,
-                UpdatedAt = DateTime.UtcNow
+                Bidder = context.Saga.Bidder,
+                BidTime = DateTime.UtcNow,
+                Amount = context.Saga.Amount
             },
-            nameof(AuctionItem),
-            "Common.Contracts.BidSearchPlaced",
+            nameof(BidItem),
+            "Common.Contracts.Processing.ESLog_PlaceBid",
             context.Message.CorrelationId,
             context.Saga.Bidder,
             Command.PlaceBid,
@@ -41,13 +41,13 @@ public class SearchActivity : IStateMachineActivity<BidPlacedState, BidPlaced>
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<BidPlacedState, BidPlaced, TException> context, IBehavior<BidPlacedState, BidPlaced> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<BidPlacedState, RequestBidPlace, TException> context, IBehavior<BidPlacedState, RequestBidPlace> next) where TException : Exception
     {
         return next.Faulted(context);
     }
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-create");
+        context.CreateScope("request-auction");
     }
 }

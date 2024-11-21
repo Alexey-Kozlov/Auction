@@ -1,12 +1,12 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Common.Contracts.Auction;
+using Common.Contracts.Bid;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Finance;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
-using MassTransit.NewIdProviders;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
@@ -36,70 +36,20 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
         var title = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
         foreach (var item in context.Message.DataObjects)
         {
-            //селектор по типу объекта уведомления
-            switch (item.DataType)
-            {
-                case "ElkIndex":
-                    await ProcessElkIndex(item);
-                    break;
-                case nameof(NotifyItem):
-                    await ProcessNotifyItem(item, title, correlationId);
-                    break;
-                case nameof(FinanceItem):
-                    await ProcessFinanceItem(item, title);
-                    break;
-            }
 
+            //уведомления при операциях с аукционом - создание, обновление, удаление
+            await ProcessNotifyItem(item, title, correlationId);
+
+
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+            await _publishEndpoint.Publish(sendObject);
         }
-
-        // foreach (var actionItem in context.Message.ActionItemsList)
-        // {
-        //     switch (actionItem.OperationType)
-        //     {
-        //         case OperationType.Delete:
-        //             var delItem = await _dbContext.NotifyItems.FirstOrDefaultAsync(p => p.AuctionId == actionItem.ActionItem.AuctionId &&
-        //                 p.UserLogin == actionItem.ActionItem.UserLogin);
-        //             _dbContext.NotifyItems.Remove(delItem);
-        //             await _hubContext.Clients.Group(actionItem.ActionItem.UserLogin).SendAsync("AuctionDeleted", auctionCreatingNotification);
-        //             break;
-        //         case OperationType.Insert:
-        //             _dbContext.NotifyItems.Add(actionItem.ActionItem);
-        //             await _hubContext.Clients.All.SendAsync("AuctionCreated", auctionCreatingNotification);
-        //             break;
-        //         case OperationType.Bid:
-        //             var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == actionItem.ActionItem.AuctionId).ToListAsync();
-        //             //проверяем параметр Properties, если "true" - добавляем запись о рассылке уведомлений в БД
-        //             if (context.Message.Properties != null && context.Message.Properties[0] == "true")
-        //             {
-        //                 _dbContext.NotifyItems.Add(actionItem.ActionItem);
-        //                 auctionNotifyList.Add(new NotifyItem
-        //                 {
-        //                     AuctionId = actionItem.ActionItem.AuctionId,
-        //                     UserLogin = context.Message.ActionItemsList[0].ActionItem.UserLogin
-        //                 });
-        //             }
-        //             await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced", auctionCreatingNotification);
-        //             break;
-        //         case OperationType.Update:
-        //             await _hubContext.Clients.Group(actionItem.ActionItem.UserLogin).SendAsync("AuctionUpdated", auctionCreatingNotification);
-        //             break;
-        //     }
-        // }
-
-        await _dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
     }
 
-    private async Task ProcessElkIndex(DataForProcessingService item)
-    {
-        var typedItem = JsonSerializer.Deserialize<ElkIndexResponse>(item.Data);
-        await _hubContext.Clients.Group(typedItem.SessionId).SendAsync("ElkIndex",
-                $"Проиндексировано - {typedItem.ItemNumber} записей");
-    }
     private async Task ProcessNotifyItem(DataForProcessingService item, string title, Guid correlationId)
     {
         var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
@@ -133,12 +83,6 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
                 await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionDeleted", notify);
                 break;
         }
-    }
-
-    private async Task ProcessFinanceItem(DataForProcessingService item, string amount)
-    {
-        var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
-        await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("FinanceCreate", new { value = amount });
     }
 
 }

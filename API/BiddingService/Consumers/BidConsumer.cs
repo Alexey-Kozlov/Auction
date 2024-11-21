@@ -31,10 +31,7 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
             switch (item.CRUD)
             {
                 case CRUD.Create:
-
-                    break;
-                case CRUD.Update:
-
+                    await _dbContext.Bids.AddAsync(typedItem);
                     break;
                 case CRUD.Delete:
                     //удаляем запись
@@ -44,6 +41,8 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
                         throw new Exception($"Запись для удаления не найдена");
                     }
                     _dbContext.Bids.Remove(delItem);
+                    break;
+                default:
                     break;
             }
         }

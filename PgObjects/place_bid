@@ -1,0 +1,201 @@
+-- FUNCTION: public.place_bid(uuid, uuid, text, character varying)
+
+-- DROP FUNCTION IF EXISTS public.place_bid(uuid, uuid, text, character varying);
+
+CREATE OR REPLACE FUNCTION public.place_bid(
+	correlationid_par uuid,
+	auctionid_par uuid,
+	eventdata_par1 text,
+	userlogin_par character varying)
+    RETURNS TABLE(eventdata jsonb, crud smallint, entitytype character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+declare
+	i record;
+	lastSnapShotId uuid;
+	lastSnapShotCreated timestamp;
+	balance int = 0;
+	eventdata_par jsonb;
+	temp_jsonb jsonb;
+	userlogin_tmp varchar(256);
+BEGIN    
+CREATE TEMP TABLE IF NOT EXISTS ret(eventdata jsonb, crud smallint, entitytype varchar(50));
+CREATE TEMP TABLE IF NOT EXISTS eventlog("Version" integer, "CorrelationId" uuid, "CreateAt" timestamp with time zone,
+"EventData" jsonb, "Commited" boolean, "Description" text, "SnapShotId" uuid, "EntityType" character varying(50),
+"AuctionId" uuid, "UserLogin" character varying(256), "Command" smallint, "CRUD" smallint);
+
+delete from ret;
+delete from eventlog;
+
+eventdata_par = cast(eventdata_par1 as jsonb);
+select "SnapShotId", "CreateAt" from public."EventsLog" 
+where not "SnapShotId" is null order by "CreateAt" desc limit 1 
+into lastSnapShotId,lastSnapShotCreated;
+
+--получаем последнюю запись FinanceItem по данному аукциону, Status = 1 - расход, т.е. деньги на ставку
+insert into eventlog("Version", "CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "SnapShotId", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+    SELECT 
+	t1."Version", t1."CorrelationId", t1."CreateAt", t1."EventData", 
+	t1."Commited", t1."Description", t1."SnapShotId", t1."EntityType",
+	t1."AuctionId", t1."UserLogin", t1."Command", t1."CRUD"
+	FROM public."EventsLog" t1
+	JOIN (
+		SELECT max("EventsLog"."Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'FinanceItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) 
+		and "CreateAt" >= lastSnapShotCreated and
+		"AuctionId" = auctionid_par
+		group by "AuctionId") t2 on t1."Version" = t2."Version"
+	where  cast(t1."EventData" ->> 'Status' as int) = 1;
+
+if exists(select * from eventlog) then
+--есть предыдущий платеж по ставке - возвращаем деньги кто сделал ставку, делаем запись в ES лог
+--Command = 4 - PlaceBid, CRUD = 2 - Delete, Status = 0 - Приход
+	insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "SnapShotId", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+	select correlationid_par, now(), "EventData" || jsonb_build_object('ActionDate', now(),'Status', 0), false, 
+	'', null, 'FinanceItem', auctionid_par, "EventData" ->> 'UserLogin', 4, 2 
+	from eventlog;
+--записываем в выходную таблицу - обновление баланса для пользователя, кто сделал предыдущую ставку
+	select "UserLogin" from eventlog into userlogin_tmp;	
+	call getbalance(userlogin_tmp, balance); --получили баланс по пользователю, у кого отменили ставку, CRUD = 1 - Update
+	--обновляем в исходной FinanceItem дату, баланс и ставим Status = 2 - Balance
+	insert into ret(eventdata, crud, entitytype)
+	select "EventData" || jsonb_build_object('ActionDate', now(),'Value', balance,'Status',2), 
+	1, 'FinanceItem' from eventlog; --CRUD = 1 - Update
+--записываем в выходную таблицу - удаление FinanceItem по пользователю, у кого отменили ставку
+	insert into ret(eventdata, crud, entitytype) --CRUD = 2 - Delete
+	select "EventData", 2, 'FinanceItem' from eventlog;
+end if;
+
+balance = 0;
+--получаем баланс по текущему пользователю
+call getbalance(userlogin_par,balance);
+--проверка - превышает ли ставка баланс пользователя
+--если превышает - делаем exception, что откатывает транзакцию, т.е. все ранее сделанные операции
+if balance < cast(eventdata_par ->> 'Amount' as int) then 
+raise exception 'Превышен лимит, баланс - %, ставка - %', balance, eventdata_par ->> 'Amount';
+end if;
+
+--создаем новый jsonb типа FinanceItem, Status = 1 - Расход, Value - равное новой ставке
+temp_jsonb = jsonb_build_object('Value', cast(eventdata_par ->> 'Amount' as int),'Status',1,'AuctionId',auctionid_par,
+'FinanceId',gen_random_uuid(),'UserLogin',userlogin_par,'ActionDate',now());
+--делаем новую запись в ES лог - списание денег на новую ставку
+--Command = 4 - PlaceBid, CRUD = 0 - Create
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+values(correlationid_par,now(), temp_jsonb, false,'','FinanceItem', auctionid_par, userlogin_par, 4, 0);
+
+--записываем в выходную таблицу - списание денег по новой ставке текущего пользователя
+insert into ret(eventdata, crud, entitytype) values(temp_jsonb, 0, 'FinanceItem');
+	
+balance = 0;
+--обновляем баланс по текущему пользователю
+call getbalance(userlogin_par,balance);
+
+--записываем в выходную таблицу - возвращаем баланс текущего пользователя
+--CRUD = 1 - Update, Status = 2 - Update
+
+--если это была ставка того же пользователя, что и предыдущая - обновляем ее
+if exists(select * from ret where ret."eventdata" ->> 'UserLogin' = userlogin_par and 
+		ret."crud" = 1 and ret."entitytype" = 'FinanceItem') then
+	update ret set "eventdata" = ret."eventdata" || jsonb_build_object('Value',balance) 
+		where ret."eventdata" ->> 'UserLogin' = userlogin_par and 
+		ret."crud" = 1 and ret."entitytype" = 'FinanceItem';
+else
+--баланс нового пользователя, добавляем в выходную таблицу
+	insert into ret(eventdata, crud, entitytype)
+	values(temp_jsonb || jsonb_build_object('Value', balance,'Status',2), 1, 'FinanceItem');
+end if;
+
+--делаем новую запись в ES лог - создание новой ставки BidItem
+--Command = 4 - PlaceBid, CRUD = 0 - Create
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+values(correlationid_par,now(), eventdata_par, false,'','BidItem', auctionid_par, userlogin_par, 4, 0);
+
+--записываем в выходную таблицу - создание новой ставки текущего пользователя
+--CRUD = 0 - Create
+insert into ret(eventdata, crud, entitytype)
+values(eventdata_par, 0, 'BidItem');
+
+--делаем новую запись в ES лог - создание новой записи NotifyItem (если ее ранее не было)
+--Command = 4 - PlaceBid, CRUD = 0 - Create
+delete from eventlog;
+insert into eventlog("Version", "CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "SnapShotId", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+    SELECT 
+	t1."Version", t1."CorrelationId", t1."CreateAt", t1."EventData", 
+	t1."Commited", t1."Description", t1."SnapShotId", t1."EntityType",
+	t1."AuctionId", t1."UserLogin", t1."Command", t1."CRUD"
+	FROM public."EventsLog" t1
+	JOIN (
+		SELECT max("EventsLog"."Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'NotifyItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) 
+		and "CreateAt" >= lastSnapShotCreated and
+		"AuctionId" = auctionid_par and
+		"UserLogin" = userlogin_par
+		group by "AuctionId","UserLogin") t2 on t1."Version" = t2."Version"
+	where  t1."CRUD" = 0;
+
+temp_jsonb = jsonb_build_object('AuctionId', auctionid_par, 'UserLogin', userlogin_par);
+if not exists(select * from eventlog) then
+--запись рассылки уведомлений не найдена - создаем новую
+--Command = 4 - PlaceBid, CRUD = 0 - Create
+	insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+		"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+	values(correlationid_par,now(), temp_jsonb,
+	false,'','NotifyItem', auctionid_par, userlogin_par, 4, 0);
+
+--записываем в выходную таблицу - создание новой ставки текущего пользователя CRUD = 0 - Create
+	insert into ret(eventdata, crud, entitytype)
+	values(temp_jsonb, 0, 'NotifyItem');	
+else
+--запись рассылки уведомлений найдена - записываем в выходную таблицу запись с CRUD = 3 - Read
+	insert into ret(eventdata, crud, entitytype)
+	values(temp_jsonb, 3, 'NotifyItem');
+end if;
+
+--делаем новую запись в ES лог - обновление записи AuctionItem Command = 4 - PlaceBid, CRUD = 1 - Update
+--получаем крайнюю запись AuctionItem, заменяем значение CurrentHighBid
+delete from eventlog;
+insert into eventlog("Version", "CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+SELECT 
+	t1."Version", correlationid_par, now(), t1."EventData" || jsonb_build_object('CurrentHighBid', cast(eventdata_par ->> 'Amount' as int)), 
+	false, '', 'AuctionItem', auctionid_par, userlogin_par, 4, 1
+	FROM public."EventsLog" t1
+	JOIN (
+		SELECT max("EventsLog"."Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'AuctionItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) 
+		and "CreateAt" >= lastSnapShotCreated and
+		"AuctionId" = auctionid_par
+		group by "AuctionId") t2 on t1."Version" = t2."Version"
+	where  t1."CRUD" != 2;
+	
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+		"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+select "CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD"
+from eventlog;
+
+--запись рассылки обновления ставки аукциона - записываем в выходную таблицу запись с CRUD = 1 - Update
+insert into ret(eventdata, crud, entitytype)
+select "EventData", 1, 'AuctionItem' from eventlog;
+
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
+END;
+$BODY$;
+
+ALTER FUNCTION public.place_bid(uuid, uuid, text, character varying)
+    OWNER TO admin;

@@ -41,7 +41,7 @@ builder.Services.AddScoped<SearchService.Services.SearchService>();
 
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<SearchConsumer>();
+    p.AddConsumersFromNamespaceContaining<AuctionConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false));
     p.UsingRabbitMq((context, config) =>
     {

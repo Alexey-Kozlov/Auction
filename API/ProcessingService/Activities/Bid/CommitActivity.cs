@@ -7,7 +7,7 @@ using ProcessingService.StateMachines.BidPlacedStateMachine;
 
 namespace ProcessingService.Activities.Bid;
 
-public class CommitActivity : IStateMachineActivity<BidPlacedState, BidNotificationProcessed>
+public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -23,20 +23,20 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidNotificat
     }
 
 
-    public async Task Execute(BehaviorContext<BidPlacedState, BidNotificationProcessed> context, IBehavior<BidPlacedState, BidNotificationProcessed> next)
+    public async Task Execute(BehaviorContext<BidPlacedState, BidCreateESCommit> context, IBehavior<BidPlacedState, BidCreateESCommit> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.BidCreateESCommit",
-            context.Message.CorrelationId,
+            "Common.Contracts.Bid.BidComplete",
+            context.Saga.CorrelationId,
             context.Saga.Bidder,
             Command.PlaceBid,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<BidPlacedState, BidNotificationProcessed, TException> context, IBehavior<BidPlacedState, BidNotificationProcessed> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<BidPlacedState, BidCreateESCommit, TException> context, IBehavior<BidPlacedState, BidCreateESCommit> next) where TException : Exception
     {
         return next.Faulted(context);
     }

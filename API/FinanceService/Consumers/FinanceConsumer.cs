@@ -30,7 +30,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
             switch (item.CRUD)
             {
                 case CRUD.Create:
-                    //добавляем новое поступление денег на счет
+                    //добавляем новое поступление денег на счет или списание денег на новую ставку
                     await _dbContext.FinanceItems.AddAsync(typedItem);
                     break;
                 case CRUD.Update:
@@ -47,7 +47,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
                     }
                     break;
                 case CRUD.Delete:
-                    //удаляем запись
+                    //удаляем списание денег на ставку
                     var delItem = await _dbContext.FinanceItems.FindAsync(typedItem.FinanceId);
                     if (delItem == null)
                     {

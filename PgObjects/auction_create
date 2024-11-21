@@ -1,0 +1,51 @@
+-- FUNCTION: public.auction_create(uuid, uuid, text, text)
+
+-- DROP FUNCTION IF EXISTS public.auction_create(uuid, uuid, text, text);
+
+CREATE OR REPLACE FUNCTION public.auction_create(
+	correlationid_par uuid,
+	auctionid_par uuid,
+	eventdata_par text,
+	userlogin_par text)
+    RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+declare
+	eventdata jsonb;
+BEGIN    
+CREATE TEMP TABLE IF NOT EXISTS ret("eventdata" text,  "crud" smallint, "entitytype" varchar(50));
+
+delete from ret;
+eventdata = cast(eventdata_par as jsonb);
+
+--создаем запись в ES лог о создании аукциона, Command=1 - 'AuctionCreate', CRUD=0 - Create
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+values (correlationid_par, now(), eventdata, false, 'AuctionItem', auctionid_par, userlogin_par, 1, 0);
+
+--возвращаем запись для создания аукциона, CRUD=0 - Create
+insert into ret("eventdata", "crud", "entitytype")
+values(eventdata_par, 0, 'AuctionItem');
+
+eventdata_par = '{"AuctionId":"' || cast(auctionid_par as varchar) || '","UserLogin":"' || userlogin_par || '"}';
+eventdata = cast(eventdata_par as jsonb);
+--создаем запись в ES лог о создании уведомления аукциона для данного пользователя, 
+--Command=1 - 'AuctionCreate', CRUD=0 - Create
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+"EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+select correlationid_par, now(), eventdata, false, 'NotifyItem', auctionid_par, userlogin_par, 1, 0;
+
+--возвращаем записи уведомлений с типом записи CRUD=0 - Create, для добавления в NotificationService
+insert into ret("eventdata", "crud", "entitytype")
+values(eventdata_par, 0, 'NotifyItem');	
+
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
+END;
+$BODY$;
+
+ALTER FUNCTION public.auction_create(uuid, uuid, text, text)
+    OWNER TO admin;

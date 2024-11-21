@@ -1,3 +1,7 @@
+-- PROCEDURE: public.getbalance(character varying, integer)
+
+-- DROP PROCEDURE IF EXISTS public.getbalance(character varying, integer);
+
 CREATE OR REPLACE PROCEDURE public.getbalance(
 	IN userlogin_par character varying,
 	INOUT balance integer)
@@ -17,12 +21,12 @@ into lastSnapShotId,lastSnapShotCreated;
 --получаем баланс по текущему пользователю
 insert into tmp(EventData)
     SELECT 
-	"EventsLog"."EventData"
+	"EventData"
 	FROM public."EventsLog"
-	where  "EventsLog"."EntityType" = 'FinanceItem' and 
-	("EventsLog"."SnapShotId" = lastSnapShotId or "EventsLog"."SnapShotId" is null) and
-	"EventsLog"."UserLogin" = userlogin_par and
-	"EventsLog"."CreateAt" >= lastSnapShotCreated;
+	where  "EntityType" = 'FinanceItem' and 
+	("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and
+	"UserLogin" = userlogin_par and
+	"CreateAt" >= lastSnapShotCreated;
 
 	for i in 
 	select cast(tmp."eventdata" ->> 'Value' as int) as "Value",
@@ -40,3 +44,5 @@ insert into tmp(EventData)
 
 END;
 $BODY$;
+ALTER PROCEDURE public.getbalance(character varying, integer)
+    OWNER TO admin;

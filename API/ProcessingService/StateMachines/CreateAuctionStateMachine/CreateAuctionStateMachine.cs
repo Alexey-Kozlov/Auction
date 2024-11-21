@@ -94,9 +94,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ListItems = context.Message.DataItems;
             })
             //Создание изображения аукциона в сервисе  (если было сделано)
-            //Важно! Для передачи изображения в сервис ImageService используем неиспользуемое в этом
-            //контексте текстовое поле Winner. Если создать поле Image для объекта AuctionItem - 
-            //придется добавлять это поле в таблицу БД AuctionItem, что лишнее для этого одного функционала
             .IfElse(context => !string.IsNullOrEmpty(Image),
                 p => p
                 .Send(

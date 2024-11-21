@@ -9,14 +9,14 @@ using SearchService.Data;
 
 namespace SearchService.Consumers;
 
-public class SearchConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
+public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
 {
     private readonly SearchDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
     private readonly IMapper _mapper;
 
-    public SearchConsumer(SearchDbContext dbContext, IMapper mapper,
+    public AuctionConsumer(SearchDbContext dbContext, IMapper mapper,
         IPublishEndpoint publishEndpoint, IConfiguration configuration)
     {
         _dbContext = dbContext;

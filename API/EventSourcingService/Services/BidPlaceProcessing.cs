@@ -1,0 +1,76 @@
+using System.Reflection;
+using Common.Contracts.EventSourcing;
+using Common.Contracts.Processing;
+using EventSourcingService.Data;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
+
+namespace EventSourcingService.Services;
+
+public class BidPlaceProcessing
+{
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly EventSourcingDbContext _dbContext;
+    private readonly IConfiguration _configuration;
+
+    public BidPlaceProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
+        IConfiguration configuration)
+    {
+        _publishEndpoint = publishEndpoint;
+        _dbContext = dbContext;
+        _configuration = configuration;
+    }
+
+    public async Task ProcessESLog(ConsumeContext<ESContract> context)
+    {
+        var listItems = new DataForProcessingServicesList
+        {
+            DataObjects = new List<DataForProcessingService>()
+        };
+        try
+        {
+            //В процедуре Postgres делаем:
+            //- запись в ES лог о создании ставки
+            //- записи в ES лог об отмене ранее созданного платежа (если был)
+            //Формирование списка корректирующих записей:
+            //- запись созданной ставки - для добавления в сервис BiddingService
+            //- запись об отмене ранее созданного платежа (если был) - для отмены в сервисе FinanceService
+            //- запись о новом балансе пользователя, который сделал прежнюю ставку (если было) - для обновления баланса в сервисе FinanceService
+            //- запись о новом балансе пользователя, который сделал новую ставку - для обновления баланса в сервисе FinanceService        
+            //- запись о списании денег на новую ставку для текущего пользователя - для сервиса FinanceService
+            var result = await _dbContext.place_bid(
+                context.Message.CorrelationId,
+                context.Message.AuctionId ?? Guid.NewGuid(),
+                context.Message.EventData,
+                context.Message.UserLogin).ToListAsync();
+            //возвращаем список записей для изменения соответствующих БД в нужных сервисах
+            foreach (var item in result)
+            {
+                listItems.DataObjects.Add
+                (
+                    new DataForProcessingService
+                    {
+                        DataType = item.entitytype,
+                        Data = item.eventdata,
+                        CRUD = (CRUD)item.crud
+                    }
+                );
+            }
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+            await _publishEndpoint.Publish(sendObject);
+        }
+        catch (Npgsql.PostgresException e)
+        {
+            //ошибка при выполнении транзакции в БД, в т.ч. штатные - при нехватке денег на ставку
+            Fault<ESLog_PlaceBid> errorObj = new FaultMessage<ESLog_PlaceBid>(
+                e.MessageText,
+                new ESLog_PlaceBid { CorrelationId = context.Message.CorrelationId }
+            );
+            await _publishEndpoint.Publish(errorObj);
+        }
+    }
+
+}

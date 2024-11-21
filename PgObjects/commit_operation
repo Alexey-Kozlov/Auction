@@ -1,0 +1,28 @@
+-- FUNCTION: public.commit_operation(uuid)
+
+-- DROP FUNCTION IF EXISTS public.commit_operation(uuid);
+
+CREATE OR REPLACE FUNCTION public.commit_operation(
+	correlationid_par uuid)
+    RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN    
+CREATE TEMP TABLE IF NOT EXISTS ret("eventdata" text,  "crud" smallint, "entitytype" varchar(50));
+
+--получаем все ставки по указанному CorrelationId, помечаем их как завершенные
+--отбираем записи по AuctionId с типом 'BidItem' и CRUD=0 - добавление
+update public."EventsLog" set "Commited" = true where  "CorrelationId" = correlationid_par;
+		
+insert into ret("eventdata","crud","entitytype") values ('{"result":"true"}',0,'');
+
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
+END;
+$BODY$;
+
+ALTER FUNCTION public.commit_operation(uuid)
+    OWNER TO admin;
