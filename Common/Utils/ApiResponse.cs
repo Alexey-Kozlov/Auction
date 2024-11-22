@@ -2,6 +2,7 @@ using System.Net;
 
 namespace Common.Utils;
 
+[Serializable]
 public class ApiResponse<T>
 {
     public HttpStatusCode StatusCode { get; set; }
@@ -10,6 +11,7 @@ public class ApiResponse<T>
     public T Result { get; set; }
 }
 
+[Serializable]
 public class PagedResult<T>
 {
     public T Results { get; set; }

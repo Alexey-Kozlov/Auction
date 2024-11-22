@@ -19,24 +19,28 @@ public record ElkSearchCreating(
      int PageSize
 );
 
-public record ElkSearchCreated<T>(
-     Guid CorrelationId,
-     string SearchTerm,
-     ResultType ResultType,
-     T Result
-);
+public class ElkSearchCreated<T>
+{
+     public Guid CorrelationId { get; set; }
+     public string SearchTerm { get; set; }
+     public ResultType ResultType { get; set; }
+     public T Result { get; set; }
+}
 
-public record ElkSearchResponse<T>(
-     Guid CorrelationId,
-     string SearchTerm,
-     ResultType ResultType,
-     T Result,
-     string SessionId
-);
+[Serializable]
+public class ElkSearchResponse<T>
+{
+     public Guid CorrelationId { get; set; }
+     public string SearchTerm { get; set; }
+     public ResultType ResultType { get; set; }
+     public T Result { get; set; }
+     public string SessionId { get; set; }
+}
 
-public record ElkSearchResponseCompleted(
-     Guid CorrelationId
-);
+public class ElkSearchResponseCompleted
+{
+     public Guid CorrelationId { get; set; }
+}
 
 public record RequestElkIndex(
      string UserLogin,

@@ -1,19 +1,20 @@
+using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
+using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
 
 namespace ProcessingService.StateMachines.ElkSearchStateMachine;
 public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
 {
-    public State ElkSearchCreatedState { get; }
-    public State ElkSearchNotificationState { get; }
+    public State ElkSearchState { get; }
+    public State NotificationState { get; }
     public State CompletedState { get; }
-    public State FaultedState { get; }
 
     public Event<ElkSearchRequest> RequestElkSearchEvent { get; }
-    public Event<ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> ElkSearchCompletedEvent { get; }
-    public Event<ElkSearchResponseCompleted> ElkSearchNotificationSendedEvent { get; }
+    public Event<ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> ElkSearchEvent { get; }
+    public Event<ElkSearchResponseCompleted> CompleteEvent { get; }
     private IConfiguration configuration { get; }
 
     public ElkSearchStateMachine(IServiceProvider services)
@@ -22,9 +23,8 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureElkSearchCompleted();
-        ConfigureElkSearchNotificationCompleted();
-        ConfigureCompleted();
+        ConfigureCompletedState();
+        ConfigureNotificationState();
     }
     private void ConfigureEvents()
     {
@@ -32,8 +32,8 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
         {
             p.InsertOnInitial = true;
         });
-        Event(() => ElkSearchCompletedEvent);
-        Event(() => ElkSearchNotificationSendedEvent);
+        Event(() => ElkSearchEvent);
+        Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
     {
@@ -50,50 +50,68 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
             })
             .Send(
                 new Uri(configuration["QueuePaths:ElkSearchCreating"]),
-                context => new ElkSearchCreating(
-                context.Message.Id,
-                context.Saga.CorrelationId,
-                context.Message.SearchTerm,
-                context.Message.PageNumber,
-                context.Message.PageSize
-            ))
-            .TransitionTo(ElkSearchCreatedState)
+                context => new DataForProcessingServicesList<ElkSearchCreating>
+                {
+                    DataObjects = new List<DataForProcessingService>
+                    {
+                        new DataForProcessingService
+                        {
+                            CRUD = CRUD.Create,
+                            DataType = "ElkSearchCreating",
+                            Data = JsonSerializer.Serialize(new ElkSearchCreating(
+                                context.Message.Id,
+                                context.Saga.CorrelationId,
+                                context.Message.SearchTerm,
+                                context.Message.PageNumber,
+                                context.Message.PageSize
+                            ))
+                        }
+                    },
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.ELKSearch.ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>"
+                })
+            .TransitionTo(NotificationState)
         );
     }
 
-    private void ConfigureElkSearchCompleted()
+    private void ConfigureNotificationState()
     {
-        During(ElkSearchCreatedState,
-        When(ElkSearchCompletedEvent)
+        During(NotificationState,
+        When(ElkSearchEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
+                Console.WriteLine(JsonSerializer.Serialize(context.Message.Result));
             })
             .Send(
-                new Uri(configuration["QueuePaths:ElkSearchResponse"]),
-                context => new ElkSearchResponse<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(
-                context.Message.CorrelationId,
-                context.Saga.Term,
-                context.Message.ResultType,
-                context.Message.Result,
-                context.Saga.SessionId
-                ))
-            .TransitionTo(ElkSearchNotificationState));
+                new Uri(configuration["QueuePaths:ElkSearchNotificationConsumer"]),
+                context => new DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>
+                {
+                    DataObjects = new List<DataForProcessingService>
+                    {
+                        new DataForProcessingService
+                        {
+                            CRUD = CRUD.Create,
+                            DataType = "ElkSearch",
+                            Data = JsonSerializer.Serialize(context.Message.Result)
+                        }
+                    },
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.ELKSearch.ElkSearchResponseCompleted",
+                    Props = context.Saga.SessionId
+                })
+            .TransitionTo(NotificationState));
     }
-    private void ConfigureElkSearchNotificationCompleted()
+    private void ConfigureCompletedState()
     {
-        During(ElkSearchNotificationState,
-        When(ElkSearchNotificationSendedEvent)
+        During(NotificationState,
+        When(CompleteEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .TransitionTo(CompletedState));
+            .Finalize());
     }
 
-    private void ConfigureCompleted()
-    {
-        During(CompletedState);
-    }
 
 }

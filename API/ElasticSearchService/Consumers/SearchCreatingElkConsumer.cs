@@ -1,5 +1,7 @@
-﻿using Common.Contracts.Auction;
+﻿using System.Text.Json;
+using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
+using Common.Contracts.Processing;
 using Common.Utils;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
@@ -8,7 +10,7 @@ using MassTransit;
 
 namespace ElasticSearchService.Consumers;
 
-public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
+public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList<ElkSearchCreating>>
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ElkClient _client;
@@ -18,13 +20,12 @@ public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
         _publishEndpoint = publishEndpoint;
         _client = client;
     }
-    public async Task Consume(ConsumeContext<ElkSearchCreating> consumeContext)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<ElkSearchCreating>> consumeContext)
     {
-        var fz = new Fuzziness("Auto");
-
+        var typed = JsonSerializer.Deserialize<ElkSearchCreating>(consumeContext.Message.DataObjects[0].Data);
         var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s =>
-            s.From(consumeContext.Message.PageNumber - 1)
-            .Size(consumeContext.Message.PageSize)
+            s.From(typed.PageNumber - 1)
+            .Size(typed.PageSize)
             //запрос - поисковый запрос разбивается на термы, все термы должны быть
             //указанном поле. Поиск нечеткий (Fuzzy), с учетом русского языка.
             //поиск по ИЛИ в 3-х полях - Title, Properties, Description
@@ -34,21 +35,21 @@ public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
                        .Match(m => m
                            .Field(f => f.Title)
                             .Fuzziness(new Fuzziness("AUTO"))
-                            .Query(consumeContext.Message.SearchTerm)
+                            .Query(typed.SearchTerm)
                             .Operator(Operator.And)
                         ),
                         s => s
                        .Match(m => m
                            .Field(f => f.Description)
                             .Fuzziness(new Fuzziness("AUTO"))
-                            .Query(consumeContext.Message.SearchTerm)
+                            .Query(typed.SearchTerm)
                             .Operator(Operator.And)
                         ),
                         s => s
                        .Match(m => m
                            .Field(f => f.Properties)
                             .Fuzziness(new Fuzziness("AUTO"))
-                            .Query(consumeContext.Message.SearchTerm)
+                            .Query(typed.SearchTerm)
                             .Operator(Operator.And)
                         )
                     )
@@ -60,16 +61,7 @@ public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
         var pageCount = 0;
         if (itemsCount > 0)
         {
-            pageCount = (itemsCount + consumeContext.Message.PageSize - 1) / consumeContext.Message.PageSize;
-        }
-
-        if (elkResponse.IsValidResponse)
-        {
-            Console.WriteLine($"{DateTime.Now} - По запросу {consumeContext.Message.SearchTerm} найдено {elkResponse.Documents.Count} записей.");
-        }
-        else
-        {
-            throw new Exception("Ошибка ELK-сервиса");
+            pageCount = (itemsCount + typed.PageSize - 1) / typed.PageSize;
         }
 
         var resultData = new ApiResponse<PagedResult<List<AuctionCreatingElk>>>
@@ -84,12 +76,13 @@ public class SearchCreatingElkConsumer : IConsumer<ElkSearchCreating>
             }
         };
 
-        var result = new ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(
-            consumeContext.Message.CorrelationId,
-            consumeContext.Message.SearchTerm,
-            ResultType.Success,
-            resultData
-        );
+        var result = new ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>
+        {
+            CorrelationId = consumeContext.Message.CorrelationId,
+            SearchTerm = typed.SearchTerm,
+            ResultType = ResultType.Success,
+            Result = resultData
+        };
 
         await _publishEndpoint.Publish(result);
     }

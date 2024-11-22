@@ -1,36 +1,37 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
-using Common.Contracts.Notification;
 using Common.Contracts.Processing;
+using Common.Utils;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.Hubs;
 
+
 namespace NotificationService.Consumers;
 
-public class ElkindexConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
+public class ElkSearchConsumer : IConsumer<DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public ElkindexConsumer(IHubContext<NotificationHub> hubContext,
+    public ElkSearchConsumer(IHubContext<NotificationHub> hubContext,
         IPublishEndpoint publishEndpoint, IConfiguration configuration)
     {
         _hubContext = hubContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> context)
     {
         var correlationId = context.Message.CorrelationId;
         foreach (var item in context.Message.DataObjects)
         {
             //уведомление при окончании индексации
-            var typedItem = JsonSerializer.Deserialize<ElkIndexResponse>(item.Data);
-            await _hubContext.Clients.Group(typedItem.SessionId).SendAsync("ElkIndex",
-                    $"Проиндексировано - {typedItem.ItemNumber} записей");
+            var typedItem = JsonSerializer.Deserialize<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(item.Data);
+            await _hubContext.Clients.Group(context.Message.Props).SendAsync("ElkSearch", typedItem);
         }
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
