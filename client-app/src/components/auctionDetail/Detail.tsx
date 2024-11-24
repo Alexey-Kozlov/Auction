@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Heading from '../auctionList/Heading';
 import CountdownTimer from '../auctionList/CountDownTimer';
-import { ApiResponse, Auction, AuctionDeleted, ProcessingState, User } from '../../store/types';
+import { Auction, AuctionDeleted, NotifyUser, ProcessingState, User } from '../../store/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { Button } from 'flowbite-react';
@@ -10,9 +10,9 @@ import ImageCard from '../auctionList/ImageCard';
 import BidList from './BidList';
 import DetailedSpecs from './DetailedSpec';
 import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
-import { useIsNotifyUserQuery, useSetNotifyUserMutation } from '../../api/NotificationApi';
+import { useIsNotifyUserQuery } from '../../api/NotificationApi';
 import { setEventFlag } from '../../store/processingSlice';
-import { useDeleteAuctionMutation } from '../../api/ProcessingApi';
+import { useDeleteAuctionMutation, useSetNotifyUserMutation } from '../../api/ProcessingApi';
 import uuid from 'react-native-uuid';
 
 export default function Detail() {
@@ -30,6 +30,7 @@ export default function Detail() {
     const [deleteAuctionProc] = useDeleteAuctionMutation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const sessionId = useSelector((state: RootState) => state.paramStore).sessionId;
 
     //удаляем аукцион
     const handleDeleteAuction = async () => {
@@ -46,23 +47,25 @@ export default function Detail() {
         }
     }, [isLoading, data]);
 
-    //для управления переключателем по уведомлениям пользователя
+    //для управления переключателем по уведомлениям пользователя - при получении сообщения из БД об изменении
+    //переключателя - устанавливаем новое состояние у переключателя и он меняет отображение
     useEffect(() => {
         if (!isNotifyUser.isLoading && isNotifyUser.data) {
             setNotifyUser(isNotifyUser.data!.result!);
         }
-    }, [isNotifyUser.isLoading, isNotifyUser.data]);
+    }, [isNotifyUser]);
 
-    //обновление переключателя рассылки уведомлений или переход в случае удалени записи
+    //обновление переключателя рассылки уведомлений
     useEffect(() => {
-        const eventState = procState.find(p => p.eventName === 'BidPlaced');
-        if (eventState && eventState.ready && !notifyUser) {
+        const eventState = procState.find(p => p.eventName === 'EditNotification');
+        if (eventState && eventState.ready) {
             //обновление переключателя
             isNotifyUser.refetch();
-            dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
+            dispatch(setEventFlag({ eventName: 'EditNotification', ready: false }));
         }
-    }, [procState, isNotifyUser, dispatch, notifyUser]);
+    }, [procState, isNotifyUser, dispatch]);
 
+    //переход на список аукционов при удалении текущего аукциона
     useEffect(() => {
         const eventState = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
         if (eventState && deleteAuction) {
@@ -70,18 +73,15 @@ export default function Detail() {
         }
     }, [procState, navigate, deleteAuction]);
 
-    //запоминаем переключатель по уведомлениям пользователя по событиям данного аукциона
+    //обработчик переключения переключателя по уведомлениям пользователя по событиям данного аукциона
     const handleSetNotifyUser = async (event: React.FormEvent<HTMLInputElement>) => {
-        dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
-        var data = { id: id, enable: event.currentTarget.checked };
-        const result: ApiResponse<{}> = await setNotifyUserApi(JSON.stringify(data));
-        if (result && result!.data!.isSuccess) {
-            setNotifyUser(data.enable);
-        }
+        dispatch(setEventFlag({ eventName: 'EditNotification', ready: false }));
+        var notifyUser: NotifyUser = { auctionid: id!, enable: event.currentTarget.checked, sessionid: sessionId};
+        await setNotifyUserApi(notifyUser);
     };
 
     useEffect(() => {
-        if (!deleteAuction && !isLoading && data?.isSuccess && data?.result && !data?.result.title) {
+        if (!deleteAuction && !isLoading && (!data || !data.result)) {
             navigate('/not-found');
         }
     }, [isLoading, deleteAuction, data, navigate]);

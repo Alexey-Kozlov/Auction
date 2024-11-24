@@ -83,8 +83,9 @@ export type AuctionImage = {
 };
 
 export type NotifyUser = {
-  id: string;
+  auctionid: string;
   enable: boolean;
+  sessionid: string;
 };
 
 export type FinanceItem = {

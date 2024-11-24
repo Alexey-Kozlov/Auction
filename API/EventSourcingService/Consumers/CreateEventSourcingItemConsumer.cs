@@ -14,6 +14,7 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     private readonly ElkIndexProcessing _elkIndexProcessing;
     private readonly FinanceCreateProcessing _financeCreateProcessing;
     private readonly BidPlaceProcessing _bidPlaceProcessing;
+    private readonly EditNotificationProcessing _editNotificationProcessing;
 
     public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing,
         ESLogCommitProcessing eSLogCommitProcessing,
@@ -21,7 +22,8 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         AuctionUpdateProcessing auctionUpdateProcessing,
         ElkIndexProcessing elkIndexProcessing,
         FinanceCreateProcessing financeCreateProcessing,
-        BidPlaceProcessing bidPlaceProcessing)
+        BidPlaceProcessing bidPlaceProcessing,
+        EditNotificationProcessing editNotificationProcessing)
     {
         _auctionDeleteProcessing = auctionDeleteProcessing;
         _eSLogCommitProcessing = eSLogCommitProcessing;
@@ -30,6 +32,7 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         _elkIndexProcessing = elkIndexProcessing;
         _financeCreateProcessing = financeCreateProcessing;
         _bidPlaceProcessing = bidPlaceProcessing;
+        _editNotificationProcessing = editNotificationProcessing;
     }
 
     public async Task Consume(ConsumeContext<ESContract> context)
@@ -61,6 +64,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
                     break;
                 case Command.PlaceBid:
                     await _bidPlaceProcessing.ProcessESLog(context);
+                    break;
+                case Command.EditNotification:
+                    await _editNotificationProcessing.ProcessESLog(context);
                     break;
                 default:
                     break;

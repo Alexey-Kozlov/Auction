@@ -5,6 +5,7 @@ using Common.Contracts.Bid;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
+using Common.Contracts.Notification;
 using Common.Utils;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
@@ -135,5 +136,27 @@ public class ProcessingController : ControllerBase
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new RestoreSnapShotDb(param.SessionId, userLogin, Guid.Parse(param.SnapShotId)));
         _logger.LogInformation($"Послан запрос на восстановление БД из SnapShot");
+    }
+
+    [Authorize]
+    [HttpPost("EditNotification")]
+    public async Task<ApiResponse<object>> EditNotification([FromBody] EditNotificationDTO notifyUserDTO)
+    {
+        //Включение / отключение уведомления для данного пользователя для данного аукциона
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new RequestEditNotification
+        {
+            AuctionId = notifyUserDTO.AuctionId,
+            UserLogin = userLogin,
+            Enable = notifyUserDTO.Enable,
+            SessionId = notifyUserDTO.SessionId,
+            CorrelationId = Guid.NewGuid()
+        });
+        return new ApiResponse<object>
+        {
+            StatusCode = HttpStatusCode.Accepted,
+            IsSuccess = true,
+            Result = { }
+        };
     }
 }

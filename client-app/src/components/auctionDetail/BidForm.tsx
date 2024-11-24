@@ -10,6 +10,7 @@ import { RootState } from '../../store/store';
 import { useEffect } from 'react';
 import { setEventFlag } from '../../store/processingSlice';
 import Waiter from '../Waiter';
+import { useIsNotifyUserQuery } from '../../api/NotificationApi';
 
 type Props = {
     auctionId: string;
@@ -22,13 +23,18 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
     const dispatch = useDispatch();
     const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);
     const user: User = useSelector((state: RootState) => state.authStore);
+    const isNotifyUser = useIsNotifyUserQuery(auctionId, {
+        skip: user.login === '' || user.login === undefined
+    });
+    //обновляем список ставок и переключатель уведомлений после добавления ставки
     useEffect(() => {       
         const eventState = procState.find(p => p.eventName === 'BidPlaced');
         if (eventState && eventState.ready) {
             bidList.refetch();
+            isNotifyUser.refetch();
             dispatch(setEventFlag({ eventName: 'BidPlaced', ready: false }));
         }
-    }, [procState, user, dispatch, bidList]);
+    }, [procState, user, dispatch, bidList, isNotifyUser]);
 
     return (
         <>

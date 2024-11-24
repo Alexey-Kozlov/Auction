@@ -48,15 +48,8 @@ public record RequestElkIndex(
      string SessionId
 );
 
-public record ElkIndexCreating(
-     Guid CorrelationId,
-     AuctionCreatingElk Item,
-     int ItemNumber
-);
 
-public record ElkIndexCreated(
-     Guid CorrelationId
-);
+
 public class ElkIndexReset
 {
      public Guid CorrelationId { get; set; }

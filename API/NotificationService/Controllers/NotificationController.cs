@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Common.Utils;
 using NotificationService.Data;
-using NotificationService.DTO;
-using Common.Contracts.Notification;
 
 namespace NotificationService.Controllers;
 
@@ -37,31 +35,6 @@ public class NotificationController : ControllerBase
             rezult.Result = false;
         }
         return rezult;
-    }
-
-    [Authorize]
-    [HttpPost]
-    public async Task<ApiResponse<bool>> SetNotifyUser([FromBody] NotifyUserDTO notifyUserDTO)
-    {
-        var userLogin = User.FindFirst("Login").Value;
-        var userNotify = await _context.NotifyItems.Where(p => p.AuctionId == notifyUserDTO.Id &&
-            p.UserLogin == userLogin).FirstOrDefaultAsync();
-        if (userNotify != null && !notifyUserDTO.Enable)
-        {
-            _context.Remove(userNotify);
-        }
-        if (userNotify == null && notifyUserDTO.Enable)
-        {
-            _context.NotifyItems.Add(new NotifyItem { AuctionId = notifyUserDTO.Id, UserLogin = userLogin });
-        }
-
-        await _context.SaveChangesAsync();
-        return new ApiResponse<bool>
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = true
-        };
     }
 
 }

@@ -18,7 +18,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
 
     public Event<RequestAuctionUpdate> RequestEvent { get; }
     public Event<ESLog_AuctionUpdated> EsLogEvent { get; }
-    public Event<AuctionUpdatedGateway> GatewayEvent { get; }
     public Event<AuctionUpdatedImage> ImageEvent { get; }
     public Event<AuctionUpdatedSearch> SearchEvent { get; }
     public Event<AuctionUpdatedElk> ElkEvent { get; }
@@ -51,7 +50,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             p.InsertOnInitial = true;
         });
         Event(() => EsLogEvent);
-        Event(() => GatewayEvent);
         Event(() => ImageEvent);
         Event(() => SearchEvent);
         Event(() => ElkEvent);

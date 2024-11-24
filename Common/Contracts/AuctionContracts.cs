@@ -1,5 +1,3 @@
-using Common.Contracts.Processing;
-
 namespace Common.Contracts.Auction;
 
 public class AuctionItem
@@ -33,36 +31,6 @@ public record RequestAuctionCreate
        Guid CorrelationId
 );
 
-public class AuctionCreatedBid
-{
-      public Guid CorrelationId { get; set; }
-}
-
-public record AuctionCreatingBid(
-      Guid AuctionId,
-      DateTime AuctionEnd,
-      string UserLogin,
-      Guid CorrelationId,
-      int ReservePrice
-);
-
-public record AuctionCreatingImage(
-      Guid AuctionId,
-      string Image,
-      Guid CorrelationId
-);
-public record AuctionCreatedImage(Guid CorrelationId);
-
-public record AuctionCreatingSearch(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Description,
-      string UserLogin,
-      DateTime AuctionEnd,
-      Guid CorrelationId,
-      int ReservePrice
-);
 
 public class AuctionCreatedSearch
 {
@@ -119,61 +87,36 @@ public record RequestAuctionDelete(
       string UserLogin,
       Guid AuctionId
 );
-public class AuctionDeletedFinance
-{
-      public Guid CorrelationId { get; set; }
-}
 
-public record AuctionDeletingBid(
-      Guid AuctionId,
-      Guid CorrelationId,
-      string UserLogin
-);
+
 public class AuctionDeletedBid
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionDeletingGateway(
-    Guid AuctionId,
-    Guid CorrelationId
-);
+
 public class AuctionDeletedGateway
 {
       public Guid CorrelationId { get; set; }
 }
 
-public record AuctionDeletingImage(
-    Guid AuctionId,
-    Guid CorrelationId
-);
+
 public class AuctionDeletedImage
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionDeleteESSearch(Guid CorrelationId);
-public record AuctionDeletingSearch(
-    Guid AuctionId,
-    Guid CorrelationId
-);
+
+
 public class AuctionDeletedSearch
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionDeleteESNotification(Guid CorrelationId);
-public record AuctionDeletingNotification(
-    Guid AuctionId,
-    string UserLogin,
-    Guid CorrelationId
-);
+
+
 public class AuctionDeletedNotification
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionDeletingElk(
-    Guid AuctionId,
-    string UserLogin,
-    Guid CorrelationId
-);
+
 public class AuctionDeletedElk
 {
       public Guid CorrelationId { get; set; }
@@ -202,60 +145,23 @@ public record RequestAuctionUpdate(
       DateTime AuctionEnd,
       Guid CorrelationId
 );
-public record AuctionUpdatingBid(
-      Guid AuctionId,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
-public class AuctionUpdatedBid
-{
-      public Guid CorrelationId { get; set; }
-}
-public record AuctionUpdatingGateway(
-      Guid AuctionId,
-      Guid CorrelationId
-);
-public record AuctionUpdatedGateway(Guid CorrelationId);
-public record AuctionUpdatingImage(
-      Guid AuctionId,
-      string Image,
-      Guid CorrelationId
-);
+
+
 public record AuctionUpdatedImage
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionUpdatingSearch(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Description,
-      string UserLogin,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
+
 public class AuctionUpdatedSearch
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionUpdatingNotification(
-      Guid AuctionId,
-      string UserLogin,
-      Guid CorrelationId
-);
+
 public record AuctionUpdatedNotification
 {
       public Guid CorrelationId { get; set; }
 }
-public record AuctionUpdatingElk(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Description,
-      string UserLogin,
-      DateTime AuctionEnd,
-      Guid CorrelationId
-);
+
 public record AuctionUpdatedElk
 {
       public Guid CorrelationId { get; set; }
@@ -340,12 +246,3 @@ public class AuctionFinishComplete
 
 #endregion
 
-
-
-public record GetAuctionCreateState(Guid CorrelationId);
-public record GetAuctionUpdateState(Guid CorrelationId);
-public record GetAuctionDeleteState(Guid CorrelationId);
-public record GetAuctionFinishState(Guid CorrelationId);
-
-///////////////////////////////////////////////////
-///

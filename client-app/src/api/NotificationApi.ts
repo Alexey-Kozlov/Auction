@@ -30,27 +30,9 @@ const notificationApi = createApi({
       },
       providesTags: ["notifications"],
     }),
-    setNotifyUser: builder.mutation<ApiResponseNet<boolean>, string>({
-      query: (params) => ({
-        url: "/items",
-        method: "post",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: params,
-      }),
-      transformResponse: (response: ApiResponseNet<boolean>, meta: any) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["notifications"],
-    }),
   }),
 });
 
-export const { useIsNotifyUserQuery, useSetNotifyUserMutation } =
+export const { useIsNotifyUserQuery } =
   notificationApi;
 export default notificationApi;

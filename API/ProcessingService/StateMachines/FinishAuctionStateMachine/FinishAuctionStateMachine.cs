@@ -20,7 +20,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedSearch> AuctionFinishedSearchEvent { get; }
     public Event<AuctionFinishedElk> AuctionFinishedElkEvent { get; }
     //public Event<CommitAuctionFinishedContract> CommitAuctionFinishedEvent { get; }
-    public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
+    //public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
     private IConfiguration configuration { get; }
 
     public FinishAuctionStateMachine(IServiceProvider services)
@@ -36,7 +36,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         ConfigureAuctionFinishedElk();
         //ConfigureCommitFinishingAuction();
         ConfigureCompleted();
-        ConfigureGetState();
+
     }
     private void ConfigureEvents()
     {
@@ -48,7 +48,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         Event(() => AuctionFinishedFinanceEvent);
         Event(() => AuctionFinishedNotificationEvent);
         Event(() => AuctionFinishedSearchEvent);
-        Event(() => AuctionFinishedStateEvent);
+        //Event(() => AuctionFinishedStateEvent);
         Event(() => AuctionFinishedElkEvent);
         //Event(() => CommitAuctionFinishedEvent);
     }
@@ -172,12 +172,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     }
 
 
-    private void ConfigureGetState()
-    {
-        DuringAny(
-            When(AuctionFinishedStateEvent)
-                .Respond(x => x.Saga)
-        );
-    }
+
 
 }

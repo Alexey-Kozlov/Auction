@@ -4,6 +4,7 @@ import {
   AuctionDeleted,
   AuctionUpdated,
   FinanceCreate,
+  NotifyUser,
   PlaceBidParams,
 } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
@@ -111,7 +112,25 @@ const processingApi = createApi({
         PostErrorApiProcess(response);
       },
       invalidatesTags: ["processing"],
-    }),    
+    }),
+    setNotifyUser: builder.mutation<ApiResponseNet<{}>, NotifyUser>({
+      query: (params) => ({
+        url: "/editnotification",
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(params),
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["processing"],
+    })
   }),
 });
 
@@ -120,6 +139,7 @@ export const {
   useCreateAuctionMutation,
   useUpdateAuctionMutation,
   useDeleteAuctionMutation,
-  useFinanceCreateMutation
+  useFinanceCreateMutation,
+  useSetNotifyUserMutation
 } = processingApi;
 export default processingApi;

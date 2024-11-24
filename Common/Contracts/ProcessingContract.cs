@@ -2,12 +2,7 @@ using MassTransit;
 
 namespace Common.Contracts.Processing;
 
-public record FaultTransfer(Guid CorrelationId, string Message);
 public record FaultMessageSending(Guid CorrelationId, string Message, string UserLogin);
-public class FaultMessageSended()
-{
-    public Guid CorrelationId { get; set; }
-}
 
 public interface IFaultMessage
 {
@@ -100,7 +95,8 @@ public enum Command
     PlaceBid,       //4
     MakeSnapShot,   //5
     RestoreSnapShot,//6
-    IndexELK        //7
+    IndexELK,       //7
+    EditNotification //8
 }
 
 public enum CRUD
@@ -158,4 +154,9 @@ public class ESLog_MakeSnapShot
 public class ESLog_RestoreSnapShot
 {
     public Guid CorrelationId { get; set; }
+}
+public class ESLog_EditNotification
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
 }

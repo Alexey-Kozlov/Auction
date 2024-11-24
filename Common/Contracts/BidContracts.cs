@@ -8,39 +8,16 @@ public record RequestBidPlace(
      int Amount,
      Guid CorrelationId
 );
-public record BidFinanceGranting(
-     Guid Id,
-     string Bidder,
-     int Amount,
-     Guid CorrelationId
-);
+
 public class BidFinanceGranted : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
 };
-public record GetCurrentBid(
-     Guid CorrelationId,
-     int CurrentHighBid
-);
+
 public record RollbackBidFinanceGranted(
     Guid Id,
     string Bidder,
     int Amount,
-    Guid CorrelationId
-);
-public record GetLastBidPlaced(
-     Guid Id,
-     Guid CorrelationId
-);
-
-public record BidAuctionPlaced(
-     int OldHighBid,
-     Guid CorrelationId
-);
-public record RollbackBidAuctionPlaced(
-    Guid Id,
-    int OldHighBid,
-    string Bidder,
     Guid CorrelationId
 );
 
@@ -54,26 +31,13 @@ public class BidPlaced
 {
      public Guid CorrelationId { get; set; }
 };
-public record RollbackBidPlaced(
-    Guid BidId,
-    Guid CorrelationId
-);
-public record BidSearchPlacing(
-     Guid Id,
-     string Bidder,
-     int Amount,
-     Guid CorrelationId
-);
+
+
 public class BidSearchPlaced
 {
      public Guid CorrelationId { get; set; }
 };
-public record BidNotificationProcessing(
-     Guid Id,
-     string Bidder,
-     int Amount,
-     Guid CorrelationId
-);
+
 public class BidNotificationProcessed
 {
      public Guid CorrelationId { get; set; }
@@ -87,7 +51,6 @@ public class BidComplete
      public Guid CorrelationId { get; set; }
 };
 
-public record GetBidPlaceState(Guid CorrelationId);
 
 public class BidItem
 {
@@ -97,10 +60,4 @@ public class BidItem
      public DateTime BidTime { get; set; } = DateTime.UtcNow;
      public int Amount { get; set; }
 }
-
-public class AuctionBidItems
-{
-     public List<BidItem> bidItems { get; set; }
-}
-
 

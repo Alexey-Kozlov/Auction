@@ -19,7 +19,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
 
     public Event<RequestAuctionCreate> RequestEvent { get; }
     public Event<ESLog_AuctionCreated> EsLogEvent { get; }
-    public Event<AuctionCreatedImage> ImageEvent { get; }
     public Event<AuctionCreatedSearch> SearchEvent { get; }
     public Event<AuctionCreatedElk> ElkEvent { get; }
     public Event<AuctionCreatedNotification> NotificationEvent { get; }
@@ -51,7 +50,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             p.InsertOnInitial = true;
         });
         Event(() => EsLogEvent);
-        Event(() => ImageEvent);
         Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => ElkEvent);
         Event(() => NotificationEvent);

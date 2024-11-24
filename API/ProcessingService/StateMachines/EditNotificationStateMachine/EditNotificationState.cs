@@ -1,0 +1,14 @@
+using MassTransit;
+
+namespace ProcessingService.StateMachines.EditNotificationStateMachine;
+
+public class EditNotificationState : SagaStateMachineInstance
+{
+    public Guid CorrelationId { get; set; }
+    public string CurrentState { get; set; }
+    public string UserLogin { get; set; }
+    public DateTime LastUpdated { get; set; }
+    public Guid AuctionId { get; set; }
+    public bool Enable { get; set; }
+    public string SessionId { get; set; }
+}

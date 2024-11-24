@@ -21,11 +21,7 @@ public record FinanceCreateComplete
      public Guid CorrelationId { get; set; }
 
 }
-public record FinanceCreatingNotification(
-     int Amount,
-     string UserLogin,
-     Guid CorrelationId
-);
+
 public record FinanceNotificationCreated
 {
      public Guid CorrelationId { get; set; }
@@ -35,7 +31,6 @@ public class FinanceCreateESCommit
      public Guid CorrelationId { get; set; }
 }
 
-public record CommitESFinanceOperation(Guid CorrelationId);
 
 public class FinanceItem
 {

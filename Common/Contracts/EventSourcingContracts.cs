@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 
 namespace Common.Contracts.EventSourcing;
@@ -33,13 +32,6 @@ public class SendToSetSnapShot
     public string SessionId { get; set; }
 }
 
-public class SendToReindexingElk
-{
-    public Guid CorrelationId { get; set; } = Guid.NewGuid();
-    public string UserLogin { get; set; }
-    public string SessionId { get; set; }
-    public List<AuctionItem> AuctionItems { get; set; } = new();
-}
 
 public record EventSourcingInitialized(
     string Message,
@@ -81,18 +73,6 @@ public record RestoreSnapShotCompleted(
 public record RequestCommitESOperation(Guid CorrelationId);
 public record CommitESOperation(Guid CorrelationId);
 
-public class ActionMessage<T>
-{
-    public T ActionItem { get; set; }
-    public Guid CorrelationId { get; set; }
-};
-
-public class ActionMessageList<T>
-{
-    public List<ActionMessage<T>> ActionItemsList { get; set; }
-    public string CallBackType { get; set; }
-    public List<string> Properties { get; set; } = null;
-}
 
 public class ReturnResultSql
 {

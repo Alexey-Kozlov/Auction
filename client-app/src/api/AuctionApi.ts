@@ -24,12 +24,14 @@ const auctionApi = createApi({
       transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
         PostApiProcess(response);
         if (response.isSuccess) {
-          if (response.result.auctionEnd)
-            response.result.auctionEnd = new Date(response.result.auctionEnd);
-          if (response.result.createAt)
-            response.result.createAt = new Date(response.result.createAt);
-          if (response.result.updatedAt)
-            response.result.updatedAt = new Date(response.result.updatedAt);
+          if (response.result){
+            if(response.result.auctionEnd)
+              response.result.auctionEnd = new Date(response.result.auctionEnd);
+            if (response.result.createAt)
+              response.result.createAt = new Date(response.result.createAt);
+            if (response.result.updatedAt)
+              response.result.updatedAt = new Date(response.result.updatedAt);
+          }
         }
         return response;
       },

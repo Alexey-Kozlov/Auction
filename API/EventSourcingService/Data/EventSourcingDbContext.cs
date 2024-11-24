@@ -49,6 +49,12 @@ public class EventSourcingDbContext : DbContext
         string eventdata,
         string userLogin) =>
         FromExpression(() => place_bid(correlationid, auctionid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> edit_notification(
+        Guid correlationid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => edit_notification(correlationid, auctionid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +67,7 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => commit_operation(default));
         modelBuilder.HasDbFunction(() => index_elk(default, default));
         modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
+        modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }

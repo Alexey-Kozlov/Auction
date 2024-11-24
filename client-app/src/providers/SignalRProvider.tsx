@@ -185,6 +185,14 @@ export default function SignalRProvider() {
                     }
                     
                 })
+
+                connection.on('EditNotification', (result: any) => {
+                    dispatch(setEventFlag({ eventName: 'EditNotification', ready: true }));
+                    const mes:Message = { message:result.message, auctionId:'', messageType:0};
+                    return toast((p) => (
+                        <InfoMessageToast message={mes} toastId={p.id} />
+                    ), { duration: 5000 });
+                })
             }
             
         }
