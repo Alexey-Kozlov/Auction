@@ -96,7 +96,8 @@ public enum Command
     MakeSnapShot,   //5
     RestoreSnapShot,//6
     IndexELK,       //7
-    EditNotification //8
+    EditNotification, //8
+    AuctionFinished //9
 }
 
 public enum CRUD
@@ -156,6 +157,12 @@ public class ESLog_RestoreSnapShot
     public Guid CorrelationId { get; set; }
 }
 public class ESLog_EditNotification
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+}
+
+public class ESLog_AuctionFinish
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }

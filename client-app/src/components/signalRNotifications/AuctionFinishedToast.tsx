@@ -1,22 +1,21 @@
 import toast from 'react-hot-toast';
-import { Auction, AuctionFinished, AuctionImage } from '../../store/types';
+import { AuctionFinished, AuctionImage } from '../../store/types';
 import { NavLink } from 'react-router-dom';
 import { useGetImageForAuctionQuery } from '../../api/ImageApi';
 const empty = require('../../assets/Empty.png');
 
 type Props = {
     finishedAuction: AuctionFinished;
-    auction: Auction;
 }
 
-export default function AuctionFinishedToast({ finishedAuction, auction }: Props) {
-    const { isLoading, data } = useGetImageForAuctionQuery(auction.auctionId);
+export default function AuctionFinishedToast({ finishedAuction }: Props) {
+    const { isLoading, data } = useGetImageForAuctionQuery(finishedAuction.auctionId);
     return (
         <div>
             <div className='flex flex-row-reverse' >
                 <button onClick={() => toast.dismiss()}>X</button>
             </div>
-            <NavLink to={`/auctions/${auction.auctionId}`} className='flex flex-col items-center'>
+            <NavLink to={`/auctions/${finishedAuction.auctionId}`} className='flex flex-col items-center'>
                 <div className='flex flex-row items-center gap-2'>
                     <img src={!isLoading && (data?.result as AuctionImage)!.image ? (`data:image/png;base64 , ${data?.result['image']}`) : empty}
                         alt=''
@@ -25,8 +24,8 @@ export default function AuctionFinishedToast({ finishedAuction, auction }: Props
                         className='rounded-lg'
                     />
                     <div className='flex flex-col'>
-                        <span>Аукцион {auction.title} был завершен!</span>
-                        {finishedAuction.itemSold && finishedAuction.amount ? (
+                        <span>Аукцион {finishedAuction.title} был завершен!</span>
+                        {finishedAuction.amount !== 0 ? (
                             <p>{`Поздравления для победителя аукциона "${finishedAuction.winner}",
                                 итоговая стоимость лота - ${finishedAuction.amount} руб.`}</p>
                         ) : (

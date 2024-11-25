@@ -14,6 +14,7 @@ public class AuctionItem
       public string Title { get; set; }
       public string Properties { get; set; }
       public string Description { get; set; }
+      public bool Finished { get; set; } = false;
 }
 
 #region AuctionCreating
@@ -225,9 +226,10 @@ public record AuctionFinishingNotification(
       int Amount,
       Guid CorrelationId
 );
-public record AuctionFinishedNotification(
-    Guid CorrelationId
-);
+public class AuctionFinishedNotification
+{
+      public Guid CorrelationId { get; set; }
+}
 public record AuctionFinishingElk(
       Guid Id,
       bool ItemSold,
@@ -235,11 +237,17 @@ public record AuctionFinishingElk(
       int Amount,
       Guid CorrelationId
 );
-public record AuctionFinishedElk(
-    Guid CorrelationId
-);
+public class AuctionFinishedElk
+{
+      public Guid CorrelationId { get; set; }
+}
+public class AuctionFinishedESCommit
+{
+      public Guid CorrelationId { get; set; }
+}
 
-public class AuctionFinishComplete
+
+public class AuctionFinishedComplete
 {
       public Guid CorrelationId { get; set; }
 }

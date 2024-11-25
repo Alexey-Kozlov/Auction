@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import AuctionCreatedToast from '../components/signalRNotifications/AuctionCreatedToast';
 import { Auction, AuctionFinished, Bid, FinanceItem, Message, PagedResult, User } from '../store/types';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetAuctionQuery } from '../api/SignalRApi';
 import AuctionFinishedToast from '../components/signalRNotifications/AuctionFinishedToast';
 import { RootState } from '../store/store';
 import BidCreatedToast from '../components/signalRNotifications/BidCreatedToast';
@@ -22,11 +21,11 @@ import FinanceCreatedToast from '../components/signalRNotifications/FinanceCreat
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
 
-    const [finishedAuction, setFinishedAuction] = useState<AuctionFinished>();
-    const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
-    const auction = useGetAuctionQuery(finishedAuctionId, {
-        skip: finishedAuctionId === 'empty'
-    });
+    //const [finishedAuction, setFinishedAuction] = useState<AuctionFinished>();
+    //const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
+    //const auction = useGetAuctionQuery(finishedAuctionId, {
+    //    skip: finishedAuctionId === 'empty'
+    //});
     const dispatch = useDispatch();
     const [connection, setConnection] = useState<HubConnection | null>(null);
 
@@ -55,19 +54,6 @@ export default function SignalRProvider() {
         }
 
     }, [apiUrl, tokenData]);
-
-    useEffect(() => {
-        if (!auction.isLoading && finishedAuction) {
-            toast((p) => (
-                <AuctionFinishedToast
-                    finishedAuction={finishedAuction}
-                    auction={auction.data!.result}
-                />
-            ),
-                { duration: 10000 });
-            setFinishedAuction(undefined);
-        }
-    }, [finishedAuction, auction.data, auction.data?.result, auction.isLoading]);
 
     useEffect(() => {
         const con_execute = async () => {
@@ -109,7 +95,10 @@ export default function SignalRProvider() {
                 })
 
                 connection.on('AuctionFinished', (finishedAuction: AuctionFinished) => {
-                    setFinishedAuction(finishedAuction);
+                    return toast((p) => (
+                        <AuctionFinishedToast finishedAuction={finishedAuction} />
+                    ),
+                    { duration: 10000 });
                 })
 
                 connection.on('AuctionDeleted', (auction: any) => {

@@ -1,27 +1,25 @@
 using Common.Contracts.Auction;
+using Common.Contracts.Processing;
 using MassTransit;
+using ProcessingService.Activities.AuctionFinish;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
 public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionState>
 {
-    public State AuctionFinishedState { get; }
-    public State AuctionFinishedFinanceState { get; }
-    public State AuctionFinishedNotificationState { get; }
-    public State AuctionFinishedSearchState { get; }
-    public State AuctionFinishedElkState { get; }
-    public State CommitAuctionFinishedState { get; }
-    public State CompletedState { get; }
-    public State FaultedState { get; }
 
-    public Event<RequestAuctionFinish> RequestAuctionFinishingEvent { get; }
-    public Event<AuctionFinished> AuctionFinishedEvent { get; }
-    public Event<AuctionFinishedFinance> AuctionFinishedFinanceEvent { get; }
-    public Event<AuctionFinishedNotification> AuctionFinishedNotificationEvent { get; }
-    public Event<AuctionFinishedSearch> AuctionFinishedSearchEvent { get; }
-    public Event<AuctionFinishedElk> AuctionFinishedElkEvent { get; }
-    //public Event<CommitAuctionFinishedContract> CommitAuctionFinishedEvent { get; }
-    //public Event<GetAuctionFinishState> AuctionFinishedStateEvent { get; }
+    public State ElkState { get; }
+    public State NotificationState { get; }
+    public State CommitState { get; }
+    public State CompletedState { get; }
+
+    public Event<ESLog_AuctionFinish> EsLogEvent { get; }
+    public Event<AuctionFinishedElk> ElkEvent { get; }
+    public Event<AuctionFinishedNotification> NotificationEvent { get; }
+    public Event<AuctionFinishedESCommit> CommitEvent { get; }
+    public Event<AuctionFinishedComplete> CompleteEvent { get; }
+
     private IConfiguration configuration { get; }
+    private DataForProcessingServicesList ListItems { get; set; }
 
     public FinishAuctionStateMachine(IServiceProvider services)
     {
@@ -29,148 +27,113 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureAuctionFinished();
-        ConfigureAuctionFinishedFinance();
-        ConfigureAuctionFinishedSearch();
-        ConfigureAuctionFinishedNotification();
-        ConfigureAuctionFinishedElk();
-        //ConfigureCommitFinishingAuction();
-        ConfigureCompleted();
+        ConfigureNotificationState();
+        ConfigureELKState();
+        ConfigureCommitState();
+        ConfigureCompletedState();
 
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestAuctionFinishingEvent, p =>
+        Event(() => EsLogEvent, p =>
         {
             p.InsertOnInitial = true;
         });
-        Event(() => AuctionFinishedEvent);
-        Event(() => AuctionFinishedFinanceEvent);
-        Event(() => AuctionFinishedNotificationEvent);
-        Event(() => AuctionFinishedSearchEvent);
-        //Event(() => AuctionFinishedStateEvent);
-        Event(() => AuctionFinishedElkEvent);
-        //Event(() => CommitAuctionFinishedEvent);
+        Event(() => NotificationEvent);
+        Event(() => ElkEvent);
+        Event(() => CommitEvent);
+        Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
     {
+        //В сервисе EventSourcingService периодически срабатывает сервис CheckAuctionFinished, если найдены завершенные
+        //аукционы - они завершаются и передается список аукционов для обнолвения в AuctionService
         Initially(
-            When(RequestAuctionFinishingEvent)
+            When(EsLogEvent)
             .Then(context =>
             {
-                context.Saga.AuctionId = context.Message.Id;
-                context.Saga.Winner = context.Message.Winner;
-                context.Saga.ItemSold = context.Message.ItemSold;
-                context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
+                context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
+                ListItems = context.Message.DataItems;
             })
-            //.Activity(p => p.OfType<FinishingAuctionActivity>())
-            .TransitionTo(AuctionFinishedState)
+            //Обновление аукциона в сервисе SearchService
+            .Send(
+                new Uri(configuration["QueuePaths:SearchConsumer"]),
+                context => new DataForProcessingServicesList<AuctionItem>
+                {
+                    DataObjects = context.Message.DataItems.DataObjects,
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Auction.AuctionFinishedElk"
+                })
+            .TransitionTo(ElkState)
         );
     }
 
-    private void ConfigureAuctionFinished()
+    private void ConfigureELKState()
     {
-        During(AuctionFinishedState,
-        When(AuctionFinishedEvent)
+        During(ElkState,
+        When(ElkEvent)
+            .Then(context =>
+            {
+                context.Saga.LastUpdated = DateTime.UtcNow;
+            })
+            //Обновление аукциона в поиске в сервисе ElasticSearchService
+            .Send(
+                new Uri(configuration["QueuePaths:ElkConsumer"]),
+                context => new DataForProcessingServicesList<AuctionItem>
+                {
+                    DataObjects = ListItems.DataObjects,
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification"
+                })
+            .TransitionTo(NotificationState));
+    }
+
+    private void ConfigureNotificationState()
+    {
+        During(NotificationState,
+        When(NotificationEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishingFinance"]),
-                context => new AuctionFinishingFinance(
-                context.Saga.AuctionId,
-                context.Saga.ItemSold,
-                context.Saga.Winner,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionFinishedFinanceState));
+                new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
+                context => new DataForProcessingServicesList<AuctionItem>
+                {
+                    DataObjects = ListItems.DataObjects,
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Auction.AuctionFinishedESCommit"
+                })
+            .TransitionTo(CommitState));
     }
-    private void ConfigureAuctionFinishedFinance()
+
+
+    private void ConfigureCommitState()
     {
-        During(AuctionFinishedFinanceState,
-        When(AuctionFinishedFinanceEvent)
+        During(CommitState,
+        When(CommitEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishingSearch"]),
-                context => new AuctionFinishingSearch(
-                context.Saga.AuctionId,
-                context.Saga.ItemSold,
-                context.Saga.Winner,
-                context.Saga.Amount,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionFinishedSearchState));
+            //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
+            .Activity(p => p.OfType<CommitActivity>())
+            .TransitionTo(CompletedState));
     }
 
-    private void ConfigureAuctionFinishedSearch()
+    private void ConfigureCompletedState()
     {
-        During(AuctionFinishedSearchState,
-        When(AuctionFinishedSearchEvent)
+        During(CompletedState,
+        When(CompleteEvent)
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishingNotification"]),
-                context => new AuctionFinishingNotification(
-                context.Saga.AuctionId,
-                context.Saga.ItemSold,
-                context.Saga.Winner,
-                context.Saga.Amount,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionFinishedNotificationState));
+            .Finalize()
+        );
     }
-    private void ConfigureAuctionFinishedNotification()
-    {
-        During(AuctionFinishedNotificationState,
-        When(AuctionFinishedNotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishingElk"]),
-                context => new AuctionFinishingElk(
-                context.Saga.AuctionId,
-                context.Saga.ItemSold,
-                context.Saga.Winner,
-                context.Saga.Amount,
-                context.Saga.CorrelationId))
-            .TransitionTo(AuctionFinishedElkState));
-    }
-
-    private void ConfigureAuctionFinishedElk()
-    {
-        During(AuctionFinishedElkState,
-        When(AuctionFinishedElkEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            //.Activity(p => p.OfType<CommitFinishingAuctionActivity>())
-            .TransitionTo(CommitAuctionFinishedState));
-    }
-
-    // private void ConfigureCommitFinishingAuction()
-    // {
-    //     During(CommitAuctionFinishedState,
-    //     When(CommitAuctionFinishedEvent)
-    //         .Then(context =>
-    //         {
-    //             context.Saga.LastUpdated = DateTime.UtcNow;
-    //         })
-    //         .TransitionTo(CompletedState));
-    // }
-
-    private void ConfigureCompleted()
-    {
-        During(CompletedState);
-    }
-
 
 
 

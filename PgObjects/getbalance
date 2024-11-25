@@ -19,28 +19,16 @@ select "EventsLog"."SnapShotId","EventsLog"."CreateAt" from public."EventsLog"
 where not "EventsLog"."SnapShotId" is null order by "EventsLog"."CreateAt" desc limit 1 
 into lastSnapShotId,lastSnapShotCreated;
 --получаем баланс по текущему пользователю
-insert into tmp(EventData)
     SELECT 
-	"EventData"
+	sum(case when cast("EventData" ->> 'Status' as int) = 0 
+		then cast("EventData" ->> 'Value' as int) else
+		-cast("EventData" ->> 'Value' as int) end)
 	FROM public."EventsLog"
 	where  "EntityType" = 'FinanceItem' and 
 	("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and
 	"UserLogin" = userlogin_par and
-	"CreateAt" >= lastSnapShotCreated;
-
-	for i in 
-	select cast(tmp."eventdata" ->> 'Value' as int) as "Value",
-	cast(tmp."eventdata" ->> 'Status' as int) as "Status" 
-	from tmp
-	loop
-		if i."Status" = 0
-		then
-			balance = balance + i."Value";
-		else
-			balance = balance - i."Value";
-		end if;
-	end loop;
-	
+	"CreateAt" >= lastSnapShotCreated
+	into balance;
 
 END;
 $BODY$;

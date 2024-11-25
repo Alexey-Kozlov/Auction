@@ -36,6 +36,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<AuctionItem>
         builder.Property(p => p.Title).HasColumnType("text").HasColumnName("Title").IsRequired(true);
         builder.Property(p => p.Properties).HasColumnType("text").HasColumnName("Properties").IsRequired(false);
         builder.Property(p => p.Description).HasColumnType("text").HasColumnName("Description").IsRequired(false);
+        builder.Property(p => p.Finished).HasColumnType("boolean").HasColumnName("Finished").IsRequired(true);
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("PK_Items");
     }
 }

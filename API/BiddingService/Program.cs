@@ -1,6 +1,5 @@
 using BiddingService.Consumers;
 using BiddingService.Data;
-using BiddingService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -69,7 +68,6 @@ builder.Services.AddAuthentication(p =>
 });
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddHostedService<CheckAuctionFinished>();
 
 builder.Services.AddOpenTelemetry()
     .WithMetrics(opt => opt

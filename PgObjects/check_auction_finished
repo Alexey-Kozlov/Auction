@@ -1,0 +1,76 @@
+-- FUNCTION: public.check_auction_finished(uuid)
+
+-- DROP FUNCTION IF EXISTS public.check_auction_finished(uuid);
+
+CREATE OR REPLACE FUNCTION public.check_auction_finished(
+	correlationid_par uuid)
+    RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+declare
+	i record;
+	lastSnapShotId uuid;
+	lastSnapShotCreated timestamp;
+	eventdata_tmp jsonb;
+BEGIN    
+CREATE TEMP TABLE IF NOT EXISTS ret("eventdata" text,  "crud" smallint, "entitytype" varchar(50));
+CREATE TEMP TABLE IF NOT EXISTS eventlog("CorrelationId" uuid, "CreateAt" timestamp with time zone,
+"EventData" jsonb, "Commited" boolean, "Description" text, "SnapShotId" uuid, "EntityType" varchar(50),
+"AuctionId" uuid, "UserLogin" character varying(256), "Command" smallint,"CRUD" smallint);
+
+delete from ret;
+delete from eventlog;
+--получаем завершенные аукционы
+select "SnapShotId", "CreateAt" from public."EventsLog" 
+where not "SnapShotId" is null order by "CreateAt" desc limit 1 
+into lastSnapShotId,lastSnapShotCreated;
+
+for i in
+    SELECT t1."EventData",t1."AuctionId" FROM public."EventsLog" t1
+		JOIN (
+		SELECT max("Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'AuctionItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and "CreateAt" >= lastSnapShotCreated
+		group by "AuctionId") t2 on t1."Version" = t2."Version"
+	where t1."CRUD" != 2 and cast(t1."EventData" ->> 'AuctionEnd' as timestamp with time zone) < now() and 
+		cast(t1."EventData" ->> 'Finished' as boolean) = false
+loop
+	--есть аукционы которые нужно обработать как завершенные
+	--отмечаем аукцион как завершенный и указываем победителем пользователя, сделавшего последнюю ставку по этому аукциону
+
+	--возвращаем записи ставок с типом записи CRUD=1 - Update, для обновления в SearchService
+	--находим победителя данного аукциона
+	SELECT t1."EventData" FROM public."EventsLog" t1
+		JOIN (
+			SELECT max("Version") as "Version" 
+			FROM public."EventsLog"
+			where "EntityType" = 'BidItem' and
+			"AuctionId" = i."AuctionId" and
+			("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and "CreateAt" >= lastSnapShotCreated
+			group by "AuctionId") t2 on t1."Version" = t2."Version"
+		where t1."CRUD" != 2
+		into eventdata_tmp;
+--возвращаем записи уведомлений для обновления записи аукциона в SearchService (CRUD = 1)
+	insert into ret("eventdata", "crud", "entitytype")
+	values(i."EventData" || jsonb_build_object('Finished', true,'Winner',eventdata_tmp ->> 'Bidder',
+		'SoldAmount',case when eventdata_tmp is null then 0 else cast(eventdata_tmp ->> 'Amount' as int) end), 1, 'AuctionItem');
+
+--делаем записи в ES лог по завершению аукциона, делаем запись с Command=9 - 'AuctionFinished', CRUD=1 - Update
+	insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"Description", "SnapShotId", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
+	select correlationid_par, now(), i."EventData" || jsonb_build_object('Finished', true,'Winner',eventdata_tmp ->> 'Bidder',
+		'SoldAmount',case when eventdata_tmp is null then 0 else cast(eventdata_tmp ->> 'Amount' as int) end), false, '', null, 'AuctionItem', i."AuctionId", i."EventData" ->> 'UserLogin', 9, 1;
+	
+end loop;
+
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
+END;
+$BODY$;
+
+ALTER FUNCTION public.check_auction_finished(uuid)
+    OWNER TO admin;

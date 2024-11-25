@@ -22,6 +22,7 @@ declare
 	eventdata_par jsonb;
 	temp_jsonb jsonb;
 	userlogin_tmp varchar(256);
+	auction_end timestamp with time zone;
 BEGIN    
 CREATE TEMP TABLE IF NOT EXISTS ret(eventdata jsonb, crud smallint, entitytype varchar(50));
 CREATE TEMP TABLE IF NOT EXISTS eventlog("Version" integer, "CorrelationId" uuid, "CreateAt" timestamp with time zone,
@@ -35,6 +36,26 @@ eventdata_par = cast(eventdata_par1 as jsonb);
 select "SnapShotId", "CreateAt" from public."EventsLog" 
 where not "SnapShotId" is null order by "CreateAt" desc limit 1 
 into lastSnapShotId,lastSnapShotCreated;
+
+--проверяем - не закончился ли аукцион, для которого делают новую ставку
+--получаем дату завершения аукциона
+SELECT t1."EventData"
+	FROM public."EventsLog" t1
+	JOIN (
+		SELECT max("EventsLog"."Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'AuctionItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) 
+		and "CreateAt" >= lastSnapShotCreated and
+		"AuctionId" = auctionid_par
+		group by "AuctionId") t2 on t1."Version" = t2."Version"
+	where  t1."CRUD" != 2
+into temp_jsonb;
+
+if cast(temp_jsonb ->> 'AuctionEnd' as timestamp with time zone) < now() then
+	raise exception 'Ошибка ставки - аукцион % завершен', temp_jsonb ->> 'Title';
+end if;
+temp_jsonb = '{}';
 
 --получаем последнюю запись FinanceItem по данному аукциону, Status = 1 - расход, т.е. деньги на ставку
 insert into eventlog("Version", "CorrelationId", "CreateAt", "EventData", "Commited", 
@@ -63,7 +84,7 @@ if exists(select * from eventlog) then
 	'', null, 'FinanceItem', auctionid_par, "EventData" ->> 'UserLogin', 4, 2 
 	from eventlog;
 --записываем в выходную таблицу - обновление баланса для пользователя, кто сделал предыдущую ставку
-	select "UserLogin" from eventlog into userlogin_tmp;	
+	select "EventData" ->> 'UserLogin' from eventlog into userlogin_tmp;	
 	call getbalance(userlogin_tmp, balance); --получили баланс по пользователю, у кого отменили ставку, CRUD = 1 - Update
 	--обновляем в исходной FinanceItem дату, баланс и ставим Status = 2 - Balance
 	insert into ret(eventdata, crud, entitytype)
@@ -80,7 +101,7 @@ call getbalance(userlogin_par,balance);
 --проверка - превышает ли ставка баланс пользователя
 --если превышает - делаем exception, что откатывает транзакцию, т.е. все ранее сделанные операции
 if balance < cast(eventdata_par ->> 'Amount' as int) then 
-raise exception 'Превышен лимит, баланс - %, ставка - %', balance, eventdata_par ->> 'Amount';
+	raise exception 'Превышен лимит, баланс - %, ставка - %', balance, eventdata_par ->> 'Amount';
 end if;
 
 --создаем новый jsonb типа FinanceItem, Status = 1 - Расход, Value - равное новой ставке
