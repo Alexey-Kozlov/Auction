@@ -115,7 +115,6 @@ public class ProcessingController : ControllerBase
         //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
-        _logger.LogInformation($"Послан запрос на инициализацию начального состояния");
     }
 
     [Authorize(Roles = "Admin")]
@@ -129,13 +128,17 @@ public class ProcessingController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPost("RestoreSnapShotDb")]
-    public async Task RestoreSnapShotDb(RestoreSnapShotDTO param)
+    [HttpPost("RestoreSnapShot")]
+    public async Task RestoreSnapShot(RestoreSnapShotDTO param)
     {
-        //Выполняем восстановление БД из указанного SnapShot
+        //Выполняем восстановление БД на указанную дату
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new RestoreSnapShotDb(param.SessionId, userLogin, Guid.Parse(param.SnapShotId)));
-        _logger.LogInformation($"Послан запрос на восстановление БД из SnapShot");
+        await _publishEndpoint.Publish(new RequestRestoreSnapShot
+        {
+            RestoreDate = param.RestoreDate,
+            UserLogin = userLogin,
+            CorrelationId = Guid.NewGuid()
+        });
     }
 
     [Authorize]

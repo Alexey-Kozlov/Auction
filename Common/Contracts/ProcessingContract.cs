@@ -148,13 +148,11 @@ public class ESLog_ElkIndex
     public int BatchCount { get; set; }
     public int AllItemsCount { get; set; }
 }
-public class ESLog_MakeSnapShot
-{
-    public Guid CorrelationId { get; set; }
-}
+
 public class ESLog_RestoreSnapShot
 {
     public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
 }
 public class ESLog_EditNotification
 {
@@ -166,4 +164,11 @@ public class ESLog_AuctionFinish
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+}
+
+public class ESLog_ResetSnapShot
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+
 }

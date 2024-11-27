@@ -53,9 +53,9 @@ const serviceApi = createApi({
       },
       invalidatesTags: ["elk"],
     }),
-    restoreSnapShotDb: builder.mutation<ApiResponseNet<number>, RestoreDb>({
+    RestoreSnapShot: builder.mutation<ApiResponseNet<number>, RestoreDb>({
       query: (params) => ({
-        url: "/restoresnapshotdb",
+        url: "/restoresnapshot",
         method: "post",
         headers: {
           "content-type": "application/json",
@@ -77,6 +77,6 @@ const serviceApi = createApi({
 export const {
   useElkIndexMutation,
   useSetSnapShotDbMutation,
-  useRestoreSnapShotDbMutation
+  useRestoreSnapShotMutation
 } = serviceApi;
 export default serviceApi;

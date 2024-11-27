@@ -143,9 +143,9 @@ export default function SignalRProvider() {
                     ), { duration: 5000 });
                 })
 
-                connection.on('RestoreSnapShotDb', (result: number) => {
-                    dispatch(setEventFlag({ eventName: 'RestoreSnapShotDb', ready: false }));
-                    const mes:Message = {message:result.toString(),auctionId:'',messageType:0};
+                connection.on('RestoreSnapShot', (result: any) => {
+                    dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: true }));
+                    const mes:Message = {message:result.message,auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });

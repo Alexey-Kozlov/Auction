@@ -22,6 +22,7 @@ public class ProcessingDbContext : SagaDbContext
             yield return new ElkIndexStateMap();
             yield return new FinanceStateMap();
             yield return new EditNotificationStateMap();
+            yield return new RestoreStateMap();
         }
     }
 }

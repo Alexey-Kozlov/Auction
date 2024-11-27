@@ -126,7 +126,8 @@ internal class Program
         builder.Services.AddScoped<FinanceCreateProcessing>();
         builder.Services.AddScoped<BidPlaceProcessing>();
         builder.Services.AddScoped<EditNotificationProcessing>();
-        builder.Services.AddHostedService<CheckAuctionFinished>();
+        builder.Services.AddScoped<RestoreSnapShotProcessing>();
+        //builder.Services.AddHostedService<CheckAuctionFinished>();
 
         var app = builder.Build();
 

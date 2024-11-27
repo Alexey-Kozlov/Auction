@@ -5,5 +5,5 @@ public record SessionDTO(
 );
 public record RestoreSnapShotDTO(
     string SessionId,
-    string SnapShotId
+    DateTime RestoreDate
 );

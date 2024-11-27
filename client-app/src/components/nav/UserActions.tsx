@@ -40,7 +40,7 @@ export default function UserActions() {
 
     const handlerElkReindex = () => {
         dispatch(setEventFlag({ eventName: 'ElkIndex', ready: true }));
-        const message:Message = {message:'Старт переиндексации ELK...',correlationId:'',auctionId:'',messageType:0};
+        const message:Message = {message:'Старт переиндексации ELK...', auctionId:'', messageType:0};
         return toast((p) => (
             <InfoMessageToast message={message} toastId={p.id} />
         ),{ duration: 5000 });
@@ -48,15 +48,15 @@ export default function UserActions() {
 
     const handlerSetSnapShotDb = () => {
         dispatch(setEventFlag({ eventName: 'SetSnapShotDb', ready: true }));
-        const message:Message = {message:'Старт создания снимка БД в ES...',correlationId:'',auctionId:'',messageType:0};
+        const message:Message = {message:'Старт создания снимка БД в ES...', auctionId:'', messageType:0};
         return toast((p) => (
             <InfoMessageToast message={message} toastId={p.id} />
         ),{ duration: 5000 });
     }
 
     const handlerRestoreSnapShotDb = () => {
-        dispatch(setEventFlag({ eventName: 'RestoreSnapShotDb', ready: true }));
-        const message:Message = {message:'Старт восстановления БД из ES...',correlationId:'',auctionId:'',messageType:0};
+        dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false }));
+        const message:Message = {message:'Старт восстановления БД из ES...', auctionId:'', messageType:0};
         return toast((p) => (
             <InfoMessageToast message={message} toastId={p.id} />
         ),{ duration: 5000 });

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Common.Contracts.Processing;
 
 namespace Common.Contracts.EventSourcing;
@@ -40,36 +39,14 @@ public record EventSourcingInitialized(
     string SessionId
 );
 
-public record RestoreSnapShotDb(
-    string SessionId,
-    string UserLogin,
-    Guid SnapShotId
-);
-
-public class RestoreSnapShotItems<T>
+public class RequestRestoreSnapShot
 {
-    public string SessionId { get; set; }
     public string UserLogin { get; set; }
-    public List<RestoreSnapShotItem> Items { get; set; }
+    public DateTime RestoreDate { get; set; }
+    public Guid CorrelationId { get; set; }
 }
 
-public class RestoreSnapShotItem
-{
-    public List<JsonDocument> Items { get; set; }
-    public string ItemsType { get; set; }
-}
 
-public record FinanceServiceType();
-public record BiddingServiceType();
-public record SearchServiceType();
-public record NotificationServiceType();
-
-public record RestoreSnapShotCompleted(
-    string Message,
-    Guid CorrelationId,
-    string UserLogin,
-    string SessionId
-);
 public record RequestCommitESOperation(Guid CorrelationId);
 public record CommitESOperation(Guid CorrelationId);
 
@@ -79,4 +56,29 @@ public class ReturnResultSql
     public string eventdata { get; set; }
     public int crud { get; set; }
     public string entitytype { get; set; }
+}
+
+public class BidRestoreSnapShot
+{
+    public Guid CorrelationId { get; set; }
+}
+public class FinanceRestoreSnapShot
+{
+    public Guid CorrelationId { get; set; }
+}
+public class NotifyRestoreSnapShot
+{
+    public Guid CorrelationId { get; set; }
+}
+public class SearchRestoreSnapShot
+{
+    public Guid CorrelationId { get; set; }
+}
+public class RestoreSnapShotESCommit
+{
+    public Guid CorrelationId { get; set; }
+}
+public class RestoreSnapShotComplete
+{
+    public Guid CorrelationId { get; set; }
 }

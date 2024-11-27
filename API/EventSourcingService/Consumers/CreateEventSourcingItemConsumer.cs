@@ -15,6 +15,7 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     private readonly FinanceCreateProcessing _financeCreateProcessing;
     private readonly BidPlaceProcessing _bidPlaceProcessing;
     private readonly EditNotificationProcessing _editNotificationProcessing;
+    private readonly RestoreSnapShotProcessing _restoreSnapShotProcessing;
 
     public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing,
         ESLogCommitProcessing eSLogCommitProcessing,
@@ -23,7 +24,8 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         ElkIndexProcessing elkIndexProcessing,
         FinanceCreateProcessing financeCreateProcessing,
         BidPlaceProcessing bidPlaceProcessing,
-        EditNotificationProcessing editNotificationProcessing)
+        EditNotificationProcessing editNotificationProcessing,
+        RestoreSnapShotProcessing restoreSnapShotProcessing)
     {
         _auctionDeleteProcessing = auctionDeleteProcessing;
         _eSLogCommitProcessing = eSLogCommitProcessing;
@@ -33,6 +35,7 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         _financeCreateProcessing = financeCreateProcessing;
         _bidPlaceProcessing = bidPlaceProcessing;
         _editNotificationProcessing = editNotificationProcessing;
+        _restoreSnapShotProcessing = restoreSnapShotProcessing;
     }
 
     public async Task Consume(ConsumeContext<ESContract> context)
@@ -44,7 +47,7 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         }
         else
         {
-            //рассылаем сообщения для продолжения (RabbitMQ)
+            //вызываем соответствующий сервис для обработки поступившего по Кафке сообщения
             switch (context.Message.Command)
             {
                 case Command.AuctionDelete:
@@ -67,6 +70,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
                     break;
                 case Command.EditNotification:
                     await _editNotificationProcessing.ProcessESLog(context);
+                    break;
+                case Command.RestoreSnapShot:
+                    await _restoreSnapShotProcessing.ProcessESLog(context);
                     break;
                 default:
                     break;

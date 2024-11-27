@@ -23,31 +23,40 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<BidItem>> context)
     {
-        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         var correlationId = context.Message.CorrelationId;
-        foreach (var item in context.Message.DataObjects)
+        var props = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
+        if (props == "RestoreSnapShot")
         {
-            var typedItem = JsonSerializer.Deserialize<BidItem>(item.Data);
-            switch (item.CRUD)
-            {
-                case CRUD.Create:
-                    await _dbContext.Bids.AddAsync(typedItem);
-                    break;
-                case CRUD.Delete:
-                    //удаляем запись
-                    var delItem = await _dbContext.Bids.FindAsync(typedItem.BidId);
-                    if (delItem == null)
-                    {
-                        throw new Exception($"Запись для удаления не найдена");
-                    }
-                    _dbContext.Bids.Remove(delItem);
-                    break;
-                default:
-                    break;
-            }
+
         }
-        await _dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
+        else
+        {
+            using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            foreach (var item in context.Message.DataObjects)
+            {
+                var typedItem = JsonSerializer.Deserialize<BidItem>(item.Data);
+                switch (item.CRUD)
+                {
+                    case CRUD.Create:
+                        await _dbContext.Bids.AddAsync(typedItem);
+                        break;
+                    case CRUD.Delete:
+                        //удаляем запись
+                        var delItem = await _dbContext.Bids.FindAsync(typedItem.BidId);
+                        if (delItem == null)
+                        {
+                            throw new Exception($"Запись для удаления не найдена");
+                        }
+                        _dbContext.Bids.Remove(delItem);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

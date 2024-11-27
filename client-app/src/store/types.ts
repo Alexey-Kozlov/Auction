@@ -144,5 +144,5 @@ export type Session = {
 
 export type RestoreDb = {
   sessionid: string;
-  snapShotId: string;
+  restoreDate: Date;
 }

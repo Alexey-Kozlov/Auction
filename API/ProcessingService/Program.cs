@@ -73,6 +73,7 @@ builder.Services.AddMassTransit(p =>
     p.ElkIndexMassTransitConfigurator();
     p.FinanceMassTransitConfigurator();
     p.EditNotificationMassTransitConfigurator();
+    p.RestoreMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
     {
