@@ -31,7 +31,9 @@ public class AuctionUpdateProcessing
             context.Message.CorrelationId,
             context.Message.AuctionId ?? Guid.NewGuid(),
             context.Message.EventData,
-            context.Message.UserLogin).ToListAsync();
+            context.Message.UserLogin,
+            context.Message.Image
+            ).ToListAsync();
         //возвращаем список записей для изменения соответствующих БД в нужных сервисах
         var listItems = new DataForProcessingServicesList
         {

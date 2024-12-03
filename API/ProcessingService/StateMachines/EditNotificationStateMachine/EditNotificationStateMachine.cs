@@ -1,5 +1,3 @@
-using System.Text.Json;
-using Common.Contracts.Finance;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -61,6 +59,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
             .Activity(p => p.OfType<ESLogActivity>())
             .TransitionTo(NotificationState)
         );
+        SetCompletedWhenFinalized();
     }
 
     private void ConfigureNotificationState()

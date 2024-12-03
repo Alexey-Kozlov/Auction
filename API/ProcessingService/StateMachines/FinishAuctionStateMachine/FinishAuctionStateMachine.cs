@@ -68,6 +68,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 })
             .TransitionTo(ElkState)
         );
+        SetCompletedWhenFinalized();
     }
 
     private void ConfigureELKState()

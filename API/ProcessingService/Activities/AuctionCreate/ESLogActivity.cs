@@ -41,6 +41,7 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionCreate,
+            context.Message.Image,
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

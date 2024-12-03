@@ -11,6 +11,7 @@ public class ESContract
     public string UserLogin { get; set; }
     public Guid? AuctionId { get; set; }
     public Command Command { get; set; }
+    public string Image { get; set; }
 }
 
 //указываем generic T для создания разных типов сообщений
@@ -39,11 +40,20 @@ public record EventSourcingInitialized(
     string SessionId
 );
 
-public class RequestRestoreSnapShot
+public class RequestRestoreItems
 {
     public string UserLogin { get; set; }
     public DateTime RestoreDate { get; set; }
     public Guid CorrelationId { get; set; }
+}
+
+public class RequestRestoreImages
+{
+    public string UserLogin { get; set; }
+    public DateTime RestoreDate { get; set; }
+    public Guid CorrelationId { get; set; }
+    public int MaxMessageSizeMb { get; set; }
+    public int StartNumber { get; set; }
 }
 
 
@@ -71,6 +81,10 @@ public class NotifyRestoreSnapShot
     public Guid CorrelationId { get; set; }
 }
 public class SearchRestoreSnapShot
+{
+    public Guid CorrelationId { get; set; }
+}
+public class ImageRestoreSnapShot
 {
     public Guid CorrelationId { get; set; }
 }

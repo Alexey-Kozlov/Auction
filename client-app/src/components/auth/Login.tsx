@@ -7,7 +7,7 @@ import { useLoginUserMutation, useSetNewPasswordMutation } from '../../api/AuthA
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
-import { ApiResponse, LoginResponse } from '../../store/types';
+import { ApiResponse, LoginResponse, ModalParams } from '../../store/types';
 import { setAuthUser } from '../../store/authSlice';
 import ModalConfirm from '../modals/ModalConfirm';
 
@@ -20,6 +20,7 @@ export default function Login() {
     const passwordRef = useRef(null);
     const [showConfirm, setShowConfirm] = useState(false);
     const [updatePassword, setUpdatePassword] = useState<boolean | undefined>(undefined);
+    const [confirmParam, setConfirmParam] = useState<ModalParams>({confirmText:'', confirmTitle:''});
 
     const handleSetNewPassword = async () => {
         if(!(loginRef.current! as HTMLInputElement).value){
@@ -55,15 +56,19 @@ export default function Login() {
         }
         setUpdatePassword(undefined);
         setShowConfirm(false);
+        setConfirmParam({
+            confirmText:'Подтверждение обновления пароля. Обновить пароль?',
+            confirmTitle:'Обновление пароля'});
     }, [updatePassword, setPassword]);
 
     return (
         <div className='container'>
             <ModalConfirm 
-                openModal={showConfirm} 
-                text='Подтверждение обновления пароля. Обновить пароль?'
-                title='Обновление пароля'
+                openModal = {showConfirm} 
+                text = {confirmParam.confirmText}
+                title = {confirmParam.confirmTitle}
                 setResult={setUpdatePassword}
+                returnData={() =>{}}
             />
             <Formik
                 initialValues={{ login: '', password: '', error: null }}

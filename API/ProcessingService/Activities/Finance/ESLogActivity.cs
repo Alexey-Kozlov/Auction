@@ -37,6 +37,7 @@ public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFi
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.FinanceCreate,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

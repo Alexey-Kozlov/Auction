@@ -2,15 +2,15 @@
 
 namespace ProcessingService.DTO;
 
-public record CreateAuctionDTO
-(
+public class CreateAuctionDTO
+{
     [Required]
-     string Title,
-     string Properties,
-     string Description,
-     string Image,
-     int ReservePrice,
+    public string Title { get; set; }
+    public string Properties { get; set; }
+    public string Description { get; set; }
+    public string Image { get; set; }
+    public int ReservePrice { get; set; }
     [Required]
-     DateTime AuctionEnd,
-     Guid CorrelationId
-);
+    public DateTime AuctionEnd { get; set; }
+    public Guid CorrelationId { get; set; }
+}

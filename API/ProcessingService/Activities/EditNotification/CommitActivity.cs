@@ -32,6 +32,7 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.EditNotification,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

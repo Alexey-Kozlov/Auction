@@ -3,6 +3,7 @@ using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
+using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
@@ -53,11 +54,17 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                             document.RootElement.TryGetProperty("Seller", out jsonElement);
                             break;
                         case nameof(FinanceItem):
+                            document.RootElement.TryGetProperty("UserLogin", out jsonElement);
+                            break;
                         case nameof(NotifyItem):
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
                             break;
+                        case nameof(ImageItem):
+                            break;
+                        default:
+                            break;
                     }
-                    userLogin = jsonElement.GetString();
+                    jsonElement.TryGetsString(out userLogin);
                     //получаем Id аукциона
                     if (document.RootElement.TryGetProperty("AuctionId", out jsonElement))
                     {
@@ -79,7 +86,6 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                 });
             }
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"{DateTime.Now} --> Получение сообщения - произвести первоначальную инициализацию записей в БД, записано - {i} записей");
             await _publishEndpoint.Publish(new EventSourcingInitialized($"Произведена запись текущего состояния БД {consumeContext.Message.ItemsType}" +
             $" в EventSourcing, сохранено - {i} записей",
                     consumeContext.Message.CorrelationId, consumeContext.Message.UserLogin, consumeContext.Message.SessionId));

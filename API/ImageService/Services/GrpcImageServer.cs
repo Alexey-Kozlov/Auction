@@ -15,7 +15,6 @@ public class GrpcImageServer : GrpcImage.GrpcImageBase
 
     public override async Task<GrpcImageResponse> GetImage(GetImageRequest request, ServerCallContext context)
     {
-        Console.WriteLine("==> Получен запрос Grpc для получения изображения");
         var image = await _dbContext.Images.FindAsync(Guid.Parse(request.AuctionId));
 
         if (image == null) throw new RpcException(new Status(StatusCode.NotFound, "Изображение не найдено"));

@@ -149,11 +149,20 @@ public class ESLog_ElkIndex
     public int AllItemsCount { get; set; }
 }
 
-public class ESLog_RestoreSnapShot
+public class ESLog_RestoreItems
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
+
+public class ESLog_RestoreImages
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int BatchCount { get; set; }
+    public int AllItemsCount { get; set; }
+}
+
 public class ESLog_EditNotification
 {
     public Guid CorrelationId { get; set; }
@@ -171,4 +180,9 @@ public class ESLog_ResetSnapShot
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 
+}
+
+public class ESLog_ProcessImages
+{
+    public Guid CorrelationId { get; set; }
 }

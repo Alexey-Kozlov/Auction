@@ -32,6 +32,7 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             context.Message.CorrelationId,
             "",
             Command.AuctionUpdate,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

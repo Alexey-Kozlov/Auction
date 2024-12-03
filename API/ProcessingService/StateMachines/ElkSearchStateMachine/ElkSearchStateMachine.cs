@@ -72,6 +72,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 })
             .TransitionTo(NotificationState)
         );
+        SetCompletedWhenFinalized();
     }
 
     private void ConfigureNotificationState()

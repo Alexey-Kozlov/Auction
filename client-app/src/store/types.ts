@@ -146,3 +146,8 @@ export type RestoreDb = {
   sessionid: string;
   restoreDate: Date;
 }
+
+export type ModalParams = {
+  confirmTitle: string;
+  confirmText: string;
+}

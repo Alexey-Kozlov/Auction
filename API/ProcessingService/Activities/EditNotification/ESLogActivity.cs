@@ -37,6 +37,7 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.EditNotification,
+            "",
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

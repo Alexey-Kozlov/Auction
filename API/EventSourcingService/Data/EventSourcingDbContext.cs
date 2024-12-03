@@ -17,8 +17,9 @@ public class EventSourcingDbContext : DbContext
         Guid correlationid,
         Guid auctionid,
         string eventdata,
-        string userLogin) =>
-        FromExpression(() => auction_create(correlationid, auctionid, eventdata, userLogin));
+        string userLogin,
+        string image) =>
+        FromExpression(() => auction_create(correlationid, auctionid, eventdata, userLogin, image));
     public IQueryable<ReturnResultSql> auction_delete(
         Guid correlationid,
         Guid auctionid,
@@ -28,8 +29,9 @@ public class EventSourcingDbContext : DbContext
         Guid correlationid,
         Guid auctionid,
         string eventdata,
-        string userLogin) =>
-        FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin));
+        string userLogin,
+        string image) =>
+        FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin, image));
 
     public IQueryable<ReturnResultSql> commit_operation(
         Guid correlationid) =>
@@ -58,21 +60,26 @@ public class EventSourcingDbContext : DbContext
     public IQueryable<ReturnResultSql> check_auction_finished(
         Guid correlationid) =>
         FromExpression(() => check_auction_finished(correlationid));
-    public IQueryable<ReturnResultSql> restore_snap_shot(
+    public IQueryable<ReturnResultSql> restore_snap_shot_items(
         Guid correlationid,
         string eventdata,
         string userLogin) =>
-        FromExpression(() => restore_snap_shot(correlationid, eventdata, userLogin));
+        FromExpression(() => restore_snap_shot_items(correlationid, eventdata, userLogin));
     public IQueryable<ReturnResultSql> reset_snap_shot(
         Guid correlationid) =>
         FromExpression(() => reset_snap_shot(correlationid));
+    public IQueryable<ReturnResultSql> restore_snap_shot_images(
+        Guid correlationid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => restore_snap_shot_images(correlationid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
-        modelBuilder.HasDbFunction(() => auction_create(default, default, default, default));
-        modelBuilder.HasDbFunction(() => auction_update(default, default, default, default));
+        modelBuilder.HasDbFunction(() => auction_create(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => auction_update(default, default, default, default, default));
         modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
         modelBuilder.HasDbFunction(() => finance_create(default, default, default));
         modelBuilder.HasDbFunction(() => commit_operation(default));
@@ -80,7 +87,8 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
         modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default));
         modelBuilder.HasDbFunction(() => check_auction_finished(default));
-        modelBuilder.HasDbFunction(() => restore_snap_shot(default, default, default));
+        modelBuilder.HasDbFunction(() => restore_snap_shot_items(default, default, default));
+        modelBuilder.HasDbFunction(() => restore_snap_shot_images(default, default, default));
         modelBuilder.HasDbFunction(() => reset_snap_shot(default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }

@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using Common.Contracts.Auction;
-using ImageService.Controllers;
-using ImageService.Entities;
+using Common.Contracts.Image;
 
 namespace ImageService;
 
@@ -11,12 +9,25 @@ public class MappingProfiles : Profile
     {
 
         CreateMap<ImageItem, ImageDTO>()
-            .ForMember(dest => dest.AuctionId, opt => opt.MapFrom(src => src.AuctionId.ToString()))
             .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
             {
                 if (src.Image != null && src.Image.Length > 0)
                 {
-                    dest.Image = Convert.ToBase64String(src.Image);
+                    dest.Image = "data:image/jpg;base64," + Convert.ToBase64String(src.Image);
+                }
+                return dest?.Image;
+            })
+        );
+
+        CreateMap<ImageDTO, ImageItem>()
+            .ForMember(dest => dest.Image, opt => opt.MapFrom((src, dest) =>
+            {
+                if (src.Image != null && src.Image.Length > 0)
+                {
+                    dest.Image = Convert.FromBase64String(src.Image
+                        .Replace("data:image/png;base64,", "")
+                        .Replace("data:image/jpeg;base64,", "")
+                        .Replace("data:image/jpg;base64,", ""));
                 }
                 return dest?.Image;
             })

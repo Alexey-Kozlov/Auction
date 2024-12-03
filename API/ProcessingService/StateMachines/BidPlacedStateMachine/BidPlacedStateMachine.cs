@@ -83,6 +83,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Activity(p => p.OfType<ESLogActivity>()
             .TransitionTo(FinanceState))
         );
+        SetCompletedWhenFinalized();
     }
 
     private void ConfigureFinanceState()

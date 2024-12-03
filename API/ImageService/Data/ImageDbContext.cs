@@ -1,4 +1,4 @@
-using ImageService.Entities;
+using Common.Contracts.Image;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

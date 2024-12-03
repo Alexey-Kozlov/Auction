@@ -6,7 +6,7 @@ using ProcessingService.StateMachines.RestoreStateMachine;
 
 namespace ProcessingService.Activities.Restore;
 
-public class ESLogActivityReset : IStateMachineActivity<RestoreState, RequestRestoreSnapShot>
+public class ESLogActivityReset : IStateMachineActivity<RestoreState, RequestRestoreItems>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -21,7 +21,7 @@ public class ESLogActivityReset : IStateMachineActivity<RestoreState, RequestRes
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<RestoreState, RequestRestoreSnapShot> context, IBehavior<RestoreState, RequestRestoreSnapShot> next)
+    public async Task Execute(BehaviorContext<RestoreState, RequestRestoreItems> context, IBehavior<RestoreState, RequestRestoreItems> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new ESLog_ResetSnapShot
@@ -29,15 +29,16 @@ public class ESLogActivityReset : IStateMachineActivity<RestoreState, RequestRes
                 CorrelationId = context.Saga.CorrelationId
             },
             nameof(ESLog_ResetSnapShot),
-            "Common.Contracts.Processing.ESLog_ResetSnapShot",
+            "Common.Contracts.Processing.ESLog_RestoreItems",
             context.Saga.CorrelationId,
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, RequestRestoreSnapShot, TException> context, IBehavior<RestoreState, RequestRestoreSnapShot> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, RequestRestoreItems, TException> context, IBehavior<RestoreState, RequestRestoreItems> next) where TException : Exception
     {
         return next.Faulted(context);
     }

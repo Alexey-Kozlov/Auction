@@ -15,5 +15,4 @@ public class CreateAuctionState : SagaStateMachineInstance
     public DateTime LastUpdated { get; set; }
     public string ErrorMessage { get; set; }
     public int ReservePrice { get; set; }
-    public string Image { get; set; }
 }

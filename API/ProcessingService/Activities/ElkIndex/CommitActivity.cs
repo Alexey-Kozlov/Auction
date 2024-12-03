@@ -31,6 +31,7 @@ public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCom
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.IndexELK,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

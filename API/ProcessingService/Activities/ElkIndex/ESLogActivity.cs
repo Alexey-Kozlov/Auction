@@ -30,6 +30,7 @@ public class ESLogActivity : IStateMachineActivity<ElkIndexState, ElkIndexReset>
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.IndexELK,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

@@ -32,6 +32,7 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             context.Saga.CorrelationId,
             context.Saga.Bidder,
             Command.PlaceBid,
+            "",
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

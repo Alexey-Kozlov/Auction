@@ -14,5 +14,4 @@ public record UpdateAuctionState : SagaStateMachineInstance
     public DateTime AuctionEnd { get; set; }
     public DateTime LastUpdated { get; set; }
     public string ErrorMessage { get; set; }
-    public string Image { get; set; }
 }

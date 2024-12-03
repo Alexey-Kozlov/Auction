@@ -1,77 +1,72 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using AutoMapper;
 using Common.Contracts.Auction;
+using Common.Contracts.Image;
 using Common.Contracts.Processing;
 using ImageService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using ImageService.Entities;
 
 namespace ImageService.Consumers;
 
-public class ImageConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
+public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
 {
     private readonly ImageDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
+    private readonly IMapper _mapper;
 
-    public ImageConsumer(ImageDbContext context, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public ImageConsumer(ImageDbContext context, IPublishEndpoint publishEndpoint,
+        IConfiguration configuration, IMapper mapper)
     {
         _context = context;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
+        _mapper = mapper;
     }
-    public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<ImageDTO>> context)
     {
-        var typedItem = JsonSerializer.Deserialize<AuctionItem>(context.Message.DataObjects[0].Data);
+        //для работы с аукционом всегда передается только 1 изображение (или не передается) 
         var correlationId = context.Message.CorrelationId;
-        switch (context.Message.DataObjects[0].CRUD)
+        if (context.Message.DataObjects.Any())
         {
-            case CRUD.Delete:
-                var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == typedItem.AuctionId);
-                if (item != null)
-                {
-                    _context.Images.Remove(item);
-                    await _context.SaveChangesAsync();
-                }
-                break;
-            case CRUD.Create:
-                await _context.Images.AddAsync(new ImageItem
-                {
-                    AuctionId = typedItem.AuctionId,
-                    Image = Convert.FromBase64String(context.Message.Props
-                        .Replace("data:image/png;base64,", "")
-                        .Replace("data:image/jpeg;base64,", "")
-                        .Replace("data:image/jpg;base64,", ""))
-                });
-                await _context.SaveChangesAsync();
-                break;
-            case CRUD.Update:
-                if (!string.IsNullOrEmpty(context.Message.Props))
-                {
-                    var image = Convert.FromBase64String(context.Message.Props
-                            .Replace("data:image/png;base64,", "")
-                            .Replace("data:image/jpeg;base64,", "")
-                            .Replace("data:image/jpg;base64,", ""));
+            var typedItem = JsonSerializer.Deserialize<ImageDTO>(context.Message.DataObjects[0].Data);
+
+            switch (context.Message.DataObjects[0].CRUD)
+            {
+                case CRUD.Delete:
+                    var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == typedItem.AuctionId);
+                    if (item != null)
+                    {
+                        _context.Images.Remove(item);
+                    }
+                    else
+                    {
+                        throw new Exception("Ошибка - не найдена запись изображения");
+                    }
+                    break;
+                case CRUD.Create:
+                    await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
+                    break;
+                case CRUD.Update:
+
                     var item2 = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == typedItem.AuctionId);
                     if (item2 != null)
                     {
-                        item2.Image = image;
+                        _mapper.Map(typedItem, item2);
                         _context.Images.Update(item2);
                     }
                     else
                     {
-                        await _context.Images.AddAsync(new ImageItem
-                        {
-                            AuctionId = typedItem.AuctionId,
-                            Image = image
-                        });
+                        //если было обновление аукциона без изображения
+                        await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
                     }
-                    await _context.SaveChangesAsync();
-                }
-                break;
-        }
+                    break;
+            }
 
+            await _context.SaveChangesAsync();
+        }
 
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

@@ -63,6 +63,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             .Activity(p => p.OfType<ESLogActivity>())
             .TransitionTo(FinanceState)
         );
+        SetCompletedWhenFinalized();
     }
 
     private void ConfigureFinanceState()

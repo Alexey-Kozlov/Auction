@@ -28,43 +28,49 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {
-        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         var correlationId = context.Message.CorrelationId;
-        var title = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
         foreach (var item in context.Message.DataObjects)
         {
-
             //уведомления при операциях с аукционом - создание, обновление, удаление
-            await ProcessNotifyItem(item, title, correlationId);
-
+            await ProcessNotifyItem(item, correlationId);
             await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-            await _publishEndpoint.Publish(sendObject);
         }
-    }
-
-    private async Task ProcessNotifyItem(DataForProcessingService item, string title, Guid correlationId)
-    {
-        var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
+        var auctionData = JsonSerializer.Deserialize<AuctionNotificationData>(context.Message.Props);
+        var auctionItem = JsonSerializer.Deserialize<AuctionItem>(auctionData.AuctionData);
         var notify = new AuctionNotification
         {
-            Title = title,
+            Title = auctionItem.Title,
             CorrelationId = correlationId,
-            AuctionId = typedItem.AuctionId,
-            UserLogin = typedItem.UserLogin
+            AuctionId = auctionItem.AuctionId,
+            UserLogin = auctionItem.Seller
         };
+
+        switch (auctionData.CRUD)
+        {
+            case CRUD.Create:
+                await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
+                break;
+            case CRUD.Update:
+                await _hubContext.Clients.Group(auctionItem.Seller).SendAsync("AuctionUpdated", notify);
+                break;
+            case CRUD.Delete:
+                await _hubContext.Clients.Group(auctionItem.Seller).SendAsync("AuctionDeleted", notify);
+                break;
+        }
+        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+        await _publishEndpoint.Publish(sendObject);
+    }
+
+    private async Task ProcessNotifyItem(DataForProcessingService item, Guid correlationId)
+    {
+        var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
 
         switch (item.CRUD)
         {
             case CRUD.Create:
                 await _dbContext.NotifyItems.AddAsync(typedItem);
-                await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
-                break;
-            case CRUD.Update:
-                await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionUpdated", notify);
                 break;
             case CRUD.Delete:
                 //удаляем запись
@@ -76,7 +82,6 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
                     throw new Exception($"Запись для удаления не найдена");
                 }
                 _dbContext.NotifyItems.Remove(delItem);
-                await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("AuctionDeleted", notify);
                 break;
         }
     }

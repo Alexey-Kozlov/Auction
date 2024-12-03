@@ -15,7 +15,7 @@ public class SendEventToES
     }
 
     public async Task SendItemToEventSourcing<T>(T context, string typeName,
-        string callBackType, Guid correlationId, string userLogin, Command command,
+        string callBackType, Guid correlationId, string userLogin, Command command, string image,
         Guid? auctionId
         )
     {
@@ -33,6 +33,7 @@ public class SendEventToES
         message.AuctionId = auctionId;
         message.UserLogin = userLogin;
         message.Command = command;
+        message.Image = image;
         await _topicProducer.Produce(message);
     }
 }

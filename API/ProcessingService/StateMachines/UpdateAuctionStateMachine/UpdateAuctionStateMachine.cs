@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Common.Contracts.Auction;
+using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -25,7 +26,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<AuctionUpdateESCommit> CommitEvent { get; }
     public Event<AuctionUpdateComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }
-    private string Image { get; set; }
     private DataForProcessingServicesList ListItems { get; set; }
     private Guid InstanceCorrelationId { get; set; }
 
@@ -70,7 +70,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.Properties = context.Message.Properties;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
-                Image = context.Message.Image;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
@@ -79,6 +78,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .Activity(p => p.OfType<ESLogActivity>())
             .TransitionTo(GatewayState)
         );
+        SetCompletedWhenFinalized();
     }
 
 
@@ -97,7 +97,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 new Uri(configuration["QueuePaths:GatewayConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = context.Message.DataItems.DataObjects,
+                    DataObjects = context.Message.DataItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdatedImage"
                 })
@@ -112,15 +112,21 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //Обновление изображения аукциона в сервисе  (если было изображение)
-            .Send(
-                new Uri(configuration["QueuePaths:ImageConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
+            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "ImageItem"),
+                p => p
+                .Send(
+                    new Uri(configuration["QueuePaths:ImageConsumer"]),
+                    context => new DataForProcessingServicesList<ImageDTO>
+                    {
+                        DataObjects = ListItems.DataObjects.Where(p => p.DataType == "ImageItem").ToList(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedSearch"
+                    }),
+                p => p
+                .Publish(new AuctionUpdatedSearch
                 {
-                    DataObjects = ListItems.DataObjects,
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Auction.AuctionUpdatedSearch",
-                    Props = string.IsNullOrEmpty(Image) ? "" : Image
-                }
+                    CorrelationId = InstanceCorrelationId
+                })
             )
             .TransitionTo(SearchState));
     }
@@ -137,7 +143,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects,
+                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdatedElk"
                 })
@@ -157,7 +163,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 new Uri(configuration["QueuePaths:ElkConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects,
+                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdatedNotification"
                 })
@@ -176,22 +182,15 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 new Uri(configuration["QueuePaths:NotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
-                    DataObjects = new List<DataForProcessingService>
-                    {
-                        new DataForProcessingService
-                        {
-                            CRUD = CRUD.Update,
-                            DataType = nameof(NotifyItem),
-                            Data = JsonSerializer.Serialize(new NotifyItem
-                            {
-                                AuctionId = context.Saga.AuctionId,
-                                UserLogin = context.Saga.UserLogin
-                            })
-                        }
-                    },
+                    DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdateESCommit",
-                    Props = context.Saga.Title
+                    Props = JsonSerializer.Serialize(new AuctionNotificationData
+                    {
+                        AuctionData = ListItems.DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data,
+                        CorrelationId = context.Saga.CorrelationId,
+                        CRUD = CRUD.Update
+                    })
                 })
             .TransitionTo(CommitState));
     }

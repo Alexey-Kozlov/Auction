@@ -1,12 +1,12 @@
 namespace ProcessingService.DTO;
-public record UpdateAuctionDTO
-(
-    Guid AuctionId,
-    string Title,
-    string Properties,
-    string Description,
-    string Image,
-    int ReservePrice,
-    DateTime AuctionEnd,
-    Guid CorrelationId
-);
+public class UpdateAuctionDTO
+{
+    public Guid AuctionId { get; set; }
+    public string Title { get; set; }
+    public string Properties { get; set; }
+    public string Description { get; set; }
+    public string Image { get; set; }
+    public int ReservePrice { get; set; }
+    public DateTime AuctionEnd { get; set; }
+    public Guid CorrelationId { get; set; }
+}

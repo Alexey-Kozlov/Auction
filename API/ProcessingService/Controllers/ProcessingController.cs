@@ -109,7 +109,7 @@ public class ProcessingController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPost("SetSnapShotDb")]
+    [HttpPost("SetSnapShot")]
     public async Task SetSnapShotDb(SessionDTO param)
     {
         //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
@@ -133,7 +133,7 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем восстановление БД на указанную дату
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new RequestRestoreSnapShot
+        await _publishEndpoint.Publish(new RequestRestoreItems
         {
             RestoreDate = param.RestoreDate,
             UserLogin = userLogin,

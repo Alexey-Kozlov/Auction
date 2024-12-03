@@ -6,11 +6,11 @@ using ProcessingService.StateMachines.RestoreStateMachine;
 
 namespace ProcessingService.Activities.Restore;
 
-public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, ESLog_RestoreItems>
+public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLog_RestoreImages>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
-    public ESLogActivityGetRecords(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivityGetImages(SendEventToES sendEventToES, IConfiguration config)
     {
         _sendEventToES = sendEventToES;
         _config = config;
@@ -21,16 +21,18 @@ public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, ESLog
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<RestoreState, ESLog_RestoreItems> context, IBehavior<RestoreState, ESLog_RestoreItems> next)
+    public async Task Execute(BehaviorContext<RestoreState, ESLog_RestoreImages> context, IBehavior<RestoreState, ESLog_RestoreImages> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new RequestRestoreItems
+            new RequestRestoreImages
             {
                 RestoreDate = context.Saga.RestoreDate,
                 UserLogin = context.Saga.UserLogin,
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                MaxMessageSizeMb = int.Parse(_config["MaxMessageSizeMb"]),
+                StartNumber = 0
             },
-            nameof(RequestRestoreItems),
+            nameof(RequestRestoreImages),
             "Common.Contracts.Processing.ESLog_RestoreImages",
             context.Saga.CorrelationId,
             context.Saga.UserLogin,
@@ -40,7 +42,7 @@ public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, ESLog
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, ESLog_RestoreItems, TException> context, IBehavior<RestoreState, ESLog_RestoreItems> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, ESLog_RestoreImages, TException> context, IBehavior<RestoreState, ESLog_RestoreImages> next) where TException : Exception
     {
         return next.Faulted(context);
     }

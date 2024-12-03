@@ -37,7 +37,7 @@ const serviceApi = createApi({
     }),
     setSnapShotDb: builder.mutation<ApiResponseNet<number>, Session>({
       query: (params) => ({
-        url: "/setsnapshotdb",
+        url: "/setsnapshot",
         method: "post",
         headers: {
           "content-type": "application/json",

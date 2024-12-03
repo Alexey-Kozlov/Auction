@@ -1,5 +1,4 @@
 using Common.Contracts.EventSourcing;
-using Common.Contracts.Finance;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
@@ -32,6 +31,7 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
+            "",
             null);
         await next.Execute(context).ConfigureAwait(false);
     }

@@ -90,6 +90,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         //без этого оператора будут ошибки, т.к. у нас генерируется много сообщений в сервис ElasticSearchService
         //и принимаются оттуда же без передачи в конкретное состояние.
         OnUnhandledEvent(async e => await e.Ignore());
+        SetCompletedWhenFinalized();
     }
     private void ConfigureResetIndexState()
     {
