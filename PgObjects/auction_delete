@@ -60,6 +60,32 @@ select "EventData", 2, 'AuctionItem' from eventlog limit 1;
 
 delete from eventlog;
 
+--удаляем изображения аукциона, если они есть
+insert into eventlog("EventData")
+    SELECT t1."EventData" FROM public."EventsLog" t1
+		JOIN (
+		SELECT max("Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'ImageItem' and
+		"AuctionId" = auctionid_par and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and "CreateAt" >= lastSnapShotCreated
+		group by "AuctionId") t2 on t1."Version" = t2."Version"
+	where t1."CRUD" != 2;
+	
+if exists(select * from eventlog) then
+	--изображение найдено
+	--создаем запись в ES лог об удалении изображения, Command=0 - 'AuctionDelete', CRUD=2 - Delete
+	insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+	SELECT 
+	correlationid_par, now(), "EventData", false, 'ImageItem', auctionid_par, userlogin_par, 0, 2
+	FROM eventlog;
+	--возвращаем запись для удаления аукциона, CRUD=2 - Delete
+	insert into ret("eventdata", "crud", "entitytype")
+	select "EventData", 2, 'ImageItem' from eventlog limit 1;
+end if;
+
+delete from eventlog;
 --получаем последнюю запись по ID аукциона и типу FinanceItem. Status=1 - расход денег, т.е. была сделана ставка
 --если такая есть - нужно ее отменить, т.е. возвратить деньги по этой ставке пользователю, кто сделал ставку
 insert into eventlog("EventData")
@@ -80,8 +106,8 @@ if exists(select * from eventlog) then
 --Command=0 - 'AuctionDelete', CRUD=2 - Delete
 	insert into public."EventsLog"("CorrelationId", "CreateAt","EventData", "Commited", 
 	"EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
-	select correlationid_par, now(), "EventData" || jsonb_build_object('ActionDate', now()) || '{"Status":0}', false, 
-	'FinanceItem', auctionid_par, userlogin_par, 0, 2
+	select correlationid_par, now(), "EventData" || jsonb_build_object('ActionDate', now(),'Status', 0), false, 
+	'FinanceItem', auctionid_par, "EventData" ->> 'UserLogin', 0, 2
 	from eventlog;
 
 --возвращаем запись для возврата денег по ставке, CRUD=2 - Delete
@@ -91,10 +117,11 @@ if exists(select * from eventlog) then
 
 --получаем баланс по пользователю, которому возвращаем платеж
 	select "EventData" ->> 'UserLogin' from eventlog into userlogin_temp;
+
 	call getbalance(userlogin_temp,balance);
 --возвращаем запись для обновления баланса, CRUD=1 - Update
 	insert into ret("eventdata", "crud", "entitytype")
-	select "EventData", 1, 'FinanceItem'
+	select "EventData" || jsonb_build_object('ActionDate', now(),'Value', balance,'Status',2) , 1, 'FinanceItem'
 	from eventlog;
 
 --делаем запись в ES лог по отмене всех ставок по данному аукциону
@@ -112,13 +139,11 @@ if exists(select * from eventlog) then
 	--возвращаем записи ставок с типом записи CRUD=2 - Delete, для удаления в BiddingService
 		insert into ret("eventdata", "crud", "entitytype")
 		values(i."EventData", 2, 'BidItem');	
-
 	--делаем записи в ES лог по удалению ставок, делаем запись с Command=0 - 'AuctionDelete', CRUD=2 - Delete
 		insert into public."EventsLog"("CorrelationId", "CreateAt","EventData", "Commited", 
 		"EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
-		select correlationid_par, now(), i."EventData" || jsonb_build_object('ActionDate', now()), false, 
+		select correlationid_par, now(), i."EventData" || jsonb_build_object('BidTime', now()), false, 
 		'BidItem', auctionid_par, userlogin_par, 0, 2;
-
 	end loop;			
 end if;
 
@@ -139,7 +164,7 @@ loop
 	--делаем записи в ES лог по удалению ставок, делаем запись с Command=0 - 'AuctionDelete', CRUD=2 - Delete
 		insert into public."EventsLog"("CorrelationId", "CreateAt","EventData", "Commited", 
 		"EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
-		select correlationid_par, now(), i."EventData" || jsonb_build_object('ActionDate', now()), false, 
+		select correlationid_par, now(), i."EventData", false, 
 		'NotifyItem', auctionid_par, userlogin_par, 0, 2;
 end loop;
 

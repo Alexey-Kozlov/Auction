@@ -191,7 +191,8 @@ delete from eventlog;
 insert into eventlog("Version", "CorrelationId", "CreateAt", "EventData", "Commited", 
 	"Description", "EntityType", "AuctionId", "UserLogin", "Command", "CRUD") 
 SELECT 
-	t1."Version", correlationid_par, now(), t1."EventData" || jsonb_build_object('CurrentHighBid', cast(eventdata_par ->> 'Amount' as int)), 
+	t1."Version", correlationid_par, now(), t1."EventData" || 
+		jsonb_build_object('CurrentHighBid', cast(eventdata_par ->> 'Amount' as int),'UpdatedAt',now()), 
 	false, '', 'AuctionItem', auctionid_par, userlogin_par, 4, 1
 	FROM public."EventsLog" t1
 	JOIN (

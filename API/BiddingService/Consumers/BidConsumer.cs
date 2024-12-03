@@ -25,7 +25,6 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
     {
         var correlationId = context.Message.CorrelationId;
 
-        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         foreach (var item in context.Message.DataObjects)
         {
             var typedItem = JsonSerializer.Deserialize<BidItem>(item.Data);
@@ -48,7 +47,6 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
             }
         }
         await _dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
 
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

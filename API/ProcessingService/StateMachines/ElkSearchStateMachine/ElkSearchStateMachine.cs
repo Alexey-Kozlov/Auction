@@ -82,7 +82,6 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                Console.WriteLine(JsonSerializer.Serialize(context.Message.Result));
             })
             .Send(
                 new Uri(configuration["QueuePaths:ElkSearchNotificationConsumer"]),

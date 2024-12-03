@@ -15,7 +15,6 @@ public class SetSnapShotDbNotificationConsumer : IConsumer<EventSourcingInitiali
     }
     public async Task Consume(ConsumeContext<EventSourcingInitialized> context)
     {
-        Console.WriteLine($"{DateTime.Now} --> Получено сообщение - '{context.Message.Message}'");
         await _hubContext.Clients.Group(context.Message.SessionId)
             .SendAsync("SetSnapShotDb", context.Message.Message);
     }

@@ -64,6 +64,7 @@ export default function UserActions() {
     }
 
     const handlerRestoreSnapShotDb = () => {
+        setDateValue(new Date());
         setConfirmParam({
             confirmText:'Произвести восстановление БД из лога?',
             confirmTitle:'Восстановление БД из лога'});
@@ -73,7 +74,7 @@ export default function UserActions() {
 
     useEffect(() => {
         if(confirmResult){
-            dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false }));
+            dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false, param: dateValue }));
             const message:Message = {message:'Старт восстановления БД из ES...', auctionId:'', messageType:0};
             toast((p) => (
                 <InfoMessageToast message={message} toastId={p.id} />

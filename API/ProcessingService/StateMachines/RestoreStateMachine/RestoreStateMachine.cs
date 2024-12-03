@@ -159,7 +159,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             })
             .Send(
                 new Uri(configuration["QueuePaths:ImageRestoreConsumer"]),
-                    context => new DataForProcessingServicesList<ImageItem>
+                    context => new DataForProcessingServicesList<ImageDTO>
                     {
                         DataObjects = context.Message.DataItems.DataObjects,
                         CorrelationId = context.Saga.CorrelationId,

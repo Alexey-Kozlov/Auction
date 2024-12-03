@@ -1,12 +1,13 @@
--- FUNCTION: public.auction_create(uuid, uuid, text, text)
+-- FUNCTION: public.auction_create(uuid, uuid, text, text, text)
 
--- DROP FUNCTION IF EXISTS public.auction_create(uuid, uuid, text, text);
+-- DROP FUNCTION IF EXISTS public.auction_create(uuid, uuid, text, text, text);
 
 CREATE OR REPLACE FUNCTION public.auction_create(
 	correlationid_par uuid,
 	auctionid_par uuid,
 	eventdata_par text,
-	userlogin_par text)
+	userlogin_par text,
+	image_par text)
     RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
     LANGUAGE 'plpgsql'
     COST 100
@@ -31,6 +32,16 @@ values (correlationid_par, now(), eventdata, false, 'AuctionItem', auctionid_par
 insert into ret("eventdata", "crud", "entitytype")
 values(eventdata_par, 0, 'AuctionItem');
 
+--создаем запись в ES лог о создании изображения (если оно есть), Command=1 - 'AuctionCreate', CRUD=0 - Create
+insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+	"EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+values (correlationid_par, now(), jsonb_build_object('AuctionId',auctionid_par,'Image',image_par) , 
+	false, 'ImageItem', auctionid_par, userlogin_par, 1, 0);
+
+--возвращаем запись для создания изображения, CRUD=0 - Create
+insert into ret("eventdata", "crud", "entitytype")
+values(jsonb_build_object('AuctionId',auctionid_par,'Image',image_par), 0, 'ImageItem');
+
 eventdata_par = '{"AuctionId":"' || cast(auctionid_par as varchar) || '","UserLogin":"' || userlogin_par || '"}';
 eventdata = cast(eventdata_par as jsonb);
 --создаем запись в ES лог о создании уведомления аукциона для данного пользователя, 
@@ -47,5 +58,5 @@ return query select ret.eventdata, ret.crud, ret.entitytype from ret;
 END;
 $BODY$;
 
-ALTER FUNCTION public.auction_create(uuid, uuid, text, text)
+ALTER FUNCTION public.auction_create(uuid, uuid, text, text, text)
     OWNER TO admin;

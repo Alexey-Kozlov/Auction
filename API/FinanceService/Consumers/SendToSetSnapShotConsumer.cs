@@ -38,8 +38,6 @@ public class SendToSetSnapShotConsumer : IConsumer<SendAllItems<SendToSetSnapSho
         sendBalanse.ItemsType = nameof(FinanceItem);
         sendBalanse.CreateAt = consumeContext.Message.CreateAt;
         await _publishEndpoint.Publish(sendBalanse);
-
-        Console.WriteLine("--> Получение сообщения выполнить снапшот текущй БД в EventSourcing");
     }
 }
 

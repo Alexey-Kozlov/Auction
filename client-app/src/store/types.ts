@@ -106,6 +106,7 @@ export type ProcessingState = {
   eventName: string;
   ready: boolean;
   itemId?: string;
+  param?: any;
 };
 
 export type AuctionUpdated = {

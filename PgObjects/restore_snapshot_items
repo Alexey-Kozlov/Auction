@@ -1,0 +1,137 @@
+-- FUNCTION: public.restore_snap_shot_items(uuid, text, text)
+
+-- DROP FUNCTION IF EXISTS public.restore_snap_shot_items(uuid, text, text);
+
+CREATE OR REPLACE FUNCTION public.restore_snap_shot_items(
+	correlationid_par uuid,
+	eventdata_par text,
+	userlogin_par text)
+    RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+declare
+	eventdata jsonb;
+	lastSnapShotId uuid;
+	nextSnapShotId uuid;	
+	lastSnapShotCreated timestamp;
+	nextSnapShotCreated timestamp;	
+	restoreDate timestamp;	
+	i record;	
+BEGIN    
+CREATE TEMP TABLE IF NOT EXISTS ret("eventdata" text,  "crud" smallint, "entitytype" varchar(50));
+CREATE TEMP TABLE IF NOT EXISTS eventlog("CorrelationId" uuid, "CreateAt" timestamp with time zone,
+"EventData" jsonb, "Commited" boolean, "Description" text, "SnapShotId" uuid, "EntityType" varchar(50),
+"AuctionId" uuid, "UserLogin" character varying(256), "Command" smallint,"CRUD" smallint);
+
+delete from ret;
+
+eventdata = cast(eventdata_par as jsonb);
+restoreDate = cast(eventdata ->> 'RestoreDate' as timestamp with time zone);
+--получаем ближайший к указанной дате восстановления SnapShotId
+select "SnapShotId", "CreateAt" from public."EventsLog" 
+where not "SnapShotId" is null and "CreateAt" <= restoreDate
+order by "CreateAt" desc limit 1 
+into lastSnapShotId,lastSnapShotCreated;
+
+--получаем следующий SnapShot (если есть), переменная nextSnapShotCreated
+select "CreateAt" from public."EventsLog" 
+where not "SnapShotId" is null and "CreateAt" > lastSnapShotCreated
+order by "CreateAt" asc limit 1 
+into nextSnapShotCreated;
+
+--если nextSnapShotCreated = null - больше SnapShot-ов нет и можно не ограничивать дату восстановления
+--если nextSnapShotCreated != null - есть следующий SnapShot и нужно ограничить дату восстановления его началом
+if not nextSnapShotCreated is null and restoreDate > nextSnapShotCreated then
+	restoreDate = nextSnapShotCreated;
+end if;
+
+--получаем все записи по BidItem для восстановления в сервисе BiddingService
+insert into ret("eventdata", "crud", "entitytype")
+SELECT t4."EventData", 0, t4."EntityType" 
+FROM public."EventsLog" t4
+	JOIN (		
+	select t1."Version", t1."CRUD", t1."AuctionId" from public."EventsLog" t1 join
+		(SELECT max("Version") as "Version" 
+			FROM public."EventsLog"
+			where "EntityType" = 'BidItem' and
+			("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and 
+			("CreateAt" between lastSnapShotCreated and restoreDate)
+			group by "AuctionId") t2 on t1."Version" = t2."Version"
+		where t1."CRUD" != 2		
+	) t3 on t4."AuctionId" = t3."AuctionId"
+where t4."EntityType" = 'BidItem' and
+("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and 
+("CreateAt" between lastSnapShotCreated and restoreDate);
+
+--получаем все записи по FinanceItem для восстановления в сервисе FinanceService
+--возвращаем 3 типа записей - Приход денег (Status=0), Списание на ставки (Status=1) и баланс (Status=2)
+insert into ret("eventdata", "crud", "entitytype")
+    SELECT t1."EventData", 0, t1."EntityType" FROM public."EventsLog" t1
+		JOIN 
+		(	--отбираем списания денег на ставки Status=1
+			(SELECT max("Version") as "Version" 
+			FROM public."EventsLog"
+			where "EntityType" = 'FinanceItem' and not "AuctionId" is null and
+			("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and 
+			("CreateAt" between lastSnapShotCreated and restoreDate)
+			group by "AuctionId"
+			)
+		union
+			--отбираем приход денег Status=0
+			(SELECT "Version" 
+			FROM public."EventsLog"
+			where "EntityType" = 'FinanceItem' and cast("EventData" ->> 'Status' as int) = 0 and
+			("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and 
+			("CreateAt" between lastSnapShotCreated and restoreDate)			
+			)
+		)t2 on t1."Version" = t2."Version"
+	where t1."CRUD" != 2;
+--Добавляем баланс
+for i in
+	select cast(ret."eventdata" as jsonb) ->> 'UserLogin' as "UserLogin", 
+		sum(case when cast(cast(ret."eventdata" as jsonb) ->> 'Status' as int) = 0 
+		then cast(cast(ret."eventdata" as jsonb) ->> 'Value' as int) else 
+		-cast(cast(ret."eventdata" as jsonb) ->> 'Value' as int) end) as "Value"
+	from ret
+	where not cast(ret."eventdata" as jsonb) ->> 'UserLogin' is null
+	group by cast(ret."eventdata" as jsonb) ->> 'UserLogin'	
+loop
+	insert into ret("eventdata", "crud", "entitytype")
+	values(jsonb_build_object('Value',i."Value",'Status',2,'AuctionId',null,'FinanceId',gen_random_uuid(),'UserLogin',
+	i."UserLogin",'ActionDate',now()),0,'FinanceItem');
+end loop;
+
+--получаем все записи по NotifyItem для восстановления в сервисе NotificationService
+insert into ret("eventdata", "crud", "entitytype")
+    SELECT t1."EventData", 0, t1."EntityType" FROM public."EventsLog" t1
+		JOIN (
+		SELECT max("Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'NotifyItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and 
+		("CreateAt" between lastSnapShotCreated and restoreDate)		
+		group by "AuctionId","UserLogin") t2 on t1."Version" = t2."Version"
+	where t1."CRUD" != 2;
+	
+--получаем все записи по AuctionItem для восстановления в сервисе SearchService
+insert into ret("eventdata", "crud", "entitytype")
+    SELECT t1."EventData", 0, t1."EntityType" FROM public."EventsLog" t1
+		JOIN (
+		SELECT max("Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'AuctionItem' and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and 
+		("CreateAt" between lastSnapShotCreated and restoreDate)		
+		group by "AuctionId") t2 on t1."Version" = t2."Version"
+	where t1."CRUD" != 2;	
+
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
+END;
+$BODY$;
+
+ALTER FUNCTION public.restore_snap_shot_items(uuid, text, text)
+    OWNER TO admin;

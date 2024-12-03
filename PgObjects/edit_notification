@@ -1,0 +1,88 @@
+-- FUNCTION: public.edit_notification(uuid, uuid, text, text)
+
+-- DROP FUNCTION IF EXISTS public.edit_notification(uuid, uuid, text, text);
+
+CREATE OR REPLACE FUNCTION public.edit_notification(
+	correlationid_par uuid,
+	auctionid_par uuid,
+	eventdata_par text,
+	userlogin_par text)
+    RETURNS TABLE(eventdata text, crud smallint, entitytype character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+declare
+	eventdata jsonb;
+	eventdata_tmp jsonb;
+	operation int;
+	operation_tmp int;
+	lastSnapShotId uuid;
+	lastSnapShotCreated timestamp;	
+BEGIN    
+CREATE TEMP TABLE IF NOT EXISTS ret("eventdata" text,  "crud" smallint, "entitytype" varchar(50));
+CREATE TEMP TABLE IF NOT EXISTS eventlog("CorrelationId" uuid, "CreateAt" timestamp with time zone,
+"EventData" jsonb, "Commited" boolean, "Description" text, "SnapShotId" uuid, "EntityType" varchar(50),
+"AuctionId" uuid, "UserLogin" character varying(256), "Command" smallint,"CRUD" smallint);
+
+delete from ret;
+delete from eventlog;
+
+eventdata = cast(eventdata_par as jsonb);
+
+--создаем запись в ES лог о создании / удалении уведомления для текущего пользователя для данного аукциона, 
+--Command=8 - 'EditNotification'
+eventdata_tmp = jsonb_build_object('AuctionId',auctionid_par,'UserLogin',userlogin_par);
+if cast(eventdata ->> 'Enable' as boolean) = true then
+-- CRUD=0 - Create
+	operation = 0;
+else
+-- CRUD=2 - Delete
+	operation = 2;
+end if;
+
+--проверяем - есть ли уже уведомление для данного пользователя. Если нет - выдаем ошибку
+select "SnapShotId", "CreateAt" from public."EventsLog" 
+where not "SnapShotId" is null order by "CreateAt" desc limit 1 
+into lastSnapShotId,lastSnapShotCreated;
+
+insert into eventlog("CRUD")
+    SELECT t1."CRUD" FROM public."EventsLog" t1
+		JOIN (
+		SELECT max("Version") as "Version" 
+		FROM public."EventsLog"
+		where "EntityType" = 'NotifyItem' and
+		"AuctionId" = auctionid_par and
+		("SnapShotId" = lastSnapShotId or "SnapShotId" is null) and "CreateAt" >= lastSnapShotCreated
+		group by "AuctionId") t2 on t1."Version" = t2."Version";
+
+if not exists(select * from eventlog) then
+--не было уведомлений и поступило сообщение о создании уведомления - делаем запись в ES лог о создании
+	if operation = 0 then
+		insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+			"EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+		values (correlationid_par, now(), eventdata_tmp, false, 'NotifyItem', auctionid_par, userlogin_par, 8, 0);
+	end if;
+else
+	select "CRUD" from eventlog into operation_tmp;
+--если было уведомление об удалении и поступило новое о создании, или было уведомление о создании и поступило новое об удалении -
+--делаем соответствующую запись в ES лог
+	if (operation_tmp = 2 and operation = 0) or (operation_tmp = 0 and operation = 2) then
+		insert into public."EventsLog"("CorrelationId", "CreateAt", "EventData", "Commited", 
+			"EntityType", "AuctionId", "UserLogin", "Command", "CRUD")
+		values (correlationid_par, now(), eventdata_tmp, false, 'NotifyItem', auctionid_par, userlogin_par, 8, operation);
+	end if;
+end if;
+
+--возвращаем запись для создания / удаление записи в NotificationService
+insert into ret("eventdata", "crud", "entitytype")
+values(eventdata_tmp, operation, 'NotifyItem');
+
+return query select ret.eventdata, ret.crud, ret.entitytype from ret;
+END;
+$BODY$;
+
+ALTER FUNCTION public.edit_notification(uuid, uuid, text, text)
+    OWNER TO admin;

@@ -26,7 +26,6 @@ public class ImageCache
             imageDto = await _client.GetImage(auctionId);
             if (string.IsNullOrEmpty(imageDto.Image))
             {
-                Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} не найдено в GRPC Image");
                 return "";
             }
             await _cache.SetStringAsync(auctionId, imageDto.Image, new DistributedCacheEntryOptions
@@ -34,11 +33,6 @@ public class ImageCache
                 SlidingExpiration = TimeSpan.FromDays(Double.Parse(_config["CacheImageExpirationDays"]))
             });
             _image = imageDto.Image;
-            Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} записано и извлечено из кеша");
-        }
-        else
-        {
-            Console.WriteLine($"{DateTime.Now} - Изображение {auctionId} извлечено из кеша");
         }
         return _image ?? "не найдено";
     }
