@@ -1,11 +1,9 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using Common.Contracts.Auction;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
 using NotificationService.Hubs;
 
@@ -37,12 +35,17 @@ public class RestoreConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
             var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
             await _dbContext.NotifyItems.AddAsync(typedItem);
         }
-
-        await _dbContext.SaveChangesAsync();
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
+        if (context.Message.DataObjects.Any())
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        if (!string.IsNullOrEmpty(context.Message.CallBackType))
+        {
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+            await _publishEndpoint.Publish(sendObject);
+        }
         await _hubContext.Clients.All.SendAsync("RestoreSnapShot", new { message = mes });
     }
 

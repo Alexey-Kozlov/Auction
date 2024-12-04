@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { ProcessingState } from "./types";
+import { useSyncExternalStore } from "react";
 
 export const initEventsState: ProcessingState[] = [];
 
@@ -13,6 +14,8 @@ export const processingSlice = createSlice({
       );
       if (userState) {
         userState.ready = action.payload.ready;
+        userState.param = action.payload.param ? action.payload.param : null;
+        userState.itemId = action.payload.itemId;
       } else {
         state.push({
           eventName: action.payload.eventName,

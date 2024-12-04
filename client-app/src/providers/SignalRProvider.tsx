@@ -17,6 +17,7 @@ import { setParams } from '../store/paramSlice';
 import AuctionUpdatedToast from '../components/signalRNotifications/AuctionUpdatedToast';
 import AuctionDeletedToast from '../components/signalRNotifications/AuctionDeletedToast';
 import FinanceCreatedToast from '../components/signalRNotifications/FinanceCreatedToast';
+import ProgressMessageToast from '../components/signalRNotifications/ProgressMessageToast';
 
 export default function SignalRProvider() {
     const user: User = useSelector((state: RootState) => state.authStore);
@@ -34,6 +35,7 @@ export default function SignalRProvider() {
         : process.env.REACT_APP_NOTIFY_URL
 
     const tokenData = localStorage.getItem("Auction");
+    const progressToastId = 'RestoreToastId';
 
     useEffect(() => {
         if(tokenData){
@@ -182,6 +184,13 @@ export default function SignalRProvider() {
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
                 })
+
+                connection.on('RestoreProgress', (result: any) => {
+                    const mes:Message = {message:result.message,auctionId:'',messageType:0};
+                    return toast((p) => (
+                        <ProgressMessageToast message={mes} toastId={progressToastId} />
+                    ), { duration: 500000, id:progressToastId  });
+                })  
             }
             
         }

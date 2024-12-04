@@ -34,7 +34,7 @@ export default function ShowEventsPopUp() {
     }
     if(events.find(p => p.eventName === 'RestoreSnapShot' && !p.ready)){
       const data: RestoreDb = {sessionid: sessionId, 
-        restoreDate: events.find(p => p.eventName === 'RestoreSnapShot')?.param};      
+        restoreDate: events.find(p => p.eventName === 'RestoreSnapShot' && !p.ready)?.param};      
       doRestoreSnapShot(data);
     }    
     },[events, sessionId, elkIndex, snapShotDb, restoreSnapShot, dispatch]);

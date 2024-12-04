@@ -137,7 +137,8 @@ public class ProcessingController : ControllerBase
         {
             RestoreDate = param.RestoreDate,
             UserLogin = userLogin,
-            CorrelationId = Guid.NewGuid()
+            CorrelationId = Guid.NewGuid(),
+            SessionId = param.SessionId
         });
     }
 

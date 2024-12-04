@@ -22,7 +22,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<FinanceItem>> context)
     {
-        using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        //using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
         var correlationId = context.Message.CorrelationId;
         foreach (var item in context.Message.DataObjects)
         {
@@ -58,7 +58,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
             }
         }
         await _dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
+        //await transaction.CommitAsync();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

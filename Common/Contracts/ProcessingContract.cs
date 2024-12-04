@@ -185,4 +185,5 @@ public class ESLog_ResetSnapShot
 public class ESLog_ProcessImages
 {
     public Guid CorrelationId { get; set; }
+    public int BatchCounter { get; set; }
 }

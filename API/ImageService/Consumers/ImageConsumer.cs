@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using AutoMapper;
-using Common.Contracts.Auction;
 using Common.Contracts.Image;
 using Common.Contracts.Processing;
 using ImageService.Data;

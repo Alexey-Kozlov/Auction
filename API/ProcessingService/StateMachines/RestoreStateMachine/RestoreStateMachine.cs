@@ -17,7 +17,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public State BidState { get; }
     public State FinanceState { get; }
     public State SearchState { get; }
-    public State ImageState { get; }
     public State NotifyState { get; }
     public State CommitState { get; }
     public State CompletedState { get; }
@@ -30,7 +29,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<BidRestoreSnapShot> BidEvent { get; }
     public Event<FinanceRestoreSnapShot> FinanceEvent { get; }
     public Event<SearchRestoreSnapShot> SearchEvent { get; }
-    public Event<ImageRestoreSnapShot> ImageEvent { get; }
     public Event<NotifyRestoreSnapShot> NotifyEvent { get; }
     public Event<RestoreSnapShotESCommit> CommitEvent { get; }
     public Event<RestoreSnapShotComplete> CompleteEvent { get; }
@@ -40,7 +38,10 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     private Guid InstanceCorrelationId { get; set; }
     private string NotifyMessage { get; set; }
     private int BatchCounter { get; set; }
+    private float AllItemsCount { get; set; }
     private object locker = new();
+    private float ProgressCurrent { get; set; }
+    private string SessionId { get; set; }
 
     public RestoreStateMachine(IServiceProvider services)
     {
@@ -71,7 +72,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         Event(() => BidEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => FinanceEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => ImageEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => NotifyEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => CommitEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => CompleteEvent, x => x.CorrelateById(p => InstanceCorrelationId));
@@ -89,6 +89,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 NotifyMessage = "Восстановление данных завершено";
                 InstanceCorrelationId = context.Message.CorrelationId;
                 BatchCounter = 0;
+                ProgressCurrent = 0; //Текущей прогресс в процентах
+                SessionId = context.Message.SessionId;
             })
         //посылаем через Кафку - удаление всех записей в BiddingService,FinanceService,
         //NotificationService,SearchService,ImageService
@@ -103,11 +105,16 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(GetRecordsState,
         When(EsLogItemsEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                InstanceCorrelationId = context.Saga.CorrelationId;
-            })
+            .Send(
+                //сообщение для отслеживания прогресса
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = (ProgressCurrent += 5).ToString()
+                })
             // посылаем через Кафку - получение из ES лог всех записей (кроме изображений) 
             // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,SearchService
             // для восстановления изображений для сервиса ImageServices - ниже
@@ -119,22 +126,50 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(GetImagesState,
         When(EsLogImagesEvent)
-            .Then(context =>
-            {
-                if (context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() > 0)
-                {
-                    //пришел набор записей (кроме изображений), сохраняем набор в ListItems
-                    ListItems = context.Message.DataItems;
-                }
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                InstanceCorrelationId = context.Saga.CorrelationId;
-            })
-            // вызываем активити ESLogActivityGetImages дважды - 
-            // после удалении изображений из сервисов - для получения общего количества записей изображений
-            // и после получениия общего количества записей изображений - для начала получения наборов изображений
+            // вызываем активити ESLogActivityGetImages - после получения всех записей аукционов,
+            // для получения общего количества записей изображений и для начала получения наборов изображений
             .If(context => context.Message.BatchCount == -1,
             p => p
+                .Then(q =>
+                {
+                    if (q.Message.DataItems.DataObjects.Count() > 0)
+                    {
+                        lock (locker) { ProgressCurrent += 5; }
+                        //пришел набор записей (кроме изображений), сохраняем набор в ListItems
+                        ListItems = q.Message.DataItems;
+                    }
+                    lock (locker) { ProgressCurrent += 5; }
+                })
                 .Activity(p => p.OfType<ESLogActivityGetImages>())
+            )
+
+            .If(context => context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() == 0,
+            p => p
+                .Send(
+                    //записей аукционов не найдено, делаем уведомление и завершаем процесс
+                    //сообщение для отслеживания прогресса, передаем признак "-1" что ничего не найдено
+                    new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = SessionId,
+                        Props = "-1"
+                    })
+                .Send(
+                    new Uri(configuration["QueuePaths:RestoreNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "",
+                        Props = "Записей не найдено"
+                    })
+                .Publish(new RestoreSnapShotComplete
+                {
+                    CorrelationId = InstanceCorrelationId
+                })
+                .TransitionTo(CompletedState)
             )
 
             .If(context => context.Message.BatchCount == context.Message.AllItemsCount,
@@ -152,6 +187,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             p => p
             .Then(context =>
             {
+                AllItemsCount = context.Message.AllItemsCount;
                 lock (locker)
                 {
                     BatchCounter++;
@@ -174,8 +210,18 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             lock (locker)
             {
                 BatchCounter--;
+                ProgressCurrent += context.Message.BatchCounter * 60 / AllItemsCount;
             }
         })
+        .Send(
+            new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+            context => new DataForProcessingServicesList<NotifyItem>
+            {
+                DataObjects = new List<DataForProcessingService>(),
+                CorrelationId = context.Saga.CorrelationId,
+                CallBackType = SessionId,
+                Props = ProgressCurrent.ToString()
+            })
         );
     }
 
@@ -190,18 +236,31 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 lock (locker)
                 {
                     BatchCounter--;
+                    ProgressCurrent += context.Message.BatchCounter * 60 / AllItemsCount;
                 }
             })
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = ProgressCurrent.ToString()
+                })
             .If(context => BatchCounter == 0,
             p => p
             //закончили прием сообщений об обработке изображений, переходим к обработке остальных сообщений
+            .Then(context =>
+            {
+                NotifyMessage += $", Изображений - {AllItemsCount}";
+            })
             .Publish(new BidRestoreSnapShot
             {
                 CorrelationId = InstanceCorrelationId
             })
             .TransitionTo(BidState)
             )
-
         );
     }
 
@@ -212,9 +271,17 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .Then(context =>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
-                //NotifyMessage += $", Ставок - {context.Message.DataItems.DataObjects.Where(p => p.DataType == "BidItem").Count()}";
+                NotifyMessage += $", Ставок - {ListItems.DataObjects.Where(p => p.DataType == "BidItem").Count()}";
             })
-            .Finalize()
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = (ProgressCurrent += 5).ToString()
+                })
             //Обновление ставок (если есть) в сервисе BiddingService
             .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "BidItem"),
                 p => p
@@ -243,6 +310,15 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 NotifyMessage += $", Финансов - {ListItems.DataObjects.Where(p => p.DataType == "FinanceItem").Count()}";
             })
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = (ProgressCurrent += 5).ToString()
+                })
             //Обновление денег (если есть) в сервисе FinanceService
             .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "FinanceItem"),
                 p => p
@@ -271,6 +347,15 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 NotifyMessage += $", Аукционов - {ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").Count()}";
             })
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = (ProgressCurrent += 5).ToString()
+                })
             //Обновление записей аукционов (если есть) в сервисе SearchService
             .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "AuctionItem"),
                 p => p
@@ -299,6 +384,15 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.LastUpdated = DateTime.UtcNow;
                 NotifyMessage += $", Уведомлений - {ListItems.DataObjects.Where(p => p.DataType == "NotifyItem").Count()}";
             })
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = (ProgressCurrent += 5).ToString()
+                })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(
                 new Uri(configuration["QueuePaths:RestoreNotificationConsumer"]),
@@ -320,6 +414,15 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             {
                 context.Saga.LastUpdated = DateTime.UtcNow;
             })
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = SessionId,
+                    Props = "100"
+                })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));

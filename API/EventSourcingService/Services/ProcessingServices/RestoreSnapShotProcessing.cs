@@ -74,10 +74,8 @@ public class RestoreSnapShotProcessing
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
         sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
-        if (context.Message.EntityType == nameof(RequestRestoreItems))
-        {
-            sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, -1);
-        }
+        sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, -1);
+
         await _publishEndpoint.Publish(sendObject);
     }
 
