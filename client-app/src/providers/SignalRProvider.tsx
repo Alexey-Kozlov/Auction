@@ -137,17 +137,17 @@ export default function SignalRProvider() {
                     ), { duration: 5000 });
                 })
 
-                connection.on('SetSnapShotDb', (result: number) => {
-                    dispatch(setEventFlag({ eventName: 'SetSnapShotDb', ready: false }));
-                    const mes:Message = {message:result.toString(),auctionId:'',messageType:0};
+                connection.on('SetSnapShot', (result: string) => {
+                    dispatch(setEventFlag({ eventName: 'SetSnapShot', ready: true }));
+                    const mes:Message = {message:result, auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
                 })
 
-                connection.on('RestoreSnapShot', (result: any) => {
+                connection.on('RestoreSnapShot', (result: string) => {
                     dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: true }));
-                    const mes:Message = {message:result.message,auctionId:'',messageType:0};
+                    const mes:Message = {message:result, auctionId:'',messageType:0};
                     return toast((p) => (
                         <InfoMessageToast message={mes} toastId={p.id} />
                     ), { duration: 5000 });
@@ -186,11 +186,20 @@ export default function SignalRProvider() {
                 })
 
                 connection.on('RestoreProgress', (result: any) => {
-                    const mes:Message = {message:result.message,auctionId:'',messageType:0};
+                    const mes:Message = {message:'Восстановление БД',auctionId:'',
+                        messageType:Math.trunc(Number(result))};
                     return toast((p) => (
                         <ProgressMessageToast message={mes} toastId={progressToastId} />
-                    ), { duration: 500000, id:progressToastId  });
+                    ), { duration: 5000, id:progressToastId  });
                 })  
+
+                connection.on('SetSnapShotProgress', (result: any) => {
+                    const mes:Message = {message:'Создание SnapShot',auctionId:'',
+                        messageType:Math.trunc(Number(result))};                        
+                    return toast((p) => (
+                        <ProgressMessageToast message={mes} toastId={progressToastId} />
+                    ), { duration: 5000, id:progressToastId  });
+                })                 
             }
             
         }

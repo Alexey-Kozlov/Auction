@@ -109,15 +109,6 @@ public class ProcessingController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPost("SetSnapShot")]
-    public async Task SetSnapShotDb(SessionDTO param)
-    {
-        //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
-        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
-    }
-
-    [Authorize(Roles = "Admin")]
     [HttpPost("elkindex")]
     public async Task ElkIndex(SessionDTO param)
     {
@@ -125,6 +116,21 @@ public class ProcessingController : ControllerBase
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new RequestElkIndex(userLogin, Guid.NewGuid(), param.SessionId));
         _logger.LogInformation($"Послан запрос на переиндексацию ELK");
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("SetSnapShot")]
+    public async Task SetSnapShot(SessionDTO param)
+    {
+        //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        //await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
+        await _publishEndpoint.Publish(new RequestSetSnapShot
+        {
+            UserLogin = userLogin,
+            CorrelationId = Guid.NewGuid(),
+            SessionId = param.SessionId
+        });
     }
 
     [Authorize(Roles = "Admin")]

@@ -153,6 +153,7 @@ public class ESLog_RestoreItems
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public int BatchCount { get; set; }
 }
 
 public class ESLog_RestoreImages

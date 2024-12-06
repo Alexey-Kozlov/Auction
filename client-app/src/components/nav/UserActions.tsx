@@ -22,9 +22,11 @@ export default function UserActions() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
-    const [confirmParam, setConfirmParam] = useState<ModalParams>({confirmText:'', confirmTitle:''});
+    const [confirmParam, setConfirmParam] = useState<ModalParams>({
+        confirmText:'',confirmTitle:'',handler:''
+    });
     const [showConfirm, setShowConfirm] = useState(false);
-    const [dateValue, setDateValue] = useState<Date>(new Date());
+    const [dateValue, setDateValue] = useState<Date | null>(new Date());
     const [confirmResult, setConfirmResult] = useState<boolean | undefined>(undefined);    
     const SetWinner = () => {
         dispatch(setParams({ winner: user.login, seller: undefined }));
@@ -52,37 +54,48 @@ export default function UserActions() {
         ),{ duration: 5000 });
     }
 
-    const handlerSetSnapShotDb = () => {
+    const handlerSetSnapShot = () => {
+        setDateValue(null);
         setConfirmParam({
             confirmText:'Произвести сохранение состояния БД?',
-            confirmTitle:'Сохранение состояния БД'});
-        dispatch(setEventFlag({ eventName: 'SetSnapShotDb', ready: true }));
-        const message:Message = {message:'Старт создания снимка БД в ES...', auctionId:'', messageType:0};
-        return toast((p) => (
-            <InfoMessageToast message={message} toastId={p.id} />
-        ),{ duration: 5000 });
+            confirmTitle:'Сохранение состояния БД',
+            handler:'SetSnapShot'
+        });
+        setShowConfirm(true);
     }
 
-    const handlerRestoreSnapShotDb = () => {
+    const handlerRestoreSnapShot = () => {
         setDateValue(new Date());
         setConfirmParam({
             confirmText:'Произвести восстановление БД из лога?',
-            confirmTitle:'Восстановление БД из лога'});
+            confirmTitle:'Восстановление БД из лога',
+            handler:'RestoreSnapShot'
+        });
         setShowConfirm(true);
-
     }
 
     useEffect(() => {
         if(confirmResult){
-            dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false, param: dateValue }));
-            const message:Message = {message:'Старт восстановления БД из ES...', auctionId:'', messageType:0};
-            toast((p) => (
-                <InfoMessageToast message={message} toastId={p.id} />
-            ),{ duration: 5000 });
+            //нажали "Ок" в модалке восстановления SnapShot
+            if(confirmParam.handler === 'RestoreSnapShot'){
+                dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false, param: dateValue }));
+                const message:Message = {message:'Старт восстановления БД из ES...', auctionId:'', messageType:0};
+                toast((p) => (
+                    <InfoMessageToast message={message} toastId={p.id} />
+                ),{ duration: 5000 });
+            } 
+            //нажали "Ок" в моделке создания SnapShot
+            if(confirmParam.handler === 'SetSnapShot'){
+                dispatch(setEventFlag({ eventName: 'SetSnapShot', ready: false}));
+                const message:Message = {message:'Старт создания снимка БД в ES...', auctionId:'', messageType:0};
+                toast((p) => (
+                    <InfoMessageToast message={message} toastId={p.id} />
+                ),{ duration: 5000 });
+            } 
         }
         setShowConfirm(false);
         setConfirmResult(undefined);
-    },[confirmResult,dispatch]);
+    },[confirmResult,dispatch ]);
 
     const handleSetDate = (result:Date) => {
         setDateValue(result);
@@ -112,10 +125,10 @@ export default function UserActions() {
                     <Dropdown.Item icon={GoCodescanCheckmark} onClick={handlerElkReindex}>
                         Elk индексация
                     </Dropdown.Item>
-                    <Dropdown.Item icon={GoDatabase} onClick={handlerSetSnapShotDb}>
+                    <Dropdown.Item icon={GoDatabase} onClick={handlerSetSnapShot}>
                         Выполнить SnapShot Db
                     </Dropdown.Item>
-                    <Dropdown.Item icon={GoDatabase} onClick={handlerRestoreSnapShotDb}>
+                    <Dropdown.Item icon={GoDatabase} onClick={handlerRestoreSnapShot}>
                         Восстановить Db из SnapShot
                     </Dropdown.Item>                
                 </>

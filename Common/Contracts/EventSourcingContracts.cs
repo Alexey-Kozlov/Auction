@@ -97,3 +97,55 @@ public class RestoreSnapShotComplete
 {
     public Guid CorrelationId { get; set; }
 }
+
+public class RequestSetSnapShot
+{
+    public string UserLogin { get; set; }
+    public Guid CorrelationId { get; set; }
+    public string SessionId { get; set; }
+}
+
+public class BidSetSnapShot
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+}
+
+public class FinanceSetSnapShot
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+}
+
+public class NotifySetSnapShot
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+}
+
+public class SearchSetSnapShot
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+}
+
+public class ImageSetSnapShot
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+}
+public class SetSnapShotESCommit
+{
+    public Guid CorrelationId { get; set; }
+}
+public class SetSnapShotComplete
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+}

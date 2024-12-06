@@ -23,8 +23,8 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 
                         <div className='text-center'>
                             {message.message !== "-1" ? 
-                                ("Восстановление БД, завершено - " + message.message + "%") :
-                                ("Записи для восстановления не найдены")
+                                (message.message + ", завершено - " + message.messageType + "%") :
+                                ("Записи не найдены")
                             }
 
                         </div>
@@ -33,7 +33,7 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
                     <div className='flex flex-row'>
                         <div>
                             {message.message !== "-1" &&
-                                <Progress progress={Number(message.message)} textLabel="Выполнено" 
+                                <Progress progress={message.messageType} textLabel="Выполнено" 
                                     size="lg" labelProgress labelText color='blue' className='w-80' />
                             }
                         </div>

@@ -9,7 +9,7 @@ type Props = {
     title: string;
     text: string;
     returnData: (rezult: Date) => void;
-    dateValue?: Date;
+    dateValue: Date | null;
 }
 
 export default function ModalConfirm({openModal, setResult, title, text, 
@@ -19,10 +19,7 @@ export default function ModalConfirm({openModal, setResult, title, text,
     <Modal.Header>{title}</Modal.Header>
     <Modal.Body>
       <div className="space-y-6">
-        <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-          {text}
-        </p>
-        {dateValue && (
+      {dateValue && (
         <div>
             Укажите дату восстановления: 
               <DatePicker
@@ -35,6 +32,9 @@ export default function ModalConfirm({openModal, setResult, title, text,
             />
          </div>
         )}
+        <div className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+          {text}
+        </div>
       </div>
     </Modal.Body>
     <Modal.Footer>

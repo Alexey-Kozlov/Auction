@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
@@ -13,39 +14,50 @@ using MassTransit;
 
 namespace SearchService.Consumers;
 
-public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
+public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<string>>
 {
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ILogger<CreateDbSnapShotConsumer> _logger;
     private readonly EventSourcingDbContext _context;
     private static readonly AwaitLocker _locker = new AwaitLocker();
     private readonly IConfiguration _configuration;
 
-    public CreateDbSnapShotConsumer(IPublishEndpoint publishEndpoint, IConfiguration configuration,
-        ILogger<CreateDbSnapShotConsumer> logger, EventSourcingDbContext context)
+    public SetSnapShotConsumer(IPublishEndpoint publishEndpoint, IConfiguration configuration,
+        EventSourcingDbContext context)
     {
         _publishEndpoint = publishEndpoint;
-        _logger = logger;
         _context = context;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<SendToSetSnapShot> consumeContext)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<string>> consumeContext)
     {
         await _locker.LockAsync(async () =>
         {
             var i = 0;
-            foreach (var item in consumeContext.Message.SnapShotItems)
+            var listItems = new DataForProcessingServicesList
+            {
+                DataObjects = new List<DataForProcessingService>()
+            };
+            foreach (var item in consumeContext.Message.DataObjects)
             {
                 i++;
-                var document = JsonDocument.Parse(item);
+                var document = JsonDocument.Parse(item.Data);
                 var jsonElement = new JsonElement();
                 Guid? auctionId = null;
                 string userLogin = "";
+                listItems.DataObjects.Add
+                (
+                    new DataForProcessingService
+                    {
+                        DataType = "",
+                        Data = "",
+                        CRUD = CRUD.Create
+                    }
+                );
 
                 try
                 {
                     //получаем пользователя - инициатора события
-                    switch (consumeContext.Message.ItemsType)
+                    switch (item.DataType)
                     {
                         case nameof(BidItem):
                             document.RootElement.TryGetProperty("Bidder", out jsonElement);
@@ -75,20 +87,24 @@ public class CreateDbSnapShotConsumer : IConsumer<SendToSetSnapShot>
                 _context.EventsLogs.Add(new EventsLog
                 {
                     CorrelationId = Guid.NewGuid(),
-                    CreateAt = consumeContext.Message.CreateAt,
+                    CreateAt = DateTime.Parse(consumeContext.Message.Props),
                     Commited = true,
-                    EventData = JsonDocument.Parse(item),
+                    EventData = JsonDocument.Parse(item.Data),
                     SnapShotId = consumeContext.Message.CorrelationId,
-                    EntityType = consumeContext.Message.ItemsType,
+                    EntityType = item.DataType,
                     UserLogin = userLogin,
                     AuctionId = auctionId,
                     Command = Command.MakeSnapShot
                 });
             }
             await _context.SaveChangesAsync();
-            await _publishEndpoint.Publish(new EventSourcingInitialized($"Произведена запись текущего состояния БД {consumeContext.Message.ItemsType}" +
-            $" в EventSourcing, сохранено - {i} записей",
-                    consumeContext.Message.CorrelationId, consumeContext.Message.UserLogin, consumeContext.Message.SessionId));
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(consumeContext.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, consumeContext.Message.CorrelationId);
+            sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+            sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, -1);
+
+            await _publishEndpoint.Publish(sendObject);
         });
     }
 }

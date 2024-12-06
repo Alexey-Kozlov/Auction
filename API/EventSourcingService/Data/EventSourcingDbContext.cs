@@ -74,6 +74,7 @@ public class EventSourcingDbContext : DbContext
         string userLogin) =>
         FromExpression(() => restore_snap_shot_images(correlationid, eventdata, userLogin));
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

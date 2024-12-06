@@ -1,3 +1,4 @@
+using Common.Contracts.EventSourcing;
 using Common.Contracts.Image;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,10 +13,17 @@ public class ImageDbContext : DbContext
 
     public DbSet<ImageItem> Images { get; set; }
 
+
+    public IQueryable<ReturnResultSql> get_snap_shot_images(
+    string eventdata) =>
+    FromExpression(() => get_snap_shot_images(eventdata));
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new ItemConfiguration());
+        modelBuilder.HasDbFunction(() => get_snap_shot_images(default));
+        modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }
 

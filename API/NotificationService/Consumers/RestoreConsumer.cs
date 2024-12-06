@@ -46,7 +46,7 @@ public class RestoreConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
             await _publishEndpoint.Publish(sendObject);
         }
-        await _hubContext.Clients.All.SendAsync("RestoreSnapShot", new { message = mes });
+        await _hubContext.Clients.All.SendAsync("RestoreSnapShot", mes);
     }
 
 }

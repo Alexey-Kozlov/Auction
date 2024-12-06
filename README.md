@@ -1,9 +1,10 @@
 # -
 
 Технологии:
+EventSourcing, Microservices
 React + TailWind CSS
 RTK Query
-Microservices .Net8
+.Net8
 PostgreSql, EF, AutoMapper
 RabbitMq, MassTransit
 REST, GRPC

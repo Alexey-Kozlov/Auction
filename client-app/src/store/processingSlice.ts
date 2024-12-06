@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { ProcessingState } from "./types";
-import { useSyncExternalStore } from "react";
 
 export const initEventsState: ProcessingState[] = [];
 

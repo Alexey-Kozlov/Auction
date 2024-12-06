@@ -34,9 +34,8 @@ public class ImageRestoreConsumer : IConsumer<DataForProcessingServicesList<Imag
             {
                 var typedItem = JsonSerializer.Deserialize<ImageDTO>(item.Data);
                 await _context.Images.AddAsync(_mapper.Map<ImageItem>(typedItem));
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
 
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                         _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

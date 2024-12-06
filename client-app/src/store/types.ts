@@ -151,4 +151,5 @@ export type RestoreDb = {
 export type ModalParams = {
   confirmTitle: string;
   confirmText: string;
+  handler: string;
 }

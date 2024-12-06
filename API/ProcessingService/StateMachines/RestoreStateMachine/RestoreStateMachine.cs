@@ -138,7 +138,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         //пришел набор записей (кроме изображений), сохраняем набор в ListItems
                         ListItems = q.Message.DataItems;
                     }
-                    lock (locker) { ProgressCurrent += 5; }
                 })
                 .Activity(p => p.OfType<ESLogActivityGetImages>())
             )
@@ -188,10 +187,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .Then(context =>
             {
                 AllItemsCount = context.Message.AllItemsCount;
-                lock (locker)
-                {
-                    BatchCounter++;
-                }
+                lock (locker) { BatchCounter++; }
             })
             .Send(
                 new Uri(configuration["QueuePaths:ImageRestoreConsumer"]),

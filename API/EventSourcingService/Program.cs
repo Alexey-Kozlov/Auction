@@ -45,8 +45,8 @@ internal class Program
 
         builder.Services.AddMassTransit(busConfigurator =>
         {
-            busConfigurator.AddConsumersFromNamespaceContaining<CreateDbSnapShotConsumer>();
-            busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("auction", false));
+            busConfigurator.AddConsumersFromNamespaceContaining<SetSnapShotConsumer>();
+            busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("eventsourcing", false));
             busConfigurator.UsingRabbitMq((context, config) =>
             {
                 config.Host(builder.Configuration["rt:host"], "/", p =>
@@ -130,7 +130,7 @@ internal class Program
         //builder.Services.AddHostedService<CheckAuctionFinished>();
 
         var app = builder.Build();
-
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         app.Use(async (context, next) =>
         {
