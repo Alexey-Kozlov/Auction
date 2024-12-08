@@ -13,6 +13,7 @@ export type Auction = {
   image?: string;
   auctionId: string;
   error?: string;
+  usingImage?: boolean;
 };
 
 export type Bid = {
@@ -118,6 +119,7 @@ export type AuctionUpdated = {
   reservePrice: number;
   auctionEnd: Date;
   correlationId: string;
+  usingImage: boolean;
 };
 
 export type AuctionFinished = {

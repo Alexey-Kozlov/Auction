@@ -127,7 +127,7 @@ internal class Program
         builder.Services.AddScoped<BidPlaceProcessing>();
         builder.Services.AddScoped<EditNotificationProcessing>();
         builder.Services.AddScoped<RestoreSnapShotProcessing>();
-        //builder.Services.AddHostedService<CheckAuctionFinished>();
+        builder.Services.AddHostedService<CheckAuctionFinished>();
 
         var app = builder.Build();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

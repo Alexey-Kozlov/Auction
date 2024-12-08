@@ -1,5 +1,5 @@
+using System.Text.Json;
 using Common.Contracts.Auction;
-using Common.Contracts.Finance;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
@@ -39,7 +39,11 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionUpdate,
-            context.Message.Image,
+            JsonSerializer.Serialize(new AuctionImageDTO
+            {
+                Image = context.Message.Image,
+                UsingImage = context.Message.UsingImage
+            }),
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);
     }

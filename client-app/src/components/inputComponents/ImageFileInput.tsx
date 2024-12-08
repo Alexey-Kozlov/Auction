@@ -1,6 +1,7 @@
 import { FileInput } from 'flowbite-react';
 import React, { useEffect, useState } from 'react'
 import { useField } from "formik";
+import SwitchInput from './SwitchInput';
 
 type Props = {
     label: string;
@@ -12,11 +13,13 @@ type Props = {
     required?: boolean;
     controlsAlign?: string;
     onChange: (imageData: string) => void;
+    usingImage: (usingImage: boolean) => void;
 }
 
 export default function ImageFileInput({ labellWidth, inputWidth, inputDescr, required, value,
-    controlsAlign, onChange, ...rest }: Props) {
+    controlsAlign, onChange, usingImage, ...rest }: Props) {
     const [imageDisplay, setImageDisplay] = useState('');
+    const [usingImg, setUsingImg] = useState(false);
     const [field, meta] = useField(rest.name);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,26 +39,50 @@ export default function ImageFileInput({ labellWidth, inputWidth, inputDescr, re
     useEffect(() => {
         if (value) {
             setImageDisplay(`${value}`);
+            setUsingImg(prev => true);
+            usingImage(true);
+        } else {
+            setUsingImg(prev => false);
+            usingImage(usingImg);
         }
     }, [value])
+
+    const handleImageUsing = async (event: React.FormEvent<HTMLInputElement>) => {
+        setUsingImg(prev => {
+            usingImage(!prev);
+            return !prev;
+        });
+
+    }
 
     return (
         <>
             <div className={`flex col-sm-6 offset-sm-3 col-xs-12 mt-4 ${controlsAlign}`}>
                 <div>
-                    <label className={labellWidth ? labellWidth : 'w-6/12'}>
-                        {rest.label}
-                        {required && (<span>*</span>)}
-                    </label>
-                    <FileInput
-                        className='mt-2'
-                        name={rest.name}
-                        placeholder={rest.label}
-                        onChange={handleFileChange}
-                    />
+                    <div>
+                        <label className={labellWidth ? labellWidth : 'w-6/12'}>
+                            {rest.label}
+                            {required && (<span>*</span>)}
+                        </label>
+                        <FileInput
+                            className='mt-2'
+                            name={rest.name}
+                            placeholder={rest.label}
+                            onChange={handleFileChange}
+                        />
+                    </div>
+                    <div className='mt-4'>
+                        <label className="inline-flex items-center">
+                            <p className='mr-2'>Требуется изображение</p>
+                            <SwitchInput
+                                checked={usingImg}
+                                handleImageUsing={handleImageUsing}
+                            />
+                        </label>
+                    </div>
                 </div>
                 <div className='h-52'>
-                    <img alt='' className='max-h-full max-w-full' src={imageDisplay} />
+                    {usingImg && <img alt='' className='max-h-full max-w-full' src={imageDisplay} />}
                 </div>
             </div>
             <div className="text-left">

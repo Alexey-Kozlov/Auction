@@ -9,4 +9,5 @@ public class UpdateAuctionDTO
     public int ReservePrice { get; set; }
     public DateTime AuctionEnd { get; set; }
     public Guid CorrelationId { get; set; }
+    public bool UsingImage { get; set; }
 }

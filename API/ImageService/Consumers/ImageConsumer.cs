@@ -63,7 +63,6 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                     }
                     break;
             }
-
             await _context.SaveChangesAsync();
         }
 

@@ -17,6 +17,12 @@ public class AuctionItem
       public bool Finished { get; set; } = false;
 }
 
+public class AuctionImageDTO
+{
+      public string Image { get; set; }
+      public bool UsingImage { get; set; }
+}
+
 #region AuctionCreating
 
 public record RequestAuctionCreate
@@ -29,7 +35,8 @@ public record RequestAuctionCreate
        string Description,
        string Image,
        string UserLogin,
-       Guid CorrelationId
+       Guid CorrelationId,
+       bool UsingImage
 );
 
 
@@ -144,7 +151,8 @@ public record RequestAuctionUpdate(
       string Description,
       string UserLogin,
       DateTime AuctionEnd,
-      Guid CorrelationId
+      Guid CorrelationId,
+      bool UsingImage
 );
 
 

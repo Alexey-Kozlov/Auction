@@ -49,12 +49,12 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         {
             p.InsertOnInitial = true;
         });
-        Event(() => EsLogEvent);
-        Event(() => ImageEvent);
-        Event(() => SearchEvent);
-        Event(() => ElkEvent);
-        Event(() => NotificationEvent);
-        Event(() => CommitEvent);
+        Event(() => EsLogEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => ImageEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => ElkEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => NotificationEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => CommitEvent, x => x.CorrelateById(p => InstanceCorrelationId));
         Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
@@ -72,6 +72,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.LastUpdated = DateTime.UtcNow;
+                InstanceCorrelationId = context.Message.CorrelationId;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для обновления аукциона:
             // - Обновление записи в сервисе SearchService

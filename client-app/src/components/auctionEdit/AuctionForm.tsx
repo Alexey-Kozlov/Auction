@@ -38,7 +38,8 @@ export default function AuctionForm() {
             image: '',
             reservePrice: 0,
             description: '',
-            error: ''
+            error: '',
+            usingImage: false
         } as Auction
     )
     const auctionImage = useGetImageForAuctionQuery(newAuction.auctionId, {
@@ -47,16 +48,18 @@ export default function AuctionForm() {
 
     useEffect(() => {
         if (!auction.isLoading && auction.data) {
-            setNewAuction(auction.data!.result);
+            setNewAuction(prev => auction.data!.result);
         }
     }, [auction.data, auction.isLoading])
 
     useEffect(() => {
         if (!auctionImage.isLoading && auctionImage.data?.result?.image) {
             setImage('data:image/png;base64, ' + auctionImage?.data?.result?.image);
+            setNewAuction(prev => {
+                return {...auction.data!.result, usingImage: auctionImage?.data?.result?.image ? true : false};
+            });
         }
-    }, [auctionImage.isLoading, auctionImage.data?.result?.image])
-
+    }, [auction.data, auctionImage.isLoading, auctionImage.data?.result?.image])
 
     useEffect(() => {
         if (id !== 'empty' && !auction.isLoading && auction.data?.isSuccess &&
@@ -95,7 +98,8 @@ export default function AuctionForm() {
                             auctionEnd: values.auctionEnd,
                             reservePrice: values.reservePrice,
                             image: values.image ? values.image : '',
-                            correlationId: uuid.v4() as string
+                            correlationId: uuid.v4() as string,
+                            usingImage: values.usingImage!
                         };
                         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
                         if (id && id !== 'empty') {
@@ -161,6 +165,9 @@ export default function AuctionForm() {
                                     onChange={(imageData: string) => {
                                         setFieldValue('image', imageData);
                                         setImage(imageData);
+                                    }}
+                                    usingImage={(usingImg: boolean) => {
+                                        setFieldValue('usingImage', usingImg);
                                     }}
                                 />
                             </div>

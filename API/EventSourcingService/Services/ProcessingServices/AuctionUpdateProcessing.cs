@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Text.Json;
+using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
 using EventSourcingService.Data;
@@ -23,6 +25,7 @@ public class AuctionUpdateProcessing
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
     {
+        var dd = JsonSerializer.Deserialize<AuctionImageDTO>(context.Message.Image);
         //В процедуре Postgres делаем:
         //- запись в ES лог об обновлении аукциона
         //Формирование списка корректирующих записей:

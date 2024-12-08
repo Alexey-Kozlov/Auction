@@ -49,7 +49,8 @@ public class ProcessingController : ControllerBase
     {
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         var auction = new RequestAuctionCreate(Guid.NewGuid(), par.ReservePrice, par.AuctionEnd,
-         par.Properties, par.Title, par.Description, par.Image, auctionAuthor, par.CorrelationId);
+         par.Properties, par.Title, par.Description, par.Image, auctionAuthor, par.CorrelationId,
+         par.UsingImage);
 
         await _publishEndpoint.Publish(auction);
 
@@ -65,7 +66,7 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> UpdateAuction([FromBody] UpdateAuctionDTO par)
     {
         var auction = new RequestAuctionUpdate(par.AuctionId, par.Title, par.Properties, par.Image, par.Description,
-        User.Identity.Name, par.AuctionEnd, par.CorrelationId);
+        User.Identity.Name, par.AuctionEnd, par.CorrelationId, par.UsingImage);
 
         await _publishEndpoint.Publish(auction);
 
