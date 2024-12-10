@@ -5,6 +5,7 @@ using Common.Contracts.Bid;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
+using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Utils;
 using MassTransit;
@@ -116,7 +117,6 @@ public class ProcessingController : ControllerBase
         //Выполняем реиндексацию ELK
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new RequestElkIndex(userLogin, Guid.NewGuid(), param.SessionId));
-        _logger.LogInformation($"Послан запрос на переиндексацию ELK");
     }
 
     [Authorize(Roles = "Admin")]
@@ -145,7 +145,8 @@ public class ProcessingController : ControllerBase
             RestoreDate = param.RestoreDate,
             UserLogin = userLogin,
             CorrelationId = Guid.NewGuid(),
-            SessionId = param.SessionId
+            SessionId = param.SessionId,
+            ResetLog = param.ResetLog
         });
     }
 
@@ -169,5 +170,13 @@ public class ProcessingController : ControllerBase
             IsSuccess = true,
             Result = { }
         };
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("resetimagecache")]
+    public async Task ResetImageCache(SessionDTO param)
+    {
+        //Выполняем сброс кеша изобюражений
+        await _publishEndpoint.Publish(new ResetImageCache { SessionId = param.SessionId });
     }
 }

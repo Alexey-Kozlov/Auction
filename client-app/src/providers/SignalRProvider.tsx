@@ -199,7 +199,15 @@ export default function SignalRProvider() {
                     return toast((p) => (
                         <ProgressMessageToast message={mes} toastId={progressToastId} />
                     ), { duration: 5000, id:progressToastId  });
-                })                 
+                })
+                
+                connection.on('ResetImageCache', (result: string) => {
+                    dispatch(setEventFlag({ eventName: 'ResetImageCache', ready: true }));
+                    const mes:Message = {message:result, auctionId:'',messageType:0};
+                    return toast((p) => (
+                        <InfoMessageToast message={mes} toastId={p.id} />
+                    ), { duration: 2000 });
+                })                   
             }
             
         }

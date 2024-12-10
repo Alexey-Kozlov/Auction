@@ -148,10 +148,11 @@ export type Session = {
 export type RestoreDb = {
   sessionid: string;
   restoreDate: Date;
+  resetLog: boolean;
 }
 
 export type ModalParams = {
   confirmTitle: string;
   confirmText: string;
-  handler: string;
+  handler?: string;
 }

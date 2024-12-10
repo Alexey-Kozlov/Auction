@@ -10,4 +10,5 @@ public class RestoreState : SagaStateMachineInstance
     public DateTime LastUpdated { get; set; }
     public string UserLogin { get; set; }
     public string ErrorMessage { get; set; }
+    public bool ResetLog { get; set; }
 }

@@ -28,7 +28,8 @@ public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, ESLog
             {
                 RestoreDate = context.Saga.RestoreDate,
                 UserLogin = context.Saga.UserLogin,
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                ResetLog = context.Saga.ResetLog
             },
             nameof(RequestRestoreItems),
             "Common.Contracts.Processing.ESLog_RestoreImages",

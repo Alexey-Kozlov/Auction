@@ -5,5 +5,6 @@ public record SessionDTO(
 );
 public record RestoreSnapShotDTO(
     string SessionId,
-    DateTime RestoreDate
+    DateTime RestoreDate,
+    bool ResetLog
 );

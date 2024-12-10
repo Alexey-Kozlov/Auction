@@ -9,6 +9,9 @@ using GatewayService.Consumers;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Common.Utils.Vault;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -72,10 +75,19 @@ builder.Services.AddCors(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration["Redis:Config"];
+    options.InstanceName = "AuctionCache";
 });
 
 builder.Services.AddScoped<GrpcImageClient>();
+builder.Services.AddSingleton<IDistributedCache, RedisCache>();
 builder.Services.AddScoped<ImageCache>();
+builder.Services.AddSingleton(cfg =>
+{
+    IConnectionMultiplexer multiplexer = ConnectionMultiplexer.Connect(builder.Configuration["Redis:Config"]);
+    return multiplexer;
+});
+
+
 
 builder.Services.AddOpenTelemetry()
     .WithMetrics(opt => opt

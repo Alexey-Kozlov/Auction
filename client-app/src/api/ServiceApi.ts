@@ -15,7 +15,7 @@ const serviceApi = createApi({
       }
     },
   }),
-  tagTypes: ["elk"],
+  tagTypes: ["service"],
   endpoints: (builder) => ({
     elkIndex: builder.mutation<ApiResponseNet<number>, Session>({
       query: (params) => ({
@@ -33,7 +33,7 @@ const serviceApi = createApi({
       transformErrorResponse: (response: any, meta: any) => {
         PostErrorApiProcess(response);
       },
-      invalidatesTags: ["elk"],
+      invalidatesTags: ["service"],
     }),
     setSnapShot: builder.mutation<ApiResponseNet<number>, Session>({
       query: (params) => ({
@@ -51,7 +51,7 @@ const serviceApi = createApi({
       transformErrorResponse: (response: any, meta: any) => {
         PostErrorApiProcess(response);
       },
-      invalidatesTags: ["elk"],
+      invalidatesTags: ["service"],
     }),
     RestoreSnapShot: builder.mutation<ApiResponseNet<number>, RestoreDb>({
       query: (params) => ({
@@ -69,14 +69,33 @@ const serviceApi = createApi({
       transformErrorResponse: (response: any, meta: any) => {
         PostErrorApiProcess(response);
       },
-      invalidatesTags: ["elk"],
-    })
+      invalidatesTags: ["service"],
+    }),
+    resetImageCache: builder.mutation<ApiResponseNet<{}>, Session>({
+      query: (params) => ({
+        url: `/resetimagecache`,
+        method: "post",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(params)
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["service"],
+    })    
   }),
 });
 
 export const {
   useElkIndexMutation,
   useSetSnapShotMutation,
-  useRestoreSnapShotMutation
+  useRestoreSnapShotMutation,
+  useResetImageCacheMutation
 } = serviceApi;
 export default serviceApi;

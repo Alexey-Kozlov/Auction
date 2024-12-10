@@ -46,6 +46,7 @@ public class RequestRestoreItems
     public DateTime RestoreDate { get; set; }
     public Guid CorrelationId { get; set; }
     public string SessionId { get; set; }
+    public bool ResetLog { get; set; }
 }
 
 public class RequestRestoreImages

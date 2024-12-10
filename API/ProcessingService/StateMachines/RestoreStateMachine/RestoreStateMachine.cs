@@ -91,6 +91,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 BatchCounter = 0;
                 ProgressCurrent = 0; //Текущей прогресс в процентах
                 SessionId = context.Message.SessionId;
+                context.Saga.ResetLog = context.Message.ResetLog;
             })
         //посылаем через Кафку - удаление всех записей в BiddingService,FinanceService,
         //NotificationService,SearchService,ImageService

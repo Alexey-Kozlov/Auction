@@ -1,6 +1,8 @@
 
 import { Dropdown } from 'flowbite-react';
 import { AiFillTrophy, AiOutlineLogout } from 'react-icons/ai';
+import { FaTrashRestoreAlt } from "react-icons/fa";
+import { RiRestartFill } from "react-icons/ri";
 import { RiAuctionFill } from "react-icons/ri";
 import { HiUser } from 'react-icons/hi2';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
@@ -27,7 +29,9 @@ export default function UserActions() {
     });
     const [showConfirm, setShowConfirm] = useState(false);
     const [dateValue, setDateValue] = useState<Date | null>(new Date());
-    const [confirmResult, setConfirmResult] = useState<boolean | undefined>(undefined);    
+    const [confirmResult, setConfirmResult] = useState<boolean | undefined>(undefined);   
+    const [resetLog, setResetLog] = useState(false);
+    
     const SetWinner = () => {
         dispatch(setParams({ winner: user.login, seller: undefined }));
         dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
@@ -66,6 +70,7 @@ export default function UserActions() {
 
     const handlerRestoreSnapShot = () => {
         setDateValue(new Date());
+        setResetLog(false);
         setConfirmParam({
             confirmText:'Произвести восстановление БД из лога?',
             confirmTitle:'Восстановление БД из лога',
@@ -78,13 +83,14 @@ export default function UserActions() {
         if(confirmResult){
             //нажали "Ок" в модалке восстановления SnapShot
             if(confirmParam.handler === 'RestoreSnapShot'){
-                dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false, param: dateValue }));
+                dispatch(setEventFlag({ eventName: 'RestoreSnapShot', ready: false, 
+                    param: {dateValue:dateValue,resetLog:resetLog} }));
                 const message:Message = {message:'Старт восстановления БД из ES...', auctionId:'', messageType:0};
                 toast((p) => (
                     <InfoMessageToast message={message} toastId={p.id} />
                 ),{ duration: 5000 });
             } 
-            //нажали "Ок" в моделке создания SnapShot
+            //нажали "Ок" в окне создания SnapShot
             if(confirmParam.handler === 'SetSnapShot'){
                 dispatch(setEventFlag({ eventName: 'SetSnapShot', ready: false}));
                 const message:Message = {message:'Старт создания снимка БД в ES...', auctionId:'', messageType:0};
@@ -93,6 +99,7 @@ export default function UserActions() {
                 ),{ duration: 5000 });
             } 
         }
+
         setShowConfirm(false);
         setConfirmResult(undefined);
     },[confirmResult,dispatch ]);
@@ -100,6 +107,15 @@ export default function UserActions() {
     const handleSetDate = (result:Date) => {
         setDateValue(result);
     }
+
+    const handlerResetImageCache = () => {
+        dispatch(setEventFlag({ eventName: 'ResetImageCache', ready: false }));
+        const message:Message = {message:'Сброс кеша изобюражений Redis...', auctionId:'', messageType:0};
+        toast((p) => (
+            <InfoMessageToast message={message} toastId={p.id} />
+        ),{ duration: 2000 });
+    }
+
     return (
         <>
             <Dropdown inline label={`Здравствуйте ${user.name}`}>
@@ -128,9 +144,12 @@ export default function UserActions() {
                     <Dropdown.Item icon={GoDatabase} onClick={handlerSetSnapShot}>
                         Выполнить SnapShot Db
                     </Dropdown.Item>
-                    <Dropdown.Item icon={GoDatabase} onClick={handlerRestoreSnapShot}>
+                    <Dropdown.Item icon={FaTrashRestoreAlt} onClick={handlerRestoreSnapShot}>
                         Восстановить Db из SnapShot
-                    </Dropdown.Item>                
+                    </Dropdown.Item>         
+                    <Dropdown.Item icon={RiRestartFill} onClick={handlerResetImageCache}>
+                        Сбросить Кеш изображений
+                    </Dropdown.Item>         
                 </>
                 )}
                 <Dropdown.Divider />
@@ -145,6 +164,7 @@ export default function UserActions() {
                 setResult={setConfirmResult}
                 returnData={handleSetDate}
                 dateValue={dateValue}
+                resetLog={(rezult) => {setResetLog(rezult)}}
             />
         </>                
     )

@@ -69,6 +69,8 @@ export default function Login() {
                 title = {confirmParam.confirmTitle}
                 setResult={setUpdatePassword}
                 returnData={() =>{}}
+                resetLog={() => {}}
+                dateValue={null}
             />
             <Formik
                 initialValues={{ login: '', password: '', error: null }}

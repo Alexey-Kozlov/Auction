@@ -15,7 +15,7 @@ type State = {
 
 const initialState: State = {
   pageNumber: 1,
-  pageSize: 4,
+  pageSize: 16,
   pageCount: 1,
   orderBy: "newDesc",
   filterBy: "live",
