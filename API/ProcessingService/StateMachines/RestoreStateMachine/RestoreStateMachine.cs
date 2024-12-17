@@ -210,9 +210,18 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             lock (locker)
             {
                 ItemsCount++;
-                ProgressCurrent = 10 + ItemsCount * 60 / AllItemsCount;
+                ProgressCurrent = 10 + ItemsCount * 65 / AllItemsCount;
             }
         })
+        .Send(
+            new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+            context => new DataForProcessingServicesList<NotifyItem>
+            {
+                DataObjects = new List<DataForProcessingService>(),
+                CorrelationId = context.Saga.CorrelationId,
+                CallBackType = SessionId,
+                Props = ProgressCurrent.ToString()
+            })
         //конец обработки изображений - переходим для обработки текстовых соображений
         .If(context => AllItemsCount == ItemsCount,
             p => p
@@ -239,7 +248,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    Props = (ProgressCurrent = 80).ToString()
                 })
             //Обновление ставок (если есть) в сервисе BiddingService
             .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "BidItem"),
@@ -276,7 +285,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    Props = (ProgressCurrent = 85).ToString()
                 })
             //Обновление денег (если есть) в сервисе FinanceService
             .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "FinanceItem"),
@@ -313,7 +322,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    Props = (ProgressCurrent = 90).ToString()
                 })
             //Обновление записей аукционов (если есть) в сервисе SearchService
             .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "AuctionItem"),
@@ -350,7 +359,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    Props = (ProgressCurrent = 95).ToString()
                 })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(

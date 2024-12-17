@@ -62,7 +62,7 @@ public class RestoreSnapShotProcessing
                 break;
             case nameof(RequestRestoreImages):
                 //получаем изображения из ESLog
-                await GetESLogImages(context, listItems);
+                await GetESLogImages(context);
                 return;
             default:
                 break;
@@ -78,8 +78,12 @@ public class RestoreSnapShotProcessing
         await _publishEndpoint.Publish(sendObject);
     }
 
-    private async Task GetESLogImages(ConsumeContext<ESContract> context, DataForProcessingServicesList listItems)
+    private async Task GetESLogImages(ConsumeContext<ESContract> context)
     {
+        var listItems = new DataForProcessingServicesList
+        {
+            DataObjects = new List<DataForProcessingService>()
+        };
         var typedItem = JsonSerializer.Deserialize<RequestRestoreImages>(context.Message.EventData);
         //счетчик номеров частей передаваемого сообщения
         var MessagePartNumber = 0;
@@ -139,7 +143,7 @@ public class RestoreSnapShotProcessing
                     sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, AllItemsCount);
                     sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, typedItem.StartNumber);
                     await _publishEndpoint.Publish(sendObject);
-
+                    listItems.DataObjects.Clear();
                     MessagePartCounts = 0;
                     MessagePartNumber = 0;
                     continue;
@@ -197,8 +201,8 @@ public class RestoreSnapShotProcessing
                     splitPointer = 0;
                     MessagePartCounts = 0;
                     MessagePartNumber = 0;
+                    partsMessageList.Clear();
                 }
-                partsMessageList.Clear();
             }
         } while (AllItemsCount > typedItem.StartNumber);
 
