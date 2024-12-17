@@ -1,8 +1,7 @@
 using Grpc.Core;
-using ImageService;
 using ImageService.Data;
 
-namespace AuctionService.Services;
+namespace ImageService.Services;
 
 public class GrpcImageServer : GrpcImage.GrpcImageBase
 {

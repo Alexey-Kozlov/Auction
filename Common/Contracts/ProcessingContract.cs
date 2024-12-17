@@ -84,6 +84,10 @@ public class DataForProcessingService
     public string DataType { get; set; }
     public string Data { get; set; }
     public CRUD CRUD { get; set; }
+    public Guid MessagePartId { get; set; }
+    public int MessagePartNumber { get; set; }
+    public int MessagePartSize { get; set; }
+    public int MessagePartCounts { get; set; }
 }
 
 public enum Command

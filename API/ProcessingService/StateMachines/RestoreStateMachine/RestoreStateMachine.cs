@@ -13,7 +13,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
 {
     public State GetRecordsState { get; }
     public State GetImagesState { get; }
-    public State ProcessImagesState { get; }
     public State BidState { get; }
     public State FinanceState { get; }
     public State SearchState { get; }
@@ -37,8 +36,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     private DataForProcessingServicesList ListItems { get; set; }
     private Guid InstanceCorrelationId { get; set; }
     private string NotifyMessage { get; set; }
-    private int BatchCounter { get; set; }
     private float AllItemsCount { get; set; }
+    private float ItemsCount { get; set; }
     private object locker = new();
     private float ProgressCurrent { get; set; }
     private string SessionId { get; set; }
@@ -50,7 +49,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureGetRecordsState();
-        ConfigureProcessImagesState();
         ConfigureBidState();
         ConfigureFinanceState();
         ConfigureSearchState();
@@ -88,10 +86,11 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.UserLogin = context.Message.UserLogin;
                 NotifyMessage = "Восстановление данных завершено";
                 InstanceCorrelationId = context.Message.CorrelationId;
-                BatchCounter = 0;
                 ProgressCurrent = 0; //Текущей прогресс в процентах
                 SessionId = context.Message.SessionId;
                 context.Saga.ResetLog = context.Message.ResetLog;
+                AllItemsCount = -1;
+                ItemsCount = 0;
             })
         //посылаем через Кафку - удаление всех записей в BiddingService,FinanceService,
         //NotificationService,SearchService,ImageService
@@ -114,7 +113,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    Props = (ProgressCurrent = 5).ToString()
                 })
             // посылаем через Кафку - получение из ES лог всех записей (кроме изображений) 
             // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,SearchService
@@ -127,27 +126,16 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(GetImagesState,
         When(EsLogImagesEvent)
-            // вызываем активити ESLogActivityGetImages - после получения всех записей аукционов,
-            // для получения общего количества записей изображений и для начала получения наборов изображений
-            .If(context => context.Message.BatchCount == -1,
-            p => p
-                .Then(q =>
-                {
-                    if (q.Message.DataItems.DataObjects.Count() > 0)
-                    {
-                        lock (locker) { ProgressCurrent += 5; }
-                        //пришел набор записей (кроме изображений), сохраняем набор в ListItems
-                        ListItems = q.Message.DataItems;
-                    }
-                })
-                .Activity(p => p.OfType<ESLogActivityGetImages>())
-            )
-
+            // .Then(context =>
+            // {
+            //     Console.WriteLine("eslog_restoreimages count " + context.Message.AllItemsCount + " batch " +
+            //     context.Message.BatchCount);
+            // })
+            //записей аукционов не найдено, делаем уведомление и завершаем процесс
+            //сообщение для отслеживания прогресса, передаем признак "-1" что ничего не найдено
             .If(context => context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() == 0,
             p => p
                 .Send(
-                    //записей аукционов не найдено, делаем уведомление и завершаем процесс
-                    //сообщение для отслеживания прогресса, передаем признак "-1" что ничего не найдено
                     new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
                     context => new DataForProcessingServicesList<NotifyItem>
                     {
@@ -172,23 +160,38 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 .TransitionTo(CompletedState)
             )
 
-            .If(context => context.Message.BatchCount == context.Message.AllItemsCount,
+            // вызываем активити ESLogActivityGetImages - после получения всех записей аукционов,
+            //для получения записей изображений
+            //BatchCount == -1 - признак получения текстовых записей аукционов
+            .If(context => context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() > 0,
             p => p
-            //закончили прием батчей изображений, переходим на прием сообщений об обработке изображений
-            .Publish(new ESLog_ProcessImages
-            {
-                CorrelationId = InstanceCorrelationId
-            })
-            .TransitionTo(ProcessImagesState))
+                .Then(q =>
+                {
+                    //Console.WriteLine("ESLogActivityGetImages count " + q.Message.DataItems.DataObjects.Count());
+                    if (q.Message.DataItems.DataObjects.Count() > 0)
+                    {
+                        lock (locker) { ProgressCurrent = 10; }
+                        //пришел набор записей (кроме изображений), сохраняем набор в ListItems
+                        ListItems = q.Message.DataItems;
+                    }
+                })
+                .Activity(p => p.OfType<ESLogActivityGetImages>())
+            )
 
-            .If(context => context.Message.BatchCount != -1,
-            //обрабатываем батчи изображения, увеличиваем счетчик батчей, потом при обработке
-            // каждого батча будем его уменьшать и узнаем окончание процесса обработки изображений
+        //Посылаем сообщения в ImageService для обработки, BatchCount != -1 - признак получения записей изображений
+        .If(context => context.Message.BatchCount != -1,
             p => p
             .Then(context =>
             {
-                AllItemsCount = context.Message.AllItemsCount;
-                lock (locker) { BatchCounter++; }
+                lock (locker)
+                {
+                    //инициализируем 1 раз счетчик обработанных записей, 
+                    //потом будем уменьшать при каждой обработанной записи пока не станет равен == 0
+                    if (AllItemsCount == -1)
+                    {
+                        AllItemsCount = context.Message.AllItemsCount;
+                    }
+                }
             })
             .Send(
                 new Uri(configuration["QueuePaths:ImageRestoreConsumer"]),
@@ -198,69 +201,28 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         CorrelationId = context.Saga.CorrelationId,
                         CallBackType = "Common.Contracts.Processing.ESLog_ProcessImages"
                     })
-            ),
-        // уменьшаем счетчик обрабатываемых батчей, если поступили сообщения об обработке батчей до
-        // перехода в новое состояние - ProcessImagesState
+        ),
+
+        //отлавливаем сообщения окончания обработки изображений - увеличиваем каждый раз счетчик изображений
         When(ProcessImagesEvent)
         .Then(context =>
         {
             lock (locker)
             {
-                BatchCounter--;
-                ProgressCurrent += context.Message.BatchCounter * 60 / AllItemsCount;
+                ItemsCount++;
+                ProgressCurrent = 10 + ItemsCount * 60 / AllItemsCount;
             }
         })
-        .Send(
-            new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-            context => new DataForProcessingServicesList<NotifyItem>
-            {
-                DataObjects = new List<DataForProcessingService>(),
-                CorrelationId = context.Saga.CorrelationId,
-                CallBackType = SessionId,
-                Props = ProgressCurrent.ToString()
-            })
-        );
-    }
-
-    private void ConfigureProcessImagesState()
-    {
-        During(ProcessImagesState,
-        //дожидаемся обработки оставшихся в процессе работы батчей по восстановлению изображений
-        When(ProcessImagesEvent)
-            .Then(context =>
-            {
-                //уменьшаем счетчик батчей при каждом ответе от ImageService
-                lock (locker)
-                {
-                    BatchCounter--;
-                    ProgressCurrent += context.Message.BatchCounter * 60 / AllItemsCount;
-                }
-            })
-            .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = ProgressCurrent.ToString()
-                })
-            .If(context => BatchCounter == 0,
+        //конец обработки изображений - переходим для обработки текстовых соображений
+        .If(context => AllItemsCount == ItemsCount,
             p => p
-            //закончили прием сообщений об обработке изображений, переходим к обработке остальных сообщений
-            .Then(context =>
-            {
-                NotifyMessage += $", Изображений - {AllItemsCount}";
-            })
             .Publish(new BidRestoreSnapShot
             {
                 CorrelationId = InstanceCorrelationId
             })
-            .TransitionTo(BidState)
-            )
+            .TransitionTo(BidState))
         );
     }
-
     private void ConfigureBidState()
     {
         During(BidState,

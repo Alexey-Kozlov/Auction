@@ -4,11 +4,11 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Common.Utils;
 using ImageService.Data;
-using AuctionService.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
+using ImageService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -62,6 +62,8 @@ builder.Services.AddOpenTelemetry()
             options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
         })
 );
+
+builder.Services.AddSingleton<RestoreImageService>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

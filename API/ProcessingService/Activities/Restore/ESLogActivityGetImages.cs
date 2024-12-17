@@ -29,7 +29,7 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLog_
                 RestoreDate = context.Saga.RestoreDate,
                 UserLogin = context.Saga.UserLogin,
                 CorrelationId = context.Saga.CorrelationId,
-                MaxMessageSizeMb = int.Parse(_config["MaxMessageSizeMb"]),
+                MaxMessageSizeMb = 0,
                 StartNumber = 0
             },
             nameof(RequestRestoreImages),

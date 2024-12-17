@@ -54,8 +54,8 @@ public class RequestRestoreImages
     public string UserLogin { get; set; }
     public DateTime RestoreDate { get; set; }
     public Guid CorrelationId { get; set; }
-    public int MaxMessageSizeMb { get; set; }
     public int StartNumber { get; set; }
+    public int MaxMessageSizeMb { get; set; }
 }
 
 
