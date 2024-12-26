@@ -46,6 +46,7 @@ builder.Services.AddMassTransit(p =>
             p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);
+        config.ConcurrentMessageLimit = 1;
     });
 });
 

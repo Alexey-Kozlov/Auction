@@ -59,8 +59,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
         Event(() => EsLogEvent);
-        Event(() => FaultEsLogEvent, x => x.CorrelateById(
-            context => context.Message.Message.CorrelationId));
+        Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {

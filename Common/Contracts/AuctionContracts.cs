@@ -1,3 +1,5 @@
+using Common.Contracts.Processing;
+
 namespace Common.Contracts.Auction;
 
 public class AuctionItem
@@ -21,6 +23,7 @@ public class AuctionImageDTO
 {
       public string Image { get; set; }
       public bool UsingImage { get; set; }
+      public bool IsImageSplitted { get; set; }
 }
 
 #region AuctionCreating
@@ -143,20 +146,23 @@ public class AuctionDeleteComplete
 
 
 #region AuctionUpdate
-public record RequestAuctionUpdate(
-      Guid AuctionId,
-      string Title,
-      string Properties,
-      string Image,
-      string Description,
-      string UserLogin,
-      DateTime AuctionEnd,
-      Guid CorrelationId,
-      bool UsingImage
-);
+public class RequestAuctionUpdate
+{
+      public Guid AuctionId { get; set; }
+      public string Title { get; set; }
+      public string Properties { get; set; }
+      public string Image { get; set; }
+      public string Description { get; set; }
+      public string UserLogin { get; set; }
+      public DateTime AuctionEnd { get; set; }
+      public Guid CorrelationId { get; set; }
+      public bool UsingImage { get; set; }
+      public bool IsImageSplitted { get; set; } = false;
+      public CRUD CRUD { get; set; } = CRUD.Update;
+}
 
 
-public record AuctionUpdatedImage
+public record AuctionUpdatedGateWay
 {
       public Guid CorrelationId { get; set; }
 }

@@ -12,10 +12,11 @@ type Props = {
     id?: string;
     dopStyle?: string;
     zooming: boolean;
+    noCache: boolean;
 }
 
-export default function ImageCard({ id, dopStyle, zooming }: Props) {
-    const imageQuery = useGetImageForAuctionQuery(id ? id : '', {
+export default function ImageCard({ id, dopStyle, zooming, noCache }: Props) {
+    const imageQuery = useGetImageForAuctionQuery({id: (id ? id : ''), noCache: noCache }, {
         skip: !id
     });
     const procState: ProcessingState[] = useSelector((state: RootState) => state.processingStore);

@@ -84,6 +84,7 @@ builder.Services.AddMassTransit(p =>
             p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);
+        config.ConcurrentMessageLimit = 1;
     });
 });
 
@@ -120,6 +121,7 @@ builder.Services.AddOpenTelemetry()
 );
 
 builder.Services.AddScoped<SendEventToES>();
+builder.Services.AddScoped<SplitImages>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

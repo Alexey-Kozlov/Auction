@@ -12,6 +12,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProcessingService.DTO;
+using ProcessingService.Services;
 
 namespace ProcessingService.Controllers;
 
@@ -22,12 +23,14 @@ public class ProcessingController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<ProcessingController> _logger;
+    private readonly SplitImages _splitImages;
 
-
-    public ProcessingController(IPublishEndpoint publishEndpoint, ILogger<ProcessingController> logger)
+    public ProcessingController(IPublishEndpoint publishEndpoint,
+        ILogger<ProcessingController> logger, SplitImages splitImages)
     {
         _publishEndpoint = publishEndpoint;
         _logger = logger;
+        _splitImages = splitImages;
     }
 
     [HttpPost("placebid")]
@@ -66,11 +69,21 @@ public class ProcessingController : ControllerBase
     [HttpPost("updateauction")]
     public async Task<ApiResponse<object>> UpdateAuction([FromBody] UpdateAuctionDTO par)
     {
-        var auction = new RequestAuctionUpdate(par.AuctionId, par.Title, par.Properties, par.Image, par.Description,
-        User.Identity.Name, par.AuctionEnd, par.CorrelationId, par.UsingImage);
-
-        await _publishEndpoint.Publish(auction);
-
+        var auction = new RequestAuctionUpdate
+        {
+            AuctionId = par.AuctionId,
+            Title = par.Title,
+            Properties = par.Properties,
+            Image = par.Image,
+            Description = par.Description,
+            UserLogin = User.Identity.Name,
+            AuctionEnd = par.AuctionEnd,
+            CorrelationId = Guid.NewGuid(),
+            UsingImage = par.UsingImage,
+            IsImageSplitted = false
+        };
+        //делим изображения на части (если изображение слишком большое)
+        await _splitImages.ProcessImage(auction);
         return new ApiResponse<object>
         {
             StatusCode = HttpStatusCode.Accepted,

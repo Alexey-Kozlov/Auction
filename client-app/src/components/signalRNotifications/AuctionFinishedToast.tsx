@@ -9,7 +9,7 @@ type Props = {
 }
 
 export default function AuctionFinishedToast({ finishedAuction }: Props) {
-    const { isLoading, data } = useGetImageForAuctionQuery(finishedAuction.auctionId);
+    const { isLoading, data } = useGetImageForAuctionQuery({id:finishedAuction.auctionId,noCache: false});
     return (
         <div>
             <div className='flex flex-row-reverse' >

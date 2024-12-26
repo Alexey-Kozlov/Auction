@@ -10,7 +10,7 @@ type Props = {
 }
 
 export default function AuctionCreatedToast({ auction, toastId }: Props) {
-    const { isLoading, data } = useGetImageForAuctionQuery(auction.auctionId);
+    const { isLoading, data } = useGetImageForAuctionQuery({id:auction.auctionId,noCache: false});
     return (
         <div>
             <div className='flex flex-row-reverse' >

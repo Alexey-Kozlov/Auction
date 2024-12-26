@@ -55,6 +55,7 @@ internal class Program
                     p.Password(builder.Configuration["rt:password"]);
                 });
                 config.ConfigureEndpoints(context);
+                config.ConcurrentMessageLimit = 1;
             });
         });
 
@@ -128,6 +129,7 @@ internal class Program
         builder.Services.AddScoped<EditNotificationProcessing>();
         builder.Services.AddScoped<RestoreSnapShotProcessing>();
         builder.Services.AddHostedService<CheckAuctionFinished>();
+        builder.Services.AddSingleton<RestoreImageService>();
 
         var app = builder.Build();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

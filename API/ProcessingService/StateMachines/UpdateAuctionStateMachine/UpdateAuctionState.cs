@@ -12,6 +12,8 @@ public record UpdateAuctionState : SagaStateMachineInstance
     public string Description { get; set; }
     public string UserLogin { get; set; }
     public DateTime AuctionEnd { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
+    public string Image { get; set; }
+    public bool UsingImage { get; set; }
+    public bool IsImageSplitted { get; set; }
+    public string DataForProcessingServicesList { get; set; }
 }

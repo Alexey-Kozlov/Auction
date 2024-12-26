@@ -14,7 +14,8 @@ public class RestoreImageService
         if (part.MessagePartCounts == 1)
         {
             //изображение влезло в сообщение, возвращаем строку
-            return JsonSerializer.Deserialize<ImageDTO>(part.Data).Image;
+            //return JsonSerializer.Deserialize<ImageDTO>(part.Data).Image;
+            return part.Data;
         }
         else
         {
@@ -23,11 +24,11 @@ public class RestoreImageService
             var parts = PartsList.Where(p => p.MessagePartId == part.MessagePartId);
             if (parts.Count() == part.MessagePartCounts)
             {
-                //все части изображения собраны - сохранем в БД
+                //все части изображения собраны - создаем итоговое изображение
                 var image = new StringBuilder();
                 foreach (var item in parts.OrderBy(p => p.MessagePartNumber))
                 {
-                    image.Append(JsonSerializer.Deserialize<ImageDTO>(item.Data).Image);
+                    image.Append(item.Data);
                 }
                 //освобождаем ресурсы
                 PartsList.RemoveAll(p => p.MessagePartId == part.MessagePartId);

@@ -34,8 +34,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<AuctionDeleteESCommit> CommitEvent { get; }
     public Event<AuctionDeleteComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
-    private Guid InstanceCorrelationId { get; set; }
+    //private DataForProcessingServicesList ListItems { get; set; }
 
     public DeleteAuctionStateMachine(IServiceProvider services)
     {
@@ -60,14 +59,14 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             p.InsertOnInitial = true;
         });
         Event(() => EsLogEvent);
-        Event(() => BidEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => GatewayEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => ImageEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => ElkEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => NotificationEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => CommitEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => CompleteEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => BidEvent);
+        Event(() => GatewayEvent);
+        Event(() => ImageEvent);
+        Event(() => SearchEvent);
+        Event(() => ElkEvent);
+        Event(() => NotificationEvent);
+        Event(() => CommitEvent);
+        Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
     {
@@ -78,8 +77,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                InstanceCorrelationId = context.Message.CorrelationId;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для удаления аукциона:
             // - Удаление записей по деньгам в сервисе FinanceService
@@ -98,24 +95,23 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         When(EsLogEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                ListItems = context.Message.DataItems;
+                context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
             })
             //Удаление записи (деньги на ставку, если есть) в сервисе FinanceService
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "FinanceItem"),
+            .IfElse(context => context.Message.DataItems.DataObjects.Any(p => p.DataType == "FinanceItem"),
                 p => p
                 .Send(
                 new Uri(configuration["QueuePaths:FinanceConsumer"]),
                 context => new DataForProcessingServicesList<FinanceItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "FinanceItem").ToList(),
+                    DataObjects = context.Message.DataItems.DataObjects.Where(p => p.DataType == "FinanceItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedBid"
                 }),
                 p => p
-                .Publish(new AuctionDeletedBid
+                .Publish(contex => new AuctionDeletedBid
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = contex.Message.CorrelationId
                 }))
             .TransitionTo(BidState)
         );
@@ -125,25 +121,21 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(BidState,
         When(BidEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Удаление записей (ставка, если есть) в сервисе BiddingService
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "BidItem"),
+            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "BidItem"),
                 p => p
                 .Send(
                 new Uri(configuration["QueuePaths:BidConsumer"]),
                 context => new DataForProcessingServicesList<BidItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "BidItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "BidItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedGateway"
                 }),
                 p => p
-                .Publish(new AuctionDeletedGateway
+                .Publish(context => new AuctionDeletedGateway
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 }))
             .TransitionTo(GatewayState)
         );
@@ -153,16 +145,12 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(GatewayState,
         When(GatewayEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Удаление аукционв из кеша в сервисе GatewayService
             .Send(
                 new Uri(configuration["QueuePaths:GatewayConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedImage"
                 })
@@ -174,25 +162,30 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(ImageState,
         When(ImageEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Удаление изображения аукциона в сервисе ImageService
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "ImageItem"),
+            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "ImageItem"),
                 p => p
                 .Send(
                     new Uri(configuration["QueuePaths:ImageConsumer"]),
                     context => new DataForProcessingServicesList<ImageDTO>
                     {
-                        DataObjects = ListItems.DataObjects.Where(p => p.DataType == "ImageItem").ToList(),
+                        DataObjects = new List<DataForProcessingService>
+                        {
+                        //передаем тип операции
+                            new DataForProcessingService
+                            {
+                                CRUD = CRUD.Delete,
+                                Data = "CRUD",
+                                MessagePartId = context.Saga.AuctionId
+                            }
+                        },
                         CorrelationId = context.Saga.CorrelationId,
                         CallBackType = "Common.Contracts.Auction.AuctionDeletedSearch"
                     }),
                 p => p
-                .Publish(new AuctionDeletedSearch
+                .Publish(context => new AuctionDeletedSearch
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 })
             )
             .TransitionTo(SearchState));
@@ -202,16 +195,12 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(SearchState,
         When(SearchEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Удаление аукциона в сервисе SearchService
             .Send(
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedElk"
                 })
@@ -222,16 +211,12 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(ElkState,
         When(ElkEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Удаление аукциона из поиска в сервисе ElasticSearchService
             .Send(
                 new Uri(configuration["QueuePaths:ElkConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedNotification"
                 })
@@ -242,21 +227,17 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(NotificationState,
         When(NotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
                 //Удаление уведомлений (если есть) в сервисе NotificationService
                 .Send(
                 new Uri(configuration["QueuePaths:NotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeleteESCommit",
                     Props = JsonSerializer.Serialize(new AuctionNotificationData
                     {
-                        AuctionData = ListItems.DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data,
+                        AuctionData = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data,
                         CorrelationId = context.Saga.CorrelationId,
                         CRUD = CRUD.Delete
                     })
@@ -270,10 +251,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -282,12 +259,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

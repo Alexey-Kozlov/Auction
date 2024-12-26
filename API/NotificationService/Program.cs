@@ -80,6 +80,7 @@ builder.Services.AddMassTransit(p =>
         //     e.DiscardSkippedMessages();
         // });
         config.ConfigureEndpoints(context);
+        config.ConcurrentMessageLimit = 1;
     });
 });
 builder.Services.AddSignalR();

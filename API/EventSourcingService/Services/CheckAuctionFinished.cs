@@ -54,11 +54,16 @@ public class CheckAuctionFinished : BackgroundService
                     }
                 );
             }
-            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLog_AuctionFinish");
-            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-            sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
-            await _publishEndpoint.Publish(sendObject);
+            if (listItems.DataObjects.Count() > 0)
+            {
+                var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                    _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLog_AuctionFinish");
+                sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+                sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+                await _publishEndpoint.Publish(sendObject);
+            }
+            listItems.DataObjects.Clear();
+
         }
         catch (Exception ex)
         {

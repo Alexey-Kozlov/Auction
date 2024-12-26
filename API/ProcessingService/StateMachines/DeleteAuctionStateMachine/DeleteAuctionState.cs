@@ -8,6 +8,5 @@ public record DeleteAuctionState : SagaStateMachineInstance
     public string CurrentState { get; set; }
     public Guid AuctionId { get; set; }
     public string UserLogin { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string ErrorMessage { get; set; }
+    public string DataForProcessingServicesList { get; set; }
 }

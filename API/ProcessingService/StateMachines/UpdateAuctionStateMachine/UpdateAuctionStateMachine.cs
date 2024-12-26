@@ -9,8 +9,8 @@ using ProcessingService.Activities.AuctionUpdate;
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionState>
 {
-    public State GatewayState { get; }
     public State ImageState { get; }
+    public State GatewayState { get; }
     public State SearchState { get; }
     public State ElkState { get; }
     public State NotificationState { get; }
@@ -18,16 +18,14 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public State CompletedState { get; }
 
     public Event<RequestAuctionUpdate> RequestEvent { get; }
-    public Event<ESLog_AuctionUpdated> EsLogEvent { get; }
-    public Event<AuctionUpdatedImage> ImageEvent { get; }
+    public Event<ESLog_AuctionUpdated> ImageEvent { get; }
+    public Event<AuctionUpdatedGateWay> GatewayEvent { get; }
     public Event<AuctionUpdatedSearch> SearchEvent { get; }
     public Event<AuctionUpdatedElk> ElkEvent { get; }
     public Event<AuctionUpdatedNotification> NotificationEvent { get; }
     public Event<AuctionUpdateESCommit> CommitEvent { get; }
     public Event<AuctionUpdateComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
-    private Guid InstanceCorrelationId { get; set; }
 
     public UpdateAuctionStateMachine(IServiceProvider services)
     {
@@ -35,26 +33,23 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureGatewayState();
         ConfigureImageState();
+        ConfigureGatewayState();
         ConfigureSearchState();
-        ConfigureNotificationState();
         ConfigureELKState();
+        ConfigureNotificationState();
         ConfigureCommitState();
         ConfigureCompletedState();
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestEvent, p =>
-        {
-            p.InsertOnInitial = true;
-        });
-        Event(() => EsLogEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => ImageEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => ElkEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => NotificationEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => CommitEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => RequestEvent, p => p.InsertOnInitial = true);
+        Event(() => ImageEvent);
+        Event(() => GatewayEvent);
+        Event(() => SearchEvent);
+        Event(() => ElkEvent);
+        Event(() => NotificationEvent);
+        Event(() => CommitEvent);
         Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
@@ -71,80 +66,130 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                InstanceCorrelationId = context.Message.CorrelationId;
+                context.Saga.Image = context.Message.Image;
+                context.Saga.IsImageSplitted = context.Message.IsImageSplitted;
+                context.Saga.UsingImage = context.Message.UsingImage;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для обновления аукциона:
             // - Обновление записи в сервисе SearchService
             .Activity(p => p.OfType<ESLogActivity>())
-            .TransitionTo(GatewayState)
+            .TransitionTo(ImageState)
         );
+        OnUnhandledEvent(async e => await e.Ignore());
         SetCompletedWhenFinalized();
     }
 
-
-    private void ConfigureGatewayState()
-    {
-        //получили обновленную запись аукциона
-        During(GatewayState,
-        When(EsLogEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                ListItems = context.Message.DataItems;
-            })
-            //Удаление аукционв из кеша в сервисе GatewayService
-            .Send(
-                new Uri(configuration["QueuePaths:GatewayConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
-                {
-                    DataObjects = context.Message.DataItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Auction.AuctionUpdatedImage"
-                })
-            .TransitionTo(ImageState));
-    }
     private void ConfigureImageState()
     {
         During(ImageState,
         When(ImageEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            //Обновление изображения аукциона в сервисе  (если было изображение)
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "ImageItem"),
+            //вернулся ответ от записи изображения в ES лог
+            //каждый ответ пересылаем в ImageService
+            .If(context => context.Message.DataItems.DataObjects.Any(),
+                //здесь ответ о завершении передачи полного изображения, или при его отсутствии            
+                p => p
+                .Then(context =>
+                {
+                    context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
+                })
+            )
+
+        //Обновление изображения аукциона в сервисе (если было изображение)            
+            .If(context => context.Message.DataItems.DataObjects.Any(p => p.DataType == "ImageItem"),
                 p => p
                 .Send(
                     new Uri(configuration["QueuePaths:ImageConsumer"]),
                     context => new DataForProcessingServicesList<ImageDTO>
                     {
-                        DataObjects = ListItems.DataObjects.Where(p => p.DataType == "ImageItem").ToList(),
+                        DataObjects = new List<DataForProcessingService>
+                        {
+                        //передаем изображение (или его часть)
+                        string.IsNullOrEmpty(context.Saga.Image) ? new DataForProcessingService() :
+                            JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image),
+                        //передаем тип операции
+                            new DataForProcessingService
+                            {
+                                CRUD = context.Message.DataItems.DataObjects.Where(p => p.DataType == "ImageItem").First().CRUD,
+                                Data = "CRUD",
+                                MessagePartId = context.Saga.AuctionId
+                            }
+                        },
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedSearch"
-                    }),
+                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay"
+                    })
+            )
+
+            //если было редактирование только текста аукциона, изображение осталось без изменений
+            .If(context => string.IsNullOrEmpty(context.Saga.Image),
                 p => p
-                .Publish(new AuctionUpdatedSearch
+                .Publish(context => new AuctionUpdatedGateWay
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 })
+            )
+
+            //посылаем часть изображения для сохранения в ImageService
+            .If(context => !context.Message.DataItems.DataObjects.Any() && context.Saga.UsingImage,
+            p => p
+              .Send(
+                    new Uri(configuration["QueuePaths:ImageConsumer"]),
+                    context => new DataForProcessingServicesList<ImageDTO>
+                    {
+                        DataObjects = new List<DataForProcessingService>
+                        {
+                        //передаем изображение (или его часть)
+                        JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image),
+                        //передаем тип операции
+                            new DataForProcessingService
+                            {
+                                CRUD = CRUD.Update,
+                                Data = "CRUD",
+                                MessagePartId = context.Saga.AuctionId
+                            }
+                        },
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay"
+                    })
+            )
+            .TransitionTo(GatewayState)
+        );
+    }
+
+    private void ConfigureGatewayState()
+    {
+        //получили обновленную запись аукциона
+        During(GatewayState,
+        When(GatewayEvent)
+        //Удаление изображения из кеша в сервисе GatewayService (если были изменено изображение)
+        .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "ImageItem").Any(),
+            p => p
+            .Send(
+                new Uri(configuration["QueuePaths:GatewayConsumer"]),
+                context => new DataForProcessingServicesList<AuctionItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "ImageItem").ToList(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Auction.AuctionUpdatedSearch"
+                }),
+            p => p
+            .Publish(context => new AuctionUpdatedSearch
+            {
+                CorrelationId = context.Message.CorrelationId
+            })
             )
             .TransitionTo(SearchState));
     }
+
     private void ConfigureSearchState()
     {
         During(SearchState,
         When(SearchEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Обновление аукциона в сервисе SearchService
             .Send(
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdatedElk"
                 })
@@ -155,29 +200,22 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     {
         During(ElkState,
         When(ElkEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Обновление аукциона в поиске в сервисе ElasticSearchService
             .Send(
                 new Uri(configuration["QueuePaths:ElkConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdatedNotification"
                 })
             .TransitionTo(NotificationState));
     }
+
     private void ConfigureNotificationState()
     {
         During(NotificationState,
         When(NotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Создание уведомления в сервисе NotificationService
             .Send(
                 new Uri(configuration["QueuePaths:NotificationConsumer"]),
@@ -188,7 +226,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                     CallBackType = "Common.Contracts.Auction.AuctionUpdateESCommit",
                     Props = JsonSerializer.Serialize(new AuctionNotificationData
                     {
-                        AuctionData = ListItems.DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data,
+                        AuctionData = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data,
                         CorrelationId = context.Saga.CorrelationId,
                         CRUD = CRUD.Update
                     })
@@ -200,10 +238,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -212,12 +246,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

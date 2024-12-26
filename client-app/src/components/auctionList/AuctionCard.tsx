@@ -14,7 +14,7 @@ export default function AuctionCard({ auction }: Props) {
             <NavLink to={`/auctions/${auction.auctionId}`} className='group'>
                 <div className='rounded-lg group-hover:drop-shadow-4xl duration-700 '>
                     <div>
-                        <ImageCard id={auction.auctionId} dopStyle=' max-h-60' zooming={false} />
+                        <ImageCard id={auction.auctionId} dopStyle=' max-h-60' zooming={false} noCache={false} />
                     </div>
                 </div>
                 <div className='flex justify-center mb-12 mt-2'>

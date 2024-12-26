@@ -1,6 +1,7 @@
 using Common.Utils;
 using GatewayService.Cache;
 using GatewayService.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GatewayService.Services;
 public static class MiddlewsreExtentions
@@ -9,9 +10,12 @@ public static class MiddlewsreExtentions
     {
         //получаем изображения из кеша - сервис с использованием reddis
         //это штатный функционал
-        app.MapGet("/api/images/{auctionid}", async (string auctionid, ImageCache imageCache) =>
+        app.MapGet("/api/images",
+            async ([FromQuery(Name = "id")] string auctionid,
+            [FromQuery(Name = "noCache")] bool noCache,
+            ImageCache imageCache) =>
         {
-            var img = await imageCache.GetImage(auctionid);
+            var img = await imageCache.GetImage(auctionid, noCache);
             return new ApiResponse<ImageDTO>()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
@@ -24,7 +28,7 @@ public static class MiddlewsreExtentions
         //для штатного вызова из HTML, например, через <img src="адрес данного сервиса">
         app.MapGet("/api/images_file/{auctionid}", async (string auctionid, ImageCache imageCache) =>
         {
-            var img = await imageCache.GetImage(auctionid);
+            var img = await imageCache.GetImage(auctionid, false);
             return Results.File(Convert.FromBase64String(img), contentType: "image/png");
         });
 

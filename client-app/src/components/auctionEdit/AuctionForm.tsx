@@ -42,9 +42,8 @@ export default function AuctionForm() {
             usingImage: false
         } as Auction
     )
-    const auctionImage = useGetImageForAuctionQuery(newAuction.auctionId, {
-        skip: newAuction.auctionId === undefined
-    });
+    const auctionImage = useGetImageForAuctionQuery({id: newAuction.auctionId, noCache: true },
+         { skip: newAuction.auctionId === undefined });
 
     useEffect(() => {
         if (!auction.isLoading && auction.data) {

@@ -16,7 +16,6 @@ public class GrpcImageClient
 
     public async Task<ImageDTO> GetImage(string AuctionId)
     {
-        Console.WriteLine($"{DateTime.Now} Вызов GrpcImage сервер");
         var channel = GrpcChannel.ForAddress(_config["GrpcImage"], new GrpcChannelOptions
         {
             MaxSendMessageSize = int.MaxValue,

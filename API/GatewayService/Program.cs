@@ -58,6 +58,7 @@ builder.Services.AddMassTransit(p =>
             p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);
+        config.ConcurrentMessageLimit = 1;
     });
 });
 
@@ -83,6 +84,7 @@ builder.Services.AddSingleton<IDistributedCache, RedisCache>();
 builder.Services.AddScoped<ImageCache>();
 builder.Services.AddSingleton(cfg =>
 {
+    //конфигурация чтобы можно было сбрасывать кеш
     IConnectionMultiplexer multiplexer = ConnectionMultiplexer.Connect(builder.Configuration["Redis:Config"]);
     return multiplexer;
 });

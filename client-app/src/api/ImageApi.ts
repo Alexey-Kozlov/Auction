@@ -10,9 +10,10 @@ const imageApi = createApi({
   }),
   tagTypes: ["images"],
   endpoints: (builder) => ({
-    getImageForAuction: builder.query<ApiResponseNet<AuctionImage>, string>({
-      query: (id) => ({
-        url: `/${id}`,
+    getImageForAuction: builder.query<ApiResponseNet<AuctionImage>, {id: string, noCache: boolean}>({
+      query: (arg) => ({        
+        url: `/`,
+        params:{ id: arg.id, noCache: arg.noCache }
       }),
       transformResponse: (
         response: ApiResponseNet<AuctionImage>,
