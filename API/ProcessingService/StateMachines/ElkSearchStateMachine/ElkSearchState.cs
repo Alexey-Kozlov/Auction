@@ -12,9 +12,7 @@ public class ElkSearchState : SagaStateMachineInstance
     public string Description { get; set; }
     public string UserLogin { get; set; }
     public DateTime AuctionEnd { get; set; }
-    public DateTime LastUpdated { get; set; }
     public DateTime AuctionCreated { get; set; }
-    public string ErrorMessage { get; set; }
     public string Winner { get; set; }
     public bool ItemSold { get; set; }
     public int Amount { get; set; }

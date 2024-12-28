@@ -28,10 +28,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestElkSearchEvent, p =>
-        {
-            p.InsertOnInitial = true;
-        });
+        Event(() => RequestElkSearchEvent, p => p.InsertOnInitial = true);
         Event(() => ElkSearchEvent);
         Event(() => CompleteEvent);
     }
@@ -79,10 +76,6 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
     {
         During(NotificationState,
         When(ElkSearchEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:ElkSearchNotificationConsumer"]),
                 context => new DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>
@@ -105,13 +98,6 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
     private void ConfigureCompletedState()
     {
         During(NotificationState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize());
+        When(CompleteEvent).Finalize());
     }
-
-
 }

@@ -35,10 +35,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestEvent, p =>
-        {
-            p.InsertOnInitial = true;
-        });
+        Event(() => RequestEvent, p => p.InsertOnInitial = true);
         Event(() => EsLogEvent);
         Event(() => FinanceEvent);
         Event(() => NotificationEvent);
@@ -55,7 +52,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для пополнения счета пользователя
             // - Добавление записей по деньгам в сервисе FinanceService
@@ -70,10 +66,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     {
         During(FinanceState,
         When(EsLogEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
                 //делаем рассылку для создания новой записи поступления денег и корректировки баланса в FinanceService
                 .Send(
                 new Uri(configuration["QueuePaths:FinanceConsumer"]),
@@ -90,10 +82,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     {
         During(NotificationState,
         When(NotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
@@ -122,10 +110,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -134,12 +118,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     private void ConfigureCompleted()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

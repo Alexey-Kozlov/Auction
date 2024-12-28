@@ -2,6 +2,14 @@ using Common.Contracts.Processing;
 
 namespace Common.Contracts.Auction;
 
+public interface IAuctionImageSplit
+{
+      bool UsingImage { get; set; }
+      string Image { get; set; }
+      bool IsImageSplitted { get; set; }
+      Guid CorrelationId { get; set; }
+}
+
 public class AuctionItem
 {
       public Guid AuctionId { get; set; }
@@ -28,19 +36,20 @@ public class AuctionImageDTO
 
 #region AuctionCreating
 
-public record RequestAuctionCreate
-(
-       Guid AuctionId,
-       int ReservePrice,
-       DateTime AuctionEnd,
-       string Properties,
-       string Title,
-       string Description,
-       string Image,
-       string UserLogin,
-       Guid CorrelationId,
-       bool UsingImage
-);
+public class RequestAuctionCreate : IAuctionImageSplit
+{
+      public Guid AuctionId { get; set; }
+      public int ReservePrice { get; set; }
+      public DateTime AuctionEnd { get; set; }
+      public string Properties { get; set; }
+      public string Title { get; set; }
+      public string Description { get; set; }
+      public string Image { get; set; }
+      public string UserLogin { get; set; }
+      public Guid CorrelationId { get; set; }
+      public bool UsingImage { get; set; }
+      public bool IsImageSplitted { get; set; }
+}
 
 
 public class AuctionCreatedSearch
@@ -146,7 +155,7 @@ public class AuctionDeleteComplete
 
 
 #region AuctionUpdate
-public class RequestAuctionUpdate
+public class RequestAuctionUpdate : IAuctionImageSplit
 {
       public Guid AuctionId { get; set; }
       public string Title { get; set; }
@@ -188,6 +197,11 @@ public class AuctionUpdateESCommit
 }
 
 public class AuctionUpdateComplete
+{
+      public Guid CorrelationId { get; set; }
+}
+
+public class AuctionUpdateFinalize
 {
       public Guid CorrelationId { get; set; }
 }

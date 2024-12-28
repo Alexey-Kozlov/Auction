@@ -1,6 +1,4 @@
 using System.Text;
-using System.Text.Json;
-using Common.Contracts.Image;
 using Common.Contracts.Processing;
 
 namespace ImageService.Services;

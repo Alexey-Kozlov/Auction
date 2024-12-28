@@ -34,7 +34,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<AuctionDeleteESCommit> CommitEvent { get; }
     public Event<AuctionDeleteComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }
-    //private DataForProcessingServicesList ListItems { get; set; }
 
     public DeleteAuctionStateMachine(IServiceProvider services)
     {

@@ -17,7 +17,7 @@ public class SplitImages
         _configuration = configuration;
     }
 
-    public async Task ProcessImage(RequestAuctionUpdate auction)
+    public async Task ProcessImage<T>(T auction) where T : IAuctionImageSplit
     {
         var freeMessageSize = int.Parse(_configuration["MaxMessageSizeMb"]) * 1000000;
 
@@ -66,6 +66,7 @@ public class SplitImages
         }
         else
         {
+            //нет изображения или оно небольшое
             if (!string.IsNullOrEmpty(auction.Image))
             {
                 auction.Image = JsonSerializer.Serialize(new DataForProcessingService
@@ -79,7 +80,7 @@ public class SplitImages
                 });
             }
             auction.IsImageSplitted = false;
-            await _publishEndpoint.Publish(auction);
+            await _publishEndpoint.Publish((T)auction);
         }
     }
 }

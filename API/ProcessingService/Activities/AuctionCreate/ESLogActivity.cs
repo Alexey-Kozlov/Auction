@@ -45,7 +45,8 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
             JsonSerializer.Serialize(new AuctionImageDTO
             {
                 Image = context.Message.Image,
-                UsingImage = context.Message.UsingImage
+                UsingImage = context.Message.UsingImage,
+                IsImageSplitted = context.Message.IsImageSplitted
             }),
             context.Saga.AuctionId);
         await next.Execute(context).ConfigureAwait(false);

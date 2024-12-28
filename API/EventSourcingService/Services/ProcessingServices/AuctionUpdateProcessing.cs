@@ -3,7 +3,6 @@ using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
-using Common.Utils;
 using EventSourcingService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -28,14 +27,13 @@ public class AuctionUpdateProcessing
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
     {
-
-        //если есть изображение
         var imageDto = new AuctionImageDTO
         {
             Image = "",
             IsImageSplitted = false,
             UsingImage = false
         };
+        //если есть изображение
         if (!string.IsNullOrEmpty(context.Message.Image))
         {
             //если изображение было разбито на части - собираем изображение

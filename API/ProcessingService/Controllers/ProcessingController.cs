@@ -52,11 +52,22 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> CreateAuction([FromBody] CreateAuctionDTO par)
     {
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var auction = new RequestAuctionCreate(Guid.NewGuid(), par.ReservePrice, par.AuctionEnd,
-         par.Properties, par.Title, par.Description, par.Image, auctionAuthor, par.CorrelationId,
-         par.UsingImage);
-
-        await _publishEndpoint.Publish(auction);
+        var auction = new RequestAuctionCreate
+        {
+            AuctionId = Guid.NewGuid(),
+            ReservePrice = par.ReservePrice,
+            AuctionEnd = par.AuctionEnd,
+            Properties = par.Properties,
+            Title = par.Title,
+            Description = par.Description,
+            Image = par.Image,
+            UserLogin = auctionAuthor,
+            CorrelationId = par.CorrelationId,
+            UsingImage = par.UsingImage,
+            IsImageSplitted = false
+        };
+        //делим изображения на части (если изображение слишком большое)
+        await _splitImages.ProcessImage<RequestAuctionCreate>(auction);
 
         return new ApiResponse<object>
         {
@@ -83,7 +94,7 @@ public class ProcessingController : ControllerBase
             IsImageSplitted = false
         };
         //делим изображения на части (если изображение слишком большое)
-        await _splitImages.ProcessImage(auction);
+        await _splitImages.ProcessImage<RequestAuctionUpdate>(auction);
         return new ApiResponse<object>
         {
             StatusCode = HttpStatusCode.Accepted,
@@ -138,7 +149,6 @@ public class ProcessingController : ControllerBase
     {
         //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        //await _publishEndpoint.Publish(new SendAllItems<SendToSetSnapShot>(userLogin, param.SessionId, Guid.NewGuid(), DateTime.UtcNow));
         await _publishEndpoint.Publish(new RequestSetSnapShot
         {
             UserLogin = userLogin,

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -19,7 +20,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedComplete> CompleteEvent { get; }
 
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
 
     public FinishAuctionStateMachine(IServiceProvider services)
     {
@@ -35,10 +35,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     }
     private void ConfigureEvents()
     {
-        Event(() => EsLogEvent, p =>
-        {
-            p.InsertOnInitial = true;
-        });
+        Event(() => EsLogEvent, p => p.InsertOnInitial = true);
         Event(() => NotificationEvent);
         Event(() => ElkEvent);
         Event(() => CommitEvent);
@@ -53,9 +50,8 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .Then(context =>
             {
                 context.Saga.CorrelationId = context.Message.CorrelationId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
-                ListItems = context.Message.DataItems;
+                context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
             })
             //Обновление аукциона в сервисе SearchService
             .Send(
@@ -75,16 +71,12 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     {
         During(ElkState,
         When(ElkEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //Обновление аукциона в поиске в сервисе ElasticSearchService
             .Send(
                 new Uri(configuration["QueuePaths:ElkConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects,
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification"
                 })
@@ -95,15 +87,11 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     {
         During(NotificationState,
         When(NotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects,
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionFinishedESCommit"
                 })
@@ -115,10 +103,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -127,12 +111,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

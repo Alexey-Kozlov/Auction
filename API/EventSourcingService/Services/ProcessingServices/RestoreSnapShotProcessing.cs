@@ -100,7 +100,8 @@ public class RestoreSnapShotProcessing
         typedItem.MaxMessageSizeMb = int.Parse(_configuration["MaxMessageSizeMb"]);
         var partsMessageList = new List<DataForProcessingService>();
         //в цикле получаем записи общим размером не превышающим размер сообщения (если суммарный размер
-        //изображений меньше размера сообщения, либо одно большое изображение)
+        //изображений меньше размера сообщения)
+        //Если размер изображения больше сообщения - разделяем изображение на несколько
         do
         {
             result = await _dbContext.restore_snap_shot_images(

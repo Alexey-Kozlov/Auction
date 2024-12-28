@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.EventSourcing;
@@ -33,14 +34,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<RestoreSnapShotComplete> CompleteEvent { get; }
 
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
-    private Guid InstanceCorrelationId { get; set; }
-    private string NotifyMessage { get; set; }
-    private float AllItemsCount { get; set; }
-    private float ItemsCount { get; set; }
-    private object locker = new();
-    private float ProgressCurrent { get; set; }
-    private string SessionId { get; set; }
+    public object locker = new();
 
     public RestoreStateMachine(IServiceProvider services)
     {
@@ -60,19 +54,16 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestEvent, p =>
-        {
-            p.InsertOnInitial = true;
-        });
-        Event(() => EsLogItemsEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => EsLogImagesEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => ProcessImagesEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => BidEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => FinanceEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => NotifyEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => CommitEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => CompleteEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => RequestEvent, p => p.InsertOnInitial = true);
+        Event(() => EsLogItemsEvent);
+        Event(() => EsLogImagesEvent);
+        Event(() => ProcessImagesEvent);
+        Event(() => BidEvent);
+        Event(() => FinanceEvent);
+        Event(() => SearchEvent);
+        Event(() => NotifyEvent);
+        Event(() => CommitEvent);
+        Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
     {
@@ -81,21 +72,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .Then(context =>
             {
                 context.Saga.CorrelationId = context.Message.CorrelationId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.RestoreDate = context.Message.RestoreDate;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                NotifyMessage = "Восстановление данных завершено";
-                InstanceCorrelationId = context.Message.CorrelationId;
-                ProgressCurrent = 0; //Текущей прогресс в процентах
-                SessionId = context.Message.SessionId;
+                context.Saga.NotifyMessage = "Восстановление данных завершено";
+                context.Saga.ProgressCurrent = 0; //Текущей прогресс в процентах
+                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.ResetLog = context.Message.ResetLog;
-                AllItemsCount = -1;
-                ItemsCount = 0;
+                context.Saga.AllItemsCount = -1;
+                context.Saga.ItemsCount = 0;
             })
-        //посылаем через Кафку - удаление всех записей в BiddingService,FinanceService,
-        //NotificationService,SearchService,ImageService
-        .Activity(p => p.OfType<ESLogActivityReset>())
-        .TransitionTo(GetRecordsState)
+            //посылаем через Кафку - удаление всех записей в BiddingService,FinanceService,
+            //NotificationService,SearchService,ImageService
+            .Activity(p => p.OfType<ESLogActivityReset>())
+            .TransitionTo(GetRecordsState)
         );
         OnUnhandledEvent(async e => await e.Ignore());
         SetCompletedWhenFinalized();
@@ -112,8 +101,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 5).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 5).ToString()
                 })
             // посылаем через Кафку - получение из ES лог всех записей (кроме изображений) 
             // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,SearchService
@@ -126,11 +115,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(GetImagesState,
         When(EsLogImagesEvent)
-            // .Then(context =>
-            // {
-            //     Console.WriteLine("eslog_restoreimages count " + context.Message.AllItemsCount + " batch " +
-            //     context.Message.BatchCount);
-            // })
             //записей аукционов не найдено, делаем уведомление и завершаем процесс
             //сообщение для отслеживания прогресса, передаем признак "-1" что ничего не найдено
             .If(context => context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() == 0,
@@ -141,7 +125,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = SessionId,
+                        CallBackType = context.Saga.SessionId,
                         Props = "-1"
                     })
                 .Send(
@@ -153,9 +137,9 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         CallBackType = "",
                         Props = "Записей не найдено"
                     })
-                .Publish(new RestoreSnapShotComplete
+                .Publish(context => new RestoreSnapShotComplete
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 })
                 .TransitionTo(CompletedState)
             )
@@ -170,9 +154,9 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     //Console.WriteLine("ESLogActivityGetImages count " + q.Message.DataItems.DataObjects.Count());
                     if (q.Message.DataItems.DataObjects.Count() > 0)
                     {
-                        lock (locker) { ProgressCurrent = 10; }
+                        lock (locker) { q.Saga.ProgressCurrent = 10; }
                         //пришел набор записей (кроме изображений), сохраняем набор в ListItems
-                        ListItems = q.Message.DataItems;
+                        q.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(q.Message.DataItems);
                     }
                 })
                 .Activity(p => p.OfType<ESLogActivityGetImages>())
@@ -187,9 +171,9 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     //инициализируем 1 раз счетчик обработанных записей, 
                     //потом будем уменьшать при каждой обработанной записи пока не станет равен == 0
-                    if (AllItemsCount == -1)
+                    if (context.Saga.AllItemsCount == -1)
                     {
-                        AllItemsCount = context.Message.AllItemsCount;
+                        context.Saga.AllItemsCount = context.Message.AllItemsCount;
                     }
                 }
             })
@@ -209,8 +193,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         {
             lock (locker)
             {
-                ItemsCount++;
-                ProgressCurrent = 10 + ItemsCount * 65 / AllItemsCount;
+                context.Saga.ItemsCount++;
+                context.Saga.ProgressCurrent = 10 + context.Saga.ItemsCount * 65 / context.Saga.AllItemsCount;
             }
         })
         .Send(
@@ -219,15 +203,15 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             {
                 DataObjects = new List<DataForProcessingService>(),
                 CorrelationId = context.Saga.CorrelationId,
-                CallBackType = SessionId,
-                Props = ProgressCurrent.ToString()
+                CallBackType = context.Saga.SessionId,
+                Props = context.Saga.ProgressCurrent.ToString()
             })
         //конец обработки изображений - переходим для обработки текстовых соображений
-        .If(context => AllItemsCount == ItemsCount,
+        .If(context => context.Saga.AllItemsCount == context.Saga.ItemsCount,
             p => p
-            .Publish(new BidRestoreSnapShot
+            .Publish(context => new BidRestoreSnapShot
             {
-                CorrelationId = InstanceCorrelationId
+                CorrelationId = context.Message.CorrelationId
             })
             .TransitionTo(BidState))
         );
@@ -238,8 +222,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         When(BidEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Ставок - {ListItems.DataObjects.Where(p => p.DataType == "BidItem").Count()}";
+                context.Saga.NotifyMessage += $", Ставок - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "BidItem").Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
@@ -247,24 +230,24 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 80).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 80).ToString()
                 })
             //Обновление ставок (если есть) в сервисе BiddingService
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "BidItem"),
+            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "BidItem"),
                 p => p
                 .Send(
                 new Uri(configuration["QueuePaths:BidConsumer"]),
                 context => new DataForProcessingServicesList<BidItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "BidItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "BidItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.FinanceRestoreSnapShot"
                 }),
                 p => p
-                .Publish(new FinanceRestoreSnapShot
+                .Publish(context => new FinanceRestoreSnapShot
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 }))
             .TransitionTo(FinanceState));
     }
@@ -275,8 +258,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         When(FinanceEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Финансов - {ListItems.DataObjects.Where(p => p.DataType == "FinanceItem").Count()}";
+                context.Saga.NotifyMessage += $", Финансов - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "FinanceItem").Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
@@ -284,24 +266,24 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 85).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 85).ToString()
                 })
             //Обновление денег (если есть) в сервисе FinanceService
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "FinanceItem"),
+            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "FinanceItem"),
                 p => p
                 .Send(
                 new Uri(configuration["QueuePaths:FinanceConsumer"]),
                 context => new DataForProcessingServicesList<FinanceItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "FinanceItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "FinanceItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.SearchRestoreSnapShot"
                 }),
                 p => p
-                .Publish(new SearchRestoreSnapShot
+                .Publish(context => new SearchRestoreSnapShot
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 }))
             .TransitionTo(SearchState));
     }
@@ -312,8 +294,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         When(SearchEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Аукционов - {ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").Count()}";
+                context.Saga.NotifyMessage += $", Аукционов - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
@@ -321,24 +302,24 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 90).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 90).ToString()
                 })
             //Обновление записей аукционов (если есть) в сервисе SearchService
-            .IfElse(context => ListItems.DataObjects.Any(p => p.DataType == "AuctionItem"),
+            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "AuctionItem"),
                 p => p
                 .Send(
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.NotifyRestoreSnapShot"
                 }),
                 p => p
-                .Publish(new NotifyRestoreSnapShot
+                .Publish(context => new NotifyRestoreSnapShot
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 }))
             .TransitionTo(NotifyState));
     }
@@ -349,8 +330,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         When(NotifyEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Уведомлений - {ListItems.DataObjects.Where(p => p.DataType == "NotifyItem").Count()}";
+                context.Saga.NotifyMessage += $", Уведомлений - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
@@ -358,18 +338,18 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 95).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 95).ToString()
                 })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(
                 new Uri(configuration["QueuePaths:RestoreNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.RestoreSnapShotESCommit",
-                    Props = NotifyMessage
+                    Props = context.Saga.NotifyMessage
                 })
             .TransitionTo(CommitState));
     }
@@ -378,17 +358,13 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
+                    CallBackType = context.Saga.SessionId,
                     Props = "100"
                 })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
@@ -400,12 +376,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

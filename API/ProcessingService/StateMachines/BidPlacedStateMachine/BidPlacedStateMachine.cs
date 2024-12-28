@@ -26,9 +26,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<BidCreateESCommit> CommitEvent { get; }
     public Event<BidComplete> CompleteEvent { get; }
     public Event<Fault<ESLog_PlaceBid>> FaultEsLogEvent { get; }
-
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
 
 
     public BidPlacedStateMachine(IServiceProvider services)
@@ -69,7 +67,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Then(context =>
             {
                 context.Saga.Bidder = context.Message.Bidder;
-                context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
@@ -91,8 +88,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         When(EsLogEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                ListItems = context.Message.DataItems;
+                context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
             })
             .Send(
                 new Uri(configuration["QueuePaths:FinanceConsumer"]),
@@ -104,10 +100,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 })
             .TransitionTo(BidState),
         When(FaultEsLogEvent)
-        .Then(context =>
-        {
-            context.Saga.LastUpdated = DateTime.UtcNow;
-        })
         .Send(
             new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
             context => new DataForProcessingServicesList<NotifyItem>
@@ -137,15 +129,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         During(BidState,
         When(BidEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:BidConsumer"]),
                 context => new DataForProcessingServicesList<BidItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == nameof(BidItem)).ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == nameof(BidItem)).ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Bid.BidSearchPlaced"
                 })
@@ -158,15 +146,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         During(SearchState,
         //публикуем обновленную ставку в SearchService
         When(SearchEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == nameof(AuctionItem)).ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == nameof(AuctionItem)).ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Bid.BidNotificationProcessed"
                 })
@@ -178,15 +162,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         During(NotificationState,
         //успешно опубликовали новую ставку - делаем оповещение
         When(NotificationEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:BidNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
-                    DataObjects = ListItems.DataObjects.Where(p => p.DataType == nameof(NotifyItem)).ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == nameof(NotifyItem)).ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Bid.BidCreateESCommit",
                     Props = context.Saga.Amount.ToString()
@@ -198,10 +178,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -210,12 +186,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

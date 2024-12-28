@@ -13,11 +13,9 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
 
     public Event<RequestEditNotification> RequestEvent { get; }
     public Event<ESLog_EditNotification> EsLogEvent { get; }
-    public Event<EditNotificationCreated> NotificationEvent { get; }
     public Event<EditNotificationESCommit> CommitEvent { get; }
     public Event<EditNotificationComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }
-    private DataForProcessingServicesList ListItems { get; set; }
 
     public EditNotificationStateMachine(IServiceProvider services)
     {
@@ -36,7 +34,6 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
             p.InsertOnInitial = true;
         });
         Event(() => EsLogEvent);
-        Event(() => NotificationEvent);
         Event(() => CommitEvent);
         Event(() => CompleteEvent);
     }
@@ -51,7 +48,6 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
             })
             //посылаем через Кафку
             // - Создаем / удаляем уведомление для данного пользователя для данного аукциона
@@ -66,16 +62,11 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     {
         During(NotificationState,
         When(EsLogEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                ListItems = context.Message.DataItems;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:EditNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
-                    DataObjects = ListItems.DataObjects,
+                    DataObjects = context.Message.DataItems.DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Notification.EditNotificationESCommit",
                     Props = context.Saga.UserLogin
@@ -87,10 +78,6 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -99,12 +86,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     private void ConfigureCompleted()
     {
         During(CompletedState,
-        When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
-            .Finalize()
+        When(CompleteEvent).Finalize()
         );
     }
 

@@ -23,7 +23,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     public Event<ElkIndexESCommit> CommitEvent { get; }
     private IConfiguration configuration { get; }
     private ElkIndexResponse elkIndexResponse { get; set; }
-    private Guid InstanceCorrelationId { get; set; }
     private int CurrentBatchCount { get; set; }
     private int AllBatchCount { get; set; }
     private object locker = new();
@@ -48,7 +47,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         });
         Event(() => ResetIndexEvent);
         Event(() => EsLogEvent);
-        Event(() => NotificationEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => NotificationEvent);
         Event(() => CommitEvent);
         Event(() => EndEvent);
     }
@@ -61,7 +60,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                InstanceCorrelationId = context.Message.CorrelationId;
                 CurrentBatchCount = 0;
                 AllBatchCount = 0;
             })
@@ -96,10 +94,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     {
         During(ResetIndexState,
         When(ResetIndexEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку, запрос на индексацию всех записей аукционов.
             //возвращаются пачки записей для переиндексации из ES лога
             .Activity(p => p.OfType<ESLogActivity>())
@@ -114,7 +108,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         When(EsLogEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
                 if (context.Message.DataItems != null)
                 {
                     //если DataItems != null - это пришел набор записей из ES лог
@@ -159,9 +152,9 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 {
                     Console.WriteLine("Всего - " + context.Saga.ItemNumber + " записи индексировано.");
                 })
-                .Publish(new ElkIndexCompleted
+                .Publish(context => new ElkIndexCompleted
                 {
-                    CorrelationId = InstanceCorrelationId
+                    CorrelationId = context.Message.CorrelationId
                 })
                 .TransitionTo(NotificationState)
             )
@@ -173,7 +166,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         When(NotificationEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
                 //инициализируем объект для уведомления о результатах индексации
                 elkIndexResponse = new ElkIndexResponse
                 {
@@ -207,10 +199,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState));
@@ -219,11 +207,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     private void ConfigureCompleted()
     {
         During(CompletedState,
-            When(EndEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            }).Finalize()
+            When(EndEvent).Finalize()
         );
     }
 

@@ -23,14 +23,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public Event<SetSnapShotComplete> CompleteEvent { get; }
 
     private IConfiguration configuration { get; }
-    private Guid InstanceCorrelationId { get; set; }
-    private string NotifyMessage { get; set; }
-    private int BatchCounter { get; set; }
-    private float AllItemsCount { get; set; }
     private object locker = new();
-    private float ProgressCurrent { get; set; }
-    private string SessionId { get; set; }
-    private DateTime ActionDate { get; set; }
 
     public SetSnapShotStateMachine(IServiceProvider services)
     {
@@ -44,20 +37,16 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         ConfigureSearchState();
         ConfigureNotifyState();
         ConfigureCompletedState();
-
     }
     private void ConfigureEvents()
     {
-        Event(() => RequestEvent, p =>
-        {
-            p.InsertOnInitial = true;
-        });
-        Event(() => ImageEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => BidEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => FinanceEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => SearchEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => NotifyEvent, x => x.CorrelateById(p => InstanceCorrelationId));
-        Event(() => CompleteEvent, x => x.CorrelateById(p => InstanceCorrelationId));
+        Event(() => RequestEvent, p => p.InsertOnInitial = true);
+        Event(() => ImageEvent);
+        Event(() => BidEvent);
+        Event(() => FinanceEvent);
+        Event(() => SearchEvent);
+        Event(() => NotifyEvent);
+        Event(() => CompleteEvent);
     }
     private void ConfigureInitialState()
     {
@@ -66,14 +55,13 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .Then(context =>
             {
                 context.Saga.CorrelationId = context.Message.CorrelationId;
-                context.Saga.LastUpdated = DateTime.UtcNow;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                NotifyMessage = "Создание SnapShot - ";
-                InstanceCorrelationId = context.Message.CorrelationId;
-                BatchCounter = -1;
-                ProgressCurrent = 0; //Текущей прогресс в процентах
-                SessionId = context.Message.SessionId;
-                ActionDate = DateTime.UtcNow;
+                context.Saga.NotifyMessage = "Создание SnapShot - ";
+                context.Saga.BatchCounter = -1;
+                context.Saga.AllItemsCount = 0;
+                context.Saga.ProgressCurrent = 0; //Текущей прогресс в процентах
+                context.Saga.SessionId = context.Message.SessionId;
+                context.Saga.ActionDate = DateTime.UtcNow;
             })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
@@ -81,15 +69,16 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 5).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 5).ToString()
                 })
         //запрос батчей изображений
             .Send(
                 new Uri(configuration["QueuePaths:ImageSetSnapShotConsumer"]),
                 context => new ESContract
                 {
-                    CallBackType = "Common.Contracts.EventSourcing.ImageSetSnapShot"
+                    CallBackType = "Common.Contracts.EventSourcing.ImageSetSnapShot",
+                    CorrelationId = context.Message.CorrelationId
                 })
             .TransitionTo(ImagesState)
         );
@@ -101,58 +90,79 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     {
         During(ImagesState,
         When(ImageEvent)
-            // обрабатываем поступающие наборы изображений
-            .If(context => context.Message.DataItems.DataObjects.Count() > 0 && context.Message.AllItemsCount != -1,
-            p => p
-            .Then(context =>
-            {
-                if (BatchCounter == -1)
+            // обрабатываем поступающие изображения (или части изображений)
+            .If(context => context.Saga.BatchCounter == -1,
+                p => p
+                .Then(context =>
                 {
-                    BatchCounter = context.Message.AllItemsCount;
-                    AllItemsCount = context.Message.AllItemsCount;
-                    NotifyMessage += $" Изображений - {context.Message.AllItemsCount}";
-                }
-            })
-            //посылаем на запись батча изображений в ES лог
-            .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotConsumer"]),
-                    context => new DataForProcessingServicesList<string>
+                    //отрабатывает один раз - пишем общее количество записываемых в лог изображений
+                    lock (locker)
                     {
-                        DataObjects = context.Message.DataItems.DataObjects,
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.EventSourcing.ImageSetSnapShot",
-                        Props = ActionDate.ToString()
-                    })
+                        context.Saga.BatchCounter = context.Message.AllItemsCount;
+                        context.Saga.AllItemsCount = context.Message.AllItemsCount;
+                        context.Saga.NotifyMessage += $" Изображений - {context.Message.AllItemsCount}";
+                    }
+                })
             )
-            //пришел ответ после добавления батча в ES лог
+            //каждое принятое изображение - пересылаем в EventSourcingService для сохранения в логе
+            .If(context => context.Message.AllItemsCount > 0,
+                p => p
+                //посылаем на запись изображения или его части в ES лог
+                .Send(
+                    new Uri(configuration["QueuePaths:SetSnapShotConsumer"]),
+                        context => new DataForProcessingServicesList<string>
+                        {
+                            DataObjects = context.Message.DataItems.DataObjects,
+                            CorrelationId = context.Saga.CorrelationId,
+                            CallBackType = "Common.Contracts.EventSourcing.ImageSetSnapShot",
+                            Props = context.Saga.ActionDate.ToString()
+                        }
+                )
+            )
+
+
+            //пришел ответ после добавления изображения или его части в ES лог
+            //AllItemsCount == -1 - признак что это ответ от EventSourcingService, полное изображение
             .If(context => context.Message.AllItemsCount == -1,
             p => p
-            //закончили прием батчей изображений, переходим на прием сообщений об обработке изображений
             .Then(context =>
             {
                 lock (locker)
                 {
-                    BatchCounter -= context.Message.DataItems.DataObjects.Count();
-                    ProgressCurrent += context.Message.DataItems.DataObjects.Count() * 75 / AllItemsCount;
+                    context.Saga.BatchCounter--;
+                    context.Saga.ProgressCurrent = 5 + ((context.Saga.AllItemsCount - context.Saga.BatchCounter) * 90 / context.Saga.AllItemsCount);
                 }
-
             }))
+
+            //пришел ответ после добавления изображения или его части в ES лог
+            //AllItemsCount == -2 - признак что это ответ от EventSourcingService, часть изображения изображение
+            .If(context => context.Message.AllItemsCount == -2,
+            p => p
+            .Then(context =>
+            {
+                lock (locker)
+                {
+                    context.Saga.ProgressCurrent += float.Parse("0.1");
+                }
+            }))
+
+            //обновляем показатель прогресса
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = ProgressCurrent.ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = context.Saga.ProgressCurrent.ToString()
                 })
-            //пришел ответ после добавления батча в ES лог
-            .If(context => BatchCounter == 0,
+
+            //закончили прием изображений, переходим на обработку ставок
+            .If(context => context.Saga.BatchCounter == 0,
             p => p
-            //закончили прием батчей изображений, переходим на обработку ставок
-            .Publish(new BidSetSnapShot
+            .Publish(context => new BidSetSnapShot
             {
-                CorrelationId = InstanceCorrelationId
+                CorrelationId = context.Message.CorrelationId
             })
             .TransitionTo(BidState))
         );
@@ -162,18 +172,14 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     {
         During(BidState,
         When(BidEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent += 2).ToString()
                 })
             //получение ставок (если есть) из сервиса BiddingService
             .Send(
@@ -181,7 +187,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context => new ESContract
                 {
                     CallBackType = "Common.Contracts.EventSourcing.FinanceSetSnapShot",
-                    EventData = ActionDate.ToString(),
+                    EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(FinanceState));
@@ -193,8 +199,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         When(FinanceEvent)
            .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Ставок - {context.Message.DataItems.DataObjects.Count()}";
+                context.Saga.NotifyMessage += $", Ставок - {context.Message.DataItems.DataObjects.Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
@@ -202,8 +207,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent += 2).ToString()
                 })
             //получение записей финансов (если есть) из сервиса FinanceService
             .Send(
@@ -211,7 +216,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context => new ESContract
                 {
                     CallBackType = "Common.Contracts.EventSourcing.SearchSetSnapShot",
-                    EventData = ActionDate.ToString(),
+                    EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(SearchState));
@@ -223,8 +228,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         When(SearchEvent)
            .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Платежей - {context.Message.DataItems.DataObjects.Count()}";
+                context.Saga.NotifyMessage += $", Платежей - {context.Message.DataItems.DataObjects.Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
@@ -232,8 +236,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent += 5).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent += 2).ToString()
                 })
             //получение записей аукционов из сервиса SearchService
             .Send(
@@ -241,7 +245,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context => new ESContract
                 {
                     CallBackType = "Common.Contracts.EventSourcing.NotifySetSnapShot",
-                    EventData = ActionDate.ToString(),
+                    EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(NotifyState));
@@ -253,8 +257,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         When(NotifyEvent)
             .Then(context =>
             {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-                NotifyMessage += $", Уведомлений - {context.Message.DataItems.DataObjects.Count()}";
+                context.Saga.NotifyMessage += $", Уведомлений - {context.Message.DataItems.DataObjects.Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
@@ -262,8 +265,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 {
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = SessionId,
-                    Props = (ProgressCurrent = 100).ToString()
+                    CallBackType = context.Saga.SessionId,
+                    Props = (context.Saga.ProgressCurrent = 100).ToString()
                 })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(
@@ -271,7 +274,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context => new ESContract
                 {
                     CallBackType = "Common.Contracts.EventSourcing.SetSnapShotComplete",
-                    EventData = ActionDate.ToString(),
+                    EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(CompletedState));
@@ -281,17 +284,13 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     {
         During(CompletedState,
         When(CompleteEvent)
-            .Then(context =>
-            {
-                context.Saga.LastUpdated = DateTime.UtcNow;
-            })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotFinalConsumer"]),
                 context => new ESContract
                 {
                     CallBackType = "",
-                    EventData = NotifyMessage,
-                    UserLogin = SessionId
+                    EventData = context.Saga.NotifyMessage,
+                    UserLogin = context.Saga.SessionId
                 })
             .Finalize()
         );

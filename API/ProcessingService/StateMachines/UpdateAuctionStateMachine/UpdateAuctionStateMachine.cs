@@ -19,6 +19,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
 
     public Event<RequestAuctionUpdate> RequestEvent { get; }
     public Event<ESLog_AuctionUpdated> ImageEvent { get; }
+    public Event<AuctionUpdateFinalize> ImageFinalizeEvent { get; }
     public Event<AuctionUpdatedGateWay> GatewayEvent { get; }
     public Event<AuctionUpdatedSearch> SearchEvent { get; }
     public Event<AuctionUpdatedElk> ElkEvent { get; }
@@ -45,6 +46,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     {
         Event(() => RequestEvent, p => p.InsertOnInitial = true);
         Event(() => ImageEvent);
+        Event(() => ImageFinalizeEvent);
         Event(() => GatewayEvent);
         Event(() => SearchEvent);
         Event(() => ElkEvent);
@@ -94,7 +96,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 })
             )
 
-        //Обновление изображения аукциона в сервисе (если было изображение)            
+            //Обновление изображения аукциона в сервисе (если было изображение)            
             .If(context => context.Message.DataItems.DataObjects.Any(p => p.DataType == "ImageItem"),
                 p => p
                 .Send(
@@ -177,7 +179,11 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 CorrelationId = context.Message.CorrelationId
             })
             )
-            .TransitionTo(SearchState));
+            .TransitionTo(SearchState),
+        //финализируем поток с частью изображения - чтобы пропал из лога
+        When(ImageFinalizeEvent)
+            .Finalize()
+        );
     }
 
     private void ConfigureSearchState()

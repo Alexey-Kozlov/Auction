@@ -20,7 +20,7 @@ export default function FinRow({ item }: Props) {
             <div className='flex items-center'>
                 {!auction.isLoading && auction.data?.result?.auctionId && auction.status === 'fulfilled' ? (
                     <NavLink to={`/auctions/${item.auctionId}`} className='group'>
-                        <ImageCard id={item.auctionId} dopStyle=' max-h-20' zooming={false} />
+                        <ImageCard id={item.auctionId} dopStyle=' max-h-20' zooming={false} noCache={false} />
                     </NavLink>
                 ) : <GrMoney size={30} />}
             </div>
