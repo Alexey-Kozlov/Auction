@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Common.Contracts.Auction;
-using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
@@ -31,7 +30,7 @@ public class ElkSearchConsumer : IConsumer<DataForProcessingServicesList<ApiResp
         {
             //уведомление при окончании индексации
             var typedItem = JsonSerializer.Deserialize<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(item.Data);
-            await _hubContext.Clients.Group(context.Message.Props).SendAsync("ElkSearch", typedItem);
+            await _hubContext.Clients.Group(context.Message.Props).SendAsync("ElkSearch", typedItem.Result);
         }
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

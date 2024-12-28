@@ -124,7 +124,7 @@ export default function SignalRProvider() {
                 })
 
                 connection.on('ElkSearch', (elk: any) => {
-                    const elkData = elk.result as PagedResult<Auction>;
+                    const elkData = elk as PagedResult<Auction>;
                      dispatch(setData(elkData));
                      dispatch(setEventFlag({ eventName: 'ElkSearch', ready: false}));
                 })
