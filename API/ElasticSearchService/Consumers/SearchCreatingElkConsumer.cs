@@ -23,8 +23,8 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<ElkSearchCreating>> consumeContext)
     {
         var typed = JsonSerializer.Deserialize<ElkSearchCreating>(consumeContext.Message.DataObjects[0].Data);
-        var countResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s =>
-            s.Size(10000)
+        //запрос на получение количества возвращаемых записей
+        var countResponse = await _client.Client.CountAsync<AuctionCreatingElk>(s => s
             .Query(q => q
                 .Bool(b => b
                     .Should(s => s
@@ -50,6 +50,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
                         )
                     )
                 )
+                
             )
         );
         var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s => s
@@ -88,7 +89,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
             )
         );
 
-        var itemsCount = countResponse.Documents.Count;
+        var itemsCount = (int)countResponse.Count;
         var pageCount = 0;
         if (itemsCount > 0)
         {
@@ -101,7 +102,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
             IsSuccess = true,
             Result = new PagedResult<List<AuctionCreatingElk>>()
             {
-                Results = elkResponse.Documents.ToList(),
+                Results = elkResponse.IsValidResponse ?  elkResponse.Documents.ToList() :  new List<AuctionCreatingElk>(),
                 PageCount = pageCount,
                 TotalCount = itemsCount
             }

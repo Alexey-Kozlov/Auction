@@ -1,11 +1,8 @@
 using Common.Utils;
 using Common.Utils.Vault;
 using ElasticSearchService.Consumers;
-using ElasticSearchService.Data;
 using ElasticSearchService.Services;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -15,23 +12,12 @@ builder.Configuration.AddVault(options =>
               var vaultOptions = builder.Configuration.GetSection("Vault");
               options.Address = vaultOptions["Address"];
               options.Role = vaultOptions["VAULT_ROLE_ID"];
-              options.SecretPathPg = vaultOptions["SecretPathPg"];
               options.SecretPathRt = vaultOptions["SecretPathRt"];
               options.SecretPathElk = vaultOptions["SecretPathElk"];
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddDbContext<SearchDbContext>(options =>
-{
-    var conStrBuilder = new NpgsqlConnectionStringBuilder();
-    conStrBuilder.Password = builder.Configuration["pg:password"];
-    conStrBuilder.Username = builder.Configuration["pg:username"];
-    conStrBuilder.Database = builder.Configuration["pg:database"];
-    conStrBuilder.Host = builder.Configuration["pg:host"];
-
-    options.UseNpgsql(conStrBuilder.ConnectionString);
-});
 builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<ElkConsumer>();
@@ -40,7 +26,7 @@ builder.Services.AddMassTransit(p =>
     {
         config.Host(builder.Configuration["rt:host"], "/", p =>
         {
-            p.Username(builder.Configuration["rt:password"]);
+            p.Username(builder.Configuration["rt:username"]);
             p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);

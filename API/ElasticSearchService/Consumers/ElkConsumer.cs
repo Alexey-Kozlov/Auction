@@ -43,17 +43,17 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                     case CRUD.Create:
                         if (item.DataType == "ElkIndexReset")
                         {
-                            //переиндексация, сбрасываем всю БД поискаи возвращаемся
+                            //переиндексация, сбрасываем всю БД поиска и возвращаемся
                             await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
                                 p => p.Query(q => q.QueryString(f => f.Query("*"))));
                         }
                         else
                         {
-                            await _client.Client.IndexAsync(elkItem, elkItem.AuctionId);
+                            await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
                         }
                         break;
                     case CRUD.Update:
-                        await _client.Client.IndexAsync(elkItem, elkItem.AuctionId);
+                        await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
                         break;
                 }
             }

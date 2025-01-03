@@ -80,7 +80,7 @@ builder.Services.AddMassTransit(p =>
     {
         config.Host(builder.Configuration["rt:host"], "/", p =>
         {
-            p.Username(builder.Configuration["rt:password"]);
+            p.Username(builder.Configuration["rt:username"]);
             p.Password(builder.Configuration["rt:password"]);
         });
         config.ConfigureEndpoints(context);

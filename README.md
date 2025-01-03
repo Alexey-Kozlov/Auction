@@ -36,21 +36,21 @@ docker build -f client-app/Dockerfile -t kozlovas/auction-front .
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts
 из папки Projects/Auction/Common/Utils
-dotnet pack -o ~/Projects/Auctions/Packages/
-dotnet pack -o /var/projects/Auction/Packages/
+dotnet pack -o /home/alex/Projects/Auctions/Packages/
+dotnet pack -o /home/alex/Projects/Auction/Packages/
 
 команды добавления пакетов в проекты
--для debian: dotnet nuget add source ~/Projects/Auctions/Packages/ -n AuctionContracts
--для arch: dotnet nuget add source /var/projects/Auction/Packages/ -n AuctionContracts
+-для debian: dotnet nuget add source /home/alex/Projects/Auctions/Packages/ -n AuctionContracts
+-для arch: dotnet nuget add source /home/alex/Projects/Auction/Packages/ -n AuctionContracts
 dotnet add package AuctionContracts
 
 очистка кешей NuGet-пакетов
 Если нужно изменить пакет, то из-за кеширования делаем так:
 
-- удаляем пакет из папки пакетов (в нашем случае из ~/Projects/Auctions/Packages/)
+- удаляем пакет из папки пакетов (в нашем случае из /home/alex/Projects/Auctions/Packages/)
 - очищаем кеш нугет-пакетов командой - dotnet nuget locals all --clear
 - компилируем проект командой dotnet build - будет ошибка, что пакет не найден и нет нужных типов
-- компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o /var/projects/Auction/Packages/
+- компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o /home/alex/Projects/Auction/Packages/
 - будет создан пакет, теперь снова компилируем нужный проект - теперь должны подтянутся изменения в пакете.
 
 прочие команды
