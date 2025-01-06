@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <NuspecFile>Contracts.nuspec</NuspecFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit.Kafka" Version="8.2.5" />         
+    <PackageReference Include="MassTransit.Kafka" Version="8.3.4" />         
   </ItemGroup>
 
 </Project>
