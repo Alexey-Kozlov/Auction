@@ -18,20 +18,20 @@ Grafana
 
 команды деплоя
 
-cmd из папки Projects/Auctions
+cmd из папки Projects
 
 билдим образы:
-docker build -f API/EventSourcingService/Dockerfile -t kozlovas/auction-eventsourcing .
-docker build -f API/BiddingService/Dockerfile -t kozlovas/auction-bidding .
-docker build -f API/ElasticSearchService/Dockerfile -t kozlovas/auction-elk .
-docker build -f API/FinanceService/Dockerfile -t kozlovas/auction-finance .
-docker build -f API/GatewayService/Dockerfile -t kozlovas/auction-gateway .
-docker build -f API/IdentityService/Dockerfile -t kozlovas/auction-identity .
-docker build -f API/ImageService/Dockerfile -t kozlovas/auction-image .
-docker build -f API/NotificationService/Dockerfile -t kozlovas/auction-notification .
-docker build -f API/ProcessingService/Dockerfile -t kozlovas/auction-processing .
-docker build -f API/SearchService/Dockerfile -t kozlovas/auction-search .
-docker build -f client-app/Dockerfile -t kozlovas/auction-front .
+docker build -f Auction/API/EventSourcingService/Dockerfile -t kozlovas/auction-eventsourcing .
+docker build -f Auction/API/BiddingService/Dockerfile -t kozlovas/auction-bidding .
+docker build -f Auction/API/ElasticSearchService/Dockerfile -t kozlovas/auction-elk .
+docker build -f Auction/API/FinanceService/Dockerfile -t kozlovas/auction-finance .
+docker build -f Auction/API/GatewayService/Dockerfile -t kozlovas/auction-gateway .
+docker build -f Auction/API/IdentityService/Dockerfile -t kozlovas/auction-identity .
+docker build -f Auction/API/ImageService/Dockerfile -t kozlovas/auction-image .
+docker build -f Auction/API/NotificationService/Dockerfile -t kozlovas/auction-notification .
+docker build -f Auction/API/ProcessingService/Dockerfile -t kozlovas/auction-processing .
+docker build -f Auction/API/SearchService/Dockerfile -t kozlovas/auction-search .
+docker build -f Auction/client-app/Dockerfile -t kozlovas/auction-front .
 
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts

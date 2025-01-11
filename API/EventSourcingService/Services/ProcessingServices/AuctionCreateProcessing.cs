@@ -41,7 +41,7 @@ public class AuctionCreateProcessing
             if (imageDto.IsImageSplitted)
             {
                 imageDto.Image = ProcessImage(imageDto);
-                //если вернулась пустая строка - не все части изображения собраны, конец обработки этого сообщения
+                //если вернулась пустая строка - не все части изображения собраны
                 if (string.IsNullOrEmpty(imageDto.Image))
                 {
                     var sendObject_ = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
@@ -68,7 +68,7 @@ public class AuctionCreateProcessing
             context.Message.AuctionId ?? Guid.NewGuid(),
             context.Message.EventData,
             context.Message.UserLogin,
-            context.Message.Image
+            JsonSerializer.Serialize(imageDto)
             ).ToListAsync();
         //возвращаем список записей для изменения соответствующих БД в нужных сервисах
         var listItems = new DataForProcessingServicesList

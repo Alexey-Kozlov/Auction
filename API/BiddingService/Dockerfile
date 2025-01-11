@@ -1,21 +1,25 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 ARG TARGETARCH
 WORKDIR /app
 EXPOSE 80
 
-COPY /Packages /Packages
-COPY API/BiddingService/BiddingService.csproj API/BiddingService/BiddingService.csproj
-RUN dotnet restore API/BiddingService/BiddingService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
+COPY LocalNugetPackages /tmp
+COPY Auction/API/BiddingService/BiddingService.csproj API/BiddingService/BiddingService.csproj
+RUN dotnet restore API/BiddingService/BiddingService.csproj -a $TARGETARCH --source /tmp
+
+#COPY Auction/Packages /Packages
+#RUN dotnet restore API/BiddingService/BiddingService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
 
 #копируем остальные файлы проекта Auction
-COPY API/BiddingService API/BiddingService
+COPY Auction/API/BiddingService API/BiddingService
 
 WORKDIR /app/API/BiddingService
 RUN dotnet publish -c Release -o /app/API/out
 
 #создание образа
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/API/out .
+#RUN rm -rf /tmp
 ENTRYPOINT [ "dotnet", "BiddingService.dll" ]

@@ -4,7 +4,6 @@ using BiddingService.Data;
 using Common.Contracts.Bid;
 using Common.Contracts.Processing;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace BiddingService.Consumers;

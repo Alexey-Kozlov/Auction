@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Launch Chrome",
       "request": "launch",
@@ -15,11 +16,10 @@
       "projectPath": "${workspaceFolder}/API/SearchService/SearchService.csproj"
     },
     {
-      "name": "C#: MetricsService",
+      "name": "C#: Common",
       "type": "dotnet",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/API/MetricsService/MetricsService.csproj",
-      "launchConfigurationId": "TargetFramework=;http"
+      "projectPath": "${workspaceFolder}/Common/CollectNugetPackages/CollectNugetPackages.csproj"
     }
   ]
 }
