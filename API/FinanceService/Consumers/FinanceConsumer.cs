@@ -22,7 +22,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<FinanceItem>> context)
     {
-        //using var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        _dbContext.ChangeTracker.Clear();
         var correlationId = context.Message.CorrelationId;
         foreach (var item in context.Message.DataObjects)
         {

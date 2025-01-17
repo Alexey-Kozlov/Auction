@@ -38,7 +38,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 {
                     case CRUD.Delete:
                         await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
-                            p => p.Query(q => q.Ids(i => i.Values(typedItem.AuctionId.ToString()))));
+                            p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId))));
                         break;
                     case CRUD.Create:
                         if (item.DataType == "ElkIndexReset")
