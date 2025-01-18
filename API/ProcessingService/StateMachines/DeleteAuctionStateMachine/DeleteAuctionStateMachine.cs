@@ -243,9 +243,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 })
             .TransitionTo(CommitState));
     }
-
-
-
+    
     private void ConfigureCommitState()
     {
         During(CommitState,

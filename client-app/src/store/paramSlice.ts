@@ -76,7 +76,7 @@ export const paramSlice = createSlice({
     },
     reset: (state, action) => {
       state.pageNumber = 1;
-      state.pageSize = 8;
+      state.pageSize = 16;
       state.pageCount = 1;
       state.orderBy = "newDesc";
       state.filterBy = "live";

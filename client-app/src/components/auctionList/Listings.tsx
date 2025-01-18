@@ -23,14 +23,9 @@ export default function Listings() {
     const elkSearch = procState.find(p => p.eventName === 'ElkSearch' && p.ready) && params.searchAdv;
     let auctionsData = useGetAuctionsQuery(url, {
         skip: !params.sessionId, 
-        //если делаем поиск в ELK - отключаем кеширование, чтобы всегда был запрос 
-        //и соответственно ответ. Иначе нарушится UI
-        refetchOnMountOrArgChange: !!params.searchAdv
+        refetchOnMountOrArgChange: true
     });
-
-    useEffect(() => {
-        dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
-    }, [dispatch])
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
     useEffect(() => {
         if (!auctionsData.isLoading && auctionsData.data) {
@@ -40,9 +35,15 @@ export default function Listings() {
 
     useEffect(() => {
         const eventStateChanged = procState.find(p => p.eventName === 'CollectionChanged' && p.ready);
+        const delayProc = async (wt:number) => {
+            await delay(wt);
+        }
         if (eventStateChanged) {
-            auctionsData.refetch();
-            dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
+            //setTimeout(() => {
+                auctionsData.refetch();
+                dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));  
+            //}, 100);
+      
         }
     }, [procState, auctionsData, dispatch]);
 
