@@ -39,10 +39,8 @@ export default function Listings() {
             await delay(wt);
         }
         if (eventStateChanged) {
-            //setTimeout(() => {
                 auctionsData.refetch();
                 dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));  
-            //}, 100);
       
         }
     }, [procState, auctionsData, dispatch]);

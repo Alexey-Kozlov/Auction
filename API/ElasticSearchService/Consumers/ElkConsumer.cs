@@ -4,6 +4,7 @@ using AutoMapper;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using Common.Utils;
+using Elastic.Clients.Elasticsearch;
 using ElasticSearchService.Services;
 using MassTransit;
 
@@ -54,7 +55,20 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                         }
                         break;
                     case CRUD.Update:
-                        await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
+                        await _client.Client.UpdateByQueryAsync<AuctionCreatingElk>(indices: "search_index",
+                            p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId)))
+                            .Script(s => s.Source(
+                                "ctx._source.title = params.title;" +
+                                "ctx._source.properties = params.properties;" +
+                                "ctx._source.description = params.description;"
+                            ).Params(p => p
+                            .Add("title",elkItem.Title)
+                            .Add("properties",elkItem.Properties)
+                            .Add("description",elkItem.Description)))
+                            .Conflicts(Conflicts.Proceed)
+                            .WaitForCompletion(true).Refresh());
+                            
+                            
                         break;
                 }
             }
