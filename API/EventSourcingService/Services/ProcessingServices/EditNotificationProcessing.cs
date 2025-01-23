@@ -1,4 +1,5 @@
 using System.Reflection;
+using AuctionService.Metrics;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
 using EventSourcingService.Data;
@@ -12,13 +13,15 @@ public class EditNotificationProcessing
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
+    private readonly AuctionMetrics _auctionMetrics;    
 
     public EditNotificationProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
-        IConfiguration configuration)
+        IConfiguration configuration, AuctionMetrics auctionMetrics)
     {
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
         _configuration = configuration;
+        _auctionMetrics = auctionMetrics;        
     }
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
@@ -49,6 +52,7 @@ public class EditNotificationProcessing
                 }
             );
         }
+        _auctionMetrics.NotificationAuction();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);

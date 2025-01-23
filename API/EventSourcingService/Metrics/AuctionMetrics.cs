@@ -9,6 +9,8 @@ public class AuctionMetrics
     private Counter<int> AuctionDeleteCounter { get; }
     private Counter<int> AuctionFinishedCounter { get; }
     private Counter<int> AuctionBidCounter { get; }
+    private Counter<int> AuctionNotificationCounter { get; }
+    private Counter<int> AuctionFinanceCounter { get; }    
 
     public AuctionMetrics(IMeterFactory meterFactory, IConfiguration configuration)
     {
@@ -18,6 +20,8 @@ public class AuctionMetrics
         AuctionUpdateCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNameUpdate"], "Auction");
         AuctionFinishedCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNameFinish"], "Auction");
         AuctionBidCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNameBid"], "Auction");
+        AuctionNotificationCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNotification"], "Auction");
+        AuctionFinanceCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricFinance"], "Auction");        
     }
 
     public void AddAuction() => AuctionAddCounter.Add(1);
@@ -25,5 +29,8 @@ public class AuctionMetrics
     public void UpdateAuction() => AuctionUpdateCounter.Add(1);
     public void FinishAuction() => AuctionFinishedCounter.Add(1);
     public void BidAuction() => AuctionBidCounter.Add(1);
+    public void NotificationAuction() => AuctionNotificationCounter.Add(1);
+    public void FinanceAuction() => AuctionFinanceCounter.Add(1);    
+
 
 }

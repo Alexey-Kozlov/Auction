@@ -47,9 +47,10 @@ dotnet add package AuctionContracts
 очистка кешей NuGet-пакетов
 Если нужно изменить пакет, то из-за кеширования делаем так:
 
-- удаляем пакет из папки пакетов (в нашем случае из /home/alex/Projects/Auctions/Packages/)
+упаковка пакета с контрактами
+из папки Projects/Auction/Common/Contracts
+из папки Projects/Auction/Common/Utils
 - очищаем кеш нугет-пакетов командой - dotnet nuget locals all --clear
-- компилируем проект командой dotnet build - будет ошибка, что пакет не найден и нет нужных типов
 - компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o /home/alex/Projects/Auction/Packages/
 - будет создан пакет, теперь снова компилируем нужный проект - теперь должны подтянутся изменения в пакете.
 

@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using AuctionService.Metrics;
 using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
@@ -15,14 +16,19 @@ public class AuctionCreateProcessing
     private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
     private readonly RestoreImageService _restoreImageService;
+    private readonly AuctionMetrics _auctionMetrics;
+    private readonly CheckAuctionFinished _checkAuctionFinished;
 
     public AuctionCreateProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
-        IConfiguration configuration, RestoreImageService restoreImageService)
+        IConfiguration configuration, RestoreImageService restoreImageService, AuctionMetrics auctionMetrics,
+        CheckAuctionFinished checkAuctionFinished)
     {
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
         _configuration = configuration;
         _restoreImageService = restoreImageService;
+        _auctionMetrics = auctionMetrics;
+        _checkAuctionFinished = checkAuctionFinished;
     }
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
@@ -87,6 +93,9 @@ public class AuctionCreateProcessing
                 }
             );
         }
+        //считаем в метриках - создание аукциона
+        _auctionMetrics.AddAuction();
+        await _checkAuctionFinished.UpdateFinishTasks();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);

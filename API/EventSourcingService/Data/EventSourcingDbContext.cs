@@ -57,9 +57,6 @@ public class EventSourcingDbContext : DbContext
         string eventdata,
         string userLogin) =>
         FromExpression(() => edit_notification(correlationid, auctionid, eventdata, userLogin));
-    public IQueryable<ReturnResultSql> check_auction_finished(
-        Guid correlationid) =>
-        FromExpression(() => check_auction_finished(correlationid));
     public IQueryable<ReturnResultSql> restore_snap_shot_items(
         Guid correlationid,
         string eventdata,
@@ -73,7 +70,13 @@ public class EventSourcingDbContext : DbContext
         string eventdata,
         string userLogin) =>
         FromExpression(() => restore_snap_shot_images(correlationid, eventdata, userLogin));
-
+    public IQueryable<ReturnResultSql> set_auction_finished(
+        Guid correlationid,
+        Guid auctionId) =>
+        FromExpression(() => set_auction_finished(correlationid, auctionId));
+    public IQueryable<ReturnResultSql> get_auction_finished(
+        Guid correlationid) =>
+        FromExpression(() => get_auction_finished(correlationid));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,10 +90,11 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => index_elk(default, default));
         modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
         modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default));
-        modelBuilder.HasDbFunction(() => check_auction_finished(default));
+        modelBuilder.HasDbFunction(() => set_auction_finished(default, default));
         modelBuilder.HasDbFunction(() => restore_snap_shot_items(default, default, default));
         modelBuilder.HasDbFunction(() => restore_snap_shot_images(default, default, default));
         modelBuilder.HasDbFunction(() => reset_snap_shot(default));
+        modelBuilder.HasDbFunction(() => get_auction_finished(default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }

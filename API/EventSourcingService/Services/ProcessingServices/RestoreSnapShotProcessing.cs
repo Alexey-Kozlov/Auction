@@ -14,13 +14,15 @@ public class RestoreSnapShotProcessing
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
+    private readonly CheckAuctionFinished _checkAuctionFinished;
 
     public RestoreSnapShotProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
-        IConfiguration configuration)
+        IConfiguration configuration, CheckAuctionFinished checkAuctionFinished)
     {
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
         _configuration = configuration;
+        _checkAuctionFinished = checkAuctionFinished;
     }
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
@@ -39,7 +41,6 @@ public class RestoreSnapShotProcessing
             case nameof(RequestRestoreItems):
                 //В процедуре Postgres делаем:
                 //- запись в ES лог о выполнении восстановления БД из лога
-                //Формирование списка корректирующих записей:
                 //- набор записей о восстановлении записей ставок для сервисов BiddingService,FinanceService,NotificationService,
                 //SearchService. Для ImageService - отдельно
                 var result2 = await _dbContext.restore_snap_shot_items(
@@ -68,7 +69,7 @@ public class RestoreSnapShotProcessing
                 break;
         }
 
-
+        await _checkAuctionFinished.UpdateFinishTasks();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);

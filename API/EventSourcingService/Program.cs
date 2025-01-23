@@ -117,7 +117,8 @@ internal class Program
                     options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
                 })
             );
-
+        builder.Services.AddSingleton<CheckAuctionFinished>();
+        builder.Services.AddSingleton<IHostedService>(p => p.GetRequiredService<CheckAuctionFinished>());
         builder.Services.AddSingleton<AuctionMetrics>();
         builder.Services.AddScoped<ElkIndexProcessing>();
         builder.Services.AddScoped<AuctionDeleteProcessing>();
@@ -128,7 +129,6 @@ internal class Program
         builder.Services.AddScoped<BidPlaceProcessing>();
         builder.Services.AddScoped<EditNotificationProcessing>();
         builder.Services.AddScoped<RestoreSnapShotProcessing>();
-        builder.Services.AddHostedService<CheckAuctionFinished>();
         builder.Services.AddSingleton<RestoreImageService>();
 
         var app = builder.Build();

@@ -150,3 +150,9 @@ public class SetSnapShotComplete
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
 }
+
+public class AuctionFinishedData
+{
+    public Guid AuctionId { get; set; }
+    public DateTime AuctionEnd { get; set; }
+}

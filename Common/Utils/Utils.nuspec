@@ -9,15 +9,15 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Utils for Auction</description>
     <releaseNotes></releaseNotes>
-    <copyright>Copyright 2024</copyright>
+    <copyright>Copyright 2025</copyright>
     <tags>Utils</tags>
     <readme>docs\README.md</readme>
     <dependencies>
-      <group targetFramework=".NET8.0" />
+      <group targetFramework=".NET9.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\net8.0\Utils.dll" target="lib\net8.0" />
+    <file src="bin\Release\net9.0\Utils.dll" target="lib\net9.0" />
     <file src="README.md" target="docs" />
 </files>
 </package>
