@@ -68,6 +68,7 @@ public class AuctionUpdateProcessing
         //Формирование списка корректирующих записей:
         //- запись созданного аукциона - для обновления в сервисе SearchService
         //- запись изображения (если было)
+
         var result = await _dbContext.auction_update(
                             context.Message.CorrelationId,
                             context.Message.AuctionId ?? Guid.NewGuid(),
@@ -83,17 +84,22 @@ public class AuctionUpdateProcessing
         foreach (var item in result)
         {
             listItems.DataObjects.Add
-                    (
-                        new DataForProcessingService
-                        {
-                            DataType = item.entitytype,
-                            Data = item.eventdata,
-                            CRUD = (CRUD)item.crud
-                        }
-                    );
+            (
+                new DataForProcessingService
+                {
+                    DataType = item.entitytype,
+                    Data = item.eventdata,
+                    CRUD = (CRUD)item.crud
+                }
+            );
+            if (item.entitytype == "AuctionItem")
+            {
+                var auction = JsonSerializer.Deserialize<AuctionItem>(item.eventdata);
+                await _checkAuctionFinished.UpdateFinishTasks(auction.AuctionId,
+                    auction.AuctionEnd, CRUD.Update);
+            }
         }
         _auctionMetrics.UpdateAuction();
-        await _checkAuctionFinished.UpdateFinishTasks();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);

@@ -14,7 +14,7 @@ public class CheckAuctionFinished : BackgroundService
 {
     private readonly IServiceProvider _services;
     private readonly AuctionMetrics _auctionMetrics;
-    private CancellationTokenSource cancelTokenSource;
+    private ConcurrentDictionary<Guid, CancellationTokenSource> tokens = new();
 
     public CheckAuctionFinished(IServiceProvider services, AuctionMetrics auctionMetrics)
     {
@@ -23,24 +23,22 @@ public class CheckAuctionFinished : BackgroundService
     }
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        cancelTokenSource = new CancellationTokenSource();
-        CancellationToken token = cancelTokenSource.Token;
         //получаем даты, когда должны завершиться аукционы
         //заполняем список задач на завершение и запускаем задания на завершение 
         //при наступлении даты завершения аукциона
-        var tasks = new ConcurrentBag<Task>();
-        foreach (var auction in GetAuctionsFinished())
+        foreach (var auction in GetAuctionsToFinish())
         {
-            var tsk = Task.Run(async () =>
+            var cancelTokenSource = new CancellationTokenSource();
+            tokens[auction.AuctionId] = cancelTokenSource;
+            Task.Run(async () =>
             {
-                await FinishAuction(token, auction);
-            }, token);
-            tasks.Add(tsk);
+                await DelayFinishAuction(tokens[auction.AuctionId].Token, auction);
+            }, tokens[auction.AuctionId].Token);
         }
         return Task.CompletedTask;
     }
 
-    private async Task FinishAuction(CancellationToken ct, AuctionFinishedData auctionData)
+    private async Task DelayFinishAuction(CancellationToken ct, AuctionFinishedData auctionData)
     {
         long delay = (long)(auctionData.AuctionEnd - DateTime.UtcNow).TotalMilliseconds;
         //на долгих периодах длительности - количество миллисекунд превышает максимальное значение
@@ -99,7 +97,7 @@ public class CheckAuctionFinished : BackgroundService
     }
 
     //получаем список дат окончания всех аукционов
-    private List<AuctionFinishedData> GetAuctionsFinished()
+    private List<AuctionFinishedData> GetAuctionsToFinish()
     {
         var finishedList = new List<AuctionFinishedData>();
         using (var scope = _services.CreateAsyncScope())
@@ -120,12 +118,28 @@ public class CheckAuctionFinished : BackgroundService
         return finishedList;
     }
 
-    public async Task UpdateFinishTasks()
+    public Task UpdateFinishTasks(Guid auctionId, DateTime auctionEnd, CRUD operationType)
     {
-        //отменяем ВСЕ ранее созданные задачи
-        await cancelTokenSource.CancelAsync();
-        //создаем новые, по новым данным аукционов        
-        await ExecuteAsync(new CancellationTokenSource().Token);
+        //отменяем ранее созданную задачу для указанного аукциона
+        if (tokens.ContainsKey(auctionId))
+        {
+            tokens[auctionId].Cancel();
+        }
+
+        if (operationType == CRUD.Delete) return Task.CompletedTask;
+        //создаем новую задачу (в случае создания или обновления аукциона)
+        tokens[auctionId] = new CancellationTokenSource();
+        var auction = new AuctionFinishedData
+        {
+            AuctionId = auctionId,
+            AuctionEnd = auctionEnd
+        };
+        Task.Run(async () =>
+        {
+            await DelayFinishAuction(tokens[auctionId].Token, auction);
+        }, tokens[auctionId].Token);
+
+        return Task.CompletedTask;
     }
 
 }

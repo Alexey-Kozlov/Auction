@@ -39,9 +39,10 @@ public class AuctionDeleteProcessing
         //- если были - запись обновления денежного баланса - для обновления баланса в сервисе FinanceService у соответствующего пользователя
         //- если были - записи удаленных ставок - для удаления из сервиса BiddingService
         //- если были - записи удаленных уведомлений - для удаления из сервиса NotificationService
+        var auctionId = context.Message.AuctionId ?? Guid.NewGuid();
         var result = await _dbContext.auction_delete(
             context.Message.CorrelationId,
-            context.Message.AuctionId ?? Guid.NewGuid(),
+            auctionId,
             context.Message.UserLogin).ToListAsync();
         //возвращаем список записей для изменения соответствующих БД в нужных сервисах
         var listItems = new DataForProcessingServicesList
@@ -61,7 +62,7 @@ public class AuctionDeleteProcessing
             );
         }
         _auctionMetrics.DeleteAuction();
-        await _checkAuctionFinished.UpdateFinishTasks();
+        await _checkAuctionFinished.UpdateFinishTasks(auctionId, DateTime.UtcNow, CRUD.Delete);
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);

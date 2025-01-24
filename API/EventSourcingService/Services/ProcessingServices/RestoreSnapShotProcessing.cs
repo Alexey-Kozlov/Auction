@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Image;
 using Common.Contracts.Processing;
@@ -43,12 +44,12 @@ public class RestoreSnapShotProcessing
                 //- запись в ES лог о выполнении восстановления БД из лога
                 //- набор записей о восстановлении записей ставок для сервисов BiddingService,FinanceService,NotificationService,
                 //SearchService. Для ImageService - отдельно
-                var result2 = await _dbContext.restore_snap_shot_items(
+                var result = await _dbContext.restore_snap_shot_items(
                     context.Message.CorrelationId,
                     context.Message.EventData,
                     context.Message.UserLogin).ToListAsync();
                 //возвращаем список записей для изменения соответствующих БД в нужных сервисах
-                foreach (var item in result2)
+                foreach (var item in result)
                 {
                     listItems.DataObjects.Add
                     (
@@ -59,6 +60,12 @@ public class RestoreSnapShotProcessing
                             CRUD = (CRUD)item.crud
                         }
                     );
+                    if (item.entitytype == "AuctionItem")
+                    {
+                        var auction = JsonSerializer.Deserialize<AuctionItem>(item.eventdata);
+                        await _checkAuctionFinished.UpdateFinishTasks(auction.AuctionId,
+                         auction.AuctionEnd, CRUD.Create);
+                    }
                 }
                 break;
             case nameof(RequestRestoreImages):
@@ -69,7 +76,6 @@ public class RestoreSnapShotProcessing
                 break;
         }
 
-        await _checkAuctionFinished.UpdateFinishTasks();
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
