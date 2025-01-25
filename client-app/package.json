@@ -3,7 +3,6 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@babel/plugin-proposal-private-property-in-object": "^7.21.0",
 		"@microsoft/signalr": "^8.0.7",
 		"@reduxjs/toolkit": "^2.5.0",
 		"@tailwindcss/aspect-ratio": "^0.4.2",
@@ -56,5 +55,8 @@
 			"last 1 firefox version",
 			"last 1 safari version"
 		]
+	},
+	"devDependencies": {
+		"@babel/plugin-transform-private-property-in-object": "^7.25.9"
 	}
 }
