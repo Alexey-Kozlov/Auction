@@ -16,35 +16,35 @@ import { useEffect, useState } from "react";
 import ShowEventsPopUp from "./components/services/ShowEventsPopUp";
 
 function App() {
-  const user: User = useSelector((state: RootState) => state.authStore);
+	const user: User = useSelector((state: RootState) => state.authStore);
+	// eslint-disable-next-line
+	const [userChange, setUserChange] = useState<User>();
 
-  const [userChange, setUserChange] = useState<User>();
+	//для обновления экрана при смене пользователя
+	useEffect(() => {
+		setUserChange(user);
+	}, [user]);
 
-  useEffect(() =>{
-    setUserChange(user);
-  },[user]);
-
-  return (
-    <div>
-      <ToasterProvider />
-      <NavBar />
-      <div className="container mx-auto px-5 pt-10">
-        <Routes>
-          <Route path="/" element={<Listings />}></Route>
-          <Route path="/register" element={<Register />}></Route>
-          <Route path="/login" element={<Login />}></Route>
-          <Route path="/auctions/create" element={<AuctionForm />}></Route>
-          <Route path="/auctions/edit/:id" element={<AuctionForm />}></Route>
-          <Route path="/auctions/:id" element={<Detail />}></Route>
-          <Route path="/finance/list" element={<FinListings />}></Route>
-          <Route path="/not-found" element={<NotFound />}></Route>
-        </Routes>
-        <SignalRProvider />
-        <ShowEventsPopUp />
-
-      </div>
-    </div>
-  );
+	return (
+		<div>
+			<ToasterProvider />
+			<NavBar />
+			<div className="container mx-auto px-5 pt-10">
+				<Routes>
+					<Route path="/" element={<Listings />}></Route>
+					<Route path="/register" element={<Register />}></Route>
+					<Route path="/login" element={<Login />}></Route>
+					<Route path="/auctions/create" element={<AuctionForm />}></Route>
+					<Route path="/auctions/edit/:id" element={<AuctionForm />}></Route>
+					<Route path="/auctions/:id" element={<Detail />}></Route>
+					<Route path="/finance/list" element={<FinListings />}></Route>
+					<Route path="/not-found" element={<NotFound />}></Route>
+				</Routes>
+				<SignalRProvider />
+				<ShowEventsPopUp />
+			</div>
+		</div>
+	);
 }
 
 export default App;

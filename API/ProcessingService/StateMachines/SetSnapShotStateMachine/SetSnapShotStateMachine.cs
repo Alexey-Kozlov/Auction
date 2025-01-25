@@ -70,7 +70,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 5).ToString()
+                    Props = (context.Saga.ProgressCurrent = 5).ToString() + ";false"
                 })
         //запрос батчей изображений
             .Send(
@@ -130,7 +130,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 lock (locker)
                 {
                     context.Saga.BatchCounter--;
-                    context.Saga.ProgressCurrent = 5 + ((context.Saga.AllItemsCount - context.Saga.BatchCounter) * 90 / context.Saga.AllItemsCount);
+                    context.Saga.ProgressCurrent = 5 + ((context.Saga.AllItemsCount - context.Saga.BatchCounter) * 85 / context.Saga.AllItemsCount);
                 }
             }))
 
@@ -154,7 +154,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = context.Saga.ProgressCurrent.ToString()
+                    Props = context.Saga.ProgressCurrent.ToString() + ";false"
                 })
 
             //закончили прием изображений, переходим на обработку ставок
@@ -179,7 +179,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent += 2).ToString()
+                    Props = (context.Saga.ProgressCurrent += 2).ToString() + ";false"
                 })
             //получение ставок (если есть) из сервиса BiddingService
             .Send(
@@ -208,7 +208,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent += 2).ToString()
+                    Props = (context.Saga.ProgressCurrent += 2).ToString() + ";false"
                 })
             //получение записей финансов (если есть) из сервиса FinanceService
             .Send(
@@ -237,7 +237,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent += 2).ToString()
+                    Props = (context.Saga.ProgressCurrent += 2).ToString() + ";false"
                 })
             //получение записей аукционов из сервиса SearchService
             .Send(
@@ -266,7 +266,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 100).ToString()
+                    Props = (context.Saga.ProgressCurrent = 100).ToString() + ";true"
                 })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(

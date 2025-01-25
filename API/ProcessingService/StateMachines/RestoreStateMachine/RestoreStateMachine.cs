@@ -102,7 +102,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 5).ToString()
+                    Props = (context.Saga.ProgressCurrent = 5).ToString() + ";false"
                 })
             // посылаем через Кафку - получение из ES лог всех записей (кроме изображений) 
             // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,SearchService
@@ -126,7 +126,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
                         CallBackType = context.Saga.SessionId,
-                        Props = "-1"
+                        Props = "-1" + ";true"
                     })
                 .Send(
                     new Uri(configuration["QueuePaths:RestoreNotificationConsumer"]),
@@ -204,7 +204,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 DataObjects = new List<DataForProcessingService>(),
                 CorrelationId = context.Saga.CorrelationId,
                 CallBackType = context.Saga.SessionId,
-                Props = context.Saga.ProgressCurrent.ToString()
+                Props = context.Saga.ProgressCurrent.ToString() + ";false"
             })
         //конец обработки изображений - переходим для обработки текстовых соображений
         .If(context => context.Saga.AllItemsCount == context.Saga.ItemsCount,
@@ -231,7 +231,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 80).ToString()
+                    Props = (context.Saga.ProgressCurrent = 80).ToString() + ";false"
                 })
             //Обновление ставок (если есть) в сервисе BiddingService
             .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "BidItem"),
@@ -267,7 +267,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 85).ToString()
+                    Props = (context.Saga.ProgressCurrent = 85).ToString() + ";false"
                 })
             //Обновление денег (если есть) в сервисе FinanceService
             .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "FinanceItem"),
@@ -303,7 +303,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 90).ToString()
+                    Props = (context.Saga.ProgressCurrent = 90).ToString() + ";false"
                 })
             //Обновление записей аукционов (если есть) в сервисе SearchService
             .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "AuctionItem"),
@@ -339,7 +339,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 95).ToString()
+                    Props = (context.Saga.ProgressCurrent = 95).ToString() + ";false"
                 })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(
@@ -365,7 +365,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = "100"
+                    Props = "100" + ";true"
                 })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())

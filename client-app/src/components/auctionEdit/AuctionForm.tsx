@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Heading from "../auctionList/Heading";
 import { useNavigate, useParams } from "react-router-dom";
-import { Formik, Form, ErrorMessage, useFormik } from "formik";
+import { Formik, Form, ErrorMessage } from "formik";
 import TextInput from "../inputComponents/TextInput";
 import * as Yup from "yup";
 import {
