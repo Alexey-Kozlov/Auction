@@ -4,15 +4,16 @@ import { FaTrashRestoreAlt } from "react-icons/fa";
 import { RiRestartFill } from "react-icons/ri";
 import { RiAuctionFill } from "react-icons/ri";
 import { HiUser } from "react-icons/hi2";
+import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
+import { GrMoney } from "react-icons/gr";
+import { HiOutlineDocumentReport } from "react-icons/hi";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Message, ModalParams, User } from "../../store/types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import { setParams } from "../../store/paramSlice";
-import { GrMoney } from "react-icons/gr";
 import { setEventFlag } from "../../store/processingSlice";
-import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import InfoMessageToast from "../signalRNotifications/InfoMessageToast";
 import toast from "react-hot-toast";
 import ModalConfirm from "../modals/ModalConfirm";
@@ -119,7 +120,6 @@ export default function UserActions() {
 				});
 			}
 		}
-
 		setShowConfirm(false);
 		setConfirmResult(undefined);
 		// eslint-disable-next-line
@@ -182,6 +182,10 @@ export default function UserActions() {
 						</Dropdown.Item>
 					</>
 				)}
+				<Dropdown.Divider />
+				<a href={process.env.REACT_APP_REPORT_URL}>
+					<Dropdown.Item icon={HiOutlineDocumentReport}>Отчеты</Dropdown.Item>
+				</a>
 				<Dropdown.Divider />
 				<Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>
 					Выход
