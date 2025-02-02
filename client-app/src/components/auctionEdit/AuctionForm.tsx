@@ -24,7 +24,6 @@ import {
 	useUpdateAuctionMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import React from "react";
 import toast from "react-hot-toast";
 import ErrorMessageToast from "../signalRNotifications/ErrorMessageToast";
 
