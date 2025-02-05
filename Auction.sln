@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestService", "API\TestServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollectNugetPackages", "Common\CollectNugetPackages\CollectNugetPackages.csproj", "{80E6681F-BD5E-43F6-BB45-412AFA2734BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportService", "API\ReportService\ReportService.csproj", "{42CF843D-ED1C-4D4B-BB5E-3628AC3F0583}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,10 @@ Global
 		{80E6681F-BD5E-43F6-BB45-412AFA2734BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80E6681F-BD5E-43F6-BB45-412AFA2734BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80E6681F-BD5E-43F6-BB45-412AFA2734BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42CF843D-ED1C-4D4B-BB5E-3628AC3F0583}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42CF843D-ED1C-4D4B-BB5E-3628AC3F0583}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42CF843D-ED1C-4D4B-BB5E-3628AC3F0583}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42CF843D-ED1C-4D4B-BB5E-3628AC3F0583}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,5 +122,6 @@ Global
 		{16DFA5B9-7EAD-4533-9332-762C79D188B7} = {C7B7F817-2E49-4A94-B34C-ED8AB2ECD4A4}
 		{E2602201-1D5E-4D74-ADD4-33C40EA4595A} = {C7B7F817-2E49-4A94-B34C-ED8AB2ECD4A4}
 		{80E6681F-BD5E-43F6-BB45-412AFA2734BB} = {D20F5E5C-1633-4313-9E20-9C03C318978D}
+		{42CF843D-ED1C-4D4B-BB5E-3628AC3F0583} = {C7B7F817-2E49-4A94-B34C-ED8AB2ECD4A4}
 	EndGlobalSection
 EndGlobal

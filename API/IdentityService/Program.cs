@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using IdentityService.Data;
-using Common.Utils;
 using IdentityService.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +10,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>

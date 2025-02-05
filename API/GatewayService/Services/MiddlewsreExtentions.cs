@@ -1,3 +1,4 @@
+using Common.Contracts;
 using Common.Utils;
 using GatewayService.Cache;
 using GatewayService.Models;

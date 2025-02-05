@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using IdentityService.Models;
-using Common.Utils;
 using IdentityService.Services;
+using Common.Contracts;
 
 namespace IdentityService.Controllers;
 

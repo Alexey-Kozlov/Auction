@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Common.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

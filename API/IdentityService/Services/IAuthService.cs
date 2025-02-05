@@ -1,4 +1,4 @@
-using Common.Utils;
+using Common.Contracts;
 using IdentityService.Models;
 
 namespace IdentityService.Services;
@@ -8,4 +8,5 @@ public interface IAuthService
     Task<ApiResponse<LoginResponseDTO>> Login(LoginRequestDTO loginRequestDTO);
     Task<ApiResponse<string>> GetUserName(GetUserNameDTO dto);
     Task<ApiResponse<object>> SetPassword(LoginRequestDTO dto);
-} 
+}
+

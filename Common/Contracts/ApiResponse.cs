@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Common.Utils;
+namespace Common.Contracts;
 
 [Serializable]
 public class ApiResponse<T>

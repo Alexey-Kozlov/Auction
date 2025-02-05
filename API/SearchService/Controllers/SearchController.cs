@@ -1,5 +1,6 @@
+using Common.Contracts;
 using Common.Contracts.Auction;
-using Common.Utils;
+using Common.Contracts.Report;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.DTO;
 
@@ -35,5 +36,11 @@ public class SearchController : ControllerBase
 
         //а здесь обычный SQL-поиск с точным частичным вхождением поисковой последовательности в поля title, properties
         return await _search.SqlSearchItems(searchParams);
+    }
+
+    [HttpPost("GetAuctionItemsByQuery")]
+    public async Task<List<AuctionItem>> GetAuctionItemsByQuery(ReportParamsDTO dto)
+    {
+        return await _search.GetAuctionItemsByQuery(dto.Expression);
     }
 }

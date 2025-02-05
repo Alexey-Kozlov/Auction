@@ -1,8 +1,8 @@
 using System.Text.Json;
+using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
-using Common.Utils;
 using MassTransit;
 
 namespace ProcessingService.StateMachines.ElkSearchStateMachine;

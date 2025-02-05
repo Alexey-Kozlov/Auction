@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
+using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
-using Common.Utils;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using ElasticSearchService.Services;
@@ -50,7 +50,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
                         )
                     )
                 )
-                
+
             )
         );
         var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s => s
@@ -102,7 +102,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
             IsSuccess = true,
             Result = new PagedResult<List<AuctionCreatingElk>>()
             {
-                Results = elkResponse.IsValidResponse ?  elkResponse.Documents.ToList() :  new List<AuctionCreatingElk>(),
+                Results = elkResponse.IsValidResponse ? elkResponse.Documents.ToList() : new List<AuctionCreatingElk>(),
                 PageCount = pageCount,
                 TotalCount = itemsCount
             }

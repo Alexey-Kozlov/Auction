@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
+using Common.Contracts;
 using Common.Contracts.Finance;
-using Common.Utils;
 using FinanceService.Data;
 using FinanceService.DTO;
 using MassTransit;

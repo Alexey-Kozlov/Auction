@@ -1,5 +1,5 @@
-﻿using Common.Contracts.Auction;
-using Common.Utils;
+﻿using Common.Contracts;
+using Common.Contracts.Auction;
 
 namespace SearchService.Services;
 

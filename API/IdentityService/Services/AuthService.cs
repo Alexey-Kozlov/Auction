@@ -1,5 +1,4 @@
 using IdentityService.Models;
-using Common.Utils;
 using IdentityService.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -9,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
+using Common.Contracts;
 
 namespace IdentityService.Services;
 public class AuthService : IAuthService

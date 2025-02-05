@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Security.Claims;
+using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.ELKSearch;
@@ -7,7 +8,6 @@ using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
-using Common.Utils;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

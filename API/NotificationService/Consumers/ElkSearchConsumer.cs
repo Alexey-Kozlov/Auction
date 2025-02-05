@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
-using Common.Utils;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.Hubs;

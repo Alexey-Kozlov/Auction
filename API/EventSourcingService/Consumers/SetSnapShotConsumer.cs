@@ -7,6 +7,7 @@ using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
+using Common.Utils.Extentions;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
 using EventSourcingService.Services;

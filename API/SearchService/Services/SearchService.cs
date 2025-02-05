@@ -1,10 +1,12 @@
+using System.Linq.Expressions;
+using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
-using Common.Utils;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
 using SearchService.DTO;
+using Serialize.Linq.Serializers;
 
 namespace SearchService.Services;
 
@@ -109,5 +111,13 @@ public class SearchService
             StatusCode = System.Net.HttpStatusCode.OK,
             Result = item
         };
+    }
+
+    public async Task<List<AuctionItem>> GetAuctionItemsByQuery(string queryText)
+    {
+        var serializer = new ExpressionSerializer(new JsonSerializer());
+        var expression = serializer.DeserializeText(queryText) as Expression<Func<AuctionItem, bool>>;
+        var _query = _context.AuctionItems.Where(expression);
+        return await _query.ToListAsync();
     }
 }
