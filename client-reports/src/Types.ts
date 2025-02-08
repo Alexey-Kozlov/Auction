@@ -25,3 +25,15 @@ export type ParameterSelect = {
 	Value: string;
 	Default: boolean;
 };
+
+export type ApiResponseNet<T> = {
+	statusCode: number;
+	isSuccess: boolean;
+	errorMessages: Array<string>;
+	result: T;
+};
+
+export type ApiResponse<T> = {
+	data?: ApiResponseNet<T>;
+	error?: any;
+};

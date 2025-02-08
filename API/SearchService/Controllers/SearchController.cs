@@ -39,8 +39,9 @@ public class SearchController : ControllerBase
     }
 
     [HttpPost("GetAuctionItemsByQuery")]
-    public async Task<List<AuctionItem>> GetAuctionItemsByQuery(ReportParamsDTO dto)
+    public async Task<ApiResponse<List<AuctionItem>>> GetAuctionItemsByQuery(ReportParamsDTO dto)
     {
         return await _search.GetAuctionItemsByQuery(dto.Expression);
     }
+
 }

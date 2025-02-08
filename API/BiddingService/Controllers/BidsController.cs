@@ -40,11 +40,20 @@ public class BidsController : ControllerBase
     }
 
     [HttpPost("GetBidItemsByQuery")]
-    public async Task<List<BidItem>> GetAuctionItemsByQuery(ReportParamsDTO dto)
+    public async Task<ApiResponse<List<BidItem>>> GetAuctionItemsByQuery(ReportParamsDTO dto)
     {
-        var serializer = new ExpressionSerializer(new JsonSerializer());
+        var serializer = new ExpressionSerializer(new JsonSerializer())
+        {
+            AutoAddKnownTypesAsListTypes = true
+        };
         var expression = serializer.DeserializeText(dto.Expression) as Expression<Func<BidItem, bool>>;
-        var _query = _context.Bids.Where(expression);
-        return await _query.ToListAsync();
+        var items = await _context.Bids.Where(expression).ToListAsync();
+        return new ApiResponse<List<BidItem>>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = items
+        };
+
     }
 }

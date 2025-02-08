@@ -1,6 +1,6 @@
 import React from "react";
-import Menu from "./menu";
-import BreadCrumb from "./breadCrumb";
+import Menu from "./Menu";
+import BreadCrumb from "./BreadCrumb";
 
 export default function Header() {
 	return (

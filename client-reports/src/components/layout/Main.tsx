@@ -1,4 +1,4 @@
-import AuctionList from "../reports/auctionList/auctionList";
+import AuctionList from "../reports/auctionList/AuctionList";
 import { useParams } from "react-router-dom";
 import TestItem from "../reports/testItem/testItem";
 

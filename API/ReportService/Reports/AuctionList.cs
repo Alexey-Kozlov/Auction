@@ -1,12 +1,15 @@
 using System.Linq.Expressions;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
-using Common.Utils.Extentions;
 using ReportService.Services;
+using ReportService.DTO;
 using Serialize.Linq.Serializers;
+using System.Runtime.Serialization;
+using Common.Utils.Extentions;
 
 namespace ReportService.Reports;
 
+[KnownType(typeof(List<Guid>))]
 public class AuctionList
 {
     private readonly IServiceProvider _services;
@@ -15,54 +18,83 @@ public class AuctionList
         _services = services;
     }
 
-    public async Task<List<AuctionItem>> GetAuctionItems()
+    public async Task<string> GetAuctionItems(ParamItem[] param)
     {
-        var serializer = new ExpressionSerializer(new JsonSerializer());
+        var serializer = new ExpressionSerializer(new JsonSerializer())
+        {
+            AutoAddKnownTypesAsListTypes = true
+        };
         using var scope = _services.CreateScope();
         var httpClient = scope.ServiceProvider.GetRequiredService<HttpClientService>();
 
+        //получаем список аукционов для заданного автора аукциона
         var auctionTask = Task.Run(() =>
         {
-            Expression<Func<AuctionItem, bool>> auctionExp = item => item.Seller == "admin";
+            var par = param.FirstOrDefault(p => p.Id == "Seller").Value;
+            Expression<Func<AuctionItem, bool>> auctionExp = item => item.Seller == par;
             var auctionExp_text = serializer.SerializeText(auctionExp);
             return httpClient.GetAuctionItems(auctionExp_text);
         });
+        var auctions = await auctionTask;
 
-        var bidTask = Task.Run(() =>
+        //если был указан параметр "Указывать ставки по лоту" - делаем дополнительный запрос к микросервису ставок
+        var showBids = param.FirstOrDefault(p => p.Id == "ShowBids").Value;
+        if (Boolean.Parse(showBids))
         {
-            Expression<Func<BidItem, bool>> bidExp = item => item.Bidder == "alice";
-            var bidExp_text = serializer.SerializeText(bidExp);
-            return httpClient.GetBidItems(bidExp_text);
-        });
-
-
-        await Task.WhenAll(auctionTask, bidTask);
-        var auctions = auctionTask.Result;
-        var bids = bidTask.Result;
-
-        var result = from auctions1 in auctions
-                     join bids1 in bids
-                     on auctions1.AuctionId equals bids1.AuctionId
-                     select new
-                     {
-                         Auction = auctions1.AuctionId,
-                         User = bids1.Bidder,
-                         Title = auctions1.Title
-                     };
-
-        var result2 = auctions.LeftOuterJoin(
-            bids,
-            leftKey => leftKey.AuctionId,
-            rightKey => rightKey.AuctionId,
-            (leftKey, rightKey) => new
+            var ids = auctions.Result.Select(p => p.AuctionId).ToList();
+            var bidTask = Task.Run(() =>
             {
-                AuctionId = leftKey.AuctionId,
-                User = rightKey == null ? "" : rightKey.Bidder,
-                Title = leftKey.Title
-            }
+                var filterField = "AuctionId";
+                var eParam = Expression.Parameter(typeof(BidItem), "e");
+                var method = ids.GetType().GetMethod("Contains");
+                var call = Expression.Call(Expression.Constant(ids), method, Expression.Property(eParam, filterField));
+                var bidExp = Expression.Lambda<Func<BidItem, bool>>(call, eParam);
+                var bidExp_text = serializer.SerializeText(bidExp);
+                return httpClient.GetBidItems(bidExp_text);
+            });
+            var bids = await bidTask;
+
+            var result = auctions.Result.LeftOuterJoin(
+                bids.Result,
+                leftKey => leftKey.AuctionId,
+                rightKey => rightKey.AuctionId,
+                (auction, bid) => new
+                {
+                    AuctionId = auction.AuctionId,
+                    Seller = auction.Seller,
+                    Bidder = bid == null ? "" : bid.Bidder,
+                    Amount = bid == null ? 0 : bid.Amount,
+                    Title = auction.Title
+                }
+            );
+            return System.Text.Json.JsonSerializer.Serialize(result, result.GetType());
+        }
+
+        var result1 = auctions.Result.Select(p => new
+        {
+            AuctionId = p.AuctionId,
+            Seller = p.Seller,
+            Title = p.Title
+        }
         );
+        return System.Text.Json.JsonSerializer.Serialize(result1, result1.GetType());
 
-        return null;
+
+
+
+        // var result = from auctions1 in auctions
+        //              join bids1 in bids
+        //              on auctions1.AuctionId equals bids1.AuctionId
+        //              select new
+        //              {
+        //                  Auction = auctions1.AuctionId,
+        //                  User = bids1.Bidder,
+        //                  Title = auctions1.Title
+        //              };
+
+
+
     }
-}
 
+
+}

@@ -113,11 +113,19 @@ public class SearchService
         };
     }
 
-    public async Task<List<AuctionItem>> GetAuctionItemsByQuery(string queryText)
+    public async Task<ApiResponse<List<AuctionItem>>> GetAuctionItemsByQuery(string queryText)
     {
-        var serializer = new ExpressionSerializer(new JsonSerializer());
+        var serializer = new ExpressionSerializer(new JsonSerializer())
+        {
+            AutoAddKnownTypesAsListTypes = true
+        };
         var expression = serializer.DeserializeText(queryText) as Expression<Func<AuctionItem, bool>>;
-        var _query = _context.AuctionItems.Where(expression);
-        return await _query.ToListAsync();
+        var items = await _context.AuctionItems.Where(expression).ToListAsync();
+        return new ApiResponse<List<AuctionItem>>
+        {
+            IsSuccess = true,
+            StatusCode = System.Net.HttpStatusCode.OK,
+            Result = items
+        };
     }
 }

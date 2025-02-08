@@ -1,6 +1,6 @@
 import React from "react";
-import { ReportItem } from "../../types";
-import ReportCard from "../reportCard";
+import { ReportItem } from "../../Types";
+import ReportCard from "../ReportCard";
 
 export default function List() {
 	const reportsList: ReportItem[] = [

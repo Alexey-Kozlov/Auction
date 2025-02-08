@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { ParameterItem, ParameterSelect, ParameterType } from "../../types";
+import { ParameterItem, ParameterSelect, ParameterType } from "../../Types";
 import { Button } from "flowbite-react";
+import { useDispatch } from "react-redux";
+import { setData, setParam } from "../../store/reportSlice";
 
 type Props = {
 	params: ParameterItem[];
+	reportName: string;
 };
 
-export default function SlidePanel({ params }: Props) {
+export default function SlidePanel({ params, reportName }: Props) {
 	const [isOpen, setIsOpen] = useState(true);
 	const [paramValue, setParamValue] = useState<string[]>([]);
 
 	useEffect(() => {
-		let paramObj: string[] = [];
+		let paramVal: string[] = [];
 		params.forEach((item, index) => {
-			paramObj[index] = item.Value;
+			paramVal[index] = item.Value;
 		});
-		setParamValue(paramObj);
+		setParamValue(paramVal);
 		// eslint-disable-next-line
 	}, []);
 
@@ -81,7 +84,6 @@ export default function SlidePanel({ params }: Props) {
 				name={item.Id}
 				value={paramValue![index]}
 				onChange={(p) => {
-					if (!p.target.value) return;
 					setParamValue((st) => {
 						st[index] = p.target.value;
 						return [...st];
@@ -90,10 +92,21 @@ export default function SlidePanel({ params }: Props) {
 			/>
 		);
 	};
-	const reportSubmit = () => {
-		alert(paramValue);
+
+	const SetParams = (paramList: string[]): ParameterItem[] => {
+		let tmp = structuredClone(params);
+		paramList.forEach((item, index) => {
+			tmp[index].Value = paramList[index];
+		});
+		return tmp;
+	};
+	const dispatch = useDispatch();
+	const reportSubmit = async () => {
+		const prm = SetParams(paramValue);
+		dispatch(setParam({ param: prm }));
 		setIsOpen(false);
 	};
+
 	return (
 		<div>
 			<input
@@ -108,7 +121,7 @@ export default function SlidePanel({ params }: Props) {
 					className="nav-toggle"
 					onClick={() => setIsOpen((p) => !p)}
 				></label>
-				<h2>Параметры</h2>
+				<h2>Параметры отчета "{reportName}"</h2>
 				<div className="grid grid-cols-2">
 					{paramValue &&
 						paramValue!.length !== 0 &&

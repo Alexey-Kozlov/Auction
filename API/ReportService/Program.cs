@@ -16,10 +16,11 @@ builder.Configuration.AddVault(options =>
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
 builder.Services.AddControllers();
+builder.Services.AddCors();
 builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
 var app = builder.Build();
-
+app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

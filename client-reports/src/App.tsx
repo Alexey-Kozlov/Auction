@@ -1,8 +1,8 @@
 import { Route, Routes } from "react-router-dom";
-import ReportFooter from "./components/layout/reportFooter";
-import Header from "./components/layout/header/header";
-import Main from "./components/layout/main";
-import List from "./components/layout/list";
+import ReportFooter from "./components/layout/ReportFooter";
+import Header from "./components/layout/header/Header";
+import Main from "./components/layout/Main";
+import List from "./components/layout/List";
 
 function App() {
 	return (

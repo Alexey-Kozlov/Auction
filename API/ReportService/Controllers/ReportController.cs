@@ -1,5 +1,7 @@
 using System.Linq.Expressions;
+using Common.Contracts.Report;
 using Microsoft.AspNetCore.Mvc;
+using ReportService.DTO;
 using ReportService.Services;
 
 namespace ReportService.Controllers;
@@ -8,17 +10,17 @@ namespace ReportService.Controllers;
 [Route("api/report")]
 public class ReportController : ControllerBase
 {
-    private readonly GetDataService _report;
+    private readonly GetDataService _reportService;
 
-    public ReportController(GetDataService report)
+    public ReportController(GetDataService reportService)
     {
-        _report = report;
+        _reportService = reportService;
     }
 
-    [HttpGet("AuctionList")]
-    public async Task AuctionList()
+    [HttpPost("auctionlist")]
+    public async Task<string> AuctionList([FromBody] ParamItem[] param)
     {
-        await _report.GetAuctionListData();
+        return await _reportService.GetAuctionListData(param);
     }
 
 }

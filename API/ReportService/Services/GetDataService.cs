@@ -1,7 +1,5 @@
-using System.Linq.Expressions;
-using Common.Contracts.Auction;
+using ReportService.DTO;
 using ReportService.Reports;
-using Serialize.Linq.Serializers;
 
 namespace ReportService.Services;
 
@@ -13,9 +11,8 @@ public class GetDataService
         _auctionList = auctionList;
     }
 
-    public async Task GetAuctionListData()
+    public async Task<string> GetAuctionListData(ParamItem[] param)
     {
-        var items = await _auctionList.GetAuctionItems();
-
+        return await _auctionList.GetAuctionItems(param);
     }
 }
