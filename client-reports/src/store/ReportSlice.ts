@@ -11,7 +11,7 @@ const initialState: State = {
 	param: [],
 };
 
-export const reportSlice = createSlice({
+export const ReportSlice = createSlice({
 	name: "report",
 	initialState: initialState,
 	reducers: {
@@ -25,6 +25,6 @@ export const reportSlice = createSlice({
 	},
 });
 
-export const { setData, setParam } = reportSlice.actions;
+export const { setData, setParam } = ReportSlice.actions;
 
-export const reportReducer = reportSlice.reducer;
+export const reportReducer = ReportSlice.reducer;

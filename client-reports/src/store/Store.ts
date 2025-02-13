@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import ReportApi from "../api/ReportApi";
-import { reportReducer } from "./reportSlice";
+import { reportReducer } from "./ReportSlice";
+import { eventReducer } from "./EventSlice";
 
-const store = configureStore({
+const Store = configureStore({
 	reducer: {
 		reportStore: reportReducer,
+		eventStore: eventReducer,
 		[ReportApi.reducerPath]: ReportApi.reducer,
 	},
 	middleware: (getDefaultMiddleware) =>
@@ -13,5 +15,5 @@ const store = configureStore({
 		}).concat(ReportApi.middleware),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
-export default store;
+export type RootState = ReturnType<typeof Store.getState>;
+export default Store;

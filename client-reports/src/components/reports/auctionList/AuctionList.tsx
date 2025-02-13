@@ -4,27 +4,25 @@ import RenderReport from "./RenderReport";
 
 export default function AuctionList() {
 	return (
-		<div className="mt-16">
-			<div>
-				<RenderReport reportId="AuctionList" />
-				<SlidePanel
-					params={[
-						{
-							Label: "Автор аукциона",
-							Type: ParameterType.Text,
-							Value: "admin",
-							Id: "Seller",
-						} as ParameterItem,
-						{
-							Label: "Отображать ставки по лоту",
-							Type: ParameterType.Bool,
-							Value: "false",
-							Id: "ShowBids",
-						} as ParameterItem,
-					]}
-					reportName="Список аукционов"
-				/>
-			</div>
+		<div>
+			<RenderReport reportId="AuctionList" />
+			<SlidePanel
+				params={[
+					{
+						Label: "Автор аукциона",
+						Type: ParameterType.Text,
+						Value: "admin",
+						Id: "Seller",
+					} as ParameterItem,
+					{
+						Label: "Отображать ставки по лоту",
+						Type: ParameterType.Bool,
+						Value: "false",
+						Id: "ShowBids",
+					} as ParameterItem,
+				]}
+				reportName="Список аукционов"
+			/>
 		</div>
 	);
 }

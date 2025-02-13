@@ -14,5 +14,5 @@ export default function Main() {
 				return null;
 		}
 	};
-	return <div className="mt-10">{report()}</div>;
+	return <div>{report()}</div>;
 }

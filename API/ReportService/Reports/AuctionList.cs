@@ -27,11 +27,16 @@ public class AuctionList
         using var scope = _services.CreateScope();
         var httpClient = scope.ServiceProvider.GetRequiredService<HttpClientService>();
 
-        //получаем список аукционов для заданного автора аукциона
+        //получаем список аукционов для заданного автора аукциона (или для всех, если никто не указан)
         var auctionTask = Task.Run(() =>
         {
             var par = param.FirstOrDefault(p => p.Id == "Seller").Value;
             Expression<Func<AuctionItem, bool>> auctionExp = item => item.Seller == par;
+            if (string.IsNullOrEmpty(par))
+            {
+                auctionExp = item => true;
+            }
+
             var auctionExp_text = serializer.SerializeText(auctionExp);
             return httpClient.GetAuctionItems(auctionExp_text);
         });
@@ -64,9 +69,11 @@ public class AuctionList
                     Seller = auction.Seller,
                     Bidder = bid == null ? "" : bid.Bidder,
                     Amount = bid == null ? 0 : bid.Amount,
-                    Title = auction.Title
+                    Title = auction.Title,
+                    StartDate = auction.CreateAt,
+                    EndDate = auction.AuctionEnd
                 }
-            );
+            ).OrderBy(p => p.StartDate);
             return System.Text.Json.JsonSerializer.Serialize(result, result.GetType());
         }
 
@@ -74,9 +81,11 @@ public class AuctionList
         {
             AuctionId = p.AuctionId,
             Seller = p.Seller,
-            Title = p.Title
+            Title = p.Title,
+            StartDate = p.CreateAt,
+            EndDate = p.AuctionEnd
         }
-        );
+        ).OrderBy(p => p.StartDate);
         return System.Text.Json.JsonSerializer.Serialize(result1, result1.GetType());
 
 

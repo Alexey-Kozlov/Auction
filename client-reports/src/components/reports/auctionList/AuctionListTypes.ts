@@ -4,4 +4,6 @@ export type AuctionListTypes = {
 	Bidder: string;
 	Amount: number;
 	Title: string;
+	StartDate: Date;
+	EndDate: Date;
 };

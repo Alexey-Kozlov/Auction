@@ -7,7 +7,7 @@ import List from "./components/layout/List";
 function App() {
 	return (
 		<>
-			<div className="container pl-10 pt-4">
+			<div className="container">
 				<Routes>
 					<Route
 						path="/:root"

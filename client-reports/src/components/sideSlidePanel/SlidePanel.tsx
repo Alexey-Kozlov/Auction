@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ParameterItem, ParameterSelect, ParameterType } from "../../Types";
 import { Button } from "flowbite-react";
 import { useDispatch } from "react-redux";
-import { setData, setParam } from "../../store/reportSlice";
+import { setParam } from "../../store/ReportSlice";
 
 type Props = {
 	params: ParameterItem[];
@@ -12,6 +12,7 @@ type Props = {
 export default function SlidePanel({ params, reportName }: Props) {
 	const [isOpen, setIsOpen] = useState(true);
 	const [paramValue, setParamValue] = useState<string[]>([]);
+	const dispatch = useDispatch();
 
 	useEffect(() => {
 		let paramVal: string[] = [];
@@ -100,7 +101,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 		});
 		return tmp;
 	};
-	const dispatch = useDispatch();
+
 	const reportSubmit = async () => {
 		const prm = SetParams(paramValue);
 		dispatch(setParam({ param: prm }));
@@ -117,10 +118,16 @@ export default function SlidePanel({ params, reportName }: Props) {
 				readOnly
 			></input>
 			<nav className="nav">
-				<label
-					className="nav-toggle"
-					onClick={() => setIsOpen((p) => !p)}
-				></label>
+				{isOpen ? (
+					<label className="nav-toggle" onClick={() => setIsOpen((p) => !p)}>
+						&#x2715;
+					</label>
+				) : (
+					<label className="nav-toggle" onClick={() => setIsOpen((p) => !p)}>
+						Параметры&nbsp;&nbsp;отчета
+					</label>
+				)}
+
 				<h2>Параметры отчета "{reportName}"</h2>
 				<div className="grid grid-cols-2">
 					{paramValue &&
