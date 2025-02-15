@@ -20,6 +20,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 			paramVal[index] = item.Value;
 		});
 		setParamValue(paramVal);
+		document.getElementById("rt")?.focus();
 		// eslint-disable-next-line
 	}, []);
 
@@ -107,9 +108,12 @@ export default function SlidePanel({ params, reportName }: Props) {
 		dispatch(setParam({ param: prm }));
 		setIsOpen(false);
 	};
+	const hitEnter = (e: string) => {
+		if (e === "Enter") reportSubmit();
+	};
 
 	return (
-		<div>
+		<div onKeyDown={(e) => hitEnter(e.key)}>
 			<input
 				type="checkbox"
 				id="nav-toggle"
@@ -142,7 +146,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 						})}
 				</div>
 				<div className="reportSubmit">
-					<Button onClick={reportSubmit} color="blue">
+					<Button type="submit" onClick={reportSubmit} color="blue">
 						Получить отчет
 					</Button>
 				</div>

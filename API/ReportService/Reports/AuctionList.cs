@@ -31,7 +31,7 @@ public class AuctionList
         var auctionTask = Task.Run(() =>
         {
             var par = param.FirstOrDefault(p => p.Id == "Seller").Value;
-            Expression<Func<AuctionItem, bool>> auctionExp = item => item.Seller == par;
+            Expression<Func<AuctionItem, bool>> auctionExp = item => item.Seller.Contains(par);
             if (string.IsNullOrEmpty(par))
             {
                 auctionExp = item => true;
@@ -46,6 +46,7 @@ public class AuctionList
         var showBids = param.FirstOrDefault(p => p.Id == "ShowBids").Value;
         if (Boolean.Parse(showBids))
         {
+            //запрос фильтрации по списку id-ников, ids - список id-ников типа GUID
             var ids = auctions.Result.Select(p => p.AuctionId).ToList();
             var bidTask = Task.Run(() =>
             {
@@ -73,7 +74,7 @@ public class AuctionList
                     StartDate = auction.CreateAt,
                     EndDate = auction.AuctionEnd
                 }
-            ).OrderBy(p => p.StartDate);
+            ).OrderBy(p => p.Seller).ThenByDescending(p => p.StartDate).ThenByDescending(p => p.Amount);
             return System.Text.Json.JsonSerializer.Serialize(result, result.GetType());
         }
 
@@ -85,7 +86,7 @@ public class AuctionList
             StartDate = p.CreateAt,
             EndDate = p.AuctionEnd
         }
-        ).OrderBy(p => p.StartDate);
+        ).OrderBy(p => p.Seller).ThenByDescending(p => p.StartDate);
         return System.Text.Json.JsonSerializer.Serialize(result1, result1.GetType());
 
 

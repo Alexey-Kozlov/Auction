@@ -1,8 +1,12 @@
-﻿using Common.Contracts;
+﻿using System.Linq.Expressions;
+using Common.Contracts;
+using Common.Contracts.Notification;
+using Common.Contracts.Report;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
+using Serialize.Linq.Serializers;
 
 namespace NotificationService.Controllers;
 
@@ -35,6 +39,24 @@ public class NotificationController : ControllerBase
             rezult.Result = false;
         }
         return rezult;
+    }
+
+    [HttpPost("GetNotifyItemsByQuery")]
+    public async Task<ApiResponse<List<NotifyItem>>> GetNotifyItemsByQuery(ReportParamsDTO dto)
+    {
+        var serializer = new ExpressionSerializer(new JsonSerializer())
+        {
+            AutoAddKnownTypesAsListTypes = true
+        };
+        var expression = serializer.DeserializeText(dto.Expression) as Expression<Func<NotifyItem, bool>>;
+        var items = await _context.NotifyItems.Where(expression).ToListAsync();
+        return new ApiResponse<List<NotifyItem>>()
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = items
+        };
+
     }
 
 }

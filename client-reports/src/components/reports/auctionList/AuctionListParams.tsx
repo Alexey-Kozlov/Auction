@@ -2,7 +2,7 @@ import SlidePanel from "../../sideSlidePanel/SlidePanel";
 import { ParameterItem, ParameterSelect, ParameterType } from "../../../Types";
 import RenderReport from "./RenderReport";
 
-export default function AuctionList() {
+export default function AuctionListParams() {
 	return (
 		<div>
 			<RenderReport reportId="AuctionList" />
@@ -11,7 +11,7 @@ export default function AuctionList() {
 					{
 						Label: "Автор аукциона",
 						Type: ParameterType.Text,
-						Value: "admin",
+						Value: "",
 						Id: "Seller",
 					} as ParameterItem,
 					{

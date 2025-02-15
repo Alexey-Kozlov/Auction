@@ -1,22 +1,8 @@
-import React from "react";
-import { ReportItem } from "../../Types";
 import ReportCard from "../ReportCard";
+import ReportListData from "../ReportListData";
 
 export default function List() {
-	const reportsList: ReportItem[] = [
-		{
-			Name: "Мои аукционы",
-			Description: "Список моих аукционов",
-			Id: "AuctionList",
-			Icon: "111",
-		},
-		{
-			Name: "Тест",
-			Description: "Тест дополнение",
-			Id: "TestItem",
-			Icon: "222",
-		},
-	];
+	const reportsList = ReportListData();
 	return (
 		<div className="flex flex-wrap">
 			{reportsList.map((p) => {

@@ -19,6 +19,7 @@ builder.Services.AddControllers();
 builder.Services.AddCors();
 builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
+builder.Services.AddScoped<NotificationList>();
 var app = builder.Build();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
