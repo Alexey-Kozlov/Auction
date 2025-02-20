@@ -62,6 +62,7 @@ export default function TestItem() {
 							Id: "Checked1",
 						} as ParameterItem,
 					]}
+					reportName="Тест параметров"
 				/>
 			</div>
 		</div>

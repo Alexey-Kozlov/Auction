@@ -8,6 +8,8 @@ import NotificationTable from "./NotificationTable";
 import { useReactToPrint } from "react-to-print";
 import { setEvent } from "../../../store/EventSlice";
 import { useDownloadExcel } from "react-export-table-to-excel";
+import { setReportLoaded, setReportLoading } from "../../../store/ReportSlice";
+import Waiter from "../../Waiter";
 
 type Props = {
 	reportId: string;
@@ -31,11 +33,12 @@ export default function RenderReport({ reportId }: Props) {
 		const getReport = async (param: ParameterItem[]) => {
 			var rezult = await notifyListReport(param);
 			setData(rezult.data);
+			dispatch(setReportLoaded());
 		};
 		if (reportStore && reportStore.param && reportStore.param.length > 0) {
 			getReport(reportStore.param);
 		}
-	}, [reportStore, notifyListReport]);
+	}, [reportStore.param, dispatch, notifyListReport]);
 
 	useEffect(() => {
 		if (eventStore && eventStore.exportPdfClicked) {
@@ -51,7 +54,16 @@ export default function RenderReport({ reportId }: Props) {
 	return (
 		<div ref={contentRef}>
 			<h2 className="text-center text-2xl m-4">Список уведомлений</h2>
-			<div>{data && <NotificationTable items={data!} />}</div>
+			{reportStore.reportLoading && (
+				<div className="mt-16">
+					<Waiter color="rgb(156 163 175)" />
+				</div>
+			)}
+			{!reportStore.reportLoading && data && (
+				<div>
+					<NotificationTable items={data!} />
+				</div>
+			)}
 		</div>
 	);
 }

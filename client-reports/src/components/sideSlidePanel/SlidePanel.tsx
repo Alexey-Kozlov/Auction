@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ParameterItem, ParameterSelect, ParameterType } from "../../Types";
 import { Button } from "flowbite-react";
 import { useDispatch, useSelector } from "react-redux";
-import { setIsOpen, setParam } from "../../store/ReportSlice";
+import { setParamIsOpen, setReportLoading } from "../../store/ReportSlice";
 import { RootState } from "../../store/Store";
 
 type Props = {
@@ -106,8 +106,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 
 	const reportSubmit = async () => {
 		const prm = SetParams(paramValue);
-		dispatch(setParam({ param: prm }));
-		dispatch(setIsOpen({ isOpen: false }));
+		dispatch(setReportLoading({ param: prm }));
 	};
 	const hitEnter = (e: string) => {
 		if (e === "Enter") reportSubmit();
@@ -119,14 +118,14 @@ export default function SlidePanel({ params, reportName }: Props) {
 				type="checkbox"
 				id="nav-toggle"
 				hidden
-				checked={reportStore.isOpen}
+				checked={reportStore.paramIsOpen}
 				readOnly
 			></input>
 			<nav className="nav">
-				{reportStore.isOpen ? (
+				{reportStore.paramIsOpen ? (
 					<label
 						className="nav-toggle"
-						onClick={() => dispatch(setIsOpen({ isOpen: false }))}
+						onClick={() => dispatch(setParamIsOpen({ isOpen: false }))}
 					>
 						&#x2715;
 					</label>
@@ -135,7 +134,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 						className="nav-toggle"
 						onClick={(e) => {
 							e.stopPropagation();
-							dispatch(setIsOpen({ isOpen: true }));
+							dispatch(setParamIsOpen({ isOpen: true }));
 						}}
 					>
 						Параметры&nbsp;&nbsp;отчета

@@ -3,18 +3,18 @@ import Header from "./components/layout/header/Header";
 import Main from "./components/layout/Main";
 import List from "./components/layout/List";
 import { useDispatch } from "react-redux";
-import { setIsOpen } from "./store/ReportSlice";
+import { setParamIsOpen } from "./store/ReportSlice";
 import { useEffect } from "react";
 
 function App() {
 	const dispatch = useDispatch();
 	const handleCloseParamWindow = () => {
-		dispatch(setIsOpen({ isOpen: false }));
+		dispatch(setParamIsOpen({ isOpen: false }));
 	};
 	useEffect(() => {
 		document.addEventListener("keydown", (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
-				dispatch(setIsOpen({ isOpen: false }));
+				dispatch(setParamIsOpen({ isOpen: false }));
 			}
 		});
 	}, [dispatch]);

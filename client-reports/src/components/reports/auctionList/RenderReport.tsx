@@ -9,6 +9,8 @@ import AuctionTable from "./components/AuctionTable";
 import { useReactToPrint } from "react-to-print";
 import { setEvent } from "../../../store/EventSlice";
 import { useDownloadExcel } from "react-export-table-to-excel";
+import Waiter from "../../Waiter";
+import { setReportLoaded } from "../../../store/ReportSlice";
 
 type Props = {
 	reportId: string;
@@ -19,6 +21,7 @@ export default function RenderReport({ reportId }: Props) {
 	const eventStore = useSelector((state: RootState) => state.eventStore);
 	const dispatch = useDispatch();
 	const [data, setData] = useState<AuctionListTypes[]>();
+	const [bidderReportType, setBidderReportType] = useState(false);
 	const [auctionListReport] = useRunAuctionListMutation();
 	const contentRef = useRef<HTMLDivElement>(null);
 	const reactToPrintFn = useReactToPrint({ contentRef });
@@ -32,11 +35,15 @@ export default function RenderReport({ reportId }: Props) {
 		const getReport = async (param: ParameterItem[]) => {
 			var rezult = await auctionListReport(param);
 			setData(rezult.data);
+			if (rezult.data && rezult.data.length > 0) {
+				setBidderReportType(rezult.data[0]["Bidder"] !== undefined);
+			}
+			dispatch(setReportLoaded());
 		};
 		if (reportStore && reportStore.param && reportStore.param.length > 0) {
 			getReport(reportStore.param);
 		}
-	}, [reportStore, auctionListReport]);
+	}, [reportStore.param, dispatch, auctionListReport]);
 
 	useEffect(() => {
 		if (eventStore && eventStore.exportPdfClicked) {
@@ -52,11 +59,16 @@ export default function RenderReport({ reportId }: Props) {
 	return (
 		<div ref={contentRef}>
 			<h2 className="text-center text-2xl m-4">Список аукционов</h2>
+			{reportStore.reportLoading && (
+				<div className="mt-16">
+					<Waiter color="rgb(156 163 175)" />
+				</div>
+			)}
 			<div>
-				{data && reportStore.param[1].Value.toLocaleLowerCase() === "true" && (
+				{!reportStore.reportLoading && data && bidderReportType && (
 					<AuctionBidsTable items={data} />
 				)}
-				{data && reportStore.param[1].Value.toLocaleLowerCase() !== "true" && (
+				{!reportStore.reportLoading && data && !bidderReportType && (
 					<AuctionTable items={data} />
 				)}
 			</div>
