@@ -3,11 +3,15 @@ import { createSlice } from "@reduxjs/toolkit";
 type State = {
 	exportPdfEnable: boolean;
 	exportPdfClicked: boolean;
+	exportExcelEnable: boolean;
+	exportExcelClicked: boolean;
 };
 
 const initialState: State = {
 	exportPdfEnable: false,
 	exportPdfClicked: false,
+	exportExcelEnable: false,
+	exportExcelClicked: false,
 };
 
 export const EventSlice = createSlice({
@@ -20,6 +24,12 @@ export const EventSlice = createSlice({
 			}
 			if (state.exportPdfClicked !== action.payload.exportPdfClicked) {
 				state.exportPdfClicked = action.payload.exportPdfClicked;
+			}
+			if (state.exportExcelEnable !== action.payload.exportExcelEnable) {
+				state.exportExcelEnable = action.payload.exportExcelEnable;
+			}
+			if (state.exportExcelClicked !== action.payload.exportExcelClicked) {
+				state.exportExcelClicked = action.payload.exportExcelClicked;
 			}
 		},
 	},

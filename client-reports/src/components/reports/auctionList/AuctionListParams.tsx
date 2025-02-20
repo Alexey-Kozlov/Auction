@@ -1,5 +1,5 @@
 import SlidePanel from "../../sideSlidePanel/SlidePanel";
-import { ParameterItem, ParameterSelect, ParameterType } from "../../../Types";
+import { ParameterItem, ParameterType } from "../../../Types";
 import RenderReport from "./RenderReport";
 
 export default function AuctionListParams() {

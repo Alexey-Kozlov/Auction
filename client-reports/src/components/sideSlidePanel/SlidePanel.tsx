@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ParameterItem, ParameterSelect, ParameterType } from "../../Types";
 import { Button } from "flowbite-react";
-import { useDispatch } from "react-redux";
-import { setParam } from "../../store/ReportSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setIsOpen, setParam } from "../../store/ReportSlice";
+import { RootState } from "../../store/Store";
 
 type Props = {
 	params: ParameterItem[];
@@ -10,9 +11,9 @@ type Props = {
 };
 
 export default function SlidePanel({ params, reportName }: Props) {
-	const [isOpen, setIsOpen] = useState(true);
 	const [paramValue, setParamValue] = useState<string[]>([]);
 	const dispatch = useDispatch();
+	const reportStore = useSelector((state: RootState) => state.reportStore);
 
 	useEffect(() => {
 		let paramVal: string[] = [];
@@ -106,7 +107,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 	const reportSubmit = async () => {
 		const prm = SetParams(paramValue);
 		dispatch(setParam({ param: prm }));
-		setIsOpen(false);
+		dispatch(setIsOpen({ isOpen: false }));
 	};
 	const hitEnter = (e: string) => {
 		if (e === "Enter") reportSubmit();
@@ -118,22 +119,31 @@ export default function SlidePanel({ params, reportName }: Props) {
 				type="checkbox"
 				id="nav-toggle"
 				hidden
-				checked={isOpen}
+				checked={reportStore.isOpen}
 				readOnly
 			></input>
 			<nav className="nav">
-				{isOpen ? (
-					<label className="nav-toggle" onClick={() => setIsOpen((p) => !p)}>
+				{reportStore.isOpen ? (
+					<label
+						className="nav-toggle"
+						onClick={() => dispatch(setIsOpen({ isOpen: false }))}
+					>
 						&#x2715;
 					</label>
 				) : (
-					<label className="nav-toggle" onClick={() => setIsOpen((p) => !p)}>
+					<label
+						className="nav-toggle"
+						onClick={(e) => {
+							e.stopPropagation();
+							dispatch(setIsOpen({ isOpen: true }));
+						}}
+					>
 						Параметры&nbsp;&nbsp;отчета
 					</label>
 				)}
 
 				<h2>Параметры отчета "{reportName}"</h2>
-				<div className="grid grid-cols-2">
+				<div className="grid grid-cols-2" onClick={(e) => e.stopPropagation()}>
 					{paramValue &&
 						paramValue!.length !== 0 &&
 						params.map((p, index) => {

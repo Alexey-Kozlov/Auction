@@ -2,6 +2,8 @@ import AuctionListParams from "../reports/auctionList/AuctionListParams";
 import { useParams } from "react-router-dom";
 import TestItem from "../reports/testItem/testItem";
 import NotificationListParams from "../reports/notificationList/NotificationListParams";
+import ReportFooter from "./ReportFooter";
+import Header from "./header/Header";
 
 export default function Main() {
 	const { id } = useParams();
@@ -17,5 +19,11 @@ export default function Main() {
 				return null;
 		}
 	};
-	return <div>{report()}</div>;
+	return (
+		<div className="flex flex-col h-screen">
+			<Header />
+			<div className="flex-1">{report()}</div>
+			<ReportFooter />
+		</div>
+	);
 }

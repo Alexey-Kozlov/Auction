@@ -7,6 +7,7 @@ import { ParameterItem } from "../../../Types";
 import NotificationTable from "./NotificationTable";
 import { useReactToPrint } from "react-to-print";
 import { setEvent } from "../../../store/EventSlice";
+import { useDownloadExcel } from "react-export-table-to-excel";
 
 type Props = {
 	reportId: string;
@@ -20,6 +21,11 @@ export default function RenderReport({ reportId }: Props) {
 	const [notifyListReport] = useRunNotifyListMutation();
 	const contentRef = useRef<HTMLDivElement>(null);
 	const reactToPrintFn = useReactToPrint({ contentRef });
+	const { onDownload } = useDownloadExcel({
+		currentTableRef: contentRef.current,
+		filename: reportId,
+		sheet: reportId,
+	});
 
 	useEffect(() => {
 		const getReport = async (param: ParameterItem[]) => {
@@ -29,14 +35,18 @@ export default function RenderReport({ reportId }: Props) {
 		if (reportStore && reportStore.param && reportStore.param.length > 0) {
 			getReport(reportStore.param);
 		}
-	}, [reportStore.param]);
+	}, [reportStore, notifyListReport]);
 
 	useEffect(() => {
 		if (eventStore && eventStore.exportPdfClicked) {
 			reactToPrintFn();
 			dispatch(setEvent({ exportPdfClicked: false }));
 		}
-	}, [eventStore.exportPdfClicked]);
+		if (eventStore && eventStore.exportExcelClicked) {
+			onDownload();
+			dispatch(setEvent({ exportExcelClicked: false }));
+		}
+	}, [eventStore, dispatch, reactToPrintFn, onDownload]);
 
 	return (
 		<div ref={contentRef}>
