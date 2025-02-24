@@ -31,7 +31,10 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = null;
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
+{
+    jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
+});
 builder.Services.AddDbContext<ProcessingDbContext>(options =>
 {
     var conStrBuilder = new NpgsqlConnectionStringBuilder();

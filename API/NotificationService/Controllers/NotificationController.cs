@@ -42,7 +42,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost("GetNotifyItemsByQuery")]
-    public async Task<ApiResponse<List<NotifyItem>>> GetNotifyItemsByQuery(ReportParamsDTO dto)
+    public async Task<string> GetNotifyItemsByQuery(ReportParamsDTO dto)
     {
         var serializer = new ExpressionSerializer(new JsonSerializer())
         {
@@ -50,13 +50,11 @@ public class NotificationController : ControllerBase
         };
         var expression = serializer.DeserializeText(dto.Expression) as Expression<Func<NotifyItem, bool>>;
         var items = await _context.NotifyItems.Where(expression).ToListAsync();
-        return new ApiResponse<List<NotifyItem>>()
+        return System.Text.Json.JsonSerializer.Serialize(new ApiResponse<List<NotifyItem>>()
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
             Result = items
-        };
-
+        });
     }
-
 }

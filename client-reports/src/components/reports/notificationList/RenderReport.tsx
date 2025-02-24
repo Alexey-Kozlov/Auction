@@ -8,7 +8,7 @@ import NotificationTable from "./NotificationTable";
 import { useReactToPrint } from "react-to-print";
 import { setEvent } from "../../../store/EventSlice";
 import { useDownloadExcel } from "react-export-table-to-excel";
-import { setReportLoaded, setReportLoading } from "../../../store/ReportSlice";
+import { setReportLoaded } from "../../../store/ReportSlice";
 import Waiter from "../../Waiter";
 
 type Props = {
@@ -38,7 +38,7 @@ export default function RenderReport({ reportId }: Props) {
 		if (reportStore && reportStore.param && reportStore.param.length > 0) {
 			getReport(reportStore.param);
 		}
-	}, [reportStore.param, dispatch, notifyListReport]);
+	}, [reportStore, dispatch, notifyListReport]);
 
 	useEffect(() => {
 		if (eventStore && eventStore.exportPdfClicked) {

@@ -43,7 +43,7 @@ export default function RenderReport({ reportId }: Props) {
 		if (reportStore && reportStore.param && reportStore.param.length > 0) {
 			getReport(reportStore.param);
 		}
-	}, [reportStore.param, dispatch, auctionListReport]);
+	}, [reportStore, dispatch, auctionListReport]);
 
 	useEffect(() => {
 		if (eventStore && eventStore.exportPdfClicked) {

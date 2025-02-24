@@ -22,7 +22,10 @@ builder.Configuration.AddVault(options =>
               options.SecretPathApi = vaultOptions["SecretPathApi"];
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
+{
+    jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
+});
 builder.Services.AddDbContext<FinanceDbContext>(options =>
 {
     var conStrBuilder = new NpgsqlConnectionStringBuilder();

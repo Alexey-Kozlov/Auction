@@ -4,13 +4,9 @@ import TestItem from "../reports/testItem/testItem";
 import NotificationListParams from "../reports/notificationList/NotificationListParams";
 import ReportFooter from "./ReportFooter";
 import Header from "./header/Header";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/Store";
-import Waiter from "../Waiter";
 
 export default function Main() {
 	const { id } = useParams();
-	const reportStore = useSelector((state: RootState) => state.reportStore);
 	const report = () => {
 		switch (id) {
 			case "AuctionList":

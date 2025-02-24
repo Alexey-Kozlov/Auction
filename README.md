@@ -1,12 +1,12 @@
 # -
 
 Технологии:
-EventSourcing, Microservices
+EventSourcing, Microservices, Microfrontend
 React + TailWind CSS
 RTK Query
-.Net8
+.Net9
 PostgreSql, EF, AutoMapper
-RabbitMq, MassTransit
+RabbitMq, Kafka, MassTransit
 REST, GRPC
 SignalR
 Saga Orchestration, StateMachine
@@ -32,6 +32,8 @@ docker build -f Auction/API/NotificationService/Dockerfile -t kozlovas/auction-n
 docker build -f Auction/API/ProcessingService/Dockerfile -t kozlovas/auction-processing .
 docker build -f Auction/API/SearchService/Dockerfile -t kozlovas/auction-search .
 docker build -f Auction/client-app/Dockerfile -t kozlovas/auction-front .
+docker build -f Auction/API/ReportService/Dockerfile -t kozlovas/auction-api-reports .
+docker build -f Auction/client-reports/Dockerfile -t kozlovas/auction-front-reports .
 
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts
@@ -50,6 +52,7 @@ dotnet add package AuctionContracts
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts
 из папки Projects/Auction/Common/Utils
+
 - очищаем кеш нугет-пакетов командой - dotnet nuget locals all --clear
 - компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o /home/alex/Projects/Auction/Packages/
 - будет создан пакет, теперь снова компилируем нужный проект - теперь должны подтянутся изменения в пакете.

@@ -1,11 +1,9 @@
 using System.Linq.Expressions;
 using Common.Contracts.Auction;
-using Common.Contracts.Bid;
 using ReportService.Services;
 using ReportService.DTO;
 using Serialize.Linq.Serializers;
 using System.Runtime.Serialization;
-using Common.Utils.Extentions;
 using Common.Contracts.Notification;
 
 namespace ReportService.Reports;
