@@ -3,7 +3,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Common.Utils;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using AuctionService.Metrics;
@@ -15,6 +14,7 @@ using Common.Utils.Vault;
 using EventSourcingService.Consumers;
 using EventSourcingService.Services;
 using Common.Contracts.EventSourcing;
+using Common.Utils;
 
 internal class Program
 {
@@ -132,6 +132,7 @@ internal class Program
         builder.Services.AddSingleton<RestoreImageService>();
 
         var app = builder.Build();
+        app.UseMiddleware<ExceptionMiddleware>();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         app.Use(async (context, next) =>
@@ -140,11 +141,8 @@ internal class Program
             Console.WriteLine($"{DateTime.Now} Вошедший запрос -> {context.Request.Path}");
             await next.Invoke();
         });
-        app.UseMiddleware<ExceptionMiddleware>();
-
         app.UseAuthentication();
         app.UseAuthorization();
-
         app.MapControllers();
 
         app.Run();

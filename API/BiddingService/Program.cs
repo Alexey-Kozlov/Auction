@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Common.Utils;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -82,10 +82,8 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-// Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

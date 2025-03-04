@@ -1,7 +1,6 @@
 using MassTransit;
 using NotificationService.Consumers;
 using NotificationService.Hubs;
-using Common.Utils;
 using NotificationService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +10,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>

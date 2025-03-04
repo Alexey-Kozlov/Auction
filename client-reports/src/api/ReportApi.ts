@@ -2,12 +2,17 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, ParameterItem } from "../Types";
 import { PostApiProcess, PostErrorApiProcess } from "../api/PostResponse";
 import { AuctionListTypes } from "../components/reports/auctionList/AuctionListTypes";
+import { v4 as uuidv4 } from "uuid";
 
 const ReportApi = createApi({
 	//refetchOnMountOrArgChange: true,
 	reducerPath: "reportApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + "/api/reports",
+		prepareHeaders: (headers: Headers, api) => {
+			headers.append("RequestId", uuidv4());
+			return headers;
+		},
 	}),
 	tagTypes: ["report"],
 	endpoints: (builder) => ({

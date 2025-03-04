@@ -12,7 +12,6 @@ public class RestoreImageService
         if (part.MessagePartCounts == 1)
         {
             //изображение влезло в сообщение, возвращаем строку
-            //return JsonSerializer.Deserialize<ImageDTO>(part.Data).Image;
             return part.Data;
         }
         else

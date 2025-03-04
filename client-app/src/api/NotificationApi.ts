@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet } from "../store/types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
+import { v4 as uuidv4 } from "uuid";
 
 const notificationApi = createApi({
 	refetchOnMountOrArgChange: true,
@@ -13,6 +14,8 @@ const notificationApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
+			headers.append("RequestId", uuidv4());
+			return headers;
 		},
 	}),
 	tagTypes: ["notifications"],

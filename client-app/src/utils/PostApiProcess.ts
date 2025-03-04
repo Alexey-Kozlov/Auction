@@ -30,8 +30,12 @@ export const PostErrorApiProcess = (response: any) => {
 		return;
 	}
 	if (response) {
-		console.log("Ошибка - " + response.status);
-		toast.error("Ошибка - " + response.status);
+		console.log(
+			"Ошибка, код  - " + response.status + ", " + response.data.errors["$"]
+		);
+		toast.error(
+			"Ошибка, код  - " + response.status + ", " + response.data.errors["$"]
+		);
 		return;
 	}
 };

@@ -2,13 +2,13 @@
 using ImageService.Consumers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Common.Utils;
 using ImageService.Data;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
 using ImageService.Services;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -68,7 +68,6 @@ builder.Services.AddSingleton<RestoreImageService>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGrpcService<GrpcImageServer>();

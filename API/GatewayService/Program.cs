@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Common.Utils;
 using GatewayService.Services;
 using GatewayService.Cache;
 using MassTransit;
@@ -12,6 +11,10 @@ using Common.Utils.Vault;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using StackExchange.Redis;
+using GatewayService.Logging;
+using Common.Contracts;
+using Confluent.Kafka;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -62,6 +65,25 @@ builder.Services.AddMassTransit(p =>
     });
 });
 
+builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
+{
+    busConfigurator.UsingInMemory((context, config) =>
+    {
+        config.ConfigureEndpoints(context, SnakeCaseEndpointNameFormatter.Instance);
+    });
+    busConfigurator.AddRider(r =>
+    {
+        r.AddProducer<ItemLoggingContract>(builder.Configuration["Kafka_Topic_Event"], new ProducerConfig
+        {
+            MessageMaxBytes = 1000000
+        });
+        r.UsingKafka((context, k) =>
+        {
+            k.Host(builder.Configuration["Kafka_Host"]);
+        });
+    });
+});
+builder.Services.AddTransient<SendMessage>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("customPolicy", p =>
@@ -102,9 +124,8 @@ builder.Services.AddOpenTelemetry()
 );
 
 var app = builder.Build();
-app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("customPolicy");
-
+app.UseMiddleware<ExceptionMiddleware>();
 // app.Use(async (context, next) =>
 // {
 //     // логируем вошедший запрос
@@ -121,12 +142,13 @@ app.UseCors("customPolicy");
 //    /api/images_dop/*
 //    /api/images_file/*
 // если это такой запрос - дальше запрос не проходит, возвращается изображение или null
-app.ImageMiddleware();
+
 
 //если запрашивается не изображение - проходим сюда и вызываем штатный функционал реверс-прокси YARP
 //с помощью правил YARP маршрутизируем микросервисы
 app.MapReverseProxy();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseLoggingMiddleware();
+app.ImageMiddleware();
 app.Run();

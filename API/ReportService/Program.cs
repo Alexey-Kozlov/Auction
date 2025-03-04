@@ -1,3 +1,4 @@
+using Common.Utils;
 using Common.Utils.Vault;
 using ReportService.Reports;
 using ReportService.Services;
@@ -24,6 +25,7 @@ builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<NotificationList>();
 var app = builder.Build();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
 app.UseAuthorization();

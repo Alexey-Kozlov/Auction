@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using SearchService.Consumers;
 using SearchService.Data;
 using SearchService.Services;
-using Common.Utils;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -65,9 +65,10 @@ builder.Services.AddOpenTelemetry()
         })
 );
 
+
 var app = builder.Build();
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseMiddleware<ExceptionMiddleware>();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

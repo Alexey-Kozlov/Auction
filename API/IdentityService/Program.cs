@@ -80,11 +80,11 @@ builder.Services.AddOpenTelemetry()
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseRouting();
-
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
 
 //SeedData.EnsureSeedData(app);
 
