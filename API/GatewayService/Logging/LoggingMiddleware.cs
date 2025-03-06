@@ -1,5 +1,7 @@
+using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Common.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,8 +41,10 @@ public class LoggingMiddleware
             {
                 rezult.ResponseLoggingContract = new ResponseLoggingContract
                 {
-                    Body = $"Error - {e.Message}, {e.StackTrace}",
-                    StatusCode = 500
+                    IsSuccess = false,
+                    ErrorMessages = [e.Message, e.StackTrace.ToString()],
+                    Result = "",
+                    StatusCode = HttpStatusCode.InternalServerError
                 };
             }
             finally
@@ -88,8 +92,10 @@ public class LoggingMiddleware
         response.Body.Seek(0, SeekOrigin.Begin);
         return new ResponseLoggingContract
         {
-            Body = text,
-            StatusCode = 200
+            Result = text,
+            IsSuccess = true,
+            ErrorMessages = null,
+            StatusCode = HttpStatusCode.OK
         };
     }
 

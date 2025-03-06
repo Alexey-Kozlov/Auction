@@ -39,7 +39,7 @@ public class ElkClient
             )
             .Mappings(m => m
                 .Properties(p => p
-                    .Text(t => t.ResponseLoggingContract.Body, t => t.Analyzer("rebuilt_russian"))
+                    .Text(t => t.ResponseLoggingContract.Result, t => t.Analyzer("rebuilt_russian"))
                     .Text(t => t.RequestLoggingContract.Body, t => t.Analyzer("rebuilt_russian"))
                 )
             )

@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Common.Contracts;
 
 public class RequestLoggingContract
@@ -7,10 +9,9 @@ public class RequestLoggingContract
     public string Body { get; set; }
 }
 
-public class ResponseLoggingContract
+public class ResponseLoggingContract : ApiResponse<string>
 {
-    public string Body { get; set; }
-    public int StatusCode { get; set; }
+
 }
 
 public class ItemLoggingContract

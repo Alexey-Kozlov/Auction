@@ -1,6 +1,5 @@
 using Common.Contracts;
 using Common.Utils.Vault;
-using Confluent.Kafka;
 using Logging.Consumers;
 using Logging.Services;
 using MassTransit;
@@ -15,10 +14,6 @@ builder.Configuration.AddVault(options =>
               options.SecretPathElk = vaultOptions["SecretPathElk"];
           });
 builder.Services.AddControllers();
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.Limits.MaxRequestBodySize = null;
-});
 builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.UsingInMemory((context, config) =>
