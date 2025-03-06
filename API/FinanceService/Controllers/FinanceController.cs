@@ -59,8 +59,6 @@ public class FinanceController : ControllerBase
             pageCount = (itemsCount + pagedParams.PageSize - 1) / pagedParams.PageSize;
         }
         var resultDTO = new List<BalanceItemDTO>();
-        var s = 0;
-        var dd = 67 / s;
         foreach (var item in result)
         {
             resultDTO.Add(new BalanceItemDTO
