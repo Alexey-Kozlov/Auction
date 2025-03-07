@@ -31,6 +31,7 @@ docker build -f Auction/API/ImageService/Dockerfile -t kozlovas/auction-image .
 docker build -f Auction/API/NotificationService/Dockerfile -t kozlovas/auction-notification .
 docker build -f Auction/API/ProcessingService/Dockerfile -t kozlovas/auction-processing .
 docker build -f Auction/API/SearchService/Dockerfile -t kozlovas/auction-search .
+docker build -f Auction/API/LoggingService/Dockerfile -t kozlovas/auction-logging .
 docker build -f Auction/client-app/Dockerfile -t kozlovas/auction-front .
 docker build -f Auction/API/ReportService/Dockerfile -t kozlovas/auction-api-reports .
 docker build -f Auction/client-reports/Dockerfile -t kozlovas/auction-front-reports .
