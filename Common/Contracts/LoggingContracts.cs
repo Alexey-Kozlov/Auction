@@ -17,9 +17,10 @@ public class ResponseLoggingContract : ApiResponse<string>
 public class ItemLoggingContract
 {
     public string RequestId { get; set; }
+    public string TraceId { get; set; }
+    public string RequestType { get; set; }
     public string UserLogin { get; set; }
     public DateTime RequestDate { get; set; }
-    public string Roles { get; set; }
     public RequestLoggingContract RequestLoggingContract { get; set; }
     public ResponseLoggingContract ResponseLoggingContract { get; set; }
 }

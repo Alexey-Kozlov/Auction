@@ -6,6 +6,7 @@ import {
 	FinanceCreate,
 	NotifyUser,
 	PlaceBidParams,
+	RequestType,
 } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
@@ -20,7 +21,7 @@ const processingApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append("RequestId", uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuidv4());
 			return headers;
 		},
 	}),

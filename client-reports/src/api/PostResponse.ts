@@ -1,4 +1,4 @@
-import { ApiResponseNet } from "../Types";
+import { ApiResponseNet } from "../types";
 
 export const PostResponse = (response: ApiResponseNet<any>) => {
 	if (response && !response.isSuccess && response.errorMessages) {

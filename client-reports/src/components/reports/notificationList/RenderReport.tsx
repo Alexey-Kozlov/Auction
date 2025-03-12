@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/Store";
 import { NotificationListTypes } from "./NotificationListTypes";
 import { useRunNotifyListMutation } from "../../../api/ReportApi";
-import { ParameterItem } from "../../../Types";
+import { ParameterItem } from "../../../types";
 import NotificationTable from "./NotificationTable";
 import { useReactToPrint } from "react-to-print";
 import { setEvent } from "../../../store/EventSlice";

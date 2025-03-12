@@ -24,8 +24,9 @@ public class LoggingMiddleware
     {
         var originalBodyStream = context.Response.Body;
         var rezult = new ItemLoggingContract();
-        rezult.UserLogin = context.User?.Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        rezult.Roles = context.User?.Claims.Where(p => p.Type == ClaimTypes.Role).Select(p => p.Value).FirstOrDefault();
+        rezult.UserLogin = context.Request.Cookies["User"];
+        rezult.RequestId = context.Request.Cookies["RequestId"];
+        rezult.RequestType = context.Request.Cookies["RequestType"];
         rezult.RequestDate = DateTime.UtcNow;
         using (var responseBody = new MemoryStream())
         {
@@ -70,7 +71,14 @@ public class LoggingMiddleware
             bodyAsText = $"Размер превышает лимит '{messageLimit}' на запись в лог - {bodyAsText.Length}";
         }
         request.Body.Position = 0;
-        rezult.RequestId = request.Headers["requestid"];
+
+        rezult.TraceId = string.IsNullOrEmpty(request.Headers["traceid"]) ? Guid.NewGuid().ToString() : request.Headers["traceid"];
+        //если нужно исключить запрос из логгирования - очищаем свойство RequestId
+        if (ExceptionLoggingItems.CheckPathToInclude($"{request.Host}{request.Path}{DecodeUrlString(request.QueryString.Value)}"))
+        {
+            rezult.RequestId = "";
+        }
+
         return new RequestLoggingContract
         {
             Body = bodyAsText,

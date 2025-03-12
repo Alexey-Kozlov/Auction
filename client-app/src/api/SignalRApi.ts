@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiResponseNet, Auction } from "../store/types";
+import { ApiResponseNet, Auction, RequestType } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,7 +8,7 @@ const signalRApi = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + "/api",
 		prepareHeaders: (headers: Headers, api) => {
-			headers.append("RequestId", uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuidv4());
 			return headers;
 		},
 	}),

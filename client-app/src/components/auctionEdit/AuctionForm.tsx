@@ -9,6 +9,7 @@ import {
 	AuctionUpdated,
 	Message,
 	ProcessingState,
+	RequestType,
 } from "../../store/types";
 import DatePickerInput from "../inputComponents/DatePickerInput";
 import ImageFileInput from "../inputComponents/ImageFileInput";
@@ -26,10 +27,15 @@ import {
 import uuid from "react-native-uuid";
 import toast from "react-hot-toast";
 import ErrorMessageToast from "../signalRNotifications/ErrorMessageToast";
+import { useCookies } from "react-cookie";
+import { v4 as uuidv4 } from "uuid";
 
 export default function AuctionForm() {
+	// eslint-disable-next-line
+	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	let { id } = useParams();
 	if (!id) id = "empty";
+
 	const auction = useGetDetailedViewDataQuery(id!, {
 		skip: id === "empty",
 	});
@@ -38,6 +44,7 @@ export default function AuctionForm() {
 	);
 	const [createAuction] = useCreateAuctionMutation();
 	const [updateAuction] = useUpdateAuctionMutation();
+
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [image, setImage] = useState("");
@@ -55,7 +62,7 @@ export default function AuctionForm() {
 		usingImage: false,
 	} as Auction);
 	const auctionImage = useGetImageForAuctionQuery(
-		{ id: newAuction.auctionId, noCache: true },
+		{ id: newAuction.auctionId, cache: false },
 		{ skip: newAuction.auctionId === undefined }
 	);
 
@@ -101,6 +108,16 @@ export default function AuctionForm() {
 			navigate("/");
 		}
 	}, [procState, auction, navigate, id, auctionImage]);
+
+	useEffect(() => {
+		if (id === "empty") {
+			setCookie("RequestType", RequestType[RequestType.Create]);
+		} else {
+			setCookie("RequestType", RequestType[RequestType.Edit]);
+		}
+		setCookie("RequestId", uuidv4());
+		// eslint-disable-next-line
+	}, []);
 
 	const checkAuctionEndDate = (auctionEnd: Date): boolean => {
 		//устанавливаем ограничение на ввод даты окончания аукциона - не меньше минуты от текущего времени

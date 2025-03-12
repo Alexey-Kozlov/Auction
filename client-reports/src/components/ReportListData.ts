@@ -1,4 +1,4 @@
-import { ReportItem } from "../Types";
+import { ReportItem } from "../types";
 
 export default function ReportListData(): ReportItem[] {
 	return [

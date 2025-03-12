@@ -19,9 +19,9 @@ public class ImageCache
         _config = config;
     }
 
-    public async Task<string> GetImage(string auctionId, bool noCache)
+    public async Task<string> GetImage(string auctionId, bool cache)
     {
-        if (noCache)
+        if (!cache)
         {
             //не используем кеш (для изображений на странице просмотра аукциона)
             return _client.GetImage(auctionId).GetAwaiter().GetResult().Image;

@@ -1,6 +1,6 @@
 import React from "react";
 import SlidePanel from "../../sideSlidePanel/SlidePanel";
-import { ParameterItem, ParameterSelect, ParameterType } from "../../../Types";
+import { ParameterItem, ParameterSelect, ParameterType } from "../../../types";
 
 export default function TestItem() {
 	return (

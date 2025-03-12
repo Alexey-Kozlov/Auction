@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ParameterItem, ParameterSelect, ParameterType } from "../../Types";
+import { ParameterItem, ParameterSelect, ParameterType } from "../../types";
 import { Button } from "flowbite-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setParamIsOpen, setReportLoading } from "../../store/ReportSlice";

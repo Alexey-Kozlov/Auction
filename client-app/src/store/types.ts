@@ -161,3 +161,15 @@ export type ProgressToast = {
 	percent: number;
 	duration: number;
 };
+
+export enum RequestType {
+	ReadDetail,
+	ReadList,
+	Edit,
+	Register,
+	Login,
+	Create,
+	Finance,
+	NotFound,
+	TraceId,
+}

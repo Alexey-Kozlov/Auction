@@ -37,3 +37,15 @@ export type ApiResponse<T> = {
 	data?: ApiResponseNet<T>;
 	error?: any;
 };
+
+export enum RequestType {
+	ReadDetail,
+	ReadList,
+	Edit,
+	Register,
+	Login,
+	Create,
+	Finance,
+	NotFound,
+	TraceId,
+}

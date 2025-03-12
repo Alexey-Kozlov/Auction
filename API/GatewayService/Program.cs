@@ -32,6 +32,9 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+//используем аутентификацию для YARP-proxy - в конфигураторе есть проверка некоторых запросов
+//на аутентифицированность (параметр "AuthorizationPolicy": "default"), если отключить авторизацию - ошибка
 builder.Services.AddAuthentication(p =>
 {
     p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -133,8 +136,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 //     await next.Invoke();
 //     // логируем ответ
 // });
-
-//Console.WriteLine($"{DateTime.Now} - Gateway service started");
 
 // добавляем дополнительный роутинг для возврата изображений
 // это все запросы начинающиеся с :

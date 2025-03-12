@@ -1,5 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiResponseNet, FinanceItem, PagedResult } from "../store/types";
+import {
+	ApiResponseNet,
+	FinanceItem,
+	PagedResult,
+	RequestType,
+} from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
 import { v4 as uuidv4 } from "uuid";
@@ -14,7 +19,7 @@ const financeApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append("RequestId", uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuidv4());
 			return headers;
 		},
 	}),

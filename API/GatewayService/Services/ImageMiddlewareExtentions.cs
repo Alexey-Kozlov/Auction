@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Utils;
 using GatewayService.Cache;
 using GatewayService.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +12,10 @@ public static class ImageMiddlewareExtentions
         //это штатный функционал
         app.MapGet("/api/images",
             async ([FromQuery(Name = "id")] string auctionid,
-            [FromQuery(Name = "noCache")] bool noCache,
+            [FromQuery(Name = "cache")] bool cache,
             ImageCache imageCache) =>
         {
-            var img = await imageCache.GetImage(auctionid, noCache);
+            var img = await imageCache.GetImage(auctionid, cache);
             return new ApiResponse<ImageDTO>()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,

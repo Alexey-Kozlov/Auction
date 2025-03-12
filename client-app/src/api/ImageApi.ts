@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiResponseNet, AuctionImage } from "../store/types";
+import { ApiResponseNet, AuctionImage, RequestType } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { v4 as uuidv4 } from "uuid";
 
@@ -9,7 +9,7 @@ const imageApi = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + `/api/images`,
 		prepareHeaders: (headers: Headers, api) => {
-			headers.append("RequestId", uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuidv4());
 			return headers;
 		},
 	}),
@@ -17,11 +17,11 @@ const imageApi = createApi({
 	endpoints: (builder) => ({
 		getImageForAuction: builder.query<
 			ApiResponseNet<AuctionImage>,
-			{ id: string; noCache: boolean }
+			{ id: string; cache: boolean }
 		>({
 			query: (arg) => ({
 				url: `/`,
-				params: { id: arg.id, noCache: arg.noCache },
+				params: { id: arg.id, cache: arg.cache },
 			}),
 			transformResponse: (
 				response: ApiResponseNet<AuctionImage>,

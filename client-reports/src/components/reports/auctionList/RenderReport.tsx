@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/Store";
 import { AuctionListTypes } from "./AuctionListTypes";
 import { useRunAuctionListMutation } from "../../../api/ReportApi";
-import { ParameterItem } from "../../../Types";
+import { ParameterItem } from "../../../types";
 import AuctionBidsTable from "./components/AuctionBidsTable";
 import AuctionTable from "./components/AuctionTable";
 import { useReactToPrint } from "react-to-print";

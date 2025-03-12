@@ -3,7 +3,12 @@ import qs from "query-string";
 import { useDispatch, useSelector } from "react-redux";
 import { reset, setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
-import { FinanceItem, ProcessingState, User } from "../../store/types";
+import {
+	FinanceItem,
+	ProcessingState,
+	RequestType,
+	User,
+} from "../../store/types";
 import {
 	useGetBalanceQuery,
 	useGetFinanceItemQuery,
@@ -17,9 +22,13 @@ import TextInput from "../inputComponents/TextInput";
 import FinTable from "./FinTable";
 import { setEventFlag } from "../../store/processingSlice";
 import { useFinanceCreateMutation } from "../../api/ProcessingApi";
+import { useCookies } from "react-cookie";
+import { v4 as uuidv4 } from "uuid";
 
 export default function FinListings() {
 	const dispatch = useDispatch();
+	// eslint-disable-next-line
+	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const [isWaiting, setIsWaiting] = useState(false);
 	const [addCredit] = useFinanceCreateMutation();
 	const params = useSelector((state: RootState) => state.paramStore);
@@ -44,11 +53,14 @@ export default function FinListings() {
 	}, [financeData, dispatch]);
 
 	useEffect(() => {
+		setCookie("RequestType", RequestType[RequestType.Finance]);
+		setCookie("RequestId", uuidv4());
 		dispatch(reset(null));
 		return () => {
 			dispatch(reset(null));
 		};
-	}, [dispatch]);
+		// eslint-disable-next-line
+	}, []);
 
 	useEffect(() => {
 		const eventStateFinanceCreditAdd = procState.find(

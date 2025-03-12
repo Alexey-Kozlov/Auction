@@ -9,12 +9,16 @@ import { setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
 import { setData } from "../../store/auctionSlice";
 import Filters from "./Filters";
-import { Auction, ProcessingState } from "../../store/types";
+import { Auction, ProcessingState, RequestType } from "../../store/types";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
+import { useCookies } from "react-cookie";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Listings() {
 	const dispatch = useDispatch();
+	// eslint-disable-next-line
+	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const params = useSelector((state: RootState) => state.paramStore);
 	const data = useSelector((state: RootState) => state.auctionStore);
 	const auctions: Auction[] = data.auctions;
@@ -45,6 +49,12 @@ export default function Listings() {
 			dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
 		}
 	}, [procState, auctionsData, dispatch]);
+
+	useEffect(() => {
+		setCookie("RequestType", RequestType[RequestType.ReadList]);
+		setCookie("RequestId", uuidv4());
+		// eslint-disable-next-line
+	}, []);
 
 	function setPageNumber(pageNumber: number) {
 		dispatch(setParams({ pageNumber: pageNumber }));

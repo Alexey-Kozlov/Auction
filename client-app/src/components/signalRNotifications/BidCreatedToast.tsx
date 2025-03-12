@@ -14,7 +14,7 @@ type Props = {
 export default function BidCreatedToast({ auctionId, toastId }: Props) {
 	const { isLoading, data } = useGetImageForAuctionQuery({
 		id: auctionId,
-		noCache: false,
+		cache: true,
 	});
 	const bidAuction = useGetDetailedViewDataQuery(auctionId);
 	useEffect(() => {

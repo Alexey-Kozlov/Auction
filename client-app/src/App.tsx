@@ -14,15 +14,20 @@ import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
 import { useEffect, useState } from "react";
 import ShowEventsPopUp from "./components/services/ShowEventsPopUp";
+import { useCookies } from "react-cookie";
 
 function App() {
 	const user: User = useSelector((state: RootState) => state.authStore);
 	// eslint-disable-next-line
 	const [userChange, setUserChange] = useState<User>();
+	// eslint-disable-next-line
+	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 
 	//для обновления экрана при смене пользователя
 	useEffect(() => {
 		setUserChange(user);
+		setCookie("User", user.login);
+		// eslint-disable-next-line
 	}, [user]);
 
 	return (

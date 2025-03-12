@@ -1,5 +1,5 @@
 import React from "react";
-import { ReportItem } from "../Types";
+import { ReportItem } from "../types";
 import { useNavigate } from "react-router-dom";
 
 export default function ReportCard(props: ReportItem) {
