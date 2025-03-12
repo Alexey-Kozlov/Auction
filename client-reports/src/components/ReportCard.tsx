@@ -5,7 +5,9 @@ import { useNavigate } from "react-router-dom";
 export default function ReportCard(props: ReportItem) {
 	const nav = useNavigate();
 	const clickHandler = () => {
-		nav(`/reports/${props.Id}`);
+		nav(`/reports/${props.Id}`, { replace: true });
+		//обновляем страничку выбранного отчета - иначе будет бесконечный цикл из-за хука useCookie
+		nav(0);
 	};
 	return (
 		<div

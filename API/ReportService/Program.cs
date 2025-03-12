@@ -1,5 +1,8 @@
+using System.Text;
 using Common.Utils;
 using Common.Utils.Vault;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using ReportService.Reports;
 using ReportService.Services;
 
@@ -16,6 +19,24 @@ builder.Configuration.AddVault(options =>
               options.SecretPathApi = vaultOptions["SecretPathApi"];
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
+//конфигурация конвейера для работы с JWT-аутентификацией
+//нужно для допуска к контроллеру отчетов только аутентифицированных пользователей
+builder.Services.AddAuthentication(p =>
+{
+    p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    p.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(p =>
+{
+    p.RequireHttpsMetadata = false;
+    p.SaveToken = true;
+    p.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["api:secret"])),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
 builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
 {
     jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
@@ -25,6 +46,7 @@ builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<NotificationList>();
 var app = builder.Build();
+var ss = builder.Configuration["api:secret"];
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReportService.DTO;
 using ReportService.Services;
@@ -5,6 +6,7 @@ using ReportService.Services;
 namespace ReportService.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/reports")]
 public class ReportController : ControllerBase
 {

@@ -49,3 +49,8 @@ export enum RequestType {
 	NotFound,
 	TraceId,
 }
+
+export enum ReportType {
+	AuctionList,
+	NotificationList,
+}

@@ -1,9 +1,6 @@
 using System.Net;
-using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
 using Common.Contracts;
-using Microsoft.AspNetCore.Mvc;
 
 namespace GatewayService.Logging;
 

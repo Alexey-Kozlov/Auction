@@ -141,6 +141,14 @@ export default function UserActions() {
 		});
 	};
 
+	// const handleOpenReports = () => {
+	// 	navigate("../reports", {
+	// 		replace: true,
+	// 	});
+	// 	//выполняем второй раз для обновления странички, иначе не будет перехода на микрофронтенд отчетов
+	// 	navigate(0);
+	// };
+
 	return (
 		<>
 			<Dropdown inline label={`Здравствуйте ${user.name}`}>

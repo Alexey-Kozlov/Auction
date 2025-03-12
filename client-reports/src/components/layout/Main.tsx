@@ -4,14 +4,22 @@ import TestItem from "../reports/testItem/testItem";
 import NotificationListParams from "../reports/notificationList/NotificationListParams";
 import ReportFooter from "./ReportFooter";
 import Header from "./header/Header";
+import { useCookies } from "react-cookie";
+import { ReportType } from "../../types";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Main() {
+	// eslint-disable-next-line
+	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const { id } = useParams();
 	const report = () => {
+		setCookie("RequestId", uuidv4());
 		switch (id) {
 			case "AuctionList":
+				setCookie("RequestType", ReportType[ReportType.AuctionList]);
 				return <AuctionListParams />;
 			case "NotificationList":
+				setCookie("RequestType", ReportType[ReportType.NotificationList]);
 				return <NotificationListParams />;
 			case "TestItem":
 				return <TestItem />;
