@@ -50,7 +50,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             {
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для пополнения счета пользователя

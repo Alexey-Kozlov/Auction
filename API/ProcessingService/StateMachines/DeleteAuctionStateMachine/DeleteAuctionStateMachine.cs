@@ -75,7 +75,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.CorrelationId = context.Message.CorrelationId;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для удаления аукциона:
             // - Удаление записей по деньгам в сервисе FinanceService
@@ -243,7 +242,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 })
             .TransitionTo(CommitState));
     }
-    
+
     private void ConfigureCommitState()
     {
         During(CommitState,

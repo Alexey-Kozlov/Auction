@@ -68,7 +68,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 context.Saga.Properties = context.Message.Properties;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.AuctionEnd = context.Message.AuctionEnd;
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.ReservePrice = context.Message.ReservePrice;
                 context.Saga.Image = context.Message.Image;
                 context.Saga.IsImageSplitted = context.Message.IsImageSplitted;

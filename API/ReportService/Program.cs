@@ -46,7 +46,6 @@ builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<NotificationList>();
 var app = builder.Build();
-var ss = builder.Configuration["api:secret"];
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();

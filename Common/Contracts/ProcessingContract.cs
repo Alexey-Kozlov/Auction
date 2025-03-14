@@ -192,3 +192,9 @@ public class ESLog_ProcessImages
     public Guid CorrelationId { get; set; }
     public int BatchCounter { get; set; }
 }
+
+public class FinanceService_Error : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+}

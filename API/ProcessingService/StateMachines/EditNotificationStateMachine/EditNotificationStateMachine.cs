@@ -46,7 +46,6 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Enable = context.Message.Enable;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
             })
             //посылаем через Кафку

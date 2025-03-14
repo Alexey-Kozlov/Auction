@@ -71,7 +71,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.RestoreDate = context.Message.RestoreDate;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.NotifyMessage = "Восстановление данных завершено";

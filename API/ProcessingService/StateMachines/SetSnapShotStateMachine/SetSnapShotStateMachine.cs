@@ -54,7 +54,6 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.NotifyMessage = "Создание SnapShot - ";
                 context.Saga.BatchCounter = -1;

@@ -42,7 +42,6 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.Term = context.Message.SearchTerm;
                 context.Saga.PageSize = context.Message.PageSize;
                 context.Saga.PageNumber = context.Message.PageNumber;
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
             })
             .Send(

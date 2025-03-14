@@ -49,7 +49,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             When(EsLogEvent)
             .Then(context =>
             {
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
                 context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
             })

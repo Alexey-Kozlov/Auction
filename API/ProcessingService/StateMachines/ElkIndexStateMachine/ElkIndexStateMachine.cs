@@ -57,7 +57,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             When(RequestElkIndexEvent)
             .Then(context =>
             {
-                context.Saga.CorrelationId = context.Message.CorrelationId;
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 CurrentBatchCount = 0;

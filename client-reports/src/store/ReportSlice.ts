@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { ParameterItem, User } from "../types";
+import { ParameterItem } from "../types";
 
 type State = {
 	param: ParameterItem[];
