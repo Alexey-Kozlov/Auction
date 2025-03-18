@@ -23,9 +23,9 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
 
 
     public Event<RequestRestoreItems> RequestEvent { get; }
-    public Event<ESLog_RestoreItems> EsLogItemsEvent { get; }
-    public Event<ESLog_RestoreImages> EsLogImagesEvent { get; }
-    public Event<ESLog_ProcessImages> ProcessImagesEvent { get; }
+    public Event<ESLogRestoreItems> EsLogItemsEvent { get; }
+    public Event<ESLogRestoreImages> EsLogImagesEvent { get; }
+    public Event<ESLogProcessImages> ProcessImagesEvent { get; }
     public Event<BidRestoreSnapShot> BidEvent { get; }
     public Event<FinanceRestoreSnapShot> FinanceEvent { get; }
     public Event<SearchRestoreSnapShot> SearchEvent { get; }
@@ -182,7 +182,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         DataObjects = context.Message.DataItems.DataObjects,
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Processing.ESLog_ProcessImages"
+                        CallBackType = "Common.Contracts.Processing.ESLogProcessImages"
                     })
         ),
 

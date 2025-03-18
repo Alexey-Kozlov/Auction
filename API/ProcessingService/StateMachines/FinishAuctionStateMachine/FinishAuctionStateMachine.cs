@@ -13,7 +13,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public State CommitState { get; }
     public State CompletedState { get; }
 
-    public Event<ESLog_AuctionFinish> EsLogEvent { get; }
+    public Event<ESLogAuctionFinish> EsLogEvent { get; }
     public Event<AuctionFinishedElk> ElkEvent { get; }
     public Event<AuctionFinishedNotification> NotificationEvent { get; }
     public Event<AuctionFinishedESCommit> CommitEvent { get; }

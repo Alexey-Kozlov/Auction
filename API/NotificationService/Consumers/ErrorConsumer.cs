@@ -1,16 +1,12 @@
 ﻿using System.Reflection;
-using System.Text.Json;
-using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using NotificationService.Data;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
-public class ErrorConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
+public class ErrorConsumer : IConsumer<NotificationServiceError>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IPublishEndpoint _publishEndpoint;
@@ -23,18 +19,57 @@ public class ErrorConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
+    public async Task Consume(ConsumeContext<NotificationServiceError> context)
     {
-        var correlationId = context.Message.CorrelationId;
+        context.Message.TraceId = Guid.NewGuid();
+        //посылаем ошибку в UI через SignalR
+        if (context.Message.IsError)
+        {
+            await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("ErrorMessage",
+                new
+                {
+                    messageType = 0, //Ошибка
+                    auctionId = context.Message.AuctionId,
+                    message = $"Ошибка - Id {context.Message.TraceId}"
 
-        var typedItem = JsonSerializer.Deserialize<NotifyItem>(context.Message.DataObjects[0].Data);
-        await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("ErrorMessage",
-            new { messageType = 0, auctionId = typedItem.AuctionId, message = context.Message.Props });
+                });
+        }
+        else
+        {
+            await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("ErrorMessage",
+            new
+            {
+                messageType = 1, //Предупреждение
+                auctionId = context.Message.AuctionId,
+                message = $"{context.Message.Message}"
+            });
+        }
 
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
+        //пишем ошибку сервисов в лог
+        await ErrorLogging(context.Message);
+
+        if (!string.IsNullOrEmpty(context.Message.CallBackType))
+        {
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            //продолжаем обработку ProcessingService
+            await _publishEndpoint.Publish(sendObject);
+        }
+    }
+
+    private async Task ErrorLogging(NotificationServiceError errorItem)
+    {
+        var loggingServiceErrorItem = new LoggingServiceError();
+        loggingServiceErrorItem.AuctionId = errorItem.AuctionId;
+        loggingServiceErrorItem.Message = errorItem.Message;
+        loggingServiceErrorItem.ExceptionMessage = errorItem.ExceptionMessage;
+        loggingServiceErrorItem.ServiceName = errorItem.ServiceName;
+        loggingServiceErrorItem.UserLogin = errorItem.UserLogin;
+        loggingServiceErrorItem.IsError = errorItem.IsError;
+        loggingServiceErrorItem.TraceId = errorItem.TraceId;
+        //посылаем сообщение об ошибке через RabbitMq в LoggingService -> Consumers -> LoggingServiceErrorConsumer
+        await _publishEndpoint.Publish(loggingServiceErrorItem);
     }
 
 }

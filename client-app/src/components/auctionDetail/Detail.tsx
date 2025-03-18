@@ -39,7 +39,9 @@ export default function Detail() {
 	const [notifyUser, setNotifyUser] = useState(false);
 	const [deleteAuction, setDeleteAuction] = useState(false);
 	const [auctionDetail, setAuctionDetail] = useState<Auction>();
-	const { data, isLoading } = useGetDetailedViewDataQuery(id!);
+	const { data, isLoading } = useGetDetailedViewDataQuery(id!, {
+		skip: auctionDetail?.title === "",
+	});
 	const isNotifyUser = useIsNotifyUserQuery(id!, {
 		skip: user.login === "" || user.login === undefined,
 	});

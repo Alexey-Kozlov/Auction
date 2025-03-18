@@ -46,6 +46,7 @@ builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<NotificationList>();
 var app = builder.Build();
+//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();

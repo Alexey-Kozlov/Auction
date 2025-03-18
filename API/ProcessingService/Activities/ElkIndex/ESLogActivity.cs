@@ -26,7 +26,7 @@ public class ESLogActivity : IStateMachineActivity<ElkIndexState, ElkIndexReset>
         await _sendEventToES.SendItemToEventSourcing(
             new RequestElkIndex(context.Saga.UserLogin, context.Saga.CorrelationId, ""),
             nameof(RequestElkIndex),
-            "Common.Contracts.Processing.ESLog_ElkIndex",
+            "Common.Contracts.Processing.ESLogElkIndex",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.IndexELK,

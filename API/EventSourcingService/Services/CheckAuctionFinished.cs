@@ -87,7 +87,7 @@ public class CheckAuctionFinished : BackgroundService
 
                 _auctionMetrics.FinishAuction();
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                    _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLog_AuctionFinish");
+                    _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
                 sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
                 sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
                 await _publishEndpoint.Publish(sendObject);

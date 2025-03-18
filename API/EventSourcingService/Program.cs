@@ -14,7 +14,6 @@ using Common.Utils.Vault;
 using EventSourcingService.Consumers;
 using EventSourcingService.Services;
 using Common.Contracts.EventSourcing;
-using Common.Utils;
 
 internal class Program
 {
@@ -132,7 +131,6 @@ internal class Program
         builder.Services.AddSingleton<RestoreImageService>();
 
         var app = builder.Build();
-        app.UseMiddleware<ExceptionMiddleware>();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         app.Use(async (context, next) =>

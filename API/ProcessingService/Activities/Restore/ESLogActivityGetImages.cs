@@ -6,7 +6,7 @@ using ProcessingService.StateMachines.RestoreStateMachine;
 
 namespace ProcessingService.Activities.Restore;
 
-public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLog_RestoreImages>
+public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLogRestoreImages>
 {
     private readonly SendEventToES _sendEventToES;
     private readonly IConfiguration _config;
@@ -21,7 +21,7 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLog_
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<RestoreState, ESLog_RestoreImages> context, IBehavior<RestoreState, ESLog_RestoreImages> next)
+    public async Task Execute(BehaviorContext<RestoreState, ESLogRestoreImages> context, IBehavior<RestoreState, ESLogRestoreImages> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestRestoreImages
@@ -33,7 +33,7 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLog_
                 StartNumber = 0
             },
             nameof(RequestRestoreImages),
-            "Common.Contracts.Processing.ESLog_RestoreImages",
+            "Common.Contracts.Processing.ESLogRestoreImages",
             context.Saga.CorrelationId,
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
@@ -42,7 +42,7 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLog_
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, ESLog_RestoreImages, TException> context, IBehavior<RestoreState, ESLog_RestoreImages> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, ESLogRestoreImages, TException> context, IBehavior<RestoreState, ESLogRestoreImages> next) where TException : Exception
     {
         return next.Faulted(context);
     }

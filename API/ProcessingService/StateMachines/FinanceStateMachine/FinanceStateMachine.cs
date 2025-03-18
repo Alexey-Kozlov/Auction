@@ -15,7 +15,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
 
 
     public Event<RequestCreateFinance> RequestEvent { get; }
-    public Event<ESLog_FinanceCreated> EsLogEvent { get; }
+    public Event<ESLogFinanceCreated> EsLogEvent { get; }
     public Event<FinanceCreated> FinanceEvent { get; }
     public Event<FinanceNotificationCreated> NotificationEvent { get; }
     public Event<FinanceCreateESCommit> CommitEvent { get; }

@@ -23,33 +23,56 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<BidItem>> context)
     {
         var correlationId = context.Message.CorrelationId;
-
-        foreach (var item in context.Message.DataObjects)
+        try
         {
-            var typedItem = JsonSerializer.Deserialize<BidItem>(item.Data);
-            switch (item.CRUD)
+            foreach (var item in context.Message.DataObjects)
             {
-                case CRUD.Create:
-                    await _dbContext.Bids.AddAsync(typedItem);
-                    break;
-                case CRUD.Delete:
-                    //удаляем запись
-                    var delItem = await _dbContext.Bids.FindAsync(typedItem.BidId);
-                    if (delItem == null)
-                    {
-                        throw new Exception($"Запись для удаления не найдена");
-                    }
-                    _dbContext.Bids.Remove(delItem);
-                    break;
-                default:
-                    break;
+                var typedItem = JsonSerializer.Deserialize<BidItem>(item.Data);
+                switch (item.CRUD)
+                {
+                    case CRUD.Create:
+                        await _dbContext.Bids.AddAsync(typedItem);
+                        break;
+                    case CRUD.Delete:
+                        //удаляем запись
+                        var delItem = await _dbContext.Bids.FindAsync(typedItem.BidId);
+                        if (delItem == null)
+                        {
+                            throw new Exception($"Запись для удаления не найдена");
+                        }
+                        _dbContext.Bids.Remove(delItem);
+                        break;
+                    default:
+                        break;
+                }
             }
-        }
-        await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+            await _publishEndpoint.Publish(sendObject);
+        }
+        catch (Exception e)
+        {
+            //ошибки, в т.ч. штатные
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "BidService");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType,
+                new object[] { "", messageObject });
+
+            await _publishEndpoint.Publish(faultObject);
+        }
     }
 }

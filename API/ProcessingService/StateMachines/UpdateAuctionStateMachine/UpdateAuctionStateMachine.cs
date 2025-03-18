@@ -18,7 +18,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public State CompletedState { get; }
 
     public Event<RequestAuctionUpdate> RequestEvent { get; }
-    public Event<ESLog_AuctionUpdated> ImageEvent { get; }
+    public Event<ESLogAuctionUpdated> ImageEvent { get; }
     public Event<AuctionUpdateFinalize> ImageFinalizeEvent { get; }
     public Event<AuctionUpdatedGateWay> GatewayEvent { get; }
     public Event<AuctionUpdatedSearch> SearchEvent { get; }

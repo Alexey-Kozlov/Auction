@@ -46,7 +46,6 @@ builder.Services.AddOpenTelemetry()
 );
 
 var app = builder.Build();
-app.UseMiddleware<ExceptionMiddleware>();
 app.Use(async (context, next) =>
 {
     //логируем вошедший запрос

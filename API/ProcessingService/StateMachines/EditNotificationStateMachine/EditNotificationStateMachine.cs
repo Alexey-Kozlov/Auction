@@ -12,7 +12,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
 
 
     public Event<RequestEditNotification> RequestEvent { get; }
-    public Event<ESLog_EditNotification> EsLogEvent { get; }
+    public Event<ESLogEditNotification> EsLogEvent { get; }
     public Event<EditNotificationESCommit> CommitEvent { get; }
     public Event<EditNotificationComplete> CompleteEvent { get; }
     private IConfiguration configuration { get; }

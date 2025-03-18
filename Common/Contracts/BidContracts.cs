@@ -9,9 +9,8 @@ public record RequestBidPlace(
      Guid CorrelationId
 );
 
-public class BidFinanceGranted : IFaultMessage
+public class BidFinanceGranted : BaseServiceError, IFaultMessage
 {
-     public Guid CorrelationId { get; set; }
 };
 
 public record RollbackBidFinanceGranted(
@@ -27,28 +26,28 @@ public record BidPlacing(
      int Amount,
      Guid CorrelationId
 );
-public class BidPlaced
+public class BidPlaced : BaseServiceError, IFaultMessage
 {
-     public Guid CorrelationId { get; set; }
+
 };
 
 
-public class BidSearchPlaced
+public class BidSearchPlaced : BaseServiceError, IFaultMessage
 {
-     public Guid CorrelationId { get; set; }
+
 };
 
-public class BidNotificationProcessed
+public class BidNotificationProcessed : BaseServiceError, IFaultMessage
 {
-     public Guid CorrelationId { get; set; }
+
 };
-public class BidCreateESCommit
+public class BidCreateESCommit : BaseServiceError, IFaultMessage
 {
-     public Guid CorrelationId { get; set; }
+
 };
-public class BidComplete
+public class BidComplete : BaseServiceError, IFaultMessage
 {
-     public Guid CorrelationId { get; set; }
+
 };
 
 

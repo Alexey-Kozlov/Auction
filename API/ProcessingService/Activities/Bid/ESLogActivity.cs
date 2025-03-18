@@ -9,11 +9,9 @@ namespace ProcessingService.Activities.Bid;
 public class ESLogActivity : IStateMachineActivity<BidPlacedState, RequestBidPlace>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -33,7 +31,7 @@ public class ESLogActivity : IStateMachineActivity<BidPlacedState, RequestBidPla
                 Amount = context.Saga.Amount
             },
             nameof(BidItem),
-            "Common.Contracts.Processing.ESLog_PlaceBid",
+            "Common.Contracts.Processing.ESLogPlaceBid",
             context.Message.CorrelationId,
             context.Saga.Bidder,
             Command.PlaceBid,

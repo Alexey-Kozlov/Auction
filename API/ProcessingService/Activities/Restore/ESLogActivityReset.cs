@@ -24,12 +24,12 @@ public class ESLogActivityReset : IStateMachineActivity<RestoreState, RequestRes
     public async Task Execute(BehaviorContext<RestoreState, RequestRestoreItems> context, IBehavior<RestoreState, RequestRestoreItems> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new ESLog_ResetSnapShot
+            new ESLogResetSnapShot
             {
                 CorrelationId = context.Saga.CorrelationId
             },
-            nameof(ESLog_ResetSnapShot),
-            "Common.Contracts.Processing.ESLog_RestoreItems",
+            nameof(ESLogResetSnapShot),
+            "Common.Contracts.Processing.ESLogRestoreItems",
             context.Saga.CorrelationId,
             context.Saga.UserLogin,
             Command.RestoreSnapShot,

@@ -19,7 +19,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
 
 
     public Event<RequestAuctionCreate> RequestEvent { get; }
-    public Event<ESLog_AuctionCreated> EsLogEvent { get; }
+    public Event<ESLogAuctionCreated> EsLogEvent { get; }
     public Event<AuctionUpdateFinalize> ImageFinalizeEvent { get; }
     public Event<AuctionCreatedSearch> SearchEvent { get; }
     public Event<AuctionCreatedElk> ElkEvent { get; }

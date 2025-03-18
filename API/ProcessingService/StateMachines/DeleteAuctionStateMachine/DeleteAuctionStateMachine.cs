@@ -24,7 +24,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
 
 
     public Event<RequestAuctionDelete> RequestEvent { get; }
-    public Event<ESLog_AuctionDeleted> EsLogEvent { get; }
+    public Event<ESLogAuctionDeleted> EsLogEvent { get; }
     public Event<AuctionDeletedBid> BidEvent { get; }
     public Event<AuctionDeletedGateway> GatewayEvent { get; }
     public Event<AuctionDeletedImage> ImageEvent { get; }

@@ -29,38 +29,62 @@ public class NotificationConsumer : IConsumer<DataForProcessingServicesList<Noti
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {
         var correlationId = context.Message.CorrelationId;
-        foreach (var item in context.Message.DataObjects)
+        try
         {
-            //уведомления при операциях с аукционом - создание, обновление, удаление
-            await ProcessNotifyItem(item, correlationId);
-            await _dbContext.SaveChangesAsync();
-        }
-        var auctionData = JsonSerializer.Deserialize<AuctionNotificationData>(context.Message.Props);
-        var auctionItem = JsonSerializer.Deserialize<AuctionItem>(auctionData.AuctionData);
-        var notify = new AuctionNotification
-        {
-            Title = auctionItem.Title,
-            CorrelationId = correlationId,
-            AuctionId = auctionItem.AuctionId,
-            UserLogin = auctionItem.Seller
-        };
+            foreach (var item in context.Message.DataObjects)
+            {
+                //уведомления при операциях с аукционом - создание, обновление, удаление
+                await ProcessNotifyItem(item, correlationId);
+                await _dbContext.SaveChangesAsync();
+            }
+            var auctionData = JsonSerializer.Deserialize<AuctionNotificationData>(context.Message.Props);
+            var auctionItem = JsonSerializer.Deserialize<AuctionItem>(auctionData.AuctionData);
+            var notify = new AuctionNotification
+            {
+                Title = auctionItem.Title,
+                CorrelationId = correlationId,
+                AuctionId = auctionItem.AuctionId,
+                UserLogin = auctionItem.Seller
+            };
 
-        switch (auctionData.CRUD)
-        {
-            case CRUD.Create:
-                await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
-                break;
-            case CRUD.Update:
-                await _hubContext.Clients.Group(auctionItem.Seller).SendAsync("AuctionUpdated", notify);
-                break;
-            case CRUD.Delete:
-                await _hubContext.Clients.Group(auctionItem.Seller).SendAsync("AuctionDeleted", notify);
-                break;
+            switch (auctionData.CRUD)
+            {
+                case CRUD.Create:
+                    await _hubContext.Clients.All.SendAsync("AuctionCreated", notify);
+                    break;
+                case CRUD.Update:
+                    await _hubContext.Clients.Group(auctionItem.Seller).SendAsync("AuctionUpdated", notify);
+                    break;
+                case CRUD.Delete:
+                    await _hubContext.Clients.Group(auctionItem.Seller).SendAsync("AuctionDeleted", notify);
+                    break;
+            }
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+            await _publishEndpoint.Publish(sendObject);
         }
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-             _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
+        catch (Exception e)
+        {
+            //ошибки, в т.ч. штатные
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "NotificationService");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType,
+                new object[] { "", messageObject });
+
+            await _publishEndpoint.Publish(faultObject);
+        }
     }
 
     private async Task ProcessNotifyItem(DataForProcessingService item, Guid correlationId)

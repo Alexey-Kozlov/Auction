@@ -13,7 +13,7 @@ public class BidPlaceProcessing
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
-    private readonly AuctionMetrics _auctionMetrics;    
+    private readonly AuctionMetrics _auctionMetrics;
 
     public BidPlaceProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
         IConfiguration configuration, AuctionMetrics auctionMetrics)
@@ -21,7 +21,7 @@ public class BidPlaceProcessing
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
         _configuration = configuration;
-        _auctionMetrics = auctionMetrics;        
+        _auctionMetrics = auctionMetrics;
     }
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
@@ -69,11 +69,41 @@ public class BidPlaceProcessing
         catch (Npgsql.PostgresException e)
         {
             //ошибка при выполнении транзакции в БД, в т.ч. штатные - при нехватке денег на ставку
-            Fault<ESLog_PlaceBid> errorObj = new FaultMessage<ESLog_PlaceBid>(
-                e.MessageText,
-                new ESLog_PlaceBid { CorrelationId = context.Message.CorrelationId }
+            Fault<ESLogPlaceBid> errorObj = new FaultMessage<ESLogPlaceBid>(
+                "",
+                new ESLogPlaceBid
+                {
+                    CorrelationId = context.Message.CorrelationId,
+                    ServiceName = "EventSourcingService_BidPlace",
+                    Message = e.MessageText,
+                    ExceptionMessage = e.Message,
+                    UserLogin = context.Message.UserLogin,
+                    AuctionId = context.Message.AuctionId,
+                    IsError = false
+                }
             );
             await _publishEndpoint.Publish(errorObj);
+        }
+        catch (Exception e)
+        {
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_BidPlace");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType,
+                new object[] { "", messageObject });
+            await _publishEndpoint.Publish(faultObject);
         }
     }
 

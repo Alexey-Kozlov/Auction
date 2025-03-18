@@ -33,7 +33,7 @@ public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFi
                 Value = context.Message.Amount
             },
             nameof(FinanceItem),
-            "Common.Contracts.Processing.ESLog_FinanceCreated",
+            "Common.Contracts.Processing.ESLogFinanceCreated",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.FinanceCreate,

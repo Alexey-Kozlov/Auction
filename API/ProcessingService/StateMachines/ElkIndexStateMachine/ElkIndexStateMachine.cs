@@ -17,7 +17,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
 
     public Event<ElkIndexReset> ResetIndexEvent { get; }
     public Event<RequestElkIndex> RequestElkIndexEvent { get; }
-    public Event<ESLog_ElkIndex> EsLogEvent { get; }
+    public Event<ESLogElkIndex> EsLogEvent { get; }
     public Event<ElkIndexCompleted> NotificationEvent { get; }
     public Event<ElkIndexEnd> EndEvent { get; }
     public Event<ElkIndexESCommit> CommitEvent { get; }
@@ -140,7 +140,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 {
                     DataObjects = context.Message.DataItems.DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Processing.ESLog_ElkIndex"
+                    CallBackType = "Common.Contracts.Processing.ESLogElkIndex"
                 })
             )
             //Если переданное общее количество переданных пакетов соответствует счетчику обработанных пакетов -

@@ -34,7 +34,7 @@ public class RestoreSnapShotProcessing
         };
         switch (context.Message.EntityType)
         {
-            case nameof(ESLog_ResetSnapShot):
+            case nameof(ESLogResetSnapShot):
                 //Выполняем удаление всех записей в BiddingService,FinanceService,NotificationService,
                 //SearchService,ImageService
                 _dbContext.Database.ExecuteSqlRaw("Call public.reset_snap_shot()", new object[] { });

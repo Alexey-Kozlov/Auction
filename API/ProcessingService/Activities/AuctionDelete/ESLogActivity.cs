@@ -34,7 +34,7 @@ public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAu
                 UserLogin = context.Message.UserLogin //важно
             },
             nameof(FinanceItem),
-            "Common.Contracts.Processing.ESLog_AuctionDeleted",
+            "Common.Contracts.Processing.ESLogAuctionDeleted",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionDelete,

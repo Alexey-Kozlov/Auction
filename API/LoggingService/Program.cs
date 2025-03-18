@@ -11,10 +11,26 @@ builder.Configuration.AddVault(options =>
               options.Address = vaultOptions["Address"];
               options.Role = vaultOptions["VAULT_ROLE_ID"];
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
+              options.SecretPathRt = vaultOptions["SecretPathRt"];
               options.SecretPathElk = vaultOptions["SecretPathElk"];
           });
 builder.Services.AddControllers();
 builder.Services.AddMassTransit(busConfigurator =>
+        {
+            busConfigurator.AddConsumersFromNamespaceContaining<LoggingServiceErrorConsumer>();
+            busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("logging", false));
+            busConfigurator.UsingRabbitMq((context, config) =>
+            {
+                config.Host(builder.Configuration["rt:host"], "/", p =>
+                {
+                    p.Username(builder.Configuration["rt:username"]);
+                    p.Password(builder.Configuration["rt:password"]);
+                });
+                config.ConfigureEndpoints(context);
+                config.ConcurrentMessageLimit = 1;
+            });
+        });
+builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
 {
     busConfigurator.UsingInMemory((context, config) =>
     {

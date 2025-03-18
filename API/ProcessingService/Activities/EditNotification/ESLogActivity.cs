@@ -33,7 +33,7 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
                 UserLogin = context.Saga.UserLogin
             },
             nameof(RequestEditNotification),
-            "Common.Contracts.Processing.ESLog_EditNotification",
+            "Common.Contracts.Processing.ESLogEditNotification",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.EditNotification,

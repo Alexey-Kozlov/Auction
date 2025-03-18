@@ -15,6 +15,7 @@ public class LoggingConsumer : IConsumer<ItemLoggingContract>
     }
     public async Task Consume(ConsumeContext<ItemLoggingContract> context)
     {
+        //подписчик логирования через Kafka
         var loggingMessage = context.Message;
         var jsonPolicy = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         if (loggingMessage.ResponseLoggingContract.StatusCode == System.Net.HttpStatusCode.OK &&

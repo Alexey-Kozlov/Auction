@@ -36,7 +36,7 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
                 UpdatedAt = DateTime.UtcNow
             },
             nameof(AuctionItem),
-            "Common.Contracts.Processing.ESLog_AuctionCreated",
+            "Common.Contracts.Processing.ESLogAuctionCreated",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionCreate,

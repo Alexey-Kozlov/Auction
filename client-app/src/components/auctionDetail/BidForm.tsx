@@ -59,8 +59,9 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 							auctionId: auctionId,
 							correlationId: uuid.v4() as string,
 						});
-						//values.amount = 0;
-						navigate(0);
+
+						values.amount = 0;
+						//navigate(0);
 					}}
 					validationSchema={Yup.object({
 						amount: Yup.number()

@@ -68,11 +68,23 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
         catch (Exception e)
         {
             //ошибки, в т.ч. штатные
-            Fault<FinanceService_Error> errorObj = new FaultMessage<FinanceService_Error>(
-                "Ошибка в модуле FinanceService",
-                new FinanceService_Error { CorrelationId = correlationId, Message = e.Message }
-            );
-            await _publishEndpoint.Publish(errorObj);
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "FinanceService");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType,
+                new object[] { "", messageObject });
+
+            await _publishEndpoint.Publish(faultObject);
         }
     }
 }

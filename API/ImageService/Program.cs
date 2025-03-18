@@ -67,7 +67,6 @@ builder.Services.AddOpenTelemetry()
 builder.Services.AddSingleton<RestoreImageService>();
 
 var app = builder.Build();
-app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGrpcService<GrpcImageServer>();
