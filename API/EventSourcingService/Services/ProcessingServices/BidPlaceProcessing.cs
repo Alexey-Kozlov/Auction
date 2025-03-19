@@ -70,7 +70,6 @@ public class BidPlaceProcessing
         {
             //ошибка при выполнении транзакции в БД, в т.ч. штатные - при нехватке денег на ставку
             Fault<ESLogPlaceBid> errorObj = new FaultMessage<ESLogPlaceBid>(
-                "",
                 new ESLogPlaceBid
                 {
                     CorrelationId = context.Message.CorrelationId,
@@ -101,9 +100,8 @@ public class BidPlaceProcessing
             var typeParams = new Type[] { messageObject.GetType() };
             var faultObjectType = faultType.MakeGenericType(typeParams);
 
-            var faultObject = Activator.CreateInstance(faultObjectType,
-                new object[] { "", messageObject });
-            await _publishEndpoint.Publish(faultObject);
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
 

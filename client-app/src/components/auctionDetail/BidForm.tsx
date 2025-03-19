@@ -61,7 +61,6 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 						});
 
 						values.amount = 0;
-						//navigate(0);
 					}}
 					validationSchema={Yup.object({
 						amount: Yup.number()

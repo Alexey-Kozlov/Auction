@@ -78,10 +78,9 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
             var typeParams = new Type[] { messageObject.GetType() };
             var faultObjectType = faultType.MakeGenericType(typeParams);
 
-            var faultObject = Activator.CreateInstance(faultObjectType,
-                new object[] { "", messageObject });
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
 
-            await _publishEndpoint.Publish(faultObject);
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
 }

@@ -4,6 +4,7 @@ using Common.Contracts.Finance;
 using Common.Contracts.Processing;
 using FinanceService.Data;
 using MassTransit;
+using MassTransit.Internals;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Consumers;
@@ -80,11 +81,9 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };
             var faultObjectType = faultType.MakeGenericType(typeParams);
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
 
-            var faultObject = Activator.CreateInstance(faultObjectType,
-                new object[] { "", messageObject });
-
-            await _publishEndpoint.Publish(faultObject);
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
 }

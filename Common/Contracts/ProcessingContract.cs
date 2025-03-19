@@ -12,12 +12,10 @@ public interface IFaultMessage
 public class FaultMessage<T> : Fault<T> where T : IFaultMessage
 {
     private Guid _correlationId;
-    private string _message;
     private T _sendObject;
-    public FaultMessage(string message, T sendObject)
+    public FaultMessage(T sendObject)
     {
         _correlationId = sendObject.CorrelationId;
-        _message = message;
         _sendObject = sendObject;
     }
     public Guid FaultId => _correlationId;
@@ -26,13 +24,17 @@ public class FaultMessage<T> : Fault<T> where T : IFaultMessage
 
     public DateTime Timestamp => DateTime.UtcNow;
 
-    public ExceptionInfo[] Exceptions => [new FaultExceptionInfo(_message)];
+    public ExceptionInfo[] Exceptions => [new FaultExceptionInfo("")];
 
     public HostInfo Host => new FaultHostInfo();
 
     public string[] FaultMessageTypes => [];
 
     public T Message => _sendObject;
+    public Fault<T> CastItem()
+    {
+        return (Fault<T>)this;
+    }
 }
 
 public class FaultExceptionInfo : ExceptionInfo
