@@ -28,7 +28,7 @@ public class BidsController : ControllerBase
     [HttpGet("{auctionId}")]
     public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(string auctionId)
     {
-        var highBid = await _context.Bids.Where(p => p.AuctionId == Guid.Parse(auctionId))
+        var highBid = await _context.Bids.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
                 .OrderBy(p => p.BidTime).ToListAsync();
 
         return new ApiResponse<List<BidDTO>>()

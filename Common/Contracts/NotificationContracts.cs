@@ -4,8 +4,11 @@ namespace Common.Contracts.Notification;
 
 public class NotifyItem
 {
+     public Guid? Id { get; set; }
      public Guid AuctionId { get; set; }
      public string UserLogin { get; set; }
+     public Guid CorrelationId { get; set; }
+     public bool Commited { get; set; }
 }
 
 
@@ -26,23 +29,22 @@ public class RequestEditNotification
      public Guid CorrelationId { get; set; }
 }
 
-public class EditNotificationCreated
-{
-     public Guid CorrelationId { get; set; }
-}
+public class EditNotificationCreated : BaseServiceError, IFaultMessage { }
 
-public class EditNotificationESCommit
-{
-     public Guid CorrelationId { get; set; }
-}
-public class EditNotificationComplete
-{
-     public Guid CorrelationId { get; set; }
-}
+public class EditNotificationESCommit : BaseServiceError, IFaultMessage { }
+
+public class EditNotificationComplete : BaseServiceError, IFaultMessage { }
 
 public class AuctionNotificationData
 {
      public Guid CorrelationId { get; set; }
      public string AuctionData { get; set; }
      public CRUD CRUD { get; set; }
+}
+
+public class NotificationCommit
+{
+     public Guid CorrelationId { get; set; }
+     public bool Commited { get; set; }
+     public string CallBackType { get; set; }
 }

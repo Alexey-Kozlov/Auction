@@ -32,7 +32,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
             "",
-            null);
+            null,
+            false);
         await next.Execute(context).ConfigureAwait(false);
     }
 

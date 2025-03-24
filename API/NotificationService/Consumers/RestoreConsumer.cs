@@ -33,6 +33,7 @@ public class RestoreConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
             //восстановление данных из ES лога - восстанавливаем все записи уведомлений и посылаем
             //уведомление о завершении работы
             var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
+            typedItem.Commited = true;
             await _dbContext.NotifyItems.AddAsync(typedItem);
         }
         if (context.Message.DataObjects.Any())

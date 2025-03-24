@@ -1,0 +1,46 @@
+﻿using System.Reflection;
+using Common.Contracts.Finance;
+using Common.Contracts.Processing;
+using ElasticSearchService.Services;
+using MassTransit;
+
+namespace ElasticSearchService.Consumers;
+
+public class CommitElkConsumer : IConsumer<FinanceCommit>
+{
+    private readonly ElkClient _client;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IConfiguration _configuration;
+
+    public CommitElkConsumer(ElkClient client, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    {
+        _client = client;
+        _publishEndpoint = publishEndpoint;
+        _configuration = configuration;
+    }
+    public async Task Consume(ConsumeContext<FinanceCommit> context)
+    {
+
+        var correlationId = context.Message.CorrelationId;
+        try
+        {
+
+
+
+        }
+        catch (Exception e)
+        {
+            var errorItem = new NotificationServiceError
+            {
+                CorrelationId = context.Message.CorrelationId,
+                Message = e.Message,
+                ExceptionMessage = e.Source + "," + e.StackTrace,
+                ServiceName = "ElkService",
+                UserLogin = "",
+                CallBackType = "",
+                IsError = true
+            };
+            await _publishEndpoint.Publish(errorItem);
+        }
+    }
+}

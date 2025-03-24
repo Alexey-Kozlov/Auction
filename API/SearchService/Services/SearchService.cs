@@ -26,6 +26,7 @@ public class SearchService
     public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SqlSearchItems(SearchParamsDTO searchParams)
     {
         var query = _context.AuctionItems.AsQueryable();
+        query = query.Where(p => p.Commited);
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
             query = query.Where(p => p.Title.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||

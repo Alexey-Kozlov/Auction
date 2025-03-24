@@ -45,7 +45,8 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
                 UsingImage = context.Message.UsingImage,
                 IsImageSplitted = context.Message.IsImageSplitted
             }),
-            context.Saga.AuctionId);
+            context.Saga.AuctionId,
+            false);
         await next.Execute(context).ConfigureAwait(false);
     }
 

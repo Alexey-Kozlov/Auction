@@ -14,6 +14,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public State BidState { get; }
     public State SearchState { get; }
     public State NotificationState { get; }
+    public State FaultCommitState { get; }
     public State CommitState { get; }
     public State CompletedState { get; }
 
@@ -29,7 +30,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<Fault<BidPlaced>> FaultBidEvent { get; }
     public Event<Fault<BidSearchPlaced>> FaultSearchEvent { get; }
     public Event<Fault<BidNotificationProcessed>> FaultNotificationEvent { get; }
-    public Event<Fault<BidCreateESCommit>> FaultCommitEvent { get; }
+    public Event<Fault<BaseServiceError>> FaultCommitEvent { get; }
     public Event<Fault<BidComplete>> FaultCompleteEvent { get; }
     private IConfiguration configuration { get; }
 
@@ -44,6 +45,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureBidPState();
         ConfigureSearchState();
         ConfigureNotificationState();
+        ConfigureFaultCommitState();
         ConfigureCommitState();
         ConfigureCompletedState();
     }
@@ -110,20 +112,12 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         .TransitionTo(BidState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-        .Send(
-            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-            context => new NotificationServiceError
+            .Publish(contex => new BaseServiceError
             {
-                CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.Bidder,
-                CallBackType = "Common.Contracts.Bid.BidComplete",
-                AuctionId = context.Saga.AuctionId,
-                IsError = context.Message.Message.IsError
+                CorrelationId = contex.Saga.CorrelationId,
+                IsError = true
             })
-        .TransitionTo(CompletedState)
+        .TransitionTo(FaultCommitState)
         );
     }
 
@@ -142,20 +136,12 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса FinanceService
         When(FaultBidEvent)
-        .Send(
-            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-            context => new NotificationServiceError
+            .Publish(contex => new BaseServiceError
             {
-                CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.Bidder,
-                CallBackType = "Common.Contracts.Bid.BidComplete",
-                AuctionId = context.Saga.AuctionId,
-                IsError = context.Message.Message.IsError
+                CorrelationId = contex.Saga.CorrelationId,
+                IsError = true
             })
-        .TransitionTo(CompletedState)
+        .TransitionTo(FaultCommitState)
         );
     }
 
@@ -175,20 +161,12 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(NotificationState),
         //обрабатываем ошибки из сервиса BidService
         When(FaultSearchEvent)
-        .Send(
-            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.Bidder,
-                    CallBackType = "Common.Contracts.Bid.BidComplete",
-                    AuctionId = context.Saga.AuctionId,
-                    IsError = context.Message.Message.IsError
-                })
-        .TransitionTo(CompletedState)
+            .Publish(contex => new BaseServiceError
+            {
+                CorrelationId = contex.Saga.CorrelationId,
+                IsError = true
+            })
+        .TransitionTo(FaultCommitState)
         );
     }
 
@@ -209,20 +187,39 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(CommitState),
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotificationEvent)
-        .Send(
+            .Publish(contex => new BaseServiceError
+            {
+                CorrelationId = contex.Saga.CorrelationId,
+                IsError = true
+            })
+        .TransitionTo(FaultCommitState)
+        );
+    }
+
+    private void ConfigureFaultCommitState()
+    {
+        During(FaultCommitState,
+        //передаем ошибки из сервиса NotificationService на обработку
+        When(FaultCommitEvent)
+            .Send(
             new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.Bidder,
-                    CallBackType = "Common.Contracts.Bid.BidComplete",
-                    AuctionId = context.Saga.AuctionId,
-                    IsError = context.Message.Message.IsError
-                })
-        .TransitionTo(CompletedState)
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.Bidder,
+                CallBackType = "Common.Contracts.Bid.BidCreateESCommit",
+                AuctionId = context.Saga.AuctionId,
+                IsError = context.Message.Message.IsError
+            })
+            .Publish(contex => new BidCreateESCommit
+            {
+                CorrelationId = contex.Saga.CorrelationId,
+                IsError = true
+            })
+        .TransitionTo(CommitState)
         );
     }
 
@@ -230,32 +227,26 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         During(CommitState,
         When(CommitEvent)
-            //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
+        .Then(context =>
+        {
+            Console.WriteLine($"P{DateTime.UtcNow} 1- {context.Message.GetType()}");
+        })
+            //подтверждаем/откатываем транзакцию
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState),
-        //обрабатываем ошибки из сервиса NotificationService
-        When(FaultCommitEvent)
-        .Send(
-            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.Bidder,
-                    CallBackType = "Common.Contracts.Bid.BidComplete",
-                    AuctionId = context.Saga.AuctionId,
-                    IsError = context.Message.Message.IsError
-                })
-        .TransitionTo(CompletedState)
+            .TransitionTo(CompletedState)
         );
     }
 
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-        When(CompleteEvent).Finalize(),
+
+        When(CompleteEvent)
+                .Then(context =>
+        {
+            Console.WriteLine($"P{DateTime.UtcNow} 2- {context.Message.GetType()}");
+        })
+        .Finalize(),
         //обрабатываем ошибки из сервиса EventSourcing - ESCommit
         When(FaultCompleteEvent)
         .Send(

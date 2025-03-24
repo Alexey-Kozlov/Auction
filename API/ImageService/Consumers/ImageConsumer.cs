@@ -33,68 +33,92 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
     {
         await _locker.LockAsync(async () =>
         {
-            var correlationId = context.Message.CorrelationId;
-            var crudItem = context.Message.DataObjects.First(p => p.Data == "CRUD");
-            DataForProcessingService imageItem = new DataForProcessingService();
-            if (crudItem.CRUD == CRUD.Create || crudItem.CRUD == CRUD.Update)
+            try
             {
-                imageItem = context.Message.DataObjects.First(p => p.Data != "");
-                var image = _restoreImageService.GetImageString(imageItem);
-                if (string.IsNullOrEmpty(image))
+                var correlationId = context.Message.CorrelationId;
+                var crudItem = context.Message.DataObjects.First(p => p.Data == "CRUD");
+                DataForProcessingService imageItem = new DataForProcessingService();
+                if (crudItem.CRUD == CRUD.Create || crudItem.CRUD == CRUD.Update)
                 {
-                    //если вернули пустую строку - еще не все части изображения собраны,
-                    //возвращаем сообщение для финализирования Saga для данного потока.
-                    //Далее ждем, когда все части изображения будут собраны
-                    await _publishEndpoint.Publish(new AuctionUpdateFinalize
+                    imageItem = context.Message.DataObjects.First(p => p.Data != "");
+                    var image = _restoreImageService.GetImageString(imageItem);
+                    if (string.IsNullOrEmpty(image))
                     {
-                        CorrelationId = correlationId
-                    });
-                    return;
+                        //если вернули пустую строку - еще не все части изображения собраны,
+                        //возвращаем сообщение для финализирования Saga для данного потока.
+                        //Далее ждем, когда все части изображения будут собраны
+                        await _publishEndpoint.Publish(new AuctionUpdateFinalize
+                        {
+                            CorrelationId = correlationId
+                        });
+                        return;
+                    }
+                    imageItem.Data = image;
                 }
-                imageItem.Data = image;
-            }
-            var typedItem = new ImageDTO
-            {
-                AuctionId = crudItem.MessagePartId,
-                Image = imageItem.Data
-            };
-            switch (crudItem.CRUD)
-            {
-                case CRUD.Delete:
-                    var item = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == crudItem.MessagePartId);
-                    if (item != null)
-                    {
-                        _context.Images.Remove(item);
-                    }
-                    else
-                    {
-                        throw new Exception("Ошибка - не найдена запись изображения");
-                    }
-                    break;
-                case CRUD.Create:
-                    await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
-                    break;
-                case CRUD.Update:
-
-                    var item2 = await _context.Images.FirstOrDefaultAsync(p => p.AuctionId == crudItem.MessagePartId);
-                    if (item2 != null)
-                    {
-                        _mapper.Map(typedItem, item2);
-                        _context.Images.Update(item2);
-                    }
-                    else
-                    {
-                        //если было обновление аукциона без изображения
+                var typedItem = new ImageDTO
+                {
+                    AuctionId = crudItem.MessagePartId,
+                    Image = imageItem.Data
+                };
+                typedItem.CorrelationId = correlationId;
+                switch (crudItem.CRUD)
+                {
+                    case CRUD.Delete:
+                        var item = await _context.Images.FirstOrDefaultAsync(p =>
+                            p.AuctionId == crudItem.MessagePartId && p.Commited);
+                        if (item != null)
+                        {
+                            item.CorrelationId = correlationId;
+                            _context.Images.Update(item);
+                        }
+                        else
+                        {
+                            throw new Exception("Ошибка - не найдена запись изображения");
+                        }
+                        break;
+                    case CRUD.Create:
+                        typedItem.Id = Guid.NewGuid();
                         await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
-                    }
-                    break;
+                        break;
+                    case CRUD.Update:
+                        var item2 = await _context.Images.FirstOrDefaultAsync(p =>
+                            p.AuctionId == crudItem.MessagePartId && p.Commited);
+                        if (item2 != null)
+                        {
+                            item2.CorrelationId = correlationId;
+                            _context.Images.Update(item2);
+                        }
+                        typedItem.Id = Guid.NewGuid();
+                        typedItem.Commited = false;
+                        await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
+                        break;
+                }
+                //операция над изображением выполнена, продолжаем обработку в Saga
+                await _context.SaveChangesAsync();
+                var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+                await _publishEndpoint.Publish(sendObject);
             }
-            //операция над изображением выполнена, продолжаем обработку в Saga
-            await _context.SaveChangesAsync();
-            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                        _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-            await _publishEndpoint.Publish(sendObject);
+            catch (Exception e)
+            {
+                //ошибки, в т.ч. штатные
+                var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                    _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+                messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+                messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ImageService");
+                messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+                messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+                messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+                var faultType = typeof(FaultMessage<>);
+                var typeParams = new Type[] { messageObject.GetType() };
+                var faultObjectType = faultType.MakeGenericType(typeParams);
+                var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+
+                await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
+            }
         });
     }
 }

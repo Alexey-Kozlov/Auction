@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using AutoMapper;
 using Common.Contracts.Image;
@@ -42,6 +41,7 @@ public class ImageRestoreConsumer : IConsumer<DataForProcessingServicesList<Imag
             if (string.IsNullOrEmpty(image)) return;
             //вернулась не пустая строка - изображение собрано, формируем изображение и пишем в БД
             typedItem_.Image = image;
+            typedItem_.Commited = true;
             await _context.Images.AddAsync(_mapper.Map<ImageItem>(typedItem_));
             await _context.SaveChangesAsync();
             //возвращаем сообщение - что обработано изображение

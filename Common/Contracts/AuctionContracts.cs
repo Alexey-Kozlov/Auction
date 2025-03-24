@@ -12,6 +12,7 @@ public interface IAuctionImageSplit
 
 public class AuctionItem
 {
+      public Guid? Id { get; set; }
       public Guid AuctionId { get; set; }
       public int ReservePrice { get; set; }
       public string Seller { get; set; }
@@ -25,6 +26,8 @@ public class AuctionItem
       public string Properties { get; set; }
       public string Description { get; set; }
       public bool Finished { get; set; } = false;
+      public Guid CorrelationId { get; set; }
+      public bool Commited { get; set; }
 }
 
 public class AuctionImageDTO
@@ -52,10 +55,7 @@ public class RequestAuctionCreate : IAuctionImageSplit
 }
 
 
-public class AuctionCreatedSearch
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionCreatedSearch : BaseServiceError, IFaultMessage { }
 
 public class AuctionNotification
 {
@@ -65,10 +65,8 @@ public class AuctionNotification
       public Guid CorrelationId { get; set; }
 }
 
-public class AuctionCreatedNotification
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionCreatedNotification : BaseServiceError, IFaultMessage { };
+
 
 public class AuctionCreatingElk
 {
@@ -85,18 +83,12 @@ public class AuctionCreatingElk
       public string Winner { get; set; }
       public int Amount { get; set; }
 };
-public class AuctionCreatedElk
-{
-      public Guid CorrelationId { get; set; }
-}
-public class AuctionCreateESCommit
-{
-      public Guid CorrelationId { get; set; }
-}
-public class AuctionCreateComplete
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionCreatedElk : BaseServiceError, IFaultMessage { };
+
+public class AuctionCreateESCommit : BaseServiceError, IFaultMessage { };
+
+public class AuctionCreateComplete : BaseServiceError, IFaultMessage { };
+
 #endregion
 
 
@@ -109,47 +101,21 @@ public record RequestAuctionDelete(
 );
 
 
-public class AuctionDeletedBid
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionDeletedBid : BaseServiceError, IFaultMessage { };
 
-public class AuctionDeletedGateway
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionDeletedGateway : BaseServiceError, IFaultMessage { };
 
+public class AuctionDeletedImage : BaseServiceError, IFaultMessage { };
 
-public class AuctionDeletedImage
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionDeletedSearch : BaseServiceError, IFaultMessage { };
 
+public class AuctionDeletedNotification : BaseServiceError, IFaultMessage { };
 
-public class AuctionDeletedSearch
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionDeletedElk : BaseServiceError, IFaultMessage { };
 
+public class AuctionDeleteESCommit : BaseServiceError, IFaultMessage { };
 
-public class AuctionDeletedNotification
-{
-      public Guid CorrelationId { get; set; }
-}
-
-public class AuctionDeletedElk
-{
-      public Guid CorrelationId { get; set; }
-}
-public class AuctionDeleteESCommit
-{
-      public Guid CorrelationId { get; set; }
-}
-
-public class AuctionDeleteComplete
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionDeleteComplete : BaseServiceError, IFaultMessage { };
 
 #endregion
 
@@ -171,40 +137,19 @@ public class RequestAuctionUpdate : IAuctionImageSplit
 }
 
 
-public record AuctionUpdatedGateWay
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdatedGateWay : BaseServiceError, IFaultMessage { };
 
-public class AuctionUpdatedSearch
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdatedSearch : BaseServiceError, IFaultMessage { };
 
-public record AuctionUpdatedNotification
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdatedNotification : BaseServiceError, IFaultMessage { };
 
-public record AuctionUpdatedElk
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdatedElk : BaseServiceError, IFaultMessage { };
 
-public class AuctionUpdateESCommit
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdateESCommit : BaseServiceError, IFaultMessage { };
 
-public class AuctionUpdateComplete
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdateComplete : BaseServiceError, IFaultMessage { };
 
-public class AuctionUpdateFinalize
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionUpdateFinalize : BaseServiceError, IFaultMessage { };
 
 #endregion
 
@@ -254,10 +199,8 @@ public record AuctionFinishingNotification(
       int Amount,
       Guid CorrelationId
 );
-public class AuctionFinishedNotification
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionFinishedNotification : BaseServiceError, IFaultMessage { };
+
 public record AuctionFinishingElk(
       Guid Id,
       bool ItemSold,
@@ -265,20 +208,17 @@ public record AuctionFinishingElk(
       int Amount,
       Guid CorrelationId
 );
-public class AuctionFinishedElk
-{
-      public Guid CorrelationId { get; set; }
-}
-public class AuctionFinishedESCommit
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionFinishedElk : BaseServiceError, IFaultMessage { };
 
+public class AuctionFinishedESCommit : BaseServiceError, IFaultMessage { };
 
-public class AuctionFinishedComplete
-{
-      public Guid CorrelationId { get; set; }
-}
+public class AuctionFinishedComplete : BaseServiceError, IFaultMessage { };
 
 #endregion
 
+public class AuctionCommit
+{
+      public Guid CorrelationId { get; set; }
+      public bool Commited { get; set; }
+      public string CallBackType { get; set; }
+}

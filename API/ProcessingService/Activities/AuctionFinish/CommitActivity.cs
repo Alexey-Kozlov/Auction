@@ -33,7 +33,8 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             "",
             Command.AuctionUpdate,
             "",
-            null);
+            null,
+            !context.Message.IsError);
         await next.Execute(context).ConfigureAwait(false);
     }
 

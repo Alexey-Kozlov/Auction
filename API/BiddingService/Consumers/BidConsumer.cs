@@ -4,6 +4,7 @@ using BiddingService.Data;
 using Common.Contracts.Bid;
 using Common.Contracts.Processing;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace BiddingService.Consumers;
@@ -28,26 +29,30 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
             foreach (var item in context.Message.DataObjects)
             {
                 var typedItem = JsonSerializer.Deserialize<BidItem>(item.Data);
+                typedItem.CorrelationId = correlationId;
                 switch (item.CRUD)
                 {
                     case CRUD.Create:
+                        typedItem.Id = Guid.NewGuid();
                         await _dbContext.Bids.AddAsync(typedItem);
                         break;
                     case CRUD.Delete:
                         //удаляем запись
-                        var delItem = await _dbContext.Bids.FindAsync(typedItem.BidId);
+                        var delItem = await _dbContext.Bids.FirstOrDefaultAsync(p =>
+                            p.BidId == typedItem.BidId && p.Commited);
                         if (delItem == null)
                         {
                             throw new Exception($"Запись для удаления не найдена");
                         }
-                        _dbContext.Bids.Remove(delItem);
+                        //_dbContext.Bids.Remove(delItem);
+                        delItem.CorrelationId = correlationId;
+                        _dbContext.Bids.Update(delItem);
                         break;
                     default:
                         break;
                 }
             }
             await _dbContext.SaveChangesAsync();
-
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

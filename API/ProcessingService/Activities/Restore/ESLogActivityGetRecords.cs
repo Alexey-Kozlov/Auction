@@ -37,7 +37,8 @@ public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, ESLog
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
             "",
-            null);
+            null,
+            false);
         await next.Execute(context).ConfigureAwait(false);
     }
 

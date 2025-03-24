@@ -37,13 +37,15 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
                 {
                     await _dbContext.NotifyItems.AddAsync(new NotifyItem
                     {
+                        Id = Guid.NewGuid(),
                         AuctionId = typedItem.AuctionId,
-                        UserLogin = typedItem.UserLogin
+                        UserLogin = typedItem.UserLogin,
+                        CorrelationId = correlationId
                     });
                     await _dbContext.SaveChangesAsync();
                 }
-
-                var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == typedItem.AuctionId).ToListAsync();
+                var auctionNotifyList = await _dbContext.NotifyItems.Where(p =>
+                    p.AuctionId == typedItem.AuctionId && p.Commited).ToListAsync();
                 await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced",
                     new { auctionId = typedItem.AuctionId });
 

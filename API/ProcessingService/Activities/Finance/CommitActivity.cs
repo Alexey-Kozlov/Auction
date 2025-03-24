@@ -33,7 +33,8 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateE
             context.Saga.UserLogin,
             Command.FinanceCreate,
             "",
-            null);
+            null,
+            !context.Message.IsError);
         await next.Execute(context).ConfigureAwait(false);
     }
 

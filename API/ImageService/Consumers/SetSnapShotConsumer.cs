@@ -74,7 +74,8 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                                 Data = JsonSerializer.Serialize(new ImageDTO
                                 {
                                     AuctionId = typed_data.AuctionId,
-                                    Image = item_image
+                                    Image = item_image,
+                                    Commited = typed_data.Commited
                                 }),
                                 CRUD = CRUD.Create,
                                 MessagePartCounts = 1,
@@ -112,7 +113,8 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                                     {
                                         AuctionId = typed_data.AuctionId,
                                         Image = item_image.Substring(splitPointer,
-                                        imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
+                                        imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart),
+                                        Commited = typed_data.Commited
                                     }),
                                     CRUD = CRUD.Create,
                                     MessagePartCounts = 0,

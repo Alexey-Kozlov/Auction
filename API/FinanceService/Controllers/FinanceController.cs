@@ -30,7 +30,7 @@ public class FinanceController : ControllerBase
     {
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login")
             .Select(p => p.Value).FirstOrDefault();
-        var balanceItem = await _context.FinanceItems.Where(p => p.UserLogin == userLogin &&
+        var balanceItem = await _context.FinanceItems.Where(p => p.Commited && p.UserLogin == userLogin &&
             p.Status == FinanceRecordStatus.Баланс).FirstOrDefaultAsync();
 
         return new ApiResponse<int>()
@@ -46,7 +46,7 @@ public class FinanceController : ControllerBase
     {
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login")
             .Select(p => p.Value).FirstOrDefault();
-        var balanceItemList = _context.FinanceItems.Where(p => p.UserLogin == userLogin &&
+        var balanceItemList = _context.FinanceItems.Where(p => p.Commited && p.UserLogin == userLogin &&
             p.Status != FinanceRecordStatus.Баланс)
             .OrderByDescending(p => p.ActionDate) as IQueryable<FinanceItem>;
         var pageCount = 0;

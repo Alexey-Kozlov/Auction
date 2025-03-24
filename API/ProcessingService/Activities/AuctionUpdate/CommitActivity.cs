@@ -32,7 +32,8 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
             context.Saga.UserLogin,
             Command.AuctionUpdate,
             "",
-            context.Saga.AuctionId);
+            context.Saga.AuctionId,
+            !context.Message.IsError);
         await next.Execute(context).ConfigureAwait(false);
     }
 

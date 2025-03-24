@@ -1,3 +1,5 @@
+using Common.Contracts.Processing;
+
 namespace Common.Contracts.Finance;
 
 public record FinanceCreate(
@@ -11,35 +13,32 @@ public record RequestCreateFinance(
      string SessionId
 );
 
-public record FinanceCreated
+public class FinanceCreated : BaseServiceError, IFaultMessage { };
+
+public class FinanceCreateComplete : BaseServiceError, IFaultMessage { };
+
+public class FinanceNotificationCreated : BaseServiceError, IFaultMessage { };
+
+public class FinanceCreateESCommit : BaseServiceError, IFaultMessage { };
+
+public class FinanceCommit
 {
      public Guid CorrelationId { get; set; }
-
+     public bool Commited { get; set; }
+     public string CallBackType { get; set; }
 }
-public record FinanceCreateComplete
-{
-     public Guid CorrelationId { get; set; }
-
-}
-
-public record FinanceNotificationCreated
-{
-     public Guid CorrelationId { get; set; }
-}
-public class FinanceCreateESCommit
-{
-     public Guid CorrelationId { get; set; }
-}
-
 
 public class FinanceItem
 {
+     public Guid? Id { get; set; }
      public Guid FinanceId { get; set; }
      public Guid? AuctionId { get; set; }
      public string UserLogin { get; set; }
      public int Value { get; set; }
      public DateTime ActionDate { get; set; }
      public FinanceRecordStatus Status { get; set; }
+     public Guid CorrelationId { get; set; }
+     public bool Commited { get; set; }
 }
 
 

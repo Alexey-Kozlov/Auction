@@ -138,7 +138,8 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
         imageItem.Data = JsonSerializer.Serialize(new ImageDTO
         {
             AuctionId = typedItem_.AuctionId,
-            Image = image_
+            Image = image_,
+            Commited = typedItem_.Commited
         });
         return true;
     }

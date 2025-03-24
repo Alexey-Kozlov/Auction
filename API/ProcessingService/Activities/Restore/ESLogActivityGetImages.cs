@@ -38,7 +38,8 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLogR
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
             "",
-            null);
+            null,
+            false);
         await next.Execute(context).ConfigureAwait(false);
     }
 

@@ -1,5 +1,6 @@
 using Grpc.Core;
 using ImageService.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ImageService.Services;
 
@@ -14,7 +15,7 @@ public class GrpcImageServer : GrpcImage.GrpcImageBase
 
     public override async Task<GrpcImageResponse> GetImage(GetImageRequest request, ServerCallContext context)
     {
-        var image = await _dbContext.Images.FindAsync(Guid.Parse(request.AuctionId));
+        var image = await _dbContext.Images.FirstOrDefaultAsync(p => p.AuctionId == Guid.Parse(request.AuctionId) && p.Commited);
 
         if (image == null) throw new RpcException(new Status(StatusCode.NotFound, "Изображение не найдено"));
 

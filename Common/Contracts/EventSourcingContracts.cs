@@ -12,6 +12,7 @@ public class ESContract
     public Guid? AuctionId { get; set; }
     public Command Command { get; set; }
     public string Image { get; set; }
+    public bool Commited { get; set; }
 }
 
 //указываем generic T для создания разных типов сообщений

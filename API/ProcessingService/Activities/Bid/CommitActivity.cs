@@ -1,5 +1,8 @@
+using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
+using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
@@ -10,11 +13,12 @@ namespace ProcessingService.Activities.Bid;
 public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public CommitActivity(SendEventToES sendEventToES, IPublishEndpoint publishEndpoint)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
+        _publishEndpoint = publishEndpoint;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -33,7 +37,29 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             context.Saga.Bidder,
             Command.PlaceBid,
             "",
-            context.Saga.AuctionId);
+            context.Saga.AuctionId,
+            !context.Message.IsError);
+        await _publishEndpoint.Publish(new FinanceCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Message.CorrelationId
+        });
+        await _publishEndpoint.Publish(new BidCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Message.CorrelationId
+        });
+        await _publishEndpoint.Publish(new AuctionCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Message.CorrelationId
+        });
+        await _publishEndpoint.Publish(new NotificationCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Message.CorrelationId
+        });
+
         await next.Execute(context).ConfigureAwait(false);
     }
 

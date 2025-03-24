@@ -82,3 +82,10 @@ public enum ResultType
      Success,
      EmptyResult
 }
+
+public class ElkCommit
+{
+     public Guid CorrelationId { get; set; }
+     public bool Commited { get; set; }
+     public string CallBackType { get; set; }
+}

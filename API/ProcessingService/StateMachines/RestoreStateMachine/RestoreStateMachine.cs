@@ -150,7 +150,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             p => p
                 .Then(q =>
                 {
-                    //Console.WriteLine("ESLogActivityGetImages count " + q.Message.DataItems.DataObjects.Count());
                     if (q.Message.DataItems.DataObjects.Count() > 0)
                     {
                         lock (locker) { q.Saga.ProgressCurrent = 10; }
