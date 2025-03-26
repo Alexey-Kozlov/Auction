@@ -179,7 +179,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = context.Saga.UserLogin,
-                CallBackType = "Common.Contracts.Auction.AuctionCreateComplete",
+                TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
@@ -215,7 +215,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = context.Saga.UserLogin,
-                CallBackType = "Common.Contracts.Auction.AuctionCreateComplete",
+                TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
@@ -254,7 +254,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = context.Saga.UserLogin,
-                CallBackType = "Common.Contracts.Auction.AuctionCreateComplete",
+                TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
@@ -287,7 +287,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = context.Saga.UserLogin,
-                CallBackType = "Common.Contracts.Auction.AuctionCreateComplete",
+                TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
@@ -314,7 +314,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = context.Saga.UserLogin,
-                CallBackType = "Common.Contracts.Auction.AuctionCreateComplete",
+                TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
@@ -337,7 +337,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                     ExceptionMessage = context.Message.Message.ExceptionMessage,
                     ServiceName = context.Message.Message.ServiceName,
                     UserLogin = context.Saga.UserLogin,
-                    CallBackType = "",
+                    TraceId = Guid.NewGuid(),
                     AuctionId = context.Saga.AuctionId,
                     IsError = context.Message.Message.IsError
                 })

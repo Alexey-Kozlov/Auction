@@ -63,8 +63,9 @@ public class CommitBidConsumer : IConsumer<BidCommit>
                 ExceptionMessage = e.Source + "," + e.StackTrace,
                 ServiceName = "BiddingService",
                 UserLogin = "",
-                CallBackType = "",
-                IsError = true
+                IsError = true,
+                AuctionId = null,
+                TraceId = Guid.NewGuid()
             };
             await _publishEndpoint.Publish(errorItem);
         }

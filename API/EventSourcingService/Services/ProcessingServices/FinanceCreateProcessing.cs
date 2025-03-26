@@ -13,7 +13,7 @@ public class FinanceCreateProcessing
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly EventSourcingDbContext _dbContext;
     private readonly IConfiguration _configuration;
-    private readonly AuctionMetrics _auctionMetrics;    
+    private readonly AuctionMetrics _auctionMetrics;
 
     public FinanceCreateProcessing(IPublishEndpoint publishEndpoint, EventSourcingDbContext dbContext,
         IConfiguration configuration, AuctionMetrics auctionMetrics)
@@ -21,42 +21,65 @@ public class FinanceCreateProcessing
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
         _configuration = configuration;
-        _auctionMetrics = auctionMetrics;        
+        _auctionMetrics = auctionMetrics;
     }
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
     {
-        //В процедуре Postgres делаем:
-        //- запись в ES лог о создании поступления денег
-        //Формирование списка корректирующих записей:
-        //- запись о поступления денег - для создания записи в сервисе FinanceService
-        //- запись об обновленном балансе - для обновления баланса в сервисе FinanceService
-        var result = await _dbContext.finance_create(
-            context.Message.CorrelationId,
-            context.Message.EventData,
-            context.Message.UserLogin).ToListAsync();
-        //возвращаем список записей для изменения соответствующих БД в нужных сервисах
-        var listItems = new DataForProcessingServicesList
+        try
         {
-            DataObjects = new List<DataForProcessingService>()
-        };
-        foreach (var item in result)
-        {
-            listItems.DataObjects.Add
-            (
-                new DataForProcessingService
-                {
-                    DataType = item.entitytype,
-                    Data = item.eventdata,
-                    CRUD = (CRUD)item.crud
-                }
-            );
+            //В процедуре Postgres делаем:
+            //- запись в ES лог о создании поступления денег
+            //Формирование списка корректирующих записей:
+            //- запись о поступления денег - для создания записи в сервисе FinanceService
+            //- запись об обновленном балансе - для обновления баланса в сервисе FinanceService
+            var result = await _dbContext.finance_create(
+                context.Message.CorrelationId,
+                context.Message.EventData,
+                context.Message.UserLogin).ToListAsync();
+            //возвращаем список записей для изменения соответствующих БД в нужных сервисах
+            var listItems = new DataForProcessingServicesList
+            {
+                DataObjects = new List<DataForProcessingService>()
+            };
+            foreach (var item in result)
+            {
+                listItems.DataObjects.Add
+                (
+                    new DataForProcessingService
+                    {
+                        DataType = item.entitytype,
+                        Data = item.eventdata,
+                        CRUD = (CRUD)item.crud
+                    }
+                );
+            }
+            _auctionMetrics.FinanceAuction();
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+            await _publishEndpoint.Publish(sendObject);
         }
-        _auctionMetrics.FinanceAuction();
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
-        sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
-        await _publishEndpoint.Publish(sendObject);
+        catch (Exception e)
+        {
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_BidPlace");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
+        }
     }
 }

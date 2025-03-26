@@ -64,7 +64,7 @@ public class CommitImageConsumer : IConsumer<ImageCommit>
                 ExceptionMessage = e.Source + "," + e.StackTrace,
                 ServiceName = "ImageService",
                 UserLogin = "",
-                CallBackType = "",
+                TraceId = Guid.NewGuid(),
                 IsError = true
             };
             await _publishEndpoint.Publish(errorItem);

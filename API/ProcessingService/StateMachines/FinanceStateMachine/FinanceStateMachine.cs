@@ -10,16 +10,23 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
 {
     public State FinanceState { get; }
     public State NotificationState { get; }
+    public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompletedState { get; }
+
 
 
     public Event<RequestCreateFinance> RequestEvent { get; }
     public Event<ESLogFinanceCreated> EsLogEvent { get; }
     public Event<FinanceCreated> FinanceEvent { get; }
     public Event<FinanceNotificationCreated> NotificationEvent { get; }
+    public Event<Fault<FinanceCreateESCommit>> PreCommitEvent { get; }
     public Event<FinanceCreateESCommit> CommitEvent { get; }
     public Event<FinanceCreateComplete> CompleteEvent { get; }
+    public Event<Fault<ESLogFinanceCreated>> FaultEsLogEvent { get; }
+    public Event<Fault<FinanceNotificationCreated>> FaultNotificationEvent { get; }
+    public Event<FinanceError> FaultEvent { get; }
+    public Event<Fault<FinanceCreateComplete>> FaultCompleteEvent { get; }
     private IConfiguration configuration { get; }
 
     public FinanceStateMachine(IServiceProvider services)
@@ -31,6 +38,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         ConfigureFinanceState();
         ConfigureNotificationState();
         ConfigureCommitState();
+        ConfigurePreCommitState();
         ConfigureCompleted();
     }
     private void ConfigureEvents()
@@ -41,6 +49,11 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
         Event(() => CompleteEvent);
+        Event(() => PreCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
+        Event(() => FaultCompleteEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -51,6 +64,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
+                context.Saga.IsError = false;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для пополнения счета пользователя
             // - Добавление записей по деньгам в сервисе FinanceService
@@ -72,8 +86,92 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 {
                     DataObjects = context.Message.DataItems.DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Finance.FinanceNotificationCreated"
+                    CallBackType = "Common.Contracts.Finance.FinanceCreateESCommit"
                 })
+            .TransitionTo(PreCommitState),
+        //обрабатываем ошибки из сервиса EventSourcingService            
+        When(FaultEsLogEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new FinanceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
+        );
+    }
+
+    /*промежуточный этап перед подтверждением/откатом транзакции
+    на входе события:
+    - FinanceError - событие ошибок от предыдущих этапов
+    - Fault<FinanceCreateESCommit> - событие ошибки предыдущего этапа
+    - FinanceCreateESCommit - событие правильного выполнения предыдущего этапа
+    на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+    */
+
+    private void ConfigurePreCommitState()
+    {
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new FinanceCreateESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.IsError,
+            })
+        .TransitionTo(CommitState),
+        When(PreCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    IsError = context.Message.Message.IsError
+                })
+            .Publish(context => new FinanceCreateESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.Message.IsError,
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Then(p => p.Saga.IsError = p.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Message.IsError
+                })
+            .Publish(context => new FinanceCreateESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.IsError,
+            })
+        .TransitionTo(CommitState)
+        );
+    }
+
+    private void ConfigureCommitState()
+    {
+        During(CommitState,
+        When(CommitEvent)
+            //посылаем через Кафку в EventSourcingService - для подтверждения/отмены транзакции
+            .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(NotificationState));
     }
 
@@ -81,6 +179,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     {
         During(NotificationState,
         When(NotificationEvent)
+        //передаем сообщение для обновления UI (если не было ошибок)
             .Send(
                 new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
@@ -99,25 +198,48 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                         }
                     },
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Finance.FinanceCreateESCommit",
-                    Props = context.Saga.Amount.ToString()
+                    CallBackType = "Common.Contracts.Finance.FinanceCreateComplete",
+                    Props = $"{context.Saga.Amount.ToString()},{!context.Saga.IsError}"
                 })
-            .TransitionTo(CommitState));
-    }
+            .TransitionTo(CompletedState),
+        //обрабатываем ошибки подтверждения/отката транзакции         
+        When(FaultNotificationEvent)
+            .Publish(context =>
+            {
+                return (Fault<FinanceCreateComplete>)new FaultMessage<FinanceCreateComplete>(
+                    new FinanceCreateComplete
+                    {
+                        CorrelationId = context.Saga.CorrelationId,
+                        Message = context.Message.Message.Message,
+                        ExceptionMessage = context.Message.Message.ExceptionMessage,
+                        ServiceName = context.Message.Message.ServiceName,
+                        UserLogin = context.Saga.UserLogin,
+                        IsError = context.Message.Message.IsError
+                    });
 
-    private void ConfigureCommitState()
-    {
-        During(CommitState,
-        When(CommitEvent)
-            //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
-            .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState));
+            })
+            .TransitionTo(CompletedState)
+        );
     }
-
     private void ConfigureCompleted()
     {
         During(CompletedState,
-        When(CompleteEvent).Finalize()
+        When(CompleteEvent).Finalize(),
+        //передаем ошибки пользователю в случае проблем с коммитом/откатом транзакции
+        When(FaultCompleteEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Message.Message.IsError
+                })
+        .Finalize()
         );
     }
 

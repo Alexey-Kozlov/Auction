@@ -38,7 +38,7 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             Command.PlaceBid,
             "",
             context.Saga.AuctionId,
-            !context.Message.IsError);
+            context.Message.IsError);
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Message.IsError,

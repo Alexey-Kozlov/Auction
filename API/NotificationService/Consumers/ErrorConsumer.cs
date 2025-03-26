@@ -47,15 +47,6 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
 
         //пишем ошибку сервисов в лог
         await ErrorLogging(context.Message);
-
-        if (!string.IsNullOrEmpty(context.Message.CallBackType))
-        {
-            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
-            //продолжаем обработку ProcessingService
-            await _publishEndpoint.Publish(sendObject);
-        }
     }
 
     private async Task ErrorLogging(NotificationServiceError errorItem)

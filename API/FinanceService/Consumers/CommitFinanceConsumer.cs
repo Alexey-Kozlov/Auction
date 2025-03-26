@@ -64,7 +64,8 @@ public class CommitFinanceConsumer : IConsumer<FinanceCommit>
                 ExceptionMessage = e.Source + "," + e.StackTrace,
                 ServiceName = "FinanceService",
                 UserLogin = "",
-                CallBackType = "",
+                AuctionId = null,
+                TraceId = Guid.NewGuid(),
                 IsError = true
             };
             await _publishEndpoint.Publish(errorItem);

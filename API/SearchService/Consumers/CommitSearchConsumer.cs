@@ -64,7 +64,7 @@ public class CommitSearchConsumer : IConsumer<AuctionCommit>
                 ExceptionMessage = e.Source + "," + e.StackTrace,
                 ServiceName = "SearchService",
                 UserLogin = "",
-                CallBackType = "",
+                TraceId = Guid.NewGuid(),
                 IsError = true
             };
             await _publishEndpoint.Publish(errorItem);

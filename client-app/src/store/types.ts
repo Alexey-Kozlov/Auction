@@ -95,6 +95,7 @@ export type FinanceItem = {
 	value: number;
 	actionDate: Date;
 	status: number;
+	show: string;
 };
 
 export type FinanceCreate = {

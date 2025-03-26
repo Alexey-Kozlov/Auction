@@ -10,11 +10,11 @@ namespace ProcessingService.Activities.Finance;
 public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
+    private readonly IPublishEndpoint _publishEndpoint;
+    public CommitActivity(SendEventToES sendEventToES, IPublishEndpoint publishEndpoint)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
+        _publishEndpoint = publishEndpoint;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -28,13 +28,18 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateE
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.Finance.FinanceCreateComplete",
-            context.Message.CorrelationId,
+            "Common.Contracts.Finance.FinanceNotificationCreated",
+            context.Saga.CorrelationId,
             context.Saga.UserLogin,
             Command.FinanceCreate,
             "",
             null,
-            !context.Message.IsError);
+            context.Message.IsError);
+        await _publishEndpoint.Publish(new FinanceCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
         await next.Execute(context).ConfigureAwait(false);
     }
 

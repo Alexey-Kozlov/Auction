@@ -167,10 +167,12 @@ export default function SignalRProvider() {
 
 				connection.on("FinanceCreate", (finance: FinanceItem) => {
 					dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
-					return toast(
-						(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
-						{ duration: 5000 }
-					);
+					if (finance.show === "true") {
+						return toast(
+							(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
+							{ duration: 5000 }
+						);
+					}
 				});
 
 				connection.on("SessionId", (id: any) => {

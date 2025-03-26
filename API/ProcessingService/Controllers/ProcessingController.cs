@@ -36,7 +36,7 @@ public class ProcessingController : ControllerBase
     [HttpPost("placebid")]
     public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
-        var bid = new RequestBidPlace(par.AuctionId, User.Identity.Name, par.Amount, par.CorrelationId);
+        var bid = new RequestBidPlace(par.AuctionId, User.Identity.Name, par.Amount, Guid.NewGuid());
 
         await _publishEndpoint.Publish(bid);
 
@@ -62,7 +62,7 @@ public class ProcessingController : ControllerBase
             Description = par.Description,
             Image = par.Image,
             UserLogin = auctionAuthor,
-            CorrelationId = par.CorrelationId,
+            CorrelationId = Guid.NewGuid(),
             UsingImage = par.UsingImage,
             IsImageSplitted = false
         };
@@ -107,7 +107,7 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> DeleteAuction([FromBody] DeleteAuctionDTO par)
     {
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var reqAuctionDelete = new RequestAuctionDelete(par.CorrelationId, auctionAuthor, par.AuctionId);
+        var reqAuctionDelete = new RequestAuctionDelete(Guid.NewGuid(), auctionAuthor, par.AuctionId);
 
         await _publishEndpoint.Publish(reqAuctionDelete);
 

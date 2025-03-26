@@ -30,7 +30,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<Fault<BidPlaced>> FaultBidEvent { get; }
     public Event<Fault<BidSearchPlaced>> FaultSearchEvent { get; }
     public Event<Fault<BidNotificationProcessed>> FaultNotificationEvent { get; }
-    public Event<Fault<BaseServiceError>> FaultCommitEvent { get; }
+    public Event<Fault<BidCreateESCommit>> FaultCommitEvent { get; }
     public Event<Fault<BidComplete>> FaultCompleteEvent { get; }
     private IConfiguration configuration { get; }
 
@@ -112,7 +112,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         .TransitionTo(BidState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Publish(contex => new BaseServiceError
+            .Publish(contex => new BidCreateESCommit
             {
                 CorrelationId = contex.Saga.CorrelationId,
                 IsError = true
@@ -136,7 +136,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса FinanceService
         When(FaultBidEvent)
-            .Publish(contex => new BaseServiceError
+            .Publish(contex => new BidCreateESCommit
             {
                 CorrelationId = contex.Saga.CorrelationId,
                 IsError = true
@@ -161,7 +161,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(NotificationState),
         //обрабатываем ошибки из сервиса BidService
         When(FaultSearchEvent)
-            .Publish(contex => new BaseServiceError
+            .Publish(contex => new BidCreateESCommit
             {
                 CorrelationId = contex.Saga.CorrelationId,
                 IsError = true
@@ -187,7 +187,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(CommitState),
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotificationEvent)
-            .Publish(contex => new BaseServiceError
+            .Publish(contex => new BidCreateESCommit
             {
                 CorrelationId = contex.Saga.CorrelationId,
                 IsError = true
@@ -199,7 +199,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureFaultCommitState()
     {
         During(FaultCommitState,
-        //передаем ошибки из сервиса NotificationService на обработку
+        //передаем ошибки пользователю
         When(FaultCommitEvent)
             .Send(
             new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
@@ -210,7 +210,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = context.Saga.Bidder,
-                CallBackType = "Common.Contracts.Bid.BidCreateESCommit",
+                TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
@@ -227,10 +227,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         During(CommitState,
         When(CommitEvent)
-        .Then(context =>
-        {
-            Console.WriteLine($"P{DateTime.UtcNow} 1- {context.Message.GetType()}");
-        })
             //подтверждаем/откатываем транзакцию
             .Activity(p => p.OfType<CommitActivity>())
             .TransitionTo(CompletedState)
@@ -240,12 +236,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     private void ConfigureCompletedState()
     {
         During(CompletedState,
-
         When(CompleteEvent)
-                .Then(context =>
-        {
-            Console.WriteLine($"P{DateTime.UtcNow} 2- {context.Message.GetType()}");
-        })
         .Finalize(),
         //обрабатываем ошибки из сервиса EventSourcing - ESCommit
         When(FaultCompleteEvent)
@@ -258,7 +249,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                     ExceptionMessage = context.Message.Message.ExceptionMessage,
                     ServiceName = context.Message.Message.ServiceName,
                     UserLogin = context.Saga.Bidder,
-                    CallBackType = "",
+                    TraceId = Guid.NewGuid(),
                     AuctionId = context.Saga.AuctionId,
                     IsError = context.Message.Message.IsError
                 })

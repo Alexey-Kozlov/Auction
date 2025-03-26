@@ -24,12 +24,14 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {
         var correlationId = context.Message.CorrelationId;
-        var title = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
+        var amount = context.Message.Props.Split(",")[0];
+        var show = context.Message.Props.Split(",")[1].ToLower();
         foreach (var item in context.Message.DataObjects)
         {
             //уведомление при операции поступлении денег на счет
             var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
-            await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("FinanceCreate", new { value = title });
+            await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("FinanceCreate",
+                new { value = amount, show = show });
         }
 
         var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +

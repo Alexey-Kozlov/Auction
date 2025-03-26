@@ -37,8 +37,9 @@ public class CommitElkConsumer : IConsumer<FinanceCommit>
                 ExceptionMessage = e.Source + "," + e.StackTrace,
                 ServiceName = "ElkService",
                 UserLogin = "",
-                CallBackType = "",
-                IsError = true
+                IsError = true,
+                AuctionId = null,
+                TraceId = Guid.NewGuid()
             };
             await _publishEndpoint.Publish(errorItem);
         }

@@ -21,6 +21,7 @@ public class FinanceNotificationCreated : BaseServiceError, IFaultMessage { };
 
 public class FinanceCreateESCommit : BaseServiceError, IFaultMessage { };
 
+public class FinanceError : BaseServiceError, IFaultMessage { };
 public class FinanceCommit
 {
      public Guid CorrelationId { get; set; }

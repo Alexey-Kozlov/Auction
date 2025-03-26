@@ -34,8 +34,9 @@ public class EventSourcingDbContext : DbContext
         FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin, image));
 
     public IQueryable<ReturnResultSql> commit_operation(
-        Guid correlationid) =>
-        FromExpression(() => commit_operation(correlationid));
+        Guid correlationid,
+        bool isError) =>
+        FromExpression(() => commit_operation(correlationid, isError));
     public IQueryable<ReturnResultSql> index_elk(
         Guid correlationid,
         string userLogin) =>
@@ -86,7 +87,7 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => auction_update(default, default, default, default, default));
         modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
         modelBuilder.HasDbFunction(() => finance_create(default, default, default));
-        modelBuilder.HasDbFunction(() => commit_operation(default));
+        modelBuilder.HasDbFunction(() => commit_operation(default, default));
         modelBuilder.HasDbFunction(() => index_elk(default, default));
         modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
         modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default));

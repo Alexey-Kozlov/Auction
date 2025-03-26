@@ -25,10 +25,7 @@ public class ESLogCommitProcessing
     {
         try
         {
-            if (context.Message.Commited)
-            {
-                await _dbContext.commit_operation(context.Message.CorrelationId).FirstOrDefaultAsync();
-            }
+            await _dbContext.commit_operation(context.Message.CorrelationId, context.Message.IsError).FirstOrDefaultAsync();
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
