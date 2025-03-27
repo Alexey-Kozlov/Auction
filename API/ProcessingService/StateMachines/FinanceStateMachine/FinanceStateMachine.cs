@@ -12,21 +12,15 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     public State NotificationState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
-    public State CompletedState { get; }
-
-
 
     public Event<RequestCreateFinance> RequestEvent { get; }
     public Event<ESLogFinanceCreated> EsLogEvent { get; }
-    public Event<FinanceCreated> FinanceEvent { get; }
     public Event<FinanceNotificationCreated> NotificationEvent { get; }
     public Event<Fault<FinanceCreateESCommit>> PreCommitEvent { get; }
     public Event<FinanceCreateESCommit> CommitEvent { get; }
-    public Event<FinanceCreateComplete> CompleteEvent { get; }
     public Event<Fault<ESLogFinanceCreated>> FaultEsLogEvent { get; }
     public Event<Fault<FinanceNotificationCreated>> FaultNotificationEvent { get; }
-    public Event<FinanceError> FaultEvent { get; }
-    public Event<Fault<FinanceCreateComplete>> FaultCompleteEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
     private IConfiguration configuration { get; }
 
     public FinanceStateMachine(IServiceProvider services)
@@ -39,21 +33,17 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         ConfigureNotificationState();
         ConfigureCommitState();
         ConfigurePreCommitState();
-        ConfigureCompleted();
     }
     private void ConfigureEvents()
     {
         Event(() => RequestEvent, p => p.InsertOnInitial = true);
         Event(() => EsLogEvent);
-        Event(() => FinanceEvent);
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
-        Event(() => CompleteEvent);
         Event(() => PreCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
-        Event(() => FaultCompleteEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -92,7 +82,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Publish(context => new FinanceError
+            .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
                 Message = context.Message.Message.Message,
@@ -201,33 +191,10 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     CallBackType = "Common.Contracts.Finance.FinanceCreateComplete",
                     Props = $"{context.Saga.Amount.ToString()},{!context.Saga.IsError}"
                 })
-            .TransitionTo(CompletedState),
-        //обрабатываем ошибки подтверждения/отката транзакции         
+            .Finalize(),
+        //обрабатываем ошибки подтверждения/отката транзакции - шлем уведомление пользователю
         When(FaultNotificationEvent)
-            .Publish(context =>
-            {
-                return (Fault<FinanceCreateComplete>)new FaultMessage<FinanceCreateComplete>(
-                    new FinanceCreateComplete
-                    {
-                        CorrelationId = context.Saga.CorrelationId,
-                        Message = context.Message.Message.Message,
-                        ExceptionMessage = context.Message.Message.ExceptionMessage,
-                        ServiceName = context.Message.Message.ServiceName,
-                        UserLogin = context.Saga.UserLogin,
-                        IsError = context.Message.Message.IsError
-                    });
-
-            })
-            .TransitionTo(CompletedState)
-        );
-    }
-    private void ConfigureCompleted()
-    {
-        During(CompletedState,
-        When(CompleteEvent).Finalize(),
-        //передаем ошибки пользователю в случае проблем с коммитом/откатом транзакции
-        When(FaultCompleteEvent)
-        .Send(
+            .Send(
             new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
                 {
@@ -239,7 +206,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     TraceId = Guid.NewGuid(),
                     IsError = context.Message.Message.IsError
                 })
-        .Finalize()
+            .Finalize()
         );
     }
 

@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Common.Contracts.Processing;
+﻿using Common.Contracts.Processing;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.Hubs;

@@ -25,7 +25,7 @@ public class LoggingServiceErrorConsumer : IConsumer<LoggingServiceError>
             UserLogin = context.Message.UserLogin,
             RequestId = null,
             TraceId = context.Message.TraceId.ToString(),
-            RequestType = "ConsumerServiceError",
+            RequestType = context.Message.ServiceName,
             ResponseLoggingContract = new ResponseLoggingContract
             {
                 IsSuccess = false,

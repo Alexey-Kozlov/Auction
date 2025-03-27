@@ -13,15 +13,58 @@ public record RequestCreateFinance(
      string SessionId
 );
 
-public class FinanceCreated : BaseServiceError, IFaultMessage { };
+public class FinanceCreated : IFaultMessage
+{
 
-public class FinanceCreateComplete : BaseServiceError, IFaultMessage { };
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+};
 
-public class FinanceNotificationCreated : BaseServiceError, IFaultMessage { };
+public class FinanceCreateComplete : IFaultMessage
+{
 
-public class FinanceCreateESCommit : BaseServiceError, IFaultMessage { };
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+};
 
-public class FinanceError : BaseServiceError, IFaultMessage { };
+public class FinanceNotificationCreated : IFaultMessage
+{
+
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+};
+
+public class FinanceCreateESCommit : IFaultMessage
+{
+
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+};
+
 public class FinanceCommit
 {
      public Guid CorrelationId { get; set; }

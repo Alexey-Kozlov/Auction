@@ -1,10 +1,7 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using Common.Contracts.Notification;
+﻿using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
-using NotificationService.Data;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;

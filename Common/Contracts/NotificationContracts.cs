@@ -29,11 +29,44 @@ public class RequestEditNotification
      public Guid CorrelationId { get; set; }
 }
 
-public class EditNotificationCreated : BaseServiceError, IFaultMessage { }
+public class EditNotificationCreated : IFaultMessage
+{
 
-public class EditNotificationESCommit : BaseServiceError, IFaultMessage { }
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+}
 
-public class EditNotificationComplete : BaseServiceError, IFaultMessage { }
+public class EditNotificationESCommit : IFaultMessage
+{
+
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+}
+
+public class EditNotificationComplete : IFaultMessage
+{
+
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+}
 
 public class AuctionNotificationData
 {

@@ -122,64 +122,172 @@ public class DataForProcessingServicesList<T>
     public string CallBackType { get; set; } = null;
 };
 
-public class ESLogAuctionDeleted : BaseServiceError, IFaultMessage
+public class ESLogAuctionDeleted : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
-public class ESLogAuctionCreated : BaseServiceError, IFaultMessage
+public class ESLogAuctionCreated : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
-public class ESLogAuctionUpdated : BaseServiceError, IFaultMessage
+public class ESLogAuctionUpdated : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
-public class ESLogFinanceCreated : BaseServiceError, IFaultMessage
+public class ESLogFinanceCreated : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
-public class ESLogPlaceBid : BaseServiceError, IFaultMessage
+public class ESLogPlaceBid : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
-public class ESLogElkIndex : BaseServiceError, IFaultMessage
+public class ESLogElkIndex : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int BatchCount { get; set; }
     public int AllItemsCount { get; set; }
 }
 
-public class ESLogRestoreItems : BaseServiceError, IFaultMessage
+public class ESLogRestoreItems : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int BatchCount { get; set; }
 }
 
-public class ESLogRestoreImages : BaseServiceError, IFaultMessage
+public class ESLogRestoreImages : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int BatchCount { get; set; }
     public int AllItemsCount { get; set; }
 }
 
-public class ESLogEditNotification : BaseServiceError, IFaultMessage
+public class ESLogEditNotification : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
 
-public class ESLogAuctionFinish : BaseServiceError, IFaultMessage
+public class ESLogAuctionFinish : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
 
-public class ESLogResetSnapShot : BaseServiceError, IFaultMessage
+public class ESLogResetSnapShot : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 
 }
 
-public class ESLogProcessImages : BaseServiceError, IFaultMessage
+public class ESLogProcessImages : IFaultMessage
 {
+
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
     public int BatchCounter { get; set; }
 }
 

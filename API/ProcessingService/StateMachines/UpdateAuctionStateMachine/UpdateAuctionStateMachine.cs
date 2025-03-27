@@ -223,7 +223,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         When(NotificationEvent)
             //Создание уведомления в сервисе NotificationService
             .Send(
-                new Uri(configuration["QueuePaths:NotificationConsumer"]),
+                new Uri(configuration["QueuePaths:AuctionEditConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = new List<DataForProcessingService>(),

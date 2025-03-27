@@ -42,12 +42,12 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                         {
                             throw new Exception($"Запись для удаления не найдена");
                         }
-                        //_dbContext.AuctionItems.Remove(item);
                         item.CorrelationId = correlationId;
                         _dbContext.AuctionItems.Update(item);
                         break;
                     case CRUD.Create:
                         typedItem.Id = Guid.NewGuid();
+                        typedItem.Commited = false;
                         await _dbContext.AuctionItems.AddAsync(typedItem);
                         break;
                     case CRUD.Update:

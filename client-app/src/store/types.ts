@@ -14,6 +14,7 @@ export type Auction = {
 	auctionId: string;
 	error?: string;
 	usingImage?: boolean;
+	show?: boolean;
 };
 
 export type Bid = {
@@ -95,7 +96,7 @@ export type FinanceItem = {
 	value: number;
 	actionDate: Date;
 	status: number;
-	show: string;
+	show: boolean;
 };
 
 export type FinanceCreate = {

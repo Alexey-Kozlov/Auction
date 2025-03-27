@@ -17,4 +17,5 @@ public class CreateAuctionState : SagaStateMachineInstance
     public string Image { get; set; }
     public bool UsingImage { get; set; }
     public bool IsImageSplitted { get; set; }
+    public bool IsError { get; set; }
 }

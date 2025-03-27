@@ -15,7 +15,6 @@ public class RestoreImageService
     public string GetImageString(DataForProcessingService part)
     {
         //изображение не влезло в сообщение, накапливаем части сообщения пока не соберутся все части
-        //PartsList.Add(part);
         PartsList.Add(part);
         var parts = PartsList.Where(p => p.MessagePartId == part.MessagePartId);
         if (parts.Count() == part.MessagePartCounts)
@@ -32,6 +31,5 @@ public class RestoreImageService
             return image.ToString();
         }
         return "";
-
     }
 }

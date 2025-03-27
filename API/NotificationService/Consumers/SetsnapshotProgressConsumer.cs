@@ -1,6 +1,5 @@
 ﻿using Common.Contracts.Notification;
 using Common.Contracts.Processing;
-using Google.Protobuf.WellKnownTypes;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.Hubs;

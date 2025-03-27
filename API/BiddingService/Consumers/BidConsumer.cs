@@ -34,6 +34,7 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
                 {
                     case CRUD.Create:
                         typedItem.Id = Guid.NewGuid();
+                        typedItem.Commited = false;
                         await _dbContext.Bids.AddAsync(typedItem);
                         break;
                     case CRUD.Delete:
@@ -44,7 +45,6 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
                         {
                             throw new Exception($"Запись для удаления не найдена");
                         }
-                        //_dbContext.Bids.Remove(delItem);
                         delItem.CorrelationId = correlationId;
                         _dbContext.Bids.Update(delItem);
                         break;

@@ -25,7 +25,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
     {
         var correlationId = context.Message.CorrelationId;
         var amount = context.Message.Props.Split(",")[0];
-        var show = context.Message.Props.Split(",")[1].ToLower();
+        var show = Boolean.Parse(context.Message.Props.Split(",")[1]);
         foreach (var item in context.Message.DataObjects)
         {
             //уведомление при операции поступлении денег на счет

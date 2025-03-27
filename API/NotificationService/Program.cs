@@ -65,7 +65,7 @@ builder.Services.AddAuthentication(p =>
                 });
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<NotificationConsumer>();
+    p.AddConsumersFromNamespaceContaining<FinanceConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("notification", false));
     p.UsingRabbitMq((context, config) =>
     {

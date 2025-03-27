@@ -115,7 +115,7 @@ export default function SignalRProvider() {
 							itemId: auction.auctionId,
 						})
 					);
-					if (user?.login !== auction.seller) {
+					if (user?.login !== auction.seller && auction.show) {
 						return toast(
 							(p) => <AuctionCreatedToast auction={auction} toastId={p.id} />,
 							{ duration: 5000 }
@@ -138,10 +138,12 @@ export default function SignalRProvider() {
 							itemId: auction.auctionId,
 						})
 					);
-					return toast(
-						(p) => <AuctionUpdatedToast auction={auction} toastId={p.id} />,
-						{ duration: 5000 }
-					);
+					if (auction.show) {
+						return toast(
+							(p) => <AuctionUpdatedToast auction={auction} toastId={p.id} />,
+							{ duration: 5000 }
+						);
+					}
 				});
 
 				connection.on("AuctionFinished", (finishedAuction: AuctionFinished) => {
@@ -159,15 +161,17 @@ export default function SignalRProvider() {
 							itemId: auction.auctionId,
 						})
 					);
-					return toast(
-						(p) => <AuctionDeletedToast auction={auction} toastId={p.id} />,
-						{ duration: 5000 }
-					);
+					if (auction.show) {
+						return toast(
+							(p) => <AuctionDeletedToast auction={auction} toastId={p.id} />,
+							{ duration: 5000 }
+						);
+					}
 				});
 
 				connection.on("FinanceCreate", (finance: FinanceItem) => {
 					dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
-					if (finance.show === "true") {
+					if (finance.show) {
 						return toast(
 							(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
 							{ duration: 5000 }

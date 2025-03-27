@@ -34,7 +34,7 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateE
             Command.FinanceCreate,
             "",
             null,
-            context.Message.IsError);
+            context.Saga.IsError);
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Message.IsError,

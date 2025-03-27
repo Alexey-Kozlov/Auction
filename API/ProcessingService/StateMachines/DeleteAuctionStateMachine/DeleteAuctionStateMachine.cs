@@ -19,8 +19,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public State SearchState { get; }
     public State ElkState { get; }
     public State NotificationState { get; }
+    public State PreCommitState { get; }
     public State CommitState { get; }
-    public State CompletedState { get; }
+    public State NotificationEventState { get; }
 
 
     public Event<RequestAuctionDelete> RequestEvent { get; }
@@ -31,8 +32,18 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<AuctionDeletedSearch> SearchEvent { get; }
     public Event<AuctionDeletedElk> ElkEvent { get; }
     public Event<AuctionDeletedNotification> NotificationEvent { get; }
+    public Event<AuctionDeletedNotificationEvent> NotificationUIEvent { get; }
     public Event<AuctionDeleteESCommit> CommitEvent { get; }
-    public Event<AuctionDeleteComplete> CompleteEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
+    public Event<Fault<ESLogAuctionDeleted>> FaultEsLogEvent { get; }
+    public Event<Fault<AuctionDeletedBid>> FaultBidEvent { get; }
+    public Event<Fault<AuctionDeletedGateway>> FaultGatewayEvent { get; }
+    public Event<Fault<AuctionDeletedImage>> FaultImageEvent { get; }
+    public Event<Fault<AuctionDeletedSearch>> FaultSearchEvent { get; }
+    public Event<Fault<AuctionDeletedElk>> FaultElkEvent { get; }
+    public Event<Fault<AuctionDeletedNotification>> FaultNotificationEvent { get; }
+    public Event<Fault<AuctionDeletedNotificationEvent>> FaultNotificationUIEvent { get; }
+    public Event<Fault<AuctionDeleteESCommit>> FaultCommitEvent { get; }
     private IConfiguration configuration { get; }
 
     public DeleteAuctionStateMachine(IServiceProvider services)
@@ -48,8 +59,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         ConfigureSearchState();
         ConfigureELKState();
         ConfigureNotificationState();
+        ConfigurePreCommitState();
         ConfigureCommitState();
-        ConfigureCompletedState();
+        ConfigureNotificationEventState();
     }
     private void ConfigureEvents()
     {
@@ -64,8 +76,18 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         Event(() => SearchEvent);
         Event(() => ElkEvent);
         Event(() => NotificationEvent);
+        Event(() => NotificationUIEvent);
         Event(() => CommitEvent);
-        Event(() => CompleteEvent);
+        Event(() => FaultEvent);
+        Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultBidEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultGatewayEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultImageEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultElkEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotificationUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -111,7 +133,20 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 {
                     CorrelationId = contex.Message.CorrelationId
                 }))
-            .TransitionTo(BidState)
+            .TransitionTo(BidState),
+        //обрабатываем ошибки из сервиса EventSourcingService            
+        When(FaultEsLogEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
         );
     }
 
@@ -135,7 +170,20 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 {
                     CorrelationId = context.Message.CorrelationId
                 }))
-            .TransitionTo(GatewayState)
+            .TransitionTo(GatewayState),
+        //обрабатываем ошибки из сервиса FinanceService            
+        When(FaultBidEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
         );
     }
 
@@ -152,7 +200,20 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedImage"
                 })
-            .TransitionTo(ImageState)
+            .TransitionTo(ImageState),
+        //обрабатываем ошибки из сервиса BiddingService            
+        When(FaultEsLogEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
         );
     }
 
@@ -186,7 +247,21 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                     CorrelationId = context.Message.CorrelationId
                 })
             )
-            .TransitionTo(SearchState));
+            .TransitionTo(SearchState),
+        //обрабатываем ошибки из сервиса GatewayService            
+        When(FaultImageEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureSearchState()
@@ -202,7 +277,21 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedElk"
                 })
-            .TransitionTo(ElkState));
+            .TransitionTo(ElkState),
+        //обрабатываем ошибки из сервиса ImageService            
+        When(FaultSearchEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureELKState()
@@ -218,7 +307,21 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedNotification"
                 })
-            .TransitionTo(NotificationState));
+            .TransitionTo(NotificationState),
+        //обрабатываем ошибки из сервиса SearchService            
+        When(FaultElkEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureNotificationState()
@@ -227,7 +330,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         When(NotificationEvent)
                 //Удаление уведомлений (если есть) в сервисе NotificationService
                 .Send(
-                new Uri(configuration["QueuePaths:NotificationConsumer"]),
+                new Uri(configuration["QueuePaths:AuctionEditConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
@@ -240,7 +343,82 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                         CRUD = CRUD.Delete
                     })
                 })
-            .TransitionTo(CommitState));
+            .TransitionTo(PreCommitState),
+        //обрабатываем ошибки из сервиса ElkService            
+        When(FaultNotificationEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+        .TransitionTo(PreCommitState)
+        );
+    }
+
+    /*промежуточный этап перед подтверждением/откатом транзакции
+    на входе события:
+    - BaseServiceError - событие ошибок от предыдущих этапов
+    - Fault<AuctionDeleteESCommit> - событие ошибки предыдущего этапа
+    - AuctionDeleteESCommit - событие правильного выполнения предыдущего этапа
+    на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+    */
+
+    private void ConfigurePreCommitState()
+    {
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new AuctionDeleteESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Saga.IsError,
+            })
+        .TransitionTo(CommitState),
+        When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    IsError = context.Message.Message.IsError
+                })
+            .Publish(context => new AuctionDeleteESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.Message.IsError,
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Then(p => p.Saga.IsError = p.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Message.IsError
+                })
+            .Publish(context => new AuctionDeleteESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.IsError,
+            })
+        .TransitionTo(CommitState)
+        );
     }
 
     private void ConfigureCommitState()
@@ -249,13 +427,55 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         When(CommitEvent)
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState));
+            .TransitionTo(NotificationEventState));
     }
 
-    private void ConfigureCompletedState()
+    private void ConfigureNotificationEventState()
     {
-        During(CompletedState,
-        When(CompleteEvent).Finalize()
+        During(NotificationEventState,
+        When(NotificationUIEvent)
+        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+        p => p
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = $"{!context.Saga.IsError}"
+                }),
+            p => p
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                        .DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = $"{!context.Saga.IsError}"
+                })
+            )
+            .Finalize(),
+        //обрабатываем ошибки подтверждения/отката транзакции            
+        When(FaultNotificationUIEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+                AuctionId = context.Saga.AuctionId,
+                IsError = context.Message.Message.IsError
+            })
+            .Finalize()
         );
     }
 

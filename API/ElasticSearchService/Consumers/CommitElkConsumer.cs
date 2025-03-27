@@ -1,12 +1,12 @@
 ﻿using System.Reflection;
-using Common.Contracts.Finance;
+using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
 using ElasticSearchService.Services;
 using MassTransit;
 
 namespace ElasticSearchService.Consumers;
 
-public class CommitElkConsumer : IConsumer<FinanceCommit>
+public class CommitElkConsumer : IConsumer<ElkCommit>
 {
     private readonly ElkClient _client;
     private readonly IPublishEndpoint _publishEndpoint;
@@ -18,7 +18,7 @@ public class CommitElkConsumer : IConsumer<FinanceCommit>
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<FinanceCommit> context)
+    public async Task Consume(ConsumeContext<ElkCommit> context)
     {
 
         var correlationId = context.Message.CorrelationId;

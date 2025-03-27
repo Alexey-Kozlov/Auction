@@ -9,4 +9,5 @@ public record DeleteAuctionState : SagaStateMachineInstance
     public Guid AuctionId { get; set; }
     public string UserLogin { get; set; }
     public string DataForProcessingServicesList { get; set; }
+    public bool IsError { get; set; }
 }

@@ -1,11 +1,10 @@
-﻿using System.Reflection;
-using Common.Contracts.Notification;
+﻿using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
 
-namespace ImageService.Consumers;
+namespace NotificationService.Consumers;
 
 public class CommitNotificationConsumer : IConsumer<NotificationCommit>
 {

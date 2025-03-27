@@ -35,6 +35,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
                     case CRUD.Create:
                         //добавляем новое поступление денег на счет или списание денег на новую ставку
                         typedItem.Id = Guid.NewGuid();
+                        typedItem.Commited = false;
                         await _dbContext.FinanceItems.AddAsync(typedItem);
                         break;
                     case CRUD.Update:
@@ -58,7 +59,6 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
                         {
                             throw new Exception($"Запись для удаления не найдена FinanceId - {typedItem.FinanceId}");
                         }
-                        //_dbContext.FinanceItems.Remove(delItem);
                         delItem.CorrelationId = correlationId;
                         _dbContext.FinanceItems.Update(delItem);
                         break;
