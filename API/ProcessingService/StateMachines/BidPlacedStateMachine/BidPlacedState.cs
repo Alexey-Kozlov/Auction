@@ -12,4 +12,5 @@ public class BidPlacedState : SagaStateMachineInstance
     public Guid BidId { get; set; }
     public int OldHighBid { get; set; }
     public string DataForProcessingServicesList { get; set; }
+    public bool IsError { get; set; }
 }

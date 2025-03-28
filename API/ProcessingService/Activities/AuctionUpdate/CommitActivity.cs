@@ -1,5 +1,8 @@
 using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
+using Common.Contracts.Image;
+using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
@@ -11,10 +14,13 @@ namespace ProcessingService.Activities.AuctionUpdate;
 public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionUpdateESCommit>
 {
     private readonly SendEventToES _sendEventToES;
-    public CommitActivity(SendEventToES sendEventToES)
+    private readonly IPublishEndpoint _publishEndpoint;
+    public CommitActivity(SendEventToES sendEventToES, IPublishEndpoint publishEndpoint)
     {
         _sendEventToES = sendEventToES;
+        _publishEndpoint = publishEndpoint;
     }
+
 
     public void Accept(StateMachineVisitor visitor)
     {
@@ -27,13 +33,33 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.Auction.AuctionUpdateComplete",
+            "Common.Contracts.Auction.AuctionUpdatedNotificationEvent",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionUpdate,
             "",
             context.Saga.AuctionId,
             !context.Message.IsError);
+        await _publishEndpoint.Publish(new ImageCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new AuctionCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new ElkCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new NotificationCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
         await next.Execute(context).ConfigureAwait(false);
     }
 

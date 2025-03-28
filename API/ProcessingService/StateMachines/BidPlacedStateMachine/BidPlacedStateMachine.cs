@@ -14,24 +14,25 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public State BidState { get; }
     public State SearchState { get; }
     public State NotificationState { get; }
-    public State FaultCommitState { get; }
+    public State PreCommitState { get; }
     public State CommitState { get; }
-    public State CompletedState { get; }
+    public State NotificationEventState { get; }
 
 
     public Event<RequestBidPlace> RequestEvent { get; }
     public Event<ESLogPlaceBid> EsLogEvent { get; }
     public Event<BidPlaced> BidEvent { get; }
     public Event<BidSearchPlaced> SearchEvent { get; }
-    public Event<BidNotificationProcessed> NotificationEvent { get; }
+    public Event<BidNotification> NotificationEvent { get; }
+    public Event<BidNotificationEvent> NotificationUIEvent { get; }
     public Event<BidCreateESCommit> CommitEvent { get; }
-    public Event<BidComplete> CompleteEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
     public Event<Fault<ESLogPlaceBid>> FaultEsLogEvent { get; }
     public Event<Fault<BidPlaced>> FaultBidEvent { get; }
     public Event<Fault<BidSearchPlaced>> FaultSearchEvent { get; }
-    public Event<Fault<BidNotificationProcessed>> FaultNotificationEvent { get; }
+    public Event<Fault<BidNotification>> FaultNotificationEvent { get; }
+    public Event<Fault<BidNotificationEvent>> FaultNotificationUIEvent { get; }
     public Event<Fault<BidCreateESCommit>> FaultCommitEvent { get; }
-    public Event<Fault<BidComplete>> FaultCompleteEvent { get; }
     private IConfiguration configuration { get; }
 
 
@@ -45,9 +46,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureBidPState();
         ConfigureSearchState();
         ConfigureNotificationState();
-        ConfigureFaultCommitState();
+        ConfigurePreCommitState();
         ConfigureCommitState();
-        ConfigureCompletedState();
+        ConfigureNotificationEventState();
     }
 
     private void ConfigureEvents()
@@ -58,18 +59,18 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             //иначе первый раз после рестарта не срабатывает событие
             p.InsertOnInitial = true;
         });
-        Event(() => CompleteEvent);
         Event(() => BidEvent);
         Event(() => SearchEvent);
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
         Event(() => EsLogEvent);
+        Event(() => FaultEvent);
         Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultBidEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
-        Event(() => FaultCompleteEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotificationUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -112,12 +113,17 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         .TransitionTo(BidState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Publish(contex => new BidCreateESCommit
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
             {
-                CorrelationId = contex.Saga.CorrelationId,
-                IsError = true
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.Bidder,
+                IsError = context.Message.Message.IsError
             })
-        .TransitionTo(FaultCommitState)
+            .TransitionTo(PreCommitState)
         );
     }
 
@@ -134,14 +140,19 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                     CallBackType = "Common.Contracts.Bid.BidSearchPlaced"
                 })
             .TransitionTo(SearchState),
-        //обрабатываем ошибки из сервиса FinanceService
+        //обрабатываем ошибки из сервиса FinanceService            
         When(FaultBidEvent)
-            .Publish(contex => new BidCreateESCommit
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
             {
-                CorrelationId = contex.Saga.CorrelationId,
-                IsError = true
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.Bidder,
+                IsError = context.Message.Message.IsError
             })
-        .TransitionTo(FaultCommitState)
+            .TransitionTo(PreCommitState)
         );
     }
 
@@ -154,19 +165,25 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == nameof(AuctionItem)).ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p =>
+                        p.DataType == nameof(AuctionItem)).ToList(),
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Bid.BidNotificationProcessed"
+                    CallBackType = "Common.Contracts.Bid.BidNotification"
                 })
             .TransitionTo(NotificationState),
         //обрабатываем ошибки из сервиса BidService
         When(FaultSearchEvent)
-            .Publish(contex => new BidCreateESCommit
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
             {
-                CorrelationId = contex.Saga.CorrelationId,
-                IsError = true
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.Bidder,
+                IsError = context.Message.Message.IsError
             })
-        .TransitionTo(FaultCommitState)
+            .TransitionTo(PreCommitState)
         );
     }
 
@@ -179,12 +196,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 new Uri(configuration["QueuePaths:BidNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == nameof(NotifyItem)).ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p =>
+                        p.DataType == nameof(NotifyItem)).ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Bid.BidCreateESCommit",
-                    Props = context.Saga.Amount.ToString()
+                    Props = ""
                 })
-            .TransitionTo(CommitState),
+            .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotificationEvent)
             .Publish(contex => new BidCreateESCommit
@@ -192,16 +210,114 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 CorrelationId = contex.Saga.CorrelationId,
                 IsError = true
             })
-        .TransitionTo(FaultCommitState)
+        .TransitionTo(PreCommitState)
         );
     }
 
-    private void ConfigureFaultCommitState()
+    /*промежуточный этап перед подтверждением/откатом транзакции
+    на входе события:
+    - BaseServiceError - событие ошибок от предыдущих этапов
+    - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
+    - BidCreateESCommit - событие правильного выполнения предыдущего этапа
+    на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+    */
+
+    private void ConfigurePreCommitState()
     {
-        During(FaultCommitState,
-        //передаем ошибки пользователю
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new BidCreateESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Saga.IsError,
+            })
+        .TransitionTo(CommitState),
         When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.Bidder,
+                    IsError = context.Message.Message.IsError
+                })
+            .Publish(context => new BidCreateESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.Message.IsError,
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Then(p => p.Saga.IsError = p.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.Bidder,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Message.IsError
+                })
+            .Publish(context => new BidCreateESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.IsError,
+            })
+        .TransitionTo(CommitState)
+        );
+    }
+
+    private void ConfigureCommitState()
+    {
+        During(CommitState,
+        When(CommitEvent)
+            //подтверждаем/откатываем транзакцию
+            .Activity(p => p.OfType<CommitActivity>())
+            .TransitionTo(NotificationEventState)
+        );
+    }
+
+    private void ConfigureNotificationEventState()
+    {
+        During(NotificationEventState,
+        When(NotificationUIEvent)
+        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+        p => p
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = $"{!context.Saga.IsError}"
+                }),
+            p => p
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p =>
+                        p.DataType == nameof(NotifyItem)).ToList(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = $"{!context.Saga.IsError}"
+                })
+            )
+            .Finalize(),
+        //обрабатываем ошибки подтверждения/отката транзакции            
+        When(FaultNotificationUIEvent)
+        .Send(
             new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
             context => new NotificationServiceError
             {
@@ -214,47 +330,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 AuctionId = context.Saga.AuctionId,
                 IsError = context.Message.Message.IsError
             })
-            .Publish(contex => new BidCreateESCommit
-            {
-                CorrelationId = contex.Saga.CorrelationId,
-                IsError = true
-            })
-        .TransitionTo(CommitState)
+            .Finalize()
         );
     }
-
-    private void ConfigureCommitState()
-    {
-        During(CommitState,
-        When(CommitEvent)
-            //подтверждаем/откатываем транзакцию
-            .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState)
-        );
-    }
-
-    private void ConfigureCompletedState()
-    {
-        During(CompletedState,
-        When(CompleteEvent)
-        .Finalize(),
-        //обрабатываем ошибки из сервиса EventSourcing - ESCommit
-        When(FaultCompleteEvent)
-        .Send(
-            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.Bidder,
-                    TraceId = Guid.NewGuid(),
-                    AuctionId = context.Saga.AuctionId,
-                    IsError = context.Message.Message.IsError
-                })
-        .Finalize()
-        );
-    }
-
 }

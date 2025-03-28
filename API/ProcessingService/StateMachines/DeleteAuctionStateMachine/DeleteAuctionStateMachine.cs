@@ -97,6 +97,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
+                context.Saga.IsError = false;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для удаления аукциона:
             // - Удаление записей по деньгам в сервисе FinanceService
@@ -202,7 +203,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 })
             .TransitionTo(ImageState),
         //обрабатываем ошибки из сервиса BiddingService            
-        When(FaultEsLogEvent)
+        When(FaultGatewayEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -478,5 +479,4 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             .Finalize()
         );
     }
-
 }

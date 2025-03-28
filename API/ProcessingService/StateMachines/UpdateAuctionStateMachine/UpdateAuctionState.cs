@@ -16,4 +16,5 @@ public record UpdateAuctionState : SagaStateMachineInstance
     public bool UsingImage { get; set; }
     public bool IsImageSplitted { get; set; }
     public string DataForProcessingServicesList { get; set; }
+    public bool IsError { get; set; }
 }

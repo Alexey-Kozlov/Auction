@@ -23,6 +23,7 @@ export type Bid = {
 	bidder: string;
 	bidTime: string;
 	amount: number;
+	show: boolean;
 };
 
 export type LoginResponse = {

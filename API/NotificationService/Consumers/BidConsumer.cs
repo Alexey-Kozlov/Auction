@@ -3,24 +3,19 @@ using System.Text.Json;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
-using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
 public class BidConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
 {
-    private readonly IHubContext<NotificationHub> _hubContext;
     private readonly NotificationDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public BidConsumer(IHubContext<NotificationHub> hubContext,
-    NotificationDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public BidConsumer(NotificationDbContext dbContext, IPublishEndpoint publishEndpoint,
+        IConfiguration configuration)
     {
-        _hubContext = hubContext;
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
@@ -38,17 +33,13 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
                     await _dbContext.NotifyItems.AddAsync(new NotifyItem
                     {
                         Id = Guid.NewGuid(),
+                        Commited = false,
                         AuctionId = typedItem.AuctionId,
                         UserLogin = typedItem.UserLogin,
                         CorrelationId = correlationId
                     });
                     await _dbContext.SaveChangesAsync();
                 }
-                var auctionNotifyList = await _dbContext.NotifyItems.Where(p =>
-                    p.AuctionId == typedItem.AuctionId && p.Commited).ToListAsync();
-                await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("BidPlaced",
-                    new { auctionId = typedItem.AuctionId });
-
             }
 
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +

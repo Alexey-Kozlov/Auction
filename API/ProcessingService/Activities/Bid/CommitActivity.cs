@@ -32,7 +32,7 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.Bid.BidComplete",
+            "Common.Contracts.Bid.BidNotificationEvent",
             context.Saga.CorrelationId,
             context.Saga.Bidder,
             Command.PlaceBid,

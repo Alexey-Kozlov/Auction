@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using BiddingService.Data;
+﻿using BiddingService.Data;
 using Common.Contracts.Bid;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -11,13 +10,11 @@ public class CommitBidConsumer : IConsumer<BidCommit>
 {
     private readonly BidDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IConfiguration _configuration;
 
-    public CommitBidConsumer(BidDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public CommitBidConsumer(BidDbContext dbContext, IPublishEndpoint publishEndpoint)
     {
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
-        _configuration = configuration;
     }
     public async Task Consume(ConsumeContext<BidCommit> context)
     {

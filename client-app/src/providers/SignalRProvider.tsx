@@ -94,10 +94,14 @@ export default function SignalRProvider() {
 							itemId: bid.auctionId,
 						})
 					);
-					return toast(
-						(p) => <BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />,
-						{ duration: 5000 }
-					);
+					if (bid.show) {
+						return toast(
+							(p) => (
+								<BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
+							),
+							{ duration: 5000 }
+						);
+					}
 				});
 
 				connection.on("AuctionCreated", (auction: Auction) => {
