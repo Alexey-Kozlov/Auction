@@ -3,24 +3,20 @@ using System.Text.Json;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
-using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
 public class EditNotificationConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
 {
-    private readonly IHubContext<NotificationHub> _hubContext;
     private readonly NotificationDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public EditNotificationConsumer(IHubContext<NotificationHub> hubContext,
-    NotificationDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public EditNotificationConsumer(NotificationDbContext dbContext, IPublishEndpoint publishEndpoint,
+        IConfiguration configuration)
     {
-        _hubContext = hubContext;
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
@@ -28,46 +24,38 @@ public class EditNotificationConsumer : IConsumer<DataForProcessingServicesList<
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {
         var correlationId = context.Message.CorrelationId;
-        var title = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
-
         foreach (var item in context.Message.DataObjects)
         {
             //уведомления при создании / удалении уведомления
             var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
-            title = await ProcessNotifyItem(item, title);
-
+            typedItem.CorrelationId = correlationId;
+            switch (item.CRUD)
+            {
+                case CRUD.Create:
+                    typedItem.Id = Guid.NewGuid();
+                    typedItem.Commited = false;
+                    await _dbContext.NotifyItems.AddAsync(typedItem);
+                    break;
+                case CRUD.Delete:
+                    //удаляем запись
+                    var delItem = await _dbContext.NotifyItems.Where(p =>
+                        p.AuctionId == typedItem.AuctionId && p.Commited &&
+                        p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
+                    if (delItem == null)
+                    {
+                        var errorString = $"Запись для удаления - {typedItem.AuctionId}";
+                        errorString += $" для пользователя {typedItem.UserLogin} не найдена";
+                        throw new Exception(errorString);
+                    }
+                    delItem.CorrelationId = correlationId;
+                    _dbContext.NotifyItems.Update(delItem);
+                    break;
+            }
             await _dbContext.SaveChangesAsync();
-            await _hubContext.Clients.Group(typedItem.UserLogin).SendAsync("EditNotification", new { message = title });
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
             await _publishEndpoint.Publish(sendObject);
         }
     }
-
-    private async Task<string> ProcessNotifyItem(DataForProcessingService item, string title)
-    {
-        var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
-        switch (item.CRUD)
-        {
-            case CRUD.Create:
-                await _dbContext.NotifyItems.AddAsync(typedItem);
-                title = $"Уведомление для пользователя {title} создано!";
-                break;
-            case CRUD.Delete:
-                //удаляем запись
-                var delItem = await _dbContext.NotifyItems.Where(p =>
-                    p.AuctionId == typedItem.AuctionId &&
-                    p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
-                if (delItem == null)
-                {
-                    throw new Exception($"Запись для удаления не найдена");
-                }
-                _dbContext.NotifyItems.Remove(delItem);
-                title = $"Уведомление для пользователя {title} удалено!";
-                break;
-        }
-        return title;
-    }
-
 }

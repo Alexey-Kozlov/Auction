@@ -21,7 +21,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public State NotificationState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
-    public State NotificationEventState { get; }
+    public State CompleteState { get; }
 
 
     public Event<RequestAuctionDelete> RequestEvent { get; }
@@ -61,7 +61,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         ConfigureNotificationState();
         ConfigurePreCommitState();
         ConfigureCommitState();
-        ConfigureNotificationEventState();
+        ConfigureCompleteState();
     }
     private void ConfigureEvents()
     {
@@ -428,12 +428,12 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         When(CommitEvent)
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(NotificationEventState));
+            .TransitionTo(CompleteState));
     }
 
-    private void ConfigureNotificationEventState()
+    private void ConfigureCompleteState()
     {
-        During(NotificationEventState,
+        During(CompleteState,
         When(NotificationUIEvent)
         .IfElse(context => context.Saga.DataForProcessingServicesList == null,
         p => p

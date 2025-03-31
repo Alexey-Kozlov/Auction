@@ -1,4 +1,5 @@
 using Common.Contracts.Auction;
+using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
 using Common.Utils;
@@ -9,12 +10,14 @@ using ProcessingService.StateMachines.FinishAuctionStateMachine;
 
 namespace ProcessingService.Activities.AuctionFinish;
 
-public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionFinishedESCommit>
+public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionFinishedCommit>
 {
     private readonly SendEventToES _sendEventToES;
-    public CommitActivity(SendEventToES sendEventToES)
+    private readonly IPublishEndpoint _publishEndpoint;
+    public CommitActivity(SendEventToES sendEventToES, IPublishEndpoint publishEndpoint)
     {
         _sendEventToES = sendEventToES;
+        _publishEndpoint = publishEndpoint;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -23,22 +26,32 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
     }
 
 
-    public async Task Execute(BehaviorContext<FinishAuctionState, AuctionFinishedESCommit> context, IBehavior<FinishAuctionState, AuctionFinishedESCommit> next)
+    public async Task Execute(BehaviorContext<FinishAuctionState, AuctionFinishedCommit> context, IBehavior<FinishAuctionState, AuctionFinishedCommit> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.Auction.AuctionFinishedComplete",
+            "Common.Contracts.Auction.AuctionFinishedNotification",
             context.Message.CorrelationId,
             "",
             Command.AuctionUpdate,
             "",
             null,
-            !context.Message.IsError);
+            context.Message.IsError);
+        await _publishEndpoint.Publish(new AuctionCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new ElkCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Saga.CorrelationId
+        });
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<FinishAuctionState, AuctionFinishedESCommit, TException> context, IBehavior<FinishAuctionState, AuctionFinishedESCommit> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<FinishAuctionState, AuctionFinishedCommit, TException> context, IBehavior<FinishAuctionState, AuctionFinishedCommit> next) where TException : Exception
     {
         return next.Faulted(context);
     }

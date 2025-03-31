@@ -1,4 +1,5 @@
 export type Auction = {
+	id: string;
 	reservePrice: number;
 	seller: string;
 	winner?: string;
@@ -18,6 +19,7 @@ export type Auction = {
 };
 
 export type Bid = {
+	id: string;
 	bidId: string;
 	auctionId: string;
 	bidder: string;
@@ -81,6 +83,7 @@ export type PlaceBidParams = {
 };
 
 export type AuctionImage = {
+	id: string;
 	auctionId: string;
 	image: string;
 };
@@ -92,6 +95,7 @@ export type NotifyUser = {
 };
 
 export type FinanceItem = {
+	id: string;
 	auctionId: string;
 	itemId: string;
 	value: number;
@@ -114,6 +118,7 @@ export type ProcessingState = {
 };
 
 export type AuctionUpdated = {
+	id: string;
 	auctionId: string;
 	title: string;
 	properties: string;
@@ -126,6 +131,7 @@ export type AuctionUpdated = {
 };
 
 export type AuctionFinished = {
+	id: string;
 	auctionId: string;
 	title: string;
 	winner?: string;
@@ -133,6 +139,7 @@ export type AuctionFinished = {
 };
 
 export type AuctionDeleted = {
+	id: string;
 	auctionId: string;
 	correlationId: string;
 };

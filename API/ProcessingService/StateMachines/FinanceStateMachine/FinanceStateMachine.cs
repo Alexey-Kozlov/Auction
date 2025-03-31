@@ -9,9 +9,9 @@ namespace ProcessingService.StateMachines.FinanceStateMachine;
 public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
 {
     public State FinanceState { get; }
-    public State NotificationState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
+    public State CompleteState { get; }
 
     public Event<RequestCreateFinance> RequestEvent { get; }
     public Event<ESLogFinanceCreated> EsLogEvent { get; }
@@ -30,7 +30,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureFinanceState();
-        ConfigureNotificationState();
+        ConfigureCompleteState();
         ConfigureCommitState();
         ConfigurePreCommitState();
     }
@@ -162,12 +162,12 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         When(CommitEvent)
             //посылаем через Кафку в EventSourcingService - для подтверждения/отмены транзакции
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(NotificationState));
+            .TransitionTo(CompleteState));
     }
 
-    private void ConfigureNotificationState()
+    private void ConfigureCompleteState()
     {
-        During(NotificationState,
+        During(CompleteState,
         When(NotificationEvent)
         //передаем сообщение для обновления UI (если не было ошибок)
             .Send(

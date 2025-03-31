@@ -10,4 +10,6 @@ public class EditNotificationState : SagaStateMachineInstance
     public Guid AuctionId { get; set; }
     public bool Enable { get; set; }
     public string SessionId { get; set; }
+    public string DataForProcessingServicesList { get; set; }
+    public bool IsError { get; set; }
 }

@@ -263,10 +263,12 @@ export default function SignalRProvider() {
 						auctionId: "",
 						messageType: 0,
 					};
-					return toast(
-						(p) => <InfoMessageToast message={mes} toastId={p.id} />,
-						{ duration: 5000 }
-					);
+					if (result.show) {
+						return toast(
+							(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+							{ duration: 5000 }
+						);
+					}
 				});
 
 				connection.on("RestoreProgress", (result: ProgressToast) => {

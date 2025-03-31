@@ -39,7 +39,7 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
             Command.AuctionUpdate,
             "",
             context.Saga.AuctionId,
-            !context.Message.IsError);
+            context.Message.IsError);
         await _publishEndpoint.Publish(new ImageCommit
         {
             Commited = !context.Message.IsError,

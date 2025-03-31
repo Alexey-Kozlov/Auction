@@ -10,14 +10,18 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
 
     public State ElkState { get; }
     public State NotificationState { get; }
+    public State PreCommitState { get; }
     public State CommitState { get; }
-    public State CompletedState { get; }
+    public State CompleteState { get; }
 
-    public Event<ESLogAuctionFinish> EsLogEvent { get; }
+    public Event<ESLogAuctionFinish> RequestEvent { get; }
     public Event<AuctionFinishedElk> ElkEvent { get; }
+    public Event<AuctionFinishedCommit> CommitEvent { get; }
     public Event<AuctionFinishedNotification> NotificationEvent { get; }
-    public Event<AuctionFinishedESCommit> CommitEvent { get; }
-    public Event<AuctionFinishedComplete> CompleteEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
+    public Event<Fault<AuctionFinishedElk>> FaultElkEvent { get; }
+    public Event<Fault<AuctionFinishedCommit>> FaultCommitEvent { get; }
+    public Event<Fault<AuctionFinishedNotification>> FaultNotificationEvent { get; }
 
     private IConfiguration configuration { get; }
 
@@ -27,26 +31,29 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureNotificationState();
         ConfigureELKState();
+        ConfigurePreCommitState();
         ConfigureCommitState();
-        ConfigureCompletedState();
+        ConfigureCompleteState();
 
     }
     private void ConfigureEvents()
     {
-        Event(() => EsLogEvent, p => p.InsertOnInitial = true);
-        Event(() => NotificationEvent);
+        Event(() => RequestEvent, p => p.InsertOnInitial = true);
         Event(() => ElkEvent);
         Event(() => CommitEvent);
-        Event(() => CompleteEvent);
+        Event(() => NotificationEvent);
+        Event(() => FaultEvent);
+        Event(() => FaultElkEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
         //В сервисе EventSourcingService периодически срабатывает сервис CheckAuctionFinished, если найдены завершенные
-        //аукционы - они завершаются и передается список аукционов для обнолвения в AuctionService
+        //аукционы - они завершаются и передается список аукционов для обновения в AuctionService
         Initially(
-            When(EsLogEvent)
+            When(RequestEvent)
             .Then(context =>
             {
                 context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
@@ -77,26 +84,85 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification"
+                    CallBackType = "Common.Contracts.Auction.AuctionFinishedCommit"
                 })
-            .TransitionTo(NotificationState));
+            .TransitionTo(PreCommitState),
+        //обрабатываем ошибки из сервиса SearchService            
+        When(FaultElkEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = "SystemService",
+                IsError = context.Message.Message.IsError
+            })
+            .TransitionTo(PreCommitState)
+        );
     }
 
-    private void ConfigureNotificationState()
+    /*промежуточный этап перед подтверждением/откатом транзакции
+    на входе события:
+    - BaseServiceError - событие ошибок от предыдущих этапов
+    - Fault<AuctionCreateESCommit> - событие ошибки предыдущего этапа
+    - AuctionCreateESCommit - событие правильного выполнения предыдущего этапа
+    на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+    */
+
+    private void ConfigurePreCommitState()
     {
-        During(NotificationState,
-        When(NotificationEvent)
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new AuctionFinishedCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Saga.IsError,
+            })
+        .TransitionTo(CommitState),
+        When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
                 {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Auction.AuctionFinishedESCommit"
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = "SystemService",
+                    IsError = context.Message.Message.IsError
                 })
-            .TransitionTo(CommitState));
+            .Publish(context => new AuctionFinishedCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.Message.IsError,
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Then(p => p.Saga.IsError = p.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = "SystemService",
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Message.IsError
+                })
+            .Publish(context => new AuctionFinishedCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.IsError,
+            })
+        .TransitionTo(CommitState)
+        );
     }
-
 
     private void ConfigureCommitState()
     {
@@ -104,16 +170,48 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         When(CommitEvent)
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState));
+            .TransitionTo(CompleteState));
     }
 
-    private void ConfigureCompletedState()
+    private void ConfigureCompleteState()
     {
-        During(CompletedState,
-        When(CompleteEvent).Finalize()
+        During(CompleteState,
+        When(NotificationEvent)
+        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+            p => p
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
+                context => new DataForProcessingServicesList<AuctionItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = ""
+                }),
+            p => p
+            .Send(
+                new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
+                context => new DataForProcessingServicesList<AuctionItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = ""
+                })
+            ).Finalize(),
+        //обрабатываем ошибки подтверждения/отката транзакции            
+        When(FaultNotificationEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = "SystemService",
+                TraceId = Guid.NewGuid(),
+                IsError = context.Message.Message.IsError
+            })
+        .Finalize()
         );
     }
-
-
-
 }

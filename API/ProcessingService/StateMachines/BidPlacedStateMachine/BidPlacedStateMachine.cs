@@ -16,7 +16,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public State NotificationState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
-    public State NotificationEventState { get; }
+    public State CompleteState { get; }
 
 
     public Event<RequestBidPlace> RequestEvent { get; }
@@ -48,7 +48,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureNotificationState();
         ConfigurePreCommitState();
         ConfigureCommitState();
-        ConfigureNotificationEventState();
+        ConfigureCompleteState();
     }
 
     private void ConfigureEvents()
@@ -281,13 +281,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         When(CommitEvent)
             //подтверждаем/откатываем транзакцию
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(NotificationEventState)
+            .TransitionTo(CompleteState)
         );
     }
 
-    private void ConfigureNotificationEventState()
+    private void ConfigureCompleteState()
     {
-        During(NotificationEventState,
+        During(CompleteState,
         When(NotificationUIEvent)
         .IfElse(context => context.Saga.DataForProcessingServicesList == null,
         p => p

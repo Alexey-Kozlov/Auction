@@ -10,13 +10,13 @@ namespace ProcessingService.Activities.EditNotification;
 public class CommitActivity : IStateMachineActivity<EditNotificationState, EditNotificationESCommit>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public CommitActivity(SendEventToES sendEventToES, IPublishEndpoint publishEndpoint)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
+        _publishEndpoint = publishEndpoint;
     }
-
     public void Accept(StateMachineVisitor visitor)
     {
         visitor.Visit(this);
@@ -28,13 +28,18 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.Notification.EditNotificationComplete",
+            "Common.Contracts.Notification.EditNotificationEvent",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.EditNotification,
             "",
             null,
-            !context.Message.IsError);
+            context.Message.IsError);
+        await _publishEndpoint.Publish(new NotificationCommit
+        {
+            Commited = !context.Message.IsError,
+            CorrelationId = context.Message.CorrelationId
+        });
         await next.Execute(context).ConfigureAwait(false);
     }
 

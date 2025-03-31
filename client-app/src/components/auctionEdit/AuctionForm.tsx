@@ -152,6 +152,9 @@ export default function AuctionForm() {
 						if (!checkAuctionEndDate(values.auctionEnd)) return;
 						setIsWaiting(true);
 						const auctionUpdated: AuctionUpdated = {
+							id: auction.data?.result.id
+								? auction.data!.result.id
+								: (uuid.v4() as string),
 							auctionId: id,
 							title: values.title,
 							description: values.description ? values.description : "",

@@ -273,6 +273,7 @@ public class AuctionDeleteComplete : IFaultMessage
 #region AuctionUpdate
 public class RequestAuctionUpdate : IAuctionImageSplit
 {
+      public Guid Id { get; set; }
       public Guid AuctionId { get; set; }
       public string Title { get; set; }
       public string Properties { get; set; }
@@ -438,7 +439,7 @@ public record AuctionFinishingNotification(
       int Amount,
       Guid CorrelationId
 );
-public class AuctionFinishedNotification : IFaultMessage
+public class AuctionFinishedCommit : IFaultMessage
 {
 
       public Guid CorrelationId { get; set; }
@@ -471,7 +472,7 @@ public class AuctionFinishedElk : IFaultMessage
       public bool IsError { get; set; }
 };
 
-public class AuctionFinishedESCommit : IFaultMessage
+public class AuctionFinishedNotification : IFaultMessage
 {
 
       public Guid CorrelationId { get; set; }
@@ -505,15 +506,3 @@ public class AuctionCommit
       public bool Commited { get; set; }
       public string CallBackType { get; set; }
 }
-
-public class AuctionError : IFaultMessage
-{
-      public Guid CorrelationId { get; set; }
-      public string Message { get; set; }
-      public string ExceptionMessage { get; set; }
-      public string UserLogin { get; set; }
-      public string ServiceName { get; set; }
-      public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
-      public bool IsError { get; set; }
-};

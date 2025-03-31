@@ -82,6 +82,7 @@ public class ProcessingController : ControllerBase
     {
         var auction = new RequestAuctionUpdate
         {
+            Id = par.Id,
             AuctionId = par.AuctionId,
             Title = par.Title,
             Properties = par.Properties,

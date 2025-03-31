@@ -43,10 +43,5 @@ public class AuctionFinishedConsumer : IConsumer<DataForProcessingServicesList<A
                 title = typedItem.Title
             });
         }
-
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
     }
 }

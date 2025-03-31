@@ -27,12 +27,15 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
         await _sendEventToES.SendItemToEventSourcing(
             new AuctionItem
             {
+                Id = context.Message.Id,
+                UpdatedAt = DateTime.UtcNow,
                 Title = context.Message.Title,
                 AuctionId = context.Message.AuctionId,
                 Description = context.Message.Description,
                 Properties = context.Message.Properties,
                 Seller = context.Message.UserLogin,
-                AuctionEnd = context.Message.AuctionEnd
+                AuctionEnd = context.Message.AuctionEnd,
+                Finished = false
             },
             nameof(AuctionItem),
             "Common.Contracts.Processing.ESLogAuctionUpdated",

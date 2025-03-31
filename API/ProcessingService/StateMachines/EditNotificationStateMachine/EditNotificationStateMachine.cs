@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -8,6 +9,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
 {
     public State NotificationState { get; }
     public State CommitState { get; }
+    public State PreCommitState { get; }
     public State CompletedState { get; }
 
 
@@ -15,6 +17,11 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     public Event<ESLogEditNotification> EsLogEvent { get; }
     public Event<EditNotificationESCommit> CommitEvent { get; }
     public Event<EditNotificationComplete> CompleteEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
+    public Event<EditNotificationEvent> NotificationUIEvent { get; }
+    public Event<Fault<ESLogEditNotification>> FaultEsLogEvent { get; }
+    public Event<Fault<EditNotificationESCommit>> FaultCommitEvent { get; }
+    public Event<Fault<EditNotificationEvent>> FaultNotificationUIEvent { get; }
     private IConfiguration configuration { get; }
 
     public EditNotificationStateMachine(IServiceProvider services)
@@ -24,6 +31,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureNotificationState();
+        ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompleted();
     }
@@ -36,6 +44,9 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
         Event(() => EsLogEvent);
         Event(() => CommitEvent);
         Event(() => CompleteEvent);
+        Event(() => FaultEvent);
+        Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -61,6 +72,10 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     {
         During(NotificationState,
         When(EsLogEvent)
+            .Then(context =>
+            {
+                context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
+            })
             .Send(
                 new Uri(configuration["QueuePaths:EditNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
@@ -70,7 +85,82 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                     CallBackType = "Common.Contracts.Notification.EditNotificationESCommit",
                     Props = context.Saga.UserLogin
                 })
-            .TransitionTo(CommitState));
+            .TransitionTo(PreCommitState),
+        //обрабатываем ошибки из сервиса EventSourcingService            
+        When(FaultEsLogEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                IsError = context.Message.Message.IsError
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    /*промежуточный этап перед подтверждением/откатом транзакции
+   на входе события:
+   - BaseServiceError - событие ошибок от предыдущих этапов
+   - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
+   - BidCreateESCommit - событие правильного выполнения предыдущего этапа
+   на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+   */
+
+    private void ConfigurePreCommitState()
+    {
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new EditNotificationESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Saga.IsError,
+            })
+        .TransitionTo(CommitState),
+        When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    IsError = context.Message.Message.IsError
+                })
+            .Publish(context => new EditNotificationESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.Message.IsError,
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Then(p => p.Saga.IsError = p.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Message.IsError
+                })
+            .Publish(context => new EditNotificationESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                IsError = context.Message.IsError,
+            })
+        .TransitionTo(CommitState)
+        );
     }
 
     private void ConfigureCommitState()
@@ -85,8 +175,48 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     private void ConfigureCompleted()
     {
         During(CompletedState,
-        When(CompleteEvent).Finalize()
+        When(NotificationUIEvent)
+        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+        p => p
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = context.Message.IsError.ToString(),
+                }),
+            p => p
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = $"{context.Saga.UserLogin}"
+                })
+            )
+            .Finalize(),
+        //обрабатываем ошибки подтверждения/отката транзакции            
+        When(FaultNotificationUIEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+                AuctionId = context.Saga.AuctionId,
+                IsError = context.Message.Message.IsError
+            })
+            .Finalize()
         );
     }
-
 }
