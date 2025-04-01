@@ -9,11 +9,9 @@ namespace ProcessingService.Activities.EditNotification;
 public class ESLogActivity : IStateMachineActivity<EditNotificationState, RequestEditNotification>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
     }
 
     public void Accept(StateMachineVisitor visitor)

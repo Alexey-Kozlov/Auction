@@ -1,4 +1,5 @@
 using Common.Contracts.Auction;
+using Common.Contracts.Processing;
 
 namespace Common.Contracts.ELKSearch;
 
@@ -50,9 +51,15 @@ public record RequestElkIndex(
 
 
 
-public class ElkIndexReset
+public class ElkIndexReset : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public bool IsError { get; set; }
 }
 
 
@@ -63,17 +70,30 @@ public class ElkIndexResponse
      public string SessionId { get; set; }
 }
 
-public class ElkIndexCompleted
+public class ElkIndexCompleted : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public bool IsError { get; set; }
 }
+
 public class ElkIndexEnd
 {
      public Guid CorrelationId { get; set; }
 }
-public class ElkIndexESCommit
+public class ElkIndexESCommit : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public bool IsError { get; set; }
 }
 
 public enum ResultType
@@ -88,4 +108,16 @@ public class ElkCommit
      public Guid CorrelationId { get; set; }
      public bool Commited { get; set; }
      public string CallBackType { get; set; }
+}
+
+public class ElkSearchResult : IFaultMessage
+{
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public bool IsError { get; set; }
+     public ApiResponse<PagedResult<List<AuctionCreatingElk>>> Result { get; set; }
 }

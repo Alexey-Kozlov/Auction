@@ -37,15 +37,15 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             Command.AuctionUpdate,
             "",
             null,
-            context.Message.IsError);
+            context.Saga.IsError);
         await _publishEndpoint.Publish(new AuctionCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

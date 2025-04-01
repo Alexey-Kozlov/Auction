@@ -16,7 +16,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     public Event<RequestCreateFinance> RequestEvent { get; }
     public Event<ESLogFinanceCreated> EsLogEvent { get; }
     public Event<FinanceNotificationCreated> NotificationEvent { get; }
-    public Event<Fault<FinanceCreateESCommit>> PreCommitEvent { get; }
+    public Event<Fault<FinanceCreateESCommit>> FaultCommitEvent { get; }
     public Event<FinanceCreateESCommit> CommitEvent { get; }
     public Event<Fault<ESLogFinanceCreated>> FaultEsLogEvent { get; }
     public Event<Fault<FinanceNotificationCreated>> FaultNotificationEvent { get; }
@@ -40,7 +40,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         Event(() => EsLogEvent);
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
-        Event(() => PreCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
@@ -88,10 +88,9 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 Message = context.Message.Message.Message,
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.UserLogin,
-                IsError = context.Message.Message.IsError
+                UserLogin = context.Saga.UserLogin
             })
-        .TransitionTo(PreCommitState)
+            .TransitionTo(PreCommitState)
         );
     }
 
@@ -110,10 +109,9 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             .Publish(context => new FinanceCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.IsError,
             })
         .TransitionTo(CommitState),
-        When(PreCommitEvent)
+        When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Send(
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
@@ -129,12 +127,10 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             .Publish(context => new FinanceCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.Message.IsError,
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Then(p => p.Saga.IsError = p.Message.IsError)
             .Send(
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
@@ -145,12 +141,11 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     ServiceName = context.Message.ServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Message.IsError
+                    IsError = context.Saga.IsError
                 })
             .Publish(context => new FinanceCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.IsError,
             })
         .TransitionTo(CommitState)
         );
@@ -204,7 +199,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     ServiceName = context.Message.Message.ServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Message.Message.IsError
+                    IsError = context.Saga.IsError
                 })
             .Finalize()
         );

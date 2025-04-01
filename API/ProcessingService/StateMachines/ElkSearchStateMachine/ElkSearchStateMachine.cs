@@ -13,8 +13,8 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
     public State CompletedState { get; }
 
     public Event<ElkSearchRequest> RequestElkSearchEvent { get; }
-    public Event<ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> ElkSearchEvent { get; }
-    public Event<ElkSearchResponseCompleted> CompleteEvent { get; }
+    public Event<ElkSearchResult> ElkSearchEvent { get; }
+    public Event<Fault<ElkSearchResult>> FaultElkSearchEvent { get; }
     private IConfiguration configuration { get; }
 
     public ElkSearchStateMachine(IServiceProvider services)
@@ -23,14 +23,13 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureCompletedState();
         ConfigureNotificationState();
     }
     private void ConfigureEvents()
     {
         Event(() => RequestElkSearchEvent, p => p.InsertOnInitial = true);
         Event(() => ElkSearchEvent);
-        Event(() => CompleteEvent);
+        Event(() => FaultElkSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -43,6 +42,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.PageSize = context.Message.PageSize;
                 context.Saga.PageNumber = context.Message.PageNumber;
                 context.Saga.SessionId = context.Message.SessionId;
+                context.Saga.IsError = false;
             })
             .Send(
                 new Uri(configuration["QueuePaths:ElkSearchCreating"]),
@@ -64,7 +64,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                         }
                     },
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.ELKSearch.ElkSearchCreated<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>"
+                    CallBackType = "Common.Contracts.ELKSearch.ElkSearchResult"
                 })
             .TransitionTo(NotificationState)
         );
@@ -89,14 +89,24 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                         }
                     },
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.ELKSearch.ElkSearchResponseCompleted",
+                    CallBackType = "",
                     Props = context.Saga.SessionId
+                }).Finalize(),
+        //обрабатываем ошибки из сервиса ElasticSearchService            
+        When(FaultElkSearchEvent)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    SessionId = context.Saga.SessionId,
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = true
                 })
-            .TransitionTo(NotificationState));
-    }
-    private void ConfigureCompletedState()
-    {
-        During(NotificationState,
-        When(CompleteEvent).Finalize());
+            .Finalize());
     }
 }

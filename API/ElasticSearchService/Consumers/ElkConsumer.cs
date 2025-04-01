@@ -40,6 +40,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                     switch (item.CRUD)
                     {
                         case CRUD.Delete:
+                            //удаляем из индекса заданную запись
                             var response = await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
                                 p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId)))
                                 .WaitForCompletion(true).Refresh());
@@ -47,16 +48,18 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                         case CRUD.Create:
                             if (item.DataType == "ElkIndexReset")
                             {
-                                //переиндексация, сбрасываем всю БД поиска и возвращаемся
+                                //переиндексация, сбрасываем всю БД поиска
                                 await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
                                     p => p.Query(q => q.QueryString(f => f.Query("*"))));
                             }
                             else
                             {
+                                //добавляем запись в индекс
                                 await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
                             }
                             break;
                         case CRUD.Update:
+                            //обновляем запись по полям - title, properties, description
                             await _client.Client.UpdateByQueryAsync<AuctionCreatingElk>(indices: "search_index",
                                 p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId)))
                                 .Script(s => s.Source(
@@ -69,8 +72,6 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                                 .Add("description", elkItem.Description)))
                                 .Conflicts(Conflicts.Proceed)
                                 .WaitForCompletion(true).Refresh());
-
-
                             break;
                     }
                 }
@@ -88,9 +89,8 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
                 messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
                 messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-                messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ElkService");
+                messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ElkService_ELK");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-                messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
                 messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
                 var faultType = typeof(FaultMessage<>);
                 var typeParams = new Type[] { messageObject.GetType() };

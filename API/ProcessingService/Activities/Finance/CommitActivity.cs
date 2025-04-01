@@ -37,7 +37,7 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateE
             context.Saga.IsError);
         await _publishEndpoint.Publish(new FinanceCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

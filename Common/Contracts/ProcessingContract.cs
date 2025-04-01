@@ -326,4 +326,5 @@ public class NotificationServiceError
     public Guid? AuctionId { get; set; }
     public Guid? TraceId { get; set; }
     public bool IsError { get; set; }
+    public string SessionId { get; set; }
 }

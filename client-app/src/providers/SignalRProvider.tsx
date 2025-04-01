@@ -193,17 +193,19 @@ export default function SignalRProvider() {
 					dispatch(setEventFlag({ eventName: "ElkSearch", ready: false }));
 				});
 
-				connection.on("ElkIndex", (result: number) => {
+				connection.on("ElkIndex", (result: any) => {
 					dispatch(setEventFlag({ eventName: "ElkIndex", ready: false }));
 					const mes: Message = {
-						message: result.toString(),
+						message: result.message,
 						auctionId: "",
 						messageType: 0,
 					};
-					return toast(
-						(p) => <InfoMessageToast message={mes} toastId={p.id} />,
-						{ duration: 5000 }
-					);
+					if (result.show) {
+						return toast(
+							(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+							{ duration: 5000 }
+						);
+					}
 				});
 
 				connection.on("SetSnapShot", (result: string) => {
@@ -236,6 +238,8 @@ export default function SignalRProvider() {
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					switch (message.messageType) {
 						case 0:
+							//убираем иконку ожидания в случае ошибки
+							dispatch(setEventFlag({ eventName: "ElkSearch", ready: false }));
 							return toast(
 								(p) => <ErrorMessageToast message={message} toastId={p.id} />,
 								{ duration: 5000 }

@@ -38,25 +38,25 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             Command.PlaceBid,
             "",
             context.Saga.AuctionId,
-            context.Message.IsError);
+            context.Saga.IsError);
         await _publishEndpoint.Publish(new FinanceCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Message.CorrelationId
         });
         await _publishEndpoint.Publish(new BidCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Message.CorrelationId
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Message.CorrelationId
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Message.CorrelationId
         });
 

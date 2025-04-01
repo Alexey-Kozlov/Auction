@@ -27,13 +27,13 @@ public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCom
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.ELKSearch.ElkIndexEnd",
+            "Common.Contracts.ELKSearch.ElkIndexCompleted",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.IndexELK,
             "",
             null,
-            false);
+            context.Saga.IsError);
         await next.Execute(context).ConfigureAwait(false);
     }
 

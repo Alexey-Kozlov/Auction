@@ -25,16 +25,11 @@ public class ElkSearchConsumer : IConsumer<DataForProcessingServicesList<ApiResp
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> context)
     {
-        var correlationId = context.Message.CorrelationId;
         foreach (var item in context.Message.DataObjects)
         {
-            //уведомление при окончании индексации
+            //уведомление при окончании поиска
             var typedItem = JsonSerializer.Deserialize<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>(item.Data);
             await _hubContext.Clients.Group(context.Message.Props).SendAsync("ElkSearch", typedItem.Result);
         }
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
     }
 }

@@ -9,4 +9,5 @@ public class ElkIndexState : SagaStateMachineInstance
     public string UserLogin { get; set; }
     public string SessionId { get; set; }
     public int ItemNumber { get; set; }
+    public bool IsError { get; set; }
 }

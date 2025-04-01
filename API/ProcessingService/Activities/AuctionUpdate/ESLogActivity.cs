@@ -10,11 +10,9 @@ namespace ProcessingService.Activities.AuctionUpdate;
 public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAuctionUpdate>
 {
     private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public ESLogActivity(SendEventToES sendEventToES, IConfiguration config)
+    public ESLogActivity(SendEventToES sendEventToES)
     {
         _sendEventToES = sendEventToES;
-        _config = config;
     }
 
     public void Accept(StateMachineVisitor visitor)

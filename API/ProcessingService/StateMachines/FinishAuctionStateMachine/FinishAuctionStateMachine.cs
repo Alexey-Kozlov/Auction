@@ -58,6 +58,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             {
                 context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
                 context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
+                context.Saga.IsError = false;
             })
             //Обновление аукциона в сервисе SearchService
             .Send(
@@ -96,8 +97,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 Message = context.Message.Message.Message,
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
-                UserLogin = "SystemService",
-                IsError = context.Message.Message.IsError
+                UserLogin = "SystemService"
             })
             .TransitionTo(PreCommitState)
         );
@@ -108,7 +108,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     - BaseServiceError - событие ошибок от предыдущих этапов
     - Fault<AuctionCreateESCommit> - событие ошибки предыдущего этапа
     - AuctionCreateESCommit - событие правильного выполнения предыдущего этапа
-    на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+    на выходе - событие для подтверждения/отката транзакции - AuctionCreateESCommit
     */
 
     private void ConfigurePreCommitState()
@@ -117,8 +117,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         When(CommitEvent)
             .Publish(context => new AuctionFinishedCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Saga.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
@@ -136,13 +135,11 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 })
             .Publish(context => new AuctionFinishedCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.Message.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Then(p => p.Saga.IsError = p.Message.IsError)
             .Send(
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
@@ -153,12 +150,11 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                     ServiceName = context.Message.ServiceName,
                     UserLogin = "SystemService",
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Message.IsError
+                    IsError = context.Saga.IsError
                 })
             .Publish(context => new AuctionFinishedCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState)
         );
@@ -209,7 +205,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 ServiceName = context.Message.Message.ServiceName,
                 UserLogin = "SystemService",
                 TraceId = Guid.NewGuid(),
-                IsError = context.Message.Message.IsError
+                IsError = context.Saga.IsError
             })
         .Finalize()
         );

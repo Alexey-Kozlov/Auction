@@ -24,17 +24,13 @@ public class ElkindexConsumer : IConsumer<DataForProcessingServicesList<NotifyIt
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {
-        var correlationId = context.Message.CorrelationId;
-        foreach (var item in context.Message.DataObjects)
-        {
-            //уведомление при окончании индексации
-            var typedItem = JsonSerializer.Deserialize<ElkIndexResponse>(item.Data);
-            await _hubContext.Clients.Group(typedItem.SessionId).SendAsync("ElkIndex",
-                    $"Проиндексировано - {typedItem.ItemNumber} записей");
-        }
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-        await _publishEndpoint.Publish(sendObject);
+        var data = context.Message.Props.Split(",");
+        //параметр 0 - количество проиндексированных записей
+        //параметр 1 - флаг олтображать / не отображать
+        //параметр 2 - SessionId
+        //уведомление при окончании индексации
+        await _hubContext.Clients.Group(data[2]).SendAsync("ElkIndex",
+            new { show = Boolean.Parse(data[1]), message = $"Проиндексировано - {data[0]} записей" });
+
     }
 }

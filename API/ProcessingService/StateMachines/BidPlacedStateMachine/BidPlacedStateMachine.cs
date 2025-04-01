@@ -83,6 +83,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.BidId = Guid.NewGuid();
+                context.Saga.IsError = false;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для создания ставки:
             // - Возврат денег по предыдущей ставке (если была) - возврат денег и баланса предыдущего пользователя в FinanceService
@@ -120,8 +121,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 Message = context.Message.Message.Message,
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.Bidder,
-                IsError = context.Message.Message.IsError
+                UserLogin = context.Saga.Bidder
             })
             .TransitionTo(PreCommitState)
         );
@@ -149,8 +149,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 Message = context.Message.Message.Message,
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.Bidder,
-                IsError = context.Message.Message.IsError
+                UserLogin = context.Saga.Bidder
             })
             .TransitionTo(PreCommitState)
         );
@@ -180,8 +179,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 Message = context.Message.Message.Message,
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.Bidder,
-                IsError = context.Message.Message.IsError
+                UserLogin = context.Saga.Bidder
             })
             .TransitionTo(PreCommitState)
         );
@@ -205,10 +203,10 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotificationEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(contex => new BidCreateESCommit
             {
-                CorrelationId = contex.Saga.CorrelationId,
-                IsError = true
+                CorrelationId = contex.Saga.CorrelationId
             })
         .TransitionTo(PreCommitState)
         );
@@ -228,8 +226,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         When(CommitEvent)
             .Publish(context => new BidCreateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Saga.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
@@ -247,13 +244,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 })
             .Publish(context => new BidCreateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.Message.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Then(p => p.Saga.IsError = p.Message.IsError)
             .Send(
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
@@ -264,12 +259,11 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                     ServiceName = context.Message.ServiceName,
                     UserLogin = context.Saga.Bidder,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Message.IsError
+                    IsError = context.Saga.IsError
                 })
             .Publish(context => new BidCreateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState)
         );
@@ -328,7 +322,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 UserLogin = context.Saga.Bidder,
                 TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
-                IsError = context.Message.Message.IsError
+                IsError = context.Saga.IsError
             })
             .Finalize()
         );

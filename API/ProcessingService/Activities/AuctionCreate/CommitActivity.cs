@@ -40,22 +40,22 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             context.Saga.IsError);
         await _publishEndpoint.Publish(new ImageCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

@@ -11,18 +11,23 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
 {
     public State ResetIndexState { get; }
     public State ElkIndexState { get; }
-    public State NotificationState { get; }
-    public State CompletedState { get; }
+    public State PreCommitState { get; }
     public State CommitState { get; }
+    public State CompleteState { get; }
 
-    public Event<ElkIndexReset> ResetIndexEvent { get; }
+
     public Event<RequestElkIndex> RequestElkIndexEvent { get; }
+    public Event<ElkIndexReset> ResetIndexEvent { get; }
     public Event<ESLogElkIndex> EsLogEvent { get; }
     public Event<ElkIndexCompleted> NotificationEvent { get; }
-    public Event<ElkIndexEnd> EndEvent { get; }
     public Event<ElkIndexESCommit> CommitEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
+    public Event<Fault<ElkIndexReset>> FaultResetIndexEvent { get; }
+    public Event<Fault<ESLogElkIndex>> FaultEsLogEvent { get; }
+    public Event<Fault<ElkIndexESCommit>> FaultCommitEvent { get; }
+    public Event<Fault<ElkIndexCompleted>> FaultNotificationEvent { get; }
     private IConfiguration configuration { get; }
-    private ElkIndexResponse elkIndexResponse { get; set; }
+
     private int CurrentBatchCount { get; set; }
     private int AllBatchCount { get; set; }
     private object locker = new();
@@ -35,7 +40,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         ConfigureInitialState();
         ConfigureResetIndexState();
         ConfigureElkIndexState();
-        ConfigureNotificationState();
+        ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompleted();
     }
@@ -49,7 +54,11 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         Event(() => EsLogEvent);
         Event(() => NotificationEvent);
         Event(() => CommitEvent);
-        Event(() => EndEvent);
+        Event(() => FaultEvent);
+        Event(() => FaultResetIndexEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -59,6 +68,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             {
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
+                context.Saga.IsError = false;
                 CurrentBatchCount = 0;
                 AllBatchCount = 0;
             })
@@ -79,14 +89,13 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                     CorrelationId = context.Message.CorrelationId,
                     CallBackType = "Common.Contracts.ELKSearch.ElkIndexReset"
                 })
-
             .TransitionTo(ResetIndexState)
         );
 
         //ВАЖНО! Этот оператор для подавления ошибки - что сообщение не было принято и обработано
         //без этого оператора будут ошибки, т.к. у нас генерируется много сообщений в сервис ElasticSearchService
         //и принимаются оттуда же без передачи в конкретное состояние.
-        OnUnhandledEvent(async e => await e.Ignore());
+        //OnUnhandledEvent(async e => await e.Ignore());
         SetCompletedWhenFinalized();
     }
     private void ConfigureResetIndexState()
@@ -96,7 +105,19 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             //посылаем через Кафку, запрос на индексацию всех записей аукционов.
             //возвращаются пачки записей для переиндексации из ES лога
             .Activity(p => p.OfType<ESLogActivity>())
-            .TransitionTo(ElkIndexState)
+            .TransitionTo(ElkIndexState),
+        //обрабатываем ошибки из сервиса ElasticSearchService            
+        When(FaultResetIndexEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
         );
     }
 
@@ -144,53 +165,84 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 })
             )
             //Если переданное общее количество переданных пакетов соответствует счетчику обработанных пакетов -
-            //означает, что все пакеты из ES лог обработаны и можно посылать уведомление об окончания индексации
+            //означает, что все пакеты из ES лог обработаны и можно заканчивать индексацию
             .If(context => AllBatchCount == CurrentBatchCount,
                 p => p
-                .Then(context =>
-                {
-                    Console.WriteLine("Всего - " + context.Saga.ItemNumber + " записи индексировано.");
-                })
-                .Publish(context => new ElkIndexCompleted
+                .Publish(context => new ElkIndexESCommit
                 {
                     CorrelationId = context.Message.CorrelationId
                 })
-                .TransitionTo(NotificationState)
-            )
+                .TransitionTo(PreCommitState)
+            ),
+        //обрабатываем ошибки из сервиса EventSourcingService            
+        When(FaultEsLogEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
         );
     }
-    private void ConfigureNotificationState()
+
+    /*промежуточный этап перед подтверждением/откатом транзакции
+   на входе события:
+   - BaseServiceError - событие ошибок от предыдущих этапов
+   - Fault<ElkIndexESCommit> - событие ошибки предыдущего этапа
+   - ElkIndexESCommit - событие правильного выполнения предыдущего этапа
+   на выходе - событие для подтверждения/отката транзакции - ElkIndexESCommit
+   */
+
+    private void ConfigurePreCommitState()
     {
-        During(NotificationState,
-        When(NotificationEvent)
-            .Then(context =>
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new ElkIndexESCommit
             {
-                //инициализируем объект для уведомления о результатах индексации
-                elkIndexResponse = new ElkIndexResponse
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState),
+        When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
                 {
                     CorrelationId = context.Saga.CorrelationId,
-                    ItemNumber = context.Saga.ItemNumber, //общее количнство индексированных записей
-                    SessionId = context.Saga.SessionId
-                };
-            })
-            //Создание уведомления в сервисе NotificationService
-            .Send(
-                new Uri(configuration["QueuePaths:ElkIndexNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>
-                    {
-                        new DataForProcessingService
-                        {
-                            CRUD = CRUD.Create,
-                            DataType = "ElkIndex",
-                            Data = JsonSerializer.Serialize(elkIndexResponse,elkIndexResponse.GetType())
-                        }
-                    },
-                    CorrelationId = elkIndexResponse.CorrelationId,
-                    CallBackType = "Common.Contracts.ELKSearch.ElkIndexESCommit"
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    IsError = context.Message.Message.IsError
                 })
-            .TransitionTo(CommitState)
+            .Publish(context => new ElkIndexESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Saga.IsError
+                })
+            .Publish(context => new ElkIndexESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState)
         );
     }
 
@@ -200,13 +252,37 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         When(CommitEvent)
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState));
+            .TransitionTo(CompleteState));
     }
 
     private void ConfigureCompleted()
     {
-        During(CompletedState,
-            When(EndEvent).Finalize()
+        During(CompleteState,
+        When(NotificationEvent)
+            //Создаем событие в сервис NotificationService для обновления интерфейса
+            .Send(
+                new Uri(configuration["QueuePaths:ElkIndexNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "",
+                    Props = $"{context.Saga.ItemNumber},{!context.Saga.IsError},{context.Saga.SessionId}",
+                }).Finalize(),
+        //обрабатываем ошибки подтверждения/отката транзакции            
+        When(FaultNotificationEvent)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Saga.IsError
+                }).Finalize()
         );
     }
 

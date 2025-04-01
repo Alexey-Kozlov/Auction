@@ -39,35 +39,35 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             Command.AuctionDelete,
             "",
             context.Saga.AuctionId,
-            context.Message.IsError);
+            context.Saga.IsError);
         await _publishEndpoint.Publish(new FinanceCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new BidCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new ImageCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
-            Commited = !context.Message.IsError,
+            Commited = !context.Saga.IsError,
             CorrelationId = context.Saga.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

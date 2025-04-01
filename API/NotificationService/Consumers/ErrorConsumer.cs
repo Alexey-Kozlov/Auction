@@ -9,39 +9,43 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IConfiguration _configuration;
+    private string group;
 
-    public ErrorConsumer(IHubContext<NotificationHub> hubContext,
-    IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public ErrorConsumer(IHubContext<NotificationHub> hubContext, IPublishEndpoint publishEndpoint)
     {
         _hubContext = hubContext;
         _publishEndpoint = publishEndpoint;
-        _configuration = configuration;
     }
     public async Task Consume(ConsumeContext<NotificationServiceError> context)
     {
-        context.Message.TraceId = Guid.NewGuid();
+        context.Message.TraceId = context.Message.TraceId ?? Guid.NewGuid();
+        group = string.IsNullOrEmpty(context.Message.UserLogin) ?
+            context.Message.SessionId :
+            context.Message.UserLogin;
         //посылаем ошибку в UI через SignalR
-        if (context.Message.IsError)
+        if (!string.IsNullOrEmpty(group))
         {
-            await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("ErrorMessage",
+            if (context.Message.IsError)
+            {
+                await _hubContext.Clients.Group(group).SendAsync("ErrorMessage",
+                    new
+                    {
+                        messageType = 0, //Ошибка
+                        auctionId = context.Message.AuctionId ?? null,
+                        message = $"Ошибка - Id {context.Message.TraceId}"
+
+                    });
+            }
+            else
+            {
+                await _hubContext.Clients.Group(group).SendAsync("ErrorMessage",
                 new
                 {
-                    messageType = 0, //Ошибка
-                    auctionId = context.Message.AuctionId,
-                    message = $"Ошибка - Id {context.Message.TraceId}"
-
+                    messageType = 1, //Предупреждение
+                    auctionId = context.Message.AuctionId ?? null,
+                    message = $"{context.Message.Message}"
                 });
-        }
-        else
-        {
-            await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync("ErrorMessage",
-            new
-            {
-                messageType = 1, //Предупреждение
-                auctionId = context.Message.AuctionId,
-                message = $"{context.Message.Message}"
-            });
+            }
         }
 
         //пишем ошибку сервисов в лог
@@ -55,7 +59,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         loggingServiceErrorItem.Message = errorItem.Message;
         loggingServiceErrorItem.ExceptionMessage = errorItem.ExceptionMessage;
         loggingServiceErrorItem.ServiceName = errorItem.ServiceName;
-        loggingServiceErrorItem.UserLogin = errorItem.UserLogin;
+        loggingServiceErrorItem.UserLogin = group;
         loggingServiceErrorItem.IsError = errorItem.IsError;
         loggingServiceErrorItem.TraceId = errorItem.TraceId;
         //посылаем сообщение об ошибке через RabbitMq в LoggingService -> Consumers -> LoggingServiceErrorConsumer

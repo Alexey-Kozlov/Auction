@@ -58,6 +58,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 context.Saga.Enable = context.Message.Enable;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
+                context.Saga.IsError = false;
             })
             //посылаем через Кафку
             // - Создаем / удаляем уведомление для данного пользователя для данного аукциона
@@ -95,8 +96,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 Message = context.Message.Message.Message,
                 ExceptionMessage = context.Message.Message.ExceptionMessage,
                 ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.UserLogin,
-                IsError = context.Message.Message.IsError
+                UserLogin = context.Saga.UserLogin
             })
             .TransitionTo(PreCommitState)
         );
@@ -107,7 +107,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
    - BaseServiceError - событие ошибок от предыдущих этапов
    - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
    - BidCreateESCommit - событие правильного выполнения предыдущего этапа
-   на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+   на выходе - событие для подтверждения/отката транзакции - BidCreateESCommit
    */
 
     private void ConfigurePreCommitState()
@@ -116,8 +116,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
         When(CommitEvent)
             .Publish(context => new EditNotificationESCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Saga.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
@@ -135,13 +134,11 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 })
             .Publish(context => new EditNotificationESCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.Message.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Then(p => p.Saga.IsError = p.Message.IsError)
             .Send(
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
@@ -152,12 +149,11 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                     ServiceName = context.Message.ServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Message.IsError
+                    IsError = context.Saga.IsError
                 })
             .Publish(context => new EditNotificationESCommit
             {
-                CorrelationId = context.Saga.CorrelationId,
-                IsError = context.Message.IsError,
+                CorrelationId = context.Saga.CorrelationId
             })
         .TransitionTo(CommitState)
         );
@@ -177,7 +173,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
         During(CompletedState,
         When(NotificationUIEvent)
         .IfElse(context => context.Saga.DataForProcessingServicesList == null,
-        p => p
+            p => p
             //Создаем событие в сервис NotificationService для обновления интерфейса
             .Send(
                 new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
@@ -214,7 +210,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
-                IsError = context.Message.Message.IsError
+                IsError = context.Saga.IsError
             })
             .Finalize()
         );
