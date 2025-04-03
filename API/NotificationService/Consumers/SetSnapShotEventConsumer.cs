@@ -5,11 +5,11 @@ using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
-public class SetSnapShotFinalConsumer : IConsumer<ESContract>
+public class SetSnapShotEventConsumer : IConsumer<ESContract>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
 
-    public SetSnapShotFinalConsumer(IHubContext<NotificationHub> hubContext)
+    public SetSnapShotEventConsumer(IHubContext<NotificationHub> hubContext)
     {
         _hubContext = hubContext;
     }

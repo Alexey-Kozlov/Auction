@@ -2,6 +2,7 @@ using Common.Contracts.EventSourcing;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
+using ProcessingService.Activities.SetSnapShot;
 
 namespace ProcessingService.StateMachines.SetSnapShotStateMachine;
 public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
@@ -11,7 +12,9 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public State FinanceState { get; }
     public State SearchState { get; }
     public State NotifyState { get; }
-    public State CompletedState { get; }
+    public State PreCommitState { get; }
+    public State CommitState { get; }
+    public State CompleteState { get; }
 
 
     public Event<RequestSetSnapShot> RequestEvent { get; }
@@ -20,7 +23,16 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public Event<FinanceSetSnapShot> FinanceEvent { get; }
     public Event<SearchSetSnapShot> SearchEvent { get; }
     public Event<NotifySetSnapShot> NotifyEvent { get; }
-    public Event<SetSnapShotComplete> CompleteEvent { get; }
+    public Event<SetSnapShotESCommit> CommitEvent { get; }
+    public Event<NotifyUISetSnapShot> NotifyUIEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
+    public Event<Fault<ImageSetSnapShot>> FaultImageEvent { get; }
+    public Event<Fault<BidSetSnapShot>> FaultBidEvent { get; }
+    public Event<Fault<FinanceSetSnapShot>> FaultFinanceEvent { get; }
+    public Event<Fault<SearchSetSnapShot>> FaultSearchEvent { get; }
+    public Event<Fault<NotifySetSnapShot>> FaultNotifyEvent { get; }
+    public Event<Fault<SetSnapShotESCommit>> FaultCommitEvent { get; }
+    public Event<Fault<NotifyUISetSnapShot>> FaultNotifyUIEvent { get; }
 
     private IConfiguration configuration { get; }
     private object locker = new();
@@ -36,6 +48,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         ConfigureFinanceState();
         ConfigureSearchState();
         ConfigureNotifyState();
+        ConfigurePreCommitState();
+        ConfigureCommitState();
         ConfigureCompletedState();
     }
     private void ConfigureEvents()
@@ -46,7 +60,16 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         Event(() => FinanceEvent);
         Event(() => SearchEvent);
         Event(() => NotifyEvent);
-        Event(() => CompleteEvent);
+        Event(() => CommitEvent);
+        Event(() => FaultEvent);
+        Event(() => NotifyUIEvent);
+        Event(() => FaultImageEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultBidEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultFinanceEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotifyEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotifyUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -61,6 +84,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context.Saga.ProgressCurrent = 0; //Текущей прогресс в процентах
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.ActionDate = DateTime.UtcNow;
+                context.Saga.IsError = false;
             })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
@@ -163,7 +187,19 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             {
                 CorrelationId = context.Message.CorrelationId
             })
-            .TransitionTo(BidState))
+            .TransitionTo(BidState)),
+        //обрабатываем ошибки из сервиса ImageService - получение изображений
+        When(FaultImageEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
         );
     }
 
@@ -189,7 +225,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
-            .TransitionTo(FinanceState));
+            .TransitionTo(FinanceState),
+        //обрабатываем ошибки из сервиса EventSourcingService - сохранение изображений в EsLog
+        When(FaultBidEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureFinanceState()
@@ -218,7 +267,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
-            .TransitionTo(SearchState));
+            .TransitionTo(SearchState),
+        //обрабатываем ошибки из сервиса EventSourcingService - сохранение ставок в EsLog
+        When(FaultFinanceEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureSearchState()
@@ -247,7 +309,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
-            .TransitionTo(NotifyState));
+            .TransitionTo(NotifyState),
+        //обрабатываем ошибки из сервиса EventSourcingService - сохранение финансов в EsLog
+        When(FaultSearchEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureNotifyState()
@@ -272,25 +347,119 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 new Uri(configuration["QueuePaths:NotifySetSnapShotConsumer"]),
                 context => new ESContract
                 {
-                    CallBackType = "Common.Contracts.EventSourcing.SetSnapShotComplete",
+                    CallBackType = "Common.Contracts.EventSourcing.SetSnapShotESCommit",
                     EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
-            .TransitionTo(CompletedState));
+            .TransitionTo(PreCommitState),
+        //обрабатываем ошибки из сервиса EventSourcingService - сохранение записей аукционов в EsLog
+        When(FaultNotifyEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    /*промежуточный этап перед подтверждением/откатом транзакции
+        на входе события:
+        - BaseServiceError - событие ошибок от предыдущих этапов
+        - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
+        - BidCreateESCommit - событие правильного выполнения предыдущего этапа
+        на выходе - событие для подтверждения/отката транзакции - BidCreateESCommit
+        */
+
+    private void ConfigurePreCommitState()
+    {
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new SetSnapShotESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState),
+        When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    IsError = context.Message.Message.IsError
+                })
+            .Publish(context => new SetSnapShotESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Saga.IsError
+                })
+            .Publish(context => new SetSnapShotESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState)
+        );
+    }
+
+    private void ConfigureCommitState()
+    {
+        During(CommitState,
+        When(CommitEvent)
+            //подтверждаем/откатываем транзакцию
+            .Activity(p => p.OfType<CommitActivity>())
+            .TransitionTo(CompleteState)
+        );
     }
 
     private void ConfigureCompletedState()
     {
-        During(CompletedState,
-        When(CompleteEvent)
+        During(CompleteState,
+        When(NotifyUIEvent)
             .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotFinalConsumer"]),
+                new Uri(configuration["QueuePaths:SetSnapShotEventConsumer"]),
                 context => new ESContract
                 {
                     CallBackType = "",
                     EventData = context.Saga.NotifyMessage,
                     UserLogin = context.Saga.SessionId
                 })
+            .Finalize(),
+        When(FaultNotifyUIEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+                IsError = context.Saga.IsError
+            })
             .Finalize()
         );
     }

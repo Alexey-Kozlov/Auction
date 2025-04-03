@@ -19,7 +19,7 @@ public class RestoreImageService
         var parts = PartsList.Where(p => p.MessagePartId == part.MessagePartId);
         if (parts.Count() == part.MessagePartCounts)
         {
-            //все части изображения собраны - сохранем в БД
+            //все части изображения собраны - возвращаем все части как одно целое
             var image = new StringBuilder();
             foreach (var item in parts.OrderBy(p => p.MessagePartNumber))
             {

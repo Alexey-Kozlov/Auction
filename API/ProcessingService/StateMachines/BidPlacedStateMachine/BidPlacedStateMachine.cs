@@ -217,7 +217,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     - BaseServiceError - событие ошибок от предыдущих этапов
     - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
     - BidCreateESCommit - событие правильного выполнения предыдущего этапа
-    на выходе - событие для подтверждения/отката транзакции - FinanceCreateESCommit
+    на выходе - событие для подтверждения/отката транзакции - BidCreateESCommit
     */
 
     private void ConfigurePreCommitState()

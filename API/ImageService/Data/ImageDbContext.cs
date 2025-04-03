@@ -14,17 +14,27 @@ public class ImageDbContext : DbContext
     public DbSet<ImageItem> Images { get; set; }
 
 
-    public IQueryable<ReturnResultSql> get_snap_shot_images(
-    string eventdata) =>
-    FromExpression(() => get_snap_shot_images(eventdata));
+    public IQueryable<ImageReturnTypeSql> get_snap_shot_images(
+    int offset,
+    int maxMessageSize) =>
+    FromExpression(() => get_snap_shot_images(offset, maxMessageSize));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new ItemConfiguration());
-        modelBuilder.HasDbFunction(() => get_snap_shot_images(default));
-        modelBuilder.Entity<ReturnResultSql>().HasNoKey();
+        modelBuilder.HasDbFunction(() => get_snap_shot_images(default, default));
+        modelBuilder.Entity<ImageReturnTypeSql>().HasNoKey();
     }
+}
+
+public class ImageReturnTypeSql
+{
+#nullable enable
+    public byte[]? image { get; set; }
+    public Guid? auctionid { get; set; }
+    public int? recordscount { get; set; }
+#nullable disable
 }
 
 public class ItemConfiguration : IEntityTypeConfiguration<ImageItem>

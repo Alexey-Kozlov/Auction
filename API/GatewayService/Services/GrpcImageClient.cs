@@ -34,7 +34,6 @@ public class GrpcImageClient
         {
             if (ex.StatusCode == StatusCode.NotFound)
             {
-                Console.WriteLine($"{DateTime.Now} Изображение в БД не найдено");
                 return new ImageDTO(AuctionId, "");
             }
             Console.WriteLine($"{DateTime.Now} Ошибка GRPC Image - {ex.Message}");

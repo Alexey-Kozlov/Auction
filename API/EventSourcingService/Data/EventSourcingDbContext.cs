@@ -18,8 +18,9 @@ public class EventSourcingDbContext : DbContext
         Guid auctionid,
         string eventdata,
         string userLogin,
-        string image) =>
-        FromExpression(() => auction_create(correlationid, auctionid, eventdata, userLogin, image));
+        byte[] image,
+        bool usingimage) =>
+        FromExpression(() => auction_create(correlationid, auctionid, eventdata, userLogin, image, usingimage));
     public IQueryable<ReturnResultSql> auction_delete(
         Guid correlationid,
         Guid auctionid,
@@ -30,8 +31,9 @@ public class EventSourcingDbContext : DbContext
         Guid auctionid,
         string eventdata,
         string userLogin,
-        string image) =>
-        FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin, image));
+        byte[] image,
+        bool usingimage) =>
+        FromExpression(() => auction_update(correlationid, auctionid, eventdata, userLogin, image, usingimage));
 
     public IQueryable<ReturnResultSql> commit_operation(
         Guid correlationid,
@@ -85,8 +87,8 @@ public class EventSourcingDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EventsLogConfiguration());
-        modelBuilder.HasDbFunction(() => auction_create(default, default, default, default, default));
-        modelBuilder.HasDbFunction(() => auction_update(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => auction_create(default, default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => auction_update(default, default, default, default, default, default));
         modelBuilder.HasDbFunction(() => auction_delete(default, default, default));
         modelBuilder.HasDbFunction(() => finance_create(default, default, default));
         modelBuilder.HasDbFunction(() => commit_operation(default, default));
@@ -119,6 +121,7 @@ public class EventsLogConfiguration : IEntityTypeConfiguration<EventsLog>
         builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(false);
         builder.Property(p => p.Command).HasColumnType("smallint").HasColumnName("Command").IsRequired(true);
         builder.Property(p => p.CRUD).HasColumnType("smallint").HasColumnName("CRUD").IsRequired(true);
+        builder.Property(p => p.Image).HasColumnType("bytea").HasColumnName("Image").IsRequired(false);
         builder.HasIndex(p => p.Version).HasDatabaseName("PK_EventsLog");
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_EventsLog_CorrelationId");
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_EventsLog_AuctionId");

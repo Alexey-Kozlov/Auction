@@ -40,12 +40,7 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionCreate,
-            JsonSerializer.Serialize(new AuctionImageDTO
-            {
-                Image = context.Message.Image,
-                UsingImage = context.Message.UsingImage,
-                IsImageSplitted = context.Message.IsImageSplitted
-            }),
+            JsonSerializer.Serialize(context.Message),
             context.Saga.AuctionId,
             false);
         await next.Execute(context).ConfigureAwait(false);

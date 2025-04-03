@@ -14,15 +14,13 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
     private readonly SearchDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
-    private readonly IMapper _mapper;
 
-    public AuctionConsumer(SearchDbContext dbContext, IMapper mapper,
+    public AuctionConsumer(SearchDbContext dbContext,
         IPublishEndpoint publishEndpoint, IConfiguration configuration)
     {
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
-        _mapper = mapper;
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
     {

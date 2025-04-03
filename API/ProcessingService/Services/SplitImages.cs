@@ -67,18 +67,16 @@ public class SplitImages
         else
         {
             //нет изображения или оно небольшое
-            if (!string.IsNullOrEmpty(auction.Image))
+            auction.Image = JsonSerializer.Serialize(new DataForProcessingService
             {
-                auction.Image = JsonSerializer.Serialize(new DataForProcessingService
-                {
-                    DataType = nameof(ImageItem),
-                    Data = auction.UsingImage ? auction.Image : "",
-                    CRUD = 0,
-                    MessagePartCounts = 1,
-                    MessagePartId = Guid.NewGuid(),
-                    MessagePartNumber = 1
-                });
-            }
+                DataType = nameof(ImageItem),
+                Data = auction.UsingImage ? auction.Image : "",
+                CRUD = 0,
+                MessagePartCounts = 1,
+                MessagePartId = Guid.NewGuid(),
+                MessagePartNumber = 1
+            });
+
             auction.IsImageSplitted = false;
             await _publishEndpoint.Publish((T)auction);
         }

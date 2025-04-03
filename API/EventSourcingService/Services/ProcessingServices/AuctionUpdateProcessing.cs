@@ -33,22 +33,19 @@ public class AuctionUpdateProcessing
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
     {
-        var imageDto = new AuctionImageDTO
-        {
-            Image = "",
-            IsImageSplitted = false,
-            UsingImage = false
-        };
+        var imageDto = JsonSerializer.Deserialize<RequestAuctionUpdate>(context.Message.Image);
+        var imageData = JsonSerializer.Deserialize<DataForProcessingService>(imageDto.Image);
+
         //если есть изображение
-        if (!string.IsNullOrEmpty(context.Message.Image))
+        var fullImage = imageData.Data;
+        if (!string.IsNullOrEmpty(imageData.Data))
         {
             //если изображение было разбито на части - собираем изображение
-            imageDto = JsonSerializer.Deserialize<AuctionImageDTO>(context.Message.Image);
             if (imageDto.IsImageSplitted)
             {
-                imageDto.Image = ProcessImage(imageDto);
+                fullImage = ProcessImage(imageData);
                 //если вернулась пустая строка - не все части изображения собраны, конец обработки этого сообщения
-                if (string.IsNullOrEmpty(imageDto.Image))
+                if (string.IsNullOrEmpty(fullImage))
                 {
                     var sendObject_ = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
@@ -60,21 +57,22 @@ public class AuctionUpdateProcessing
                     await _publishEndpoint.Publish(sendObject_);
                     return;
                 }
-                //все части изображения собраны - продолжаем обработку изображения
             }
         }
-        //В процедуре Postgres делаем:
-        //- запись в ES лог об обновлении аукциона
-        //Формирование списка корректирующих записей:
-        //- запись созданного аукциона - для обновления в сервисе SearchService
-        //- запись изображения (если было)
-
+        //либо все части изображения собраны - продолжаем обработку с изображением,
+        //либо это была запись аукциона без изображения
+        //в любом случае продолжаем обработку
         var result = await _dbContext.auction_update(
                             context.Message.CorrelationId,
                             context.Message.AuctionId ?? Guid.NewGuid(),
                             context.Message.EventData,
                             context.Message.UserLogin,
-                            JsonSerializer.Serialize(imageDto)
+                            Convert.FromBase64String(
+                                fullImage.Replace("data:image/jpeg;base64,", "")
+                                .Replace("data:image/bmp;base64,", "")
+                                .Replace("data:image/jpg;base64,", "")
+                                .Replace("data:image/png;base64,", "")),
+                            imageDto.UsingImage
                             ).ToListAsync();
         //возвращаем список записей для изменения соответствующих БД в нужных сервисах
         var listItems = new DataForProcessingServicesList
@@ -108,11 +106,10 @@ public class AuctionUpdateProcessing
 
     }
 
-    private string ProcessImage(AuctionImageDTO imageDto)
+    private string ProcessImage(DataForProcessingService imageDto)
     {
         //сборка изображения из нескольких частей
-        var partImage = JsonSerializer.Deserialize<DataForProcessingService>(imageDto.Image);
-        return _restoreImageService.GetImageString(partImage);
+        return _restoreImageService.GetImageString(imageDto);
     }
 
 }

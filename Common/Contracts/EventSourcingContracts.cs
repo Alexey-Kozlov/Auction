@@ -107,49 +107,99 @@ public class RequestSetSnapShot
     public string SessionId { get; set; }
 }
 
-public class BidSetSnapShot
+public class BidSetSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 
-public class FinanceSetSnapShot
+public class FinanceSetSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 
-public class NotifySetSnapShot
+public class NotifySetSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 
-public class SearchSetSnapShot
+public class NotifyUISetSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 
-public class ImageSetSnapShot
+public class SearchSetSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
-public class SetSnapShotESCommit
-{
-    public Guid CorrelationId { get; set; }
-}
-public class SetSnapShotComplete
+
+public class ImageSetSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+}
+public class SetSnapShotESCommit : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 
 public class AuctionFinishedData

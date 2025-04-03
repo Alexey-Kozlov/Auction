@@ -27,6 +27,7 @@ public class MappingProfiles : Profile
                     dest.Image = Convert.FromBase64String(src.Image
                         .Replace("data:image/png;base64,", "")
                         .Replace("data:image/jpeg;base64,", "")
+                        .Replace("data:image/bmp;base64,", "")
                         .Replace("data:image/jpg;base64,", ""));
                 }
                 return dest?.Image;

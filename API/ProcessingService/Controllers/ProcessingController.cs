@@ -67,7 +67,7 @@ public class ProcessingController : ControllerBase
             IsImageSplitted = false
         };
         //делим изображения на части (если изображение слишком большое)
-        await _splitImages.ProcessImage<RequestAuctionCreate>(auction);
+        await _splitImages.ProcessImage(auction);
 
         return new ApiResponse<object>
         {

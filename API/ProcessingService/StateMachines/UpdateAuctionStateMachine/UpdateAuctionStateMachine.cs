@@ -106,7 +106,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             //вернулся ответ от записи изображения в ES лог
             //каждый ответ пересылаем в ImageService
             .If(context => context.Message.DataItems.DataObjects.Any(),
-                //здесь ответ о завершении передачи полного изображения, или при его отсутствии            
+                //сохраняем первоначально переданный набор сообщений        
                 p => p
                 .Then(context =>
                 {
@@ -138,16 +138,15 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                         CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay"
                     })
             )
-
-            //если было редактирование только текста аукциона, изображение осталось без изменений
-            .If(context => string.IsNullOrEmpty(context.Saga.Image),
+            //если было редактирование только текста аукциона, изображение осталось без изменений - переход на следующий этап
+            .If(context => string.IsNullOrEmpty(
+                    JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image).Data),
                 p => p
                 .Publish(context => new AuctionUpdatedGateWay
                 {
                     CorrelationId = context.Message.CorrelationId
                 })
             )
-
             //посылаем часть изображения для сохранения в ImageService
             .If(context => !context.Message.DataItems.DataObjects.Any() && context.Saga.UsingImage,
             p => p
@@ -273,6 +272,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .TransitionTo(NotificationState),
         //обрабатываем ошибки из сервиса SearchService            
         When(FaultElkEvent)
+                .Then(p => Console.WriteLine("5555"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {

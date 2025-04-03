@@ -135,7 +135,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             )
 
             //если было редактирование только текста аукциона, изображение осталось без изменений
-            .If(context => string.IsNullOrEmpty(context.Saga.Image),
+            .If(context => string.IsNullOrEmpty(
+                    JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image).Data),
                 p => p
                 .Publish(context => new AuctionCreatedSearch
                 {
