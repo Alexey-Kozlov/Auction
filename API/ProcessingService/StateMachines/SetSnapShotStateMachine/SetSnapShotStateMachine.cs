@@ -105,7 +105,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 })
             .TransitionTo(ImagesState)
         );
-        OnUnhandledEvent(async e => await e.Ignore());
+        //OnUnhandledEvent(async e => await e.Ignore());
         SetCompletedWhenFinalized();
     }
 
@@ -115,7 +115,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         When(ImageEvent)
             // обрабатываем поступающие изображения (или части изображений)
             .If(context => context.Saga.BatchCounter == -1,
-                p => p
+            p => p
                 .Then(context =>
                 {
                     //отрабатывает один раз - пишем общее количество записываемых в лог изображений
@@ -127,10 +127,12 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     }
                 })
             )
-            //каждое принятое изображение - пересылаем в EventSourcingService для сохранения в логе
+
+            //здесь принимаем все сообщения от ImageServices - и полные, и части изображения,
+            // пересылаем все в EventSourcingService для сохранения в логе
             .If(context => context.Message.AllItemsCount > 0,
-                p => p
-                //посылаем на запись изображения или его части в ES лог
+            p => p
+            //посылаем на запись изображения или его части в ES лог
                 .Send(
                     new Uri(configuration["QueuePaths:SetSnapShotConsumer"]),
                         context => new DataForProcessingServicesList<string>
@@ -143,51 +145,57 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 )
             )
 
-
             //пришел ответ после добавления изображения или его части в ES лог
-            //AllItemsCount == -1 - признак что это ответ от EventSourcingService, полное изображение
-            .If(context => context.Message.AllItemsCount == -1,
-            p => p
-            .Then(context =>
-            {
-                lock (locker)
-                {
-                    context.Saga.BatchCounter--;
-                    context.Saga.ProgressCurrent = 5 + ((context.Saga.AllItemsCount - context.Saga.BatchCounter) * 85 / context.Saga.AllItemsCount);
-                }
-            }))
-
-            //пришел ответ после добавления изображения или его части в ES лог
-            //AllItemsCount == -2 - признак что это ответ от EventSourcingService, часть изображения изображение
+            //AllItemsCount == -2 - признак что пришло сообщение об обработки части изображения в EventSourcingService, 
+            //обновляем счетчик прогресса
             .If(context => context.Message.AllItemsCount == -2,
             p => p
-            .Then(context =>
-            {
-                lock (locker)
+                .Then(context =>
                 {
-                    context.Saga.ProgressCurrent += float.Parse("0.1");
-                }
-            }))
-
-            //обновляем показатель прогресса
-            .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = context.Saga.SessionId,
-                    Props = context.Saga.ProgressCurrent.ToString() + ";false"
+                    lock (locker)
+                    {
+                        context.Saga.ProgressCurrent += float.Parse("0.1");
+                    }
                 })
+                //обновляем показатель прогресса
+                .Send(
+                    new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = context.Saga.SessionId,
+                        Props = context.Saga.ProgressCurrent.ToString() + ";false"
+                    })
+            )
 
-            //закончили прием изображений, переходим на обработку ставок
-            .If(context => context.Saga.BatchCounter == 0,
+            // переходим на обработку ставок - в следующее состояние BidState - в случаях:
+            // AllItemsCount == 0 - означает что нет изображений для сохранения, или
+            // AllItemsCount == -1 - это обработка полного изображения и в счетчике изображений осталось
+            //последнее необработанное изображение
+            .If(context => context.Message.AllItemsCount == 0 ||
+                (context.Saga.BatchCounter == 1 && context.Message.AllItemsCount == -1),
             p => p
-            .Publish(context => new BidSetSnapShot
-            {
-                CorrelationId = context.Message.CorrelationId
-            })
-            .TransitionTo(BidState)),
+                .Publish(context => new BidSetSnapShot
+                {
+                    CorrelationId = context.Message.CorrelationId
+                })
+                .TransitionTo(BidState))
+
+            // здесь обработка признака AllItemsCount == -1:
+            // ответ от EventSourcingService, что это полное изображение, уменьшаем счетчик обрадатываемых изображений
+            .If(context => context.Saga.BatchCounter != 1 && context.Message.AllItemsCount == -1,
+            p => p
+                .Then(context =>
+                {
+                    lock (locker)
+                    {
+                        context.Saga.BatchCounter--;
+                        context.Saga.ProgressCurrent = 5 + ((context.Saga.AllItemsCount - context.Saga.BatchCounter) * 85 / context.Saga.AllItemsCount);
+                    }
+                })
+            ),
+
         //обрабатываем ошибки из сервиса ImageService - получение изображений
         When(FaultImageEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
@@ -331,7 +339,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         When(NotifyEvent)
             .Then(context =>
             {
-                context.Saga.NotifyMessage += $", Уведомлений - {context.Message.DataItems.DataObjects.Count()}";
+                context.Saga.NotifyMessage += $", Аукционов - {context.Message.DataItems.DataObjects.Count()}";
             })
             .Send(
                 new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
@@ -370,9 +378,9 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     /*промежуточный этап перед подтверждением/откатом транзакции
         на входе события:
         - BaseServiceError - событие ошибок от предыдущих этапов
-        - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
-        - BidCreateESCommit - событие правильного выполнения предыдущего этапа
-        на выходе - событие для подтверждения/отката транзакции - BidCreateESCommit
+        - Fault<SetSnapShotESCommit> - событие ошибки предыдущего этапа
+        - SetSnapShotESCommit - событие правильного выполнения предыдущего этапа
+        на выходе - событие для подтверждения/отката транзакции - SetSnapShotESCommit
         */
 
     private void ConfigurePreCommitState()

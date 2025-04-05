@@ -46,6 +46,16 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                 //получаем общее количество записей в таблице "ImageItems"
                 var result = await _dbContext.get_snap_shot_images(0, 0).ToListAsync();
                 var AllItemsCount = result[0].recordscount;
+                if (AllItemsCount == 0)
+                {
+                    //если в таблице ImageItems не было ни одной записи для создания снимка
+                    var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                        _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                    sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+                    sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, AllItemsCount);
+                    await _publishEndpoint.Publish(sendObject);
+                    return;
+                }
                 var MaxMessageSizeMb = int.Parse(_configuration["MaxMessageSizeMb"]);
                 var partsMessageList = new List<DataForProcessingService>();
                 //получаем батчи в цикле, размером не больше MaxMessageSizeMb

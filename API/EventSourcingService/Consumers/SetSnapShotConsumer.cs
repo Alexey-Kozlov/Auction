@@ -8,6 +8,7 @@ using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
 using Common.Utils.Extentions;
+using Common.Utils.Vault;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
 using EventSourcingService.Services;
@@ -37,10 +38,12 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
         {
             await _locker.LockAsync(async () =>
             {
+                var imageFull = "";
                 var listItems = new DataForProcessingServicesList
                 {
                     DataObjects = new List<DataForProcessingService>()
                 };
+
                 foreach (var item in context.Message.DataObjects)
                 {
                     var document = JsonDocument.Parse(item.Data);
@@ -56,8 +59,6 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             CRUD = CRUD.Create
                         }
                     );
-
-
                     //получаем пользователя - инициатора события
                     switch (item.DataType)
                     {
@@ -74,8 +75,8 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
                             break;
                         case nameof(ImageItem):
-                            var _image = await RestoreImages(item, context.Message);
-                            if (!_image) return;
+                            imageFull = await RestoreImages(item, context.Message);
+                            if (string.IsNullOrEmpty(imageFull)) return;
                             break;
                         default:
                             break;
@@ -84,29 +85,38 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                     //получаем Id аукциона
                     if (document.RootElement.TryGetProperty("AuctionId", out jsonElement))
                     {
-                        auctionId = jsonElement.GetGuid();
+                        var _tmpGuid = "";
+                        if (jsonElement.TryGetsString(out _tmpGuid))
+                        {
+                            if (!string.IsNullOrEmpty(_tmpGuid) && _tmpGuid.ToLower() != "null")
+                            {
+                                auctionId = Guid.Parse(_tmpGuid);
+                            }
+
+                        }
                     }
 
                     _context.EventsLogs.Add(new EventsLog
                     {
-                        CorrelationId = Guid.NewGuid(),
+                        CorrelationId = context.Message.CorrelationId,
                         CreateAt = DateTime.Parse(context.Message.Props),
-                        Commited = true,
+                        Commited = false,
                         EventData = JsonDocument.Parse(item.Data),
                         SnapShotId = context.Message.CorrelationId,
                         EntityType = item.DataType,
                         UserLogin = userLogin,
                         AuctionId = auctionId,
-                        Command = Command.MakeSnapShot
+                        Command = Command.MakeSnapShot,
+                        Image = string.IsNullOrEmpty(imageFull) ? null : Convert.FromBase64String(imageFull)
                     });
                 }
                 await _context.SaveChangesAsync();
+
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
                 sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
                 sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
                 sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, -1);
-
                 await _publishEndpoint.Publish(sendObject);
             });
         }
@@ -132,19 +142,21 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
         }
     }
 
-    private async Task<bool> RestoreImages(DataForProcessingService imageItem, DataForProcessingServicesList<string> message)
+    private async Task<string> RestoreImages(DataForProcessingService imageItem,
+        DataForProcessingServicesList<string> message)
     {
         //если imageItem.MessagePartCounts == 1 - это не разбитое на части изображение, ничего не делаем
-        if (imageItem.MessagePartCounts == 1) return true;
-        //это разбитое на части изображение, собираем
         var typedItem_ = JsonSerializer.Deserialize<ImageDTO>(imageItem.Data);
+        if (imageItem.MessagePartCounts == 1) return typedItem_.Image;
+        //это разбитое на части изображение, собираем
+
         imageItem.Data = typedItem_.Image;
         var image_ = _restoreImageService.GetImageString(imageItem);
 
 
         if (string.IsNullOrEmpty(image_))
         {
-            //не все части изображения собраны, возвращаем ответ для уменьшения счетчика необработанных изображений
+            //не все части изображения собраны, возвращаем ответ для индикатора прогресса
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, message.CorrelationId);
@@ -154,14 +166,15 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
             });
             sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, -2);
             await _publishEndpoint.Publish(sendObject);
-            return false;
+            return null;
         }
-        imageItem.Data = JsonSerializer.Serialize(new ImageDTO
+        imageItem.Data = JsonSerializer.Serialize(new
         {
-            AuctionId = typedItem_.AuctionId,
-            Image = image_,
-            Commited = typedItem_.Commited
+            typedItem_.AuctionId,
+            Commited = true,
+            message.CorrelationId,
+            Id = Guid.NewGuid()
         });
-        return true;
+        return image_;
     }
 }

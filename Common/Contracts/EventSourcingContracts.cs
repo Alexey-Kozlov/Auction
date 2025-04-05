@@ -193,6 +193,8 @@ public class ImageSetSnapShot : IFaultMessage
 public class SetSnapShotESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
     public string Message { get; set; }
     public string ExceptionMessage { get; set; }
     public string UserLogin { get; set; }

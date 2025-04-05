@@ -27,13 +27,13 @@ public class CommitActivity : IStateMachineActivity<SetSnapShotState, SetSnapSho
         await _sendEventToES.SendItemToEventSourcing(
             new RequestCommitESOperation(context.Saga.CorrelationId),
             nameof(CommitESOperation),
-            "Common.Contracts.EventSourcing.SetSnapShotComplete",
+            "Common.Contracts.EventSourcing.NotifyUISetSnapShot",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.RestoreSnapShot,
             "",
             null,
-            false);
+            context.Saga.IsError);
         await next.Execute(context).ConfigureAwait(false);
     }
 

@@ -50,7 +50,7 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                 CallBackType = context.Message.CallBackType,
                 DataObjects = listItems.DataObjects,
                 CorrelationId = context.Message.CorrelationId,
-                Props = context.Message.EventData
+                Props = context.Message.EventData,
             };
 
             await _publishEndpoint.Publish(sendObject);

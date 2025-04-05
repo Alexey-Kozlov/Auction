@@ -115,8 +115,8 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             )
 
             //посылаем часть изображения для сохранения в ImageService в случаях:
-            //-если есть изображение и указано использовать изображение
-            //-если нет изображения и указано не использовать изображение
+            //если есть изображение и если указано не использовать изображение
+            //в первом случае обновляем изображение, во втором - удаляем изображение
             .IfElse(context => !string.IsNullOrEmpty(JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image).Data)
                  || !context.Saga.UsingImage,
             p => p
@@ -139,11 +139,12 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                         CorrelationId = context.Saga.CorrelationId,
                         CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay,Common.Contracts.Auction.AuctionUpdateFinalize"
                     }),
-                    p => p
-                    .Publish(context => new AuctionUpdatedGateWay
-                    {
-                        CorrelationId = context.Message.CorrelationId
-                    })
+            //здесь если не трогали изображение - пропускаем функционал обработки изображений
+            p => p
+                .Publish(context => new AuctionUpdatedGateWay
+                {
+                    CorrelationId = context.Message.CorrelationId
+                })
             )
             .TransitionTo(GatewayState),
         //обрабатываем ошибки из сервиса EventSourcingService            
