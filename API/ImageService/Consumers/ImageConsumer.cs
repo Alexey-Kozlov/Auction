@@ -33,6 +33,9 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
     {
         await _locker.LockAsync(async () =>
         {
+            var callBack = context.Message.CallBackType.Split(",").Length > 1 ?
+                context.Message.CallBackType.Split(",")[0] :
+                context.Message.CallBackType;
             try
             {
                 var correlationId = context.Message.CorrelationId;
@@ -51,6 +54,10 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                         {
                             CorrelationId = correlationId
                         });
+                        var sendObject_dop = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType.Split(",")[1]);
+                        sendObject_dop.GetType().GetProperty("CorrelationId").SetValue(sendObject_dop, correlationId);
+                        await _publishEndpoint.Publish(sendObject_dop);
                         return;
                     }
                     imageItem.Data = image;
@@ -70,10 +77,6 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                         {
                             item.CorrelationId = correlationId;
                             _context.Images.Update(item);
-                        }
-                        else
-                        {
-                            throw new Exception("Ошибка - не найдена запись изображения");
                         }
                         break;
                     case CRUD.Create:
@@ -97,7 +100,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                 //операция над изображением выполнена, продолжаем обработку в Saga
                 await _context.SaveChangesAsync();
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                            _configuration["CommonAssembly"]).CreateInstance(callBack);
                 sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
                 await _publishEndpoint.Publish(sendObject);
             }
@@ -105,7 +108,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
             {
                 //ошибки, в т.ч. штатные
                 var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                    _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                    _configuration["CommonAssembly"]).CreateInstance(callBack);
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
                 messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
                 messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);

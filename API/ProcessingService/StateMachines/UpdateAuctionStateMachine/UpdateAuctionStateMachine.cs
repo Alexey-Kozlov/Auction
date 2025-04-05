@@ -114,41 +114,11 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 })
             )
 
-            //Обновление изображения аукциона в сервисе (если было изображение)            
-            .If(context => context.Message.DataItems.DataObjects.Any(p => p.DataType == "ImageItem"),
-                p => p
-                .Send(
-                    new Uri(configuration["QueuePaths:ImageConsumer"]),
-                    context => new DataForProcessingServicesList<ImageDTO>
-                    {
-                        DataObjects = new List<DataForProcessingService>
-                        {
-                        //передаем изображение (или его часть)
-                        string.IsNullOrEmpty(context.Saga.Image) ? new DataForProcessingService() :
-                            JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image),
-                        //передаем тип операции
-                            new DataForProcessingService
-                            {
-                                CRUD = context.Message.DataItems.DataObjects.Where(p => p.DataType == "ImageItem").First().CRUD,
-                                Data = "CRUD",
-                                MessagePartId = context.Saga.AuctionId
-                            }
-                        },
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay"
-                    })
-            )
-            //если было редактирование только текста аукциона, изображение осталось без изменений - переход на следующий этап
-            .If(context => string.IsNullOrEmpty(
-                    JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image).Data),
-                p => p
-                .Publish(context => new AuctionUpdatedGateWay
-                {
-                    CorrelationId = context.Message.CorrelationId
-                })
-            )
-            //посылаем часть изображения для сохранения в ImageService
-            .If(context => !context.Message.DataItems.DataObjects.Any() && context.Saga.UsingImage,
+            //посылаем часть изображения для сохранения в ImageService в случаях:
+            //-если есть изображение и указано использовать изображение
+            //-если нет изображения и указано не использовать изображение
+            .IfElse(context => !string.IsNullOrEmpty(JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image).Data)
+                 || !context.Saga.UsingImage,
             p => p
               .Send(
                     new Uri(configuration["QueuePaths:ImageConsumer"]),
@@ -157,17 +127,22 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                         DataObjects = new List<DataForProcessingService>
                         {
                         //передаем изображение (или его часть)
-                        JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image),
+                            JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image),
                         //передаем тип операции
                             new DataForProcessingService
                             {
-                                CRUD = CRUD.Update,
+                                CRUD = context.Saga.UsingImage ? CRUD.Update : CRUD.Delete,
                                 Data = "CRUD",
                                 MessagePartId = context.Saga.AuctionId
                             }
                         },
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay"
+                        CallBackType = "Common.Contracts.Auction.AuctionUpdatedGateWay,Common.Contracts.Auction.AuctionUpdateFinalize"
+                    }),
+                    p => p
+                    .Publish(context => new AuctionUpdatedGateWay
+                    {
+                        CorrelationId = context.Message.CorrelationId
                     })
             )
             .TransitionTo(GatewayState),

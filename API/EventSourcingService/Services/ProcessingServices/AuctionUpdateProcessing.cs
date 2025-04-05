@@ -43,7 +43,7 @@ public class AuctionUpdateProcessing
             //если изображение было разбито на части - собираем изображение
             if (imageDto.IsImageSplitted)
             {
-                fullImage = ProcessImage(imageData);
+                fullImage = _restoreImageService.GetImageString(imageData);
                 //если вернулась пустая строка - не все части изображения собраны, конец обработки этого сообщения
                 if (string.IsNullOrEmpty(fullImage))
                 {
@@ -105,11 +105,4 @@ public class AuctionUpdateProcessing
         await _publishEndpoint.Publish(sendObject);
 
     }
-
-    private string ProcessImage(DataForProcessingService imageDto)
-    {
-        //сборка изображения из нескольких частей
-        return _restoreImageService.GetImageString(imageDto);
-    }
-
 }

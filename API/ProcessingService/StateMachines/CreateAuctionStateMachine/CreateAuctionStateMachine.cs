@@ -20,7 +20,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
 
     public Event<RequestAuctionCreate> RequestEvent { get; }
     public Event<ESLogAuctionCreated> EsLogEvent { get; }
-    public Event<AuctionUpdateFinalize> ImageFinalizeEvent { get; }
+    public Event<AuctionCreateFinalize> ImageFinalizeEvent { get; }
     public Event<AuctionCreatedSearch> SearchEvent { get; }
     public Event<AuctionCreatedElk> ElkEvent { get; }
     public Event<AuctionCreatedNotification> NotificationEvent { get; }
@@ -109,30 +109,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                     context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
                 })
             )
-            //Обновление изображения аукциона в сервисе (если было изображение)            
-            .If(context => context.Message.DataItems.DataObjects.Any(p => p.DataType == "ImageItem"),
-                p => p
-                .Send(
-                    new Uri(configuration["QueuePaths:ImageConsumer"]),
-                    context => new DataForProcessingServicesList<ImageDTO>
-                    {
-                        DataObjects = new List<DataForProcessingService>
-                        {
-                        //передаем изображение (или его часть)
-                        string.IsNullOrEmpty(context.Saga.Image) ? new DataForProcessingService() :
-                            JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image),
-                        //передаем тип операции
-                            new DataForProcessingService
-                            {
-                                CRUD = CRUD.Create,
-                                Data = "CRUD",
-                                MessagePartId = context.Saga.AuctionId
-                            }
-                        },
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionCreatedSearch"
-                    })
-            )
 
             //если было редактирование только текста аукциона, изображение осталось без изменений
             .If(context => string.IsNullOrEmpty(
@@ -145,7 +121,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             )
 
             //посылаем часть изображения для сохранения в ImageService
-            .If(context => !context.Message.DataItems.DataObjects.Any() && context.Saga.UsingImage,
+            .If(context => !string.IsNullOrEmpty(JsonSerializer.Deserialize<DataForProcessingService>(context.Saga.Image).Data)
+                 && context.Saga.UsingImage,
             p => p
               .Send(
                     new Uri(configuration["QueuePaths:ImageConsumer"]),
@@ -164,7 +141,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                             }
                         },
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionCreatedSearch"
+                        CallBackType = "Common.Contracts.Auction.AuctionCreatedSearch,Common.Contracts.Auction.AuctionCreateFinalize"
                     })
             )
             .TransitionTo(SearchState),

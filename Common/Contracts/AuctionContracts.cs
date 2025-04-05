@@ -139,6 +139,11 @@ public class AuctionCreateESCommit : IFaultMessage
       public bool IsError { get; set; }
 };
 
+public class AuctionCreateFinalize
+{
+      public Guid CorrelationId { get; set; }
+};
+
 #endregion
 
 
@@ -378,17 +383,9 @@ public class AuctionUpdateComplete : IFaultMessage
       public bool IsError { get; set; }
 };
 
-public class AuctionUpdateFinalize : IFaultMessage
+public class AuctionUpdateFinalize
 {
-
       public Guid CorrelationId { get; set; }
-      public string Message { get; set; }
-      public string ExceptionMessage { get; set; }
-      public string UserLogin { get; set; }
-      public string ServiceName { get; set; }
-      public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
-      public bool IsError { get; set; }
 };
 
 #endregion

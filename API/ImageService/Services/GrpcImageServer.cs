@@ -17,14 +17,12 @@ public class GrpcImageServer : GrpcImage.GrpcImageBase
     {
         var image = await _dbContext.Images.FirstOrDefaultAsync(p => p.AuctionId == Guid.Parse(request.AuctionId) && p.Commited);
 
-        if (image == null) throw new RpcException(new Status(StatusCode.NotFound, "Изображение не найдено"));
-
         var response = new GrpcImageResponse
         {
             Image = new GrpcImageModel
             {
-                AuctionId = image.AuctionId.ToString(),
-                Image = Convert.ToBase64String(image.Image)
+                AuctionId = image == null ? "" : image.AuctionId.ToString(),
+                Image = image == null ? "" : Convert.ToBase64String(image.Image)
             }
         };
         return response;
