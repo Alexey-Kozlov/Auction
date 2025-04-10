@@ -16,4 +16,5 @@ public class RestoreState : SagaStateMachineInstance
     public float ProgressCurrent { get; set; }
     public string SessionId { get; set; }
     public bool IsError { get; set; }
+    public int CommitCounter { get; set; }
 }

@@ -37,7 +37,8 @@ builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
 {
     config.Timeout = TimeSpan.FromSeconds(300);
 });
-builder.Services.AddScoped<SearchService.Services.SearchService>();
+builder.Services.AddScoped<SearchServiceSql>();
+builder.Services.AddScoped<SearchProceduresService>();
 
 builder.Services.AddMassTransit(p =>
 {

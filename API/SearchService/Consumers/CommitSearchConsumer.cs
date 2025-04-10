@@ -2,72 +2,54 @@
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
-using SearchService.Data;
+using SearchService.Services;
 
 namespace SearchService.Consumers;
 
 public class CommitSearchConsumer : IConsumer<AuctionCommit>
 {
-    private readonly SearchDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
+    private readonly SearchProceduresService _searchProceduresService;
 
-    public CommitSearchConsumer(SearchDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public CommitSearchConsumer(IPublishEndpoint publishEndpoint,
+        IConfiguration configuration, SearchProceduresService searchProceduresService)
     {
-        _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
+        _searchProceduresService = searchProceduresService;
     }
     public async Task Consume(ConsumeContext<AuctionCommit> context)
     {
-        _dbContext.ChangeTracker.Clear();
         var correlationId = context.Message.CorrelationId;
         try
         {
-            foreach (var item in await _dbContext.AuctionItems.Where(p =>
-                p.CorrelationId == context.Message.CorrelationId).ToListAsync())
-            {
-                if (context.Message.Commited)
-                {
-                    //подтверждение транзакции
-                    if (item.Commited)
-                    {
-                        //удаляем старые записи
-                        _dbContext.AuctionItems.Remove(item);
-                    }
-                    else
-                    {
-                        //подтверждаем новые записи
-                        item.Commited = true;
-                    }
-                }
-                else
-                {
-                    //откат транзакции
-                    if (!item.Commited)
-                    {
-                        //удаляем новые записи
-                        _dbContext.AuctionItems.Remove(item);
-                    }
-                }
-            }
-
-            await _dbContext.SaveChangesAsync();
+            await _searchProceduresService.CommitItems(correlationId, context.Message.Commited);
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            await _publishEndpoint.Publish(sendObject);
         }
         catch (Exception e)
         {
-            var errorItem = new NotificationServiceError
-            {
-                CorrelationId = context.Message.CorrelationId,
-                Message = e.Message,
-                ExceptionMessage = e.Source + "," + e.StackTrace,
-                ServiceName = "SearchService",
-                UserLogin = "",
-                TraceId = Guid.NewGuid(),
-                IsError = true
-            };
-            await _publishEndpoint.Publish(errorItem);
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "SearchService_Commit");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
 }

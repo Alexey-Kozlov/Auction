@@ -38,6 +38,7 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Notification.EditNotificationEvent",
             CorrelationId = context.Message.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

@@ -1,27 +1,22 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using Common.Contracts.Auction;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
-using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
 public class AuctionEditConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
 {
-    private readonly IHubContext<NotificationHub> _hubContext;
     private readonly NotificationDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public AuctionEditConsumer(IHubContext<NotificationHub> hubContext,
-    NotificationDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public AuctionEditConsumer(NotificationDbContext dbContext, IPublishEndpoint publishEndpoint,
+        IConfiguration configuration)
     {
-        _hubContext = hubContext;
         _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
@@ -44,7 +39,6 @@ public class AuctionEditConsumer : IConsumer<DataForProcessingServicesList<Notif
                         await _dbContext.NotifyItems.AddAsync(typedItem);
                         break;
                     case CRUD.Delete:
-                        //удаляем запись
                         var delItem = await _dbContext.NotifyItems.Where(p =>
                             p.AuctionId == typedItem.AuctionId && p.Commited &&
                             p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();

@@ -34,6 +34,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public Event<Fault<BidNotificationEvent>> FaultNotificationUIEvent { get; }
     public Event<Fault<BidCreateESCommit>> FaultCommitEvent { get; }
     private IConfiguration configuration { get; }
+    public object locker = new();
 
 
     public BidPlacedStateMachine(IServiceProvider services)
@@ -84,6 +85,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.BidId = Guid.NewGuid();
                 context.Saga.IsError = false;
+                context.Saga.CommitCounter = 5;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для создания ставки:
             // - Возврат денег по предыдущей ставке (если была) - возврат денег и баланса предыдущего пользователя в FinanceService
@@ -283,32 +285,41 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     {
         During(CompleteState,
         When(NotificationUIEvent)
-        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
-        p => p
-            //Создаем событие в сервис NotificationService для обновления интерфейса
-            .Send(
-                new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
+            //ждем сообщений об обработке всех 5 коллекций с записями
+            .Then(context =>
+            {
+                lock (locker)
                 {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = $"{!context.Saga.IsError}"
-                }),
-            p => p
-            //Создаем событие в сервис NotificationService для обновления интерфейса
-            .Send(
-                new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p =>
-                        p.DataType == nameof(NotifyItem)).ToList(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = $"{!context.Saga.IsError}"
-                })
-            )
-            .Finalize(),
+                    context.Saga.CommitCounter--;
+                }
+            })
+            .If(context => context.Saga.CommitCounter == 0,
+            r => r
+                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                p => p
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+                    .Send(
+                    new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "",
+                        Props = $"{!context.Saga.IsError}"
+                    }),
+                p => p
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+                .Send(
+                    new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p =>
+                            p.DataType == nameof(NotifyItem)).ToList(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "",
+                        Props = $"{!context.Saga.IsError}"
+                    })).Finalize()
+            ),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationUIEvent)
         .Send(

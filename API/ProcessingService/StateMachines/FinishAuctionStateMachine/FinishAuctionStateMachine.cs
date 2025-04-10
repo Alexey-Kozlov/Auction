@@ -22,8 +22,9 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<Fault<AuctionFinishedElk>> FaultElkEvent { get; }
     public Event<Fault<AuctionFinishedCommit>> FaultCommitEvent { get; }
     public Event<Fault<AuctionFinishedNotification>> FaultNotificationEvent { get; }
-
     private IConfiguration configuration { get; }
+    public object locker = new();
+
 
     public FinishAuctionStateMachine(IServiceProvider services)
     {
@@ -59,6 +60,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
                 context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
                 context.Saga.IsError = false;
+                context.Saga.CommitCounter = 3;
             })
             //Обновление аукциона в сервисе SearchService
             .Send(
@@ -173,26 +175,36 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     {
         During(CompleteState,
         When(NotificationEvent)
-        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
-            p => p
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
+            //ждем сообщений об обработке всех 5 коллекций с записями
+            .Then(context =>
+            {
+                lock (locker)
                 {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = ""
-                }),
-            p => p
-            .Send(
-                new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
-                {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = ""
-                })
-            ).Finalize(),
+                    context.Saga.CommitCounter--;
+                }
+            })
+            .If(context => context.Saga.CommitCounter == 0,
+            r => r
+                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                p => p
+                    .Send(
+                        new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
+                        context => new DataForProcessingServicesList<AuctionItem>
+                        {
+                            DataObjects = new List<DataForProcessingService>(),
+                            CorrelationId = context.Saga.CorrelationId,
+                            CallBackType = ""
+                        }),
+                p => p
+                    .Send(
+                        new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
+                        context => new DataForProcessingServicesList<AuctionItem>
+                        {
+                            DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
+                            CorrelationId = context.Saga.CorrelationId,
+                            CallBackType = ""
+                        })).Finalize()
+            ),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationEvent)
         .Send(

@@ -10,12 +10,12 @@ using Serialize.Linq.Serializers;
 
 namespace SearchService.Services;
 
-public class SearchService
+public class SearchServiceSql
 {
     private readonly SearchDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public SearchService(SearchDbContext context, IPublishEndpoint publishEndpoint)
+    public SearchServiceSql(SearchDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _publishEndpoint = publishEndpoint;

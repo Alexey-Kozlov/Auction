@@ -1,4 +1,9 @@
+using Common.Contracts.Auction;
+using Common.Contracts.Bid;
 using Common.Contracts.EventSourcing;
+using Common.Contracts.Finance;
+using Common.Contracts.Image;
+using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;
@@ -8,12 +13,10 @@ namespace ProcessingService.Activities.Restore;
 
 public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapShotESCommit>
 {
-    private readonly SendEventToES _sendEventToES;
-    private readonly IConfiguration _config;
-    public CommitActivity(SendEventToES sendEventToES, IConfiguration config)
+    private readonly IPublishEndpoint _publishEndpoint;
+    public CommitActivity(IPublishEndpoint publishEndpoint)
     {
-        _sendEventToES = sendEventToES;
-        _config = config;
+        _publishEndpoint = publishEndpoint;
     }
 
     public void Accept(StateMachineVisitor visitor)
@@ -24,16 +27,36 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
 
     public async Task Execute(BehaviorContext<RestoreState, RestoreSnapShotESCommit> context, IBehavior<RestoreState, RestoreSnapShotESCommit> next)
     {
-        await _sendEventToES.SendItemToEventSourcing(
-            new RequestCommitESOperation(context.Saga.CorrelationId),
-            nameof(CommitESOperation),
-            "Common.Contracts.EventSourcing.RestoreSnapShotComplete",
-            context.Message.CorrelationId,
-            context.Saga.UserLogin,
-            Command.RestoreSnapShot,
-            "",
-            null,
-            false);
+        await _publishEndpoint.Publish(new BidCommit
+        {
+            CorrelationId = context.Saga.CorrelationId,
+            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            Commited = !context.Saga.IsError
+        });
+        await _publishEndpoint.Publish(new FinanceCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new ImageCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new AuctionCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CorrelationId = context.Saga.CorrelationId
+        });
+        await _publishEndpoint.Publish(new NotificationCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CorrelationId = context.Saga.CorrelationId
+        });
         await next.Execute(context).ConfigureAwait(false);
     }
 

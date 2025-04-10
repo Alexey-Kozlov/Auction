@@ -28,26 +28,21 @@ public class RestoreSnapShotProcessing
 
     public async Task ProcessESLog(ConsumeContext<ESContract> context)
     {
-        var listItems = new DataForProcessingServicesList
+        try
         {
-            DataObjects = new List<DataForProcessingService>()
-        };
-        switch (context.Message.EntityType)
-        {
-            case nameof(ESLogResetSnapShot):
-                //Выполняем удаление всех записей в BiddingService,FinanceService,NotificationService,
-                //SearchService,ImageService
-                _dbContext.Database.ExecuteSqlRaw("Call public.reset_snap_shot()", new object[] { });
-                break;
-            case nameof(RequestRestoreItems):
+            var listItems = new DataForProcessingServicesList
+            {
+                DataObjects = new List<DataForProcessingService>()
+            };
+            if (context.Message.EntityType == nameof(RequestRestoreItems))
+            {
                 //В процедуре Postgres делаем:
                 //- запись в ES лог о выполнении восстановления БД из лога
                 //- набор записей о восстановлении записей ставок для сервисов BiddingService,FinanceService,NotificationService,
                 //SearchService. Для ImageService - отдельно
                 var result = await _dbContext.restore_snap_shot_items(
                     context.Message.CorrelationId,
-                    context.Message.EventData,
-                    context.Message.UserLogin).ToListAsync();
+                    context.Message.EventData).ToListAsync();
                 //возвращаем список записей для изменения соответствующих БД в нужных сервисах
                 foreach (var item in result)
                 {
@@ -60,6 +55,7 @@ public class RestoreSnapShotProcessing
                             CRUD = (CRUD)item.crud
                         }
                     );
+                    //для записей аукционов - переинициализируем дату завершения аукционов
                     if (item.entitytype == "AuctionItem")
                     {
                         var auction = JsonSerializer.Deserialize<AuctionItem>(item.eventdata);
@@ -67,22 +63,40 @@ public class RestoreSnapShotProcessing
                          auction.AuctionEnd, CRUD.Create);
                     }
                 }
-                break;
-            case nameof(RequestRestoreImages):
-                //получаем изображения из ESLog
+                var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                    _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+                sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+                sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, -1);
+
+                await _publishEndpoint.Publish(sendObject);
+            }
+            else
+            {
+                //обрабатываем изображения
                 await GetESLogImages(context);
-                return;
-            default:
-                break;
+            }
         }
+        catch (Exception e)
+        {
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace + e.InnerException?.Message);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_FinanceCreate");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
-        var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-        sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
-        sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
-        sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, -1);
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
 
-        await _publishEndpoint.Publish(sendObject);
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
+        }
     }
 
     private async Task GetESLogImages(ConsumeContext<ESContract> context)
@@ -98,72 +112,67 @@ public class RestoreSnapShotProcessing
         var MessagePartCounts = 0;
         //идентификатор передаваемого сообщения
         var MessagePartId = Guid.NewGuid();
+        //счетчик обработанных записей, для извлечения порций записей из БД
+        var OffSet = 0;
         //получаем общее количество записей
-        var result = await _dbContext.restore_snap_shot_images(
-            context.Message.CorrelationId,
-            JsonSerializer.Serialize(typedItem),
-            context.Message.UserLogin).ToListAsync();
-        var AllItemsCount = int.Parse(result[0].entitytype);
-        typedItem.MaxMessageSizeMb = int.Parse(_configuration["MaxMessageSizeMb"]);
+        var result = await _dbContext.restore_snap_shot_images(OffSet, 0, typedItem.RestoreDate).ToListAsync();
+        var AllItemsCount = result[0].recordscount;
+        //максимальный размер передаваемого пакета из БД
+        var MaxMessageSizeMb = int.Parse(_configuration["MaxMessageSizeMb"]);
         var partsMessageList = new List<DataForProcessingService>();
         //в цикле получаем записи общим размером не превышающим размер сообщения (если суммарный размер
         //изображений меньше размера сообщения)
         //Если размер изображения больше сообщения - разделяем изображение на несколько
         do
         {
-            result = await _dbContext.restore_snap_shot_images(
-            context.Message.CorrelationId,
-            JsonSerializer.Serialize(typedItem),
-            context.Message.UserLogin).ToListAsync();
-            typedItem.StartNumber += result.Count();
+            result = await _dbContext.restore_snap_shot_images(OffSet, MaxMessageSizeMb, typedItem.RestoreDate).ToListAsync();
+            OffSet += result.Count();
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             foreach (var item in result)
             {
-                var typed_data = JsonSerializer.Deserialize<ImageDTO>(item.eventdata);
-                var item_image = typed_data.Image;
+                var ImageBase64 = Convert.ToBase64String(item.image);
                 MessagePartId = Guid.NewGuid();
                 //если изображение меньше свободного размера сообщения - добавляем его в сообщение
                 //сообщение отсылаем
-                var freeMessageSize = typedItem.MaxMessageSizeMb * 1000000;
-                var imageLastPart = item_image.Length;
-                if (item_image.Length <= freeMessageSize)
+                var freeMessageSize = MaxMessageSizeMb * 1000000;
+                var imageLastPart = item.image.Length;
+                if (item.image.Length <= freeMessageSize)
                 {
                     listItems.DataObjects.Add
                     (
                         new DataForProcessingService
                         {
+                            Id = item.id ?? Guid.NewGuid(),
                             DataType = nameof(ImageItem),
                             Data = JsonSerializer.Serialize(new ImageDTO
                             {
-                                AuctionId = typed_data.AuctionId,
-                                Image = item_image
+                                Id = item.id,
+                                AuctionId = item.auctionid ?? Guid.NewGuid(),
+                                Image = ImageBase64
                             }),
-                            CRUD = 0,
+                            CRUD = CRUD.Create,
                             MessagePartCounts = 1,
                             MessagePartId = Guid.NewGuid(),
                             MessagePartNumber = 1,
-                            MessagePartSize = 0
                         }
                     );
                     sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
                     sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
                     sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, AllItemsCount);
-                    sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, typedItem.StartNumber);
+                    sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, OffSet);
                     await _publishEndpoint.Publish(sendObject);
                     listItems.DataObjects.Clear();
                     MessagePartCounts = 0;
                     MessagePartNumber = 0;
                     continue;
                 }
-
                 //изображение не влезает в сообщение - заполняем сообщение и посылаем сообщение
                 //для последующего сбора в сервисе ImageService
-                if (item_image.Length > freeMessageSize)
+                else
                 {
-                    var splitPointer = 0;
                     MessagePartId = Guid.NewGuid();
-
+                    var splitPointer = 0;
                     //цикл по разбиванию изображения на части
                     do
                     {
@@ -173,14 +182,16 @@ public class RestoreSnapShotProcessing
                         (
                             new DataForProcessingService
                             {
+                                Id = item.id ?? Guid.NewGuid(),
                                 DataType = nameof(ImageItem),
                                 Data = JsonSerializer.Serialize(new ImageDTO
                                 {
-                                    AuctionId = typed_data.AuctionId,
-                                    Image = item_image.Substring(splitPointer,
-                                        imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
+                                    Id = item.id,
+                                    AuctionId = item.auctionid ?? Guid.NewGuid(),
+                                    Image = ImageBase64.Substring(splitPointer,
+                                    imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
                                 }),
-                                CRUD = 0,
+                                CRUD = CRUD.Create,
                                 MessagePartCounts = 0,
                                 MessagePartId = MessagePartId,
                                 MessagePartNumber = MessagePartNumber + 1
@@ -189,8 +200,8 @@ public class RestoreSnapShotProcessing
                         splitPointer += imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart;
                         MessagePartNumber++;
                         MessagePartCounts++;
-                        imageLastPart = item_image.Length - splitPointer;
-                    } while (item_image.Length > splitPointer);
+                        imageLastPart = ImageBase64.Length - splitPointer;
+                    } while (ImageBase64.Length > splitPointer);
                     //обновляем общее количество частей
                     foreach (var part in partsMessageList)
                     {
@@ -200,7 +211,7 @@ public class RestoreSnapShotProcessing
                         sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
                         sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
                         sendObject.GetType().GetProperty("AllItemsCount").SetValue(sendObject, AllItemsCount);
-                        sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, typedItem.StartNumber);
+                        sendObject.GetType().GetProperty("BatchCount").SetValue(sendObject, OffSet);
                         await _publishEndpoint.Publish(sendObject);
                         listItems.DataObjects.Clear();
                     }
@@ -212,7 +223,6 @@ public class RestoreSnapShotProcessing
                     partsMessageList.Clear();
                 }
             }
-        } while (AllItemsCount > typedItem.StartNumber);
-
+        } while (AllItemsCount > OffSet);
     }
 }

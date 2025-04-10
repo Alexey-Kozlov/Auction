@@ -83,6 +83,7 @@ public class DataForProcessingServicesList
 
 public class DataForProcessingService
 {
+    public Guid Id { get; set; }
     public string DataType { get; set; }
     public string Data { get; set; }
     public CRUD CRUD { get; set; }
@@ -216,6 +217,18 @@ public class ESLogRestoreItems : IFaultMessage
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
     public int BatchCount { get; set; }
+}
+
+public class ResetItems : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 
 public class ESLogRestoreImages : IFaultMessage

@@ -10,9 +10,9 @@ namespace SearchService.Controllers;
 [Route("api/search")]
 public class SearchController : ControllerBase
 {
-    private readonly Services.SearchService _search;
+    private readonly Services.SearchServiceSql _search;
 
-    public SearchController(Services.SearchService search)
+    public SearchController(Services.SearchServiceSql search)
     {
         _search = search;
     }

@@ -23,6 +23,8 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     public Event<Fault<EditNotificationESCommit>> FaultCommitEvent { get; }
     public Event<Fault<EditNotificationEvent>> FaultNotificationUIEvent { get; }
     private IConfiguration configuration { get; }
+    public object locker = new();
+
 
     public EditNotificationStateMachine(IServiceProvider services)
     {
@@ -59,6 +61,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
+                context.Saga.CommitCounter = 2;
             })
             //посылаем через Кафку
             // - Создаем / удаляем уведомление для данного пользователя для данного аукциона
@@ -172,31 +175,40 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
     {
         During(CompletedState,
         When(NotificationUIEvent)
-        .IfElse(context => context.Saga.DataForProcessingServicesList == null,
-            p => p
-            //Создаем событие в сервис NotificationService для обновления интерфейса
-            .Send(
-                new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
+            //ждем сообщений об обработке 2 коллекций с записями
+            .Then(context =>
+            {
+                lock (locker)
                 {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = context.Message.IsError.ToString(),
-                }),
-            p => p
-            //Создаем событие в сервис NotificationService для обновления интерфейса
-            .Send(
-                new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = $"{context.Saga.UserLogin}"
-                })
-            )
-            .Finalize(),
+                    context.Saga.CommitCounter--;
+                }
+            })
+            .If(context => context.Saga.CommitCounter == 0,
+            r => r
+                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                p => p
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+                .Send(
+                    new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "",
+                        Props = context.Message.IsError.ToString(),
+                    }),
+                p => p
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+                .Send(
+                    new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "",
+                        Props = $"{context.Saga.UserLogin}"
+                    })).Finalize()
+            ),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationUIEvent)
         .Send(

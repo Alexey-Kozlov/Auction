@@ -31,13 +31,14 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<ImageDTO>> context)
     {
-        await _locker.LockAsync(async () =>
+        try
         {
-            var callBack = context.Message.CallBackType.Split(",").Length > 1 ?
-                context.Message.CallBackType.Split(",")[0] :
-                context.Message.CallBackType;
-            try
+            await _locker.LockAsync(async () =>
             {
+                var callBack = context.Message.CallBackType.Split(",").Length > 1 ?
+                    context.Message.CallBackType.Split(",")[0] :
+                    context.Message.CallBackType;
+
                 var correlationId = context.Message.CorrelationId;
                 var crudItem = context.Message.DataObjects.First(p => p.Data == "CRUD");
                 DataForProcessingService imageItem = new DataForProcessingService();
@@ -100,29 +101,33 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                 //операция над изображением выполнена, продолжаем обработку в Saga
                 await _context.SaveChangesAsync();
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                            _configuration["CommonAssembly"]).CreateInstance(callBack);
+                        _configuration["CommonAssembly"]).CreateInstance(callBack);
                 sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
                 await _publishEndpoint.Publish(sendObject);
-            }
-            catch (Exception e)
-            {
-                //ошибки, в т.ч. штатные
-                var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                    _configuration["CommonAssembly"]).CreateInstance(callBack);
-                messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-                messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
-                messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-                messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ImageService");
-                messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-                messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
-                messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
-                var faultType = typeof(FaultMessage<>);
-                var typeParams = new Type[] { messageObject.GetType() };
-                var faultObjectType = faultType.MakeGenericType(typeParams);
-                var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+            });
+        }
+        catch (Exception e)
+        {
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ImageService_Image");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
-                await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
-            }
-        });
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
+        }
+
+
     }
 }

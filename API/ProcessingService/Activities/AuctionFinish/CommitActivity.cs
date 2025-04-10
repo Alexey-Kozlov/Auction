@@ -41,11 +41,13 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification",
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification",
             CorrelationId = context.Saga.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

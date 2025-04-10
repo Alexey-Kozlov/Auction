@@ -133,12 +133,6 @@ internal class Program
         var app = builder.Build();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-        app.Use(async (context, next) =>
-        {
-            //логируем вошедший запрос
-            Console.WriteLine($"{DateTime.Now} Вошедший запрос -> {context.Request.Path}");
-            await next.Invoke();
-        });
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

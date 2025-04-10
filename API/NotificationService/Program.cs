@@ -11,6 +11,7 @@ using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
 using Common.Utils;
+using NotificationService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -94,7 +95,7 @@ builder.Services.AddOpenTelemetry()
             options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
         })
 );
-
+builder.Services.AddScoped<NotifyProceduresService>();
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

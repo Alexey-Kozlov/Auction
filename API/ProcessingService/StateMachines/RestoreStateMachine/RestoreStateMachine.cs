@@ -12,18 +12,19 @@ using ProcessingService.Activities.Restore;
 namespace ProcessingService.StateMachines.RestoreStateMachine;
 public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
 {
-    public State GetRecordsState { get; }
+    public State ResetItemsState { get; }
     public State GetImagesState { get; }
     public State BidState { get; }
     public State FinanceState { get; }
     public State SearchState { get; }
     public State NotifyState { get; }
+    public State PreCommitState { get; }
     public State CommitState { get; }
-    public State CompletedState { get; }
+    public State CompleteState { get; }
 
 
     public Event<RequestRestoreItems> RequestEvent { get; }
-    public Event<ESLogRestoreItems> EsLogItemsEvent { get; }
+    public Event<ResetItems> ResetItemsEvent { get; }
     public Event<ESLogRestoreImages> EsLogImagesEvent { get; }
     public Event<ESLogProcessImages> ProcessImagesEvent { get; }
     public Event<BidRestoreSnapShot> BidEvent { get; }
@@ -31,7 +32,17 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<SearchRestoreSnapShot> SearchEvent { get; }
     public Event<NotifyRestoreSnapShot> NotifyEvent { get; }
     public Event<RestoreSnapShotESCommit> CommitEvent { get; }
-    public Event<RestoreSnapShotComplete> CompleteEvent { get; }
+    public Event<NotifyUIRestoreSnapShot> NotifyUIEvent { get; }
+    public Event<BaseServiceError> FaultEvent { get; }
+    public Event<Fault<ResetItems>> FaultResetItemsEvent { get; }
+    public Event<Fault<ESLogRestoreImages>> FaultEsLogImagesEvent { get; }
+    public Event<Fault<ESLogProcessImages>> FaultProcessImagesEvent { get; }
+    public Event<Fault<BidRestoreSnapShot>> FaultBidEvent { get; }
+    public Event<Fault<FinanceRestoreSnapShot>> FaultFinanceEvent { get; }
+    public Event<Fault<SearchRestoreSnapShot>> FaultSearchEvent { get; }
+    public Event<Fault<NotifyRestoreSnapShot>> FaultNotifyEvent { get; }
+    public Event<Fault<RestoreSnapShotESCommit>> FaultCommitEvent { get; }
+    public Event<Fault<NotifyUIRestoreSnapShot>> FaultNotifyUIEvent { get; }
 
     private IConfiguration configuration { get; }
     public object locker = new();
@@ -42,12 +53,13 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         InstanceState(state => state.CurrentState);
         ConfigureEvents();
         ConfigureInitialState();
-        ConfigureGetRecordsState();
+        ConfigureResetItemsState();
         ConfigureBidState();
         ConfigureFinanceState();
         ConfigureSearchState();
         ConfigureGetImagesState();
         ConfigureNotifyState();
+        ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompletedState();
 
@@ -55,7 +67,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     private void ConfigureEvents()
     {
         Event(() => RequestEvent, p => p.InsertOnInitial = true);
-        Event(() => EsLogItemsEvent);
+        Event(() => ResetItemsEvent);
         Event(() => EsLogImagesEvent);
         Event(() => ProcessImagesEvent);
         Event(() => BidEvent);
@@ -63,7 +75,16 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         Event(() => SearchEvent);
         Event(() => NotifyEvent);
         Event(() => CommitEvent);
-        Event(() => CompleteEvent);
+        Event(() => FaultEvent);
+        Event(() => FaultResetItemsEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultEsLogImagesEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultProcessImagesEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultBidEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultFinanceEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotifyEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultNotifyUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
     private void ConfigureInitialState()
     {
@@ -79,21 +100,32 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.ResetLog = context.Message.ResetLog;
                 context.Saga.AllItemsCount = -1;
                 context.Saga.ItemsCount = 0;
+                context.Saga.IsError = false;
+                context.Saga.CommitCounter = 5; //количество коллекций для сброса данных
             })
-            //посылаем через Кафку - удаление всех записей в BiddingService,FinanceService,
-            //NotificationService,SearchService,ImageService
-            .Activity(p => p.OfType<ESLogActivityReset>())
-            .TransitionTo(GetRecordsState)
+            //посылаем через Ребит - удаление всех записей в BiddingService,FinanceService,NotificationService,SearchService,ImageService
+            .Activity(p => p.OfType<ItemsResetActivity>())
+            .TransitionTo(ResetItemsState)
         );
-        OnUnhandledEvent(async e => await e.Ignore());
         SetCompletedWhenFinalized();
     }
 
-    private void ConfigureGetRecordsState()
+    private void ConfigureResetItemsState()
     {
-        During(GetRecordsState,
-        When(EsLogItemsEvent)
-            .Send(
+        //ожидаем подтверждения от всех сервисов об обновлении записей - подготовка к удалению
+        During(ResetItemsState,
+        When(ResetItemsEvent)
+            .Then(context =>
+            {
+                lock (locker)
+                {
+                    context.Saga.CommitCounter--;
+                }
+            })
+            .If(context => context.Saga.CommitCounter == 0,
+            p => p
+            //получили все успешные сообщения об удалении всех записей из соответствующих сервисов -
+                .Send(
                 //сообщение для отслеживания прогресса
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
@@ -107,17 +139,30 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,SearchService
             // для восстановления изображений для сервиса ImageServices - ниже
             .Activity(p => p.OfType<ESLogActivityGetRecords>())
-            .TransitionTo(GetImagesState));
+            .TransitionTo(GetImagesState)),
+        When(FaultResetItemsEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+        .TransitionTo(PreCommitState));
     }
 
     private void ConfigureGetImagesState()
     {
         During(GetImagesState,
         When(EsLogImagesEvent)
+            //если - DataObjects.Count() == 0 -
             //записей аукционов не найдено, делаем уведомление и завершаем процесс
             //сообщение для отслеживания прогресса, передаем признак "-1" что ничего не найдено
-            .If(context => context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() == 0,
-            p => p
+            .If(context => context.Message.BatchCount == -1 &&
+                context.Message.DataItems.DataObjects.Count() == 0,
+                p => p
                 .Send(
                     new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
                     context => new DataForProcessingServicesList<NotifyItem>
@@ -128,31 +173,30 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Props = "-1" + ";true"
                     })
                 .Send(
-                    new Uri(configuration["QueuePaths:RestoreNotificationConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
-                    {
-                        DataObjects = new List<DataForProcessingService>(),
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = "Записей не найдено"
-                    })
-                .Publish(context => new RestoreSnapShotComplete
+                    new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
+                context => new ESContract
                 {
-                    CorrelationId = context.Message.CorrelationId
+                    CallBackType = "",
+                    EventData = "Записей не найдено",
+                    UserLogin = context.Saga.SessionId
                 })
-                .TransitionTo(CompletedState)
+                .Finalize()
             )
 
             // вызываем активити ESLogActivityGetImages - после получения всех записей аукционов,
             //для получения записей изображений
             //BatchCount == -1 - признак получения текстовых записей аукционов
-            .If(context => context.Message.BatchCount == -1 && context.Message.DataItems.DataObjects.Count() > 0,
-            p => p
+            .If(context => context.Message.BatchCount == -1 &&
+                context.Message.DataItems.DataObjects.Count() > 0,
+                p => p
                 .Then(q =>
                 {
                     if (q.Message.DataItems.DataObjects.Count() > 0)
                     {
-                        lock (locker) { q.Saga.ProgressCurrent = 10; }
+                        lock (locker)
+                        {
+                            q.Saga.ProgressCurrent = 10;
+                        }
                         //пришел набор записей (кроме изображений), сохраняем набор в ListItems
                         q.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(q.Message.DataItems);
                     }
@@ -160,58 +204,84 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 .Activity(p => p.OfType<ESLogActivityGetImages>())
             )
 
-        //Посылаем сообщения в ImageService для обработки, BatchCount != -1 - признак получения записей изображений
-        .If(context => context.Message.BatchCount != -1,
-            p => p
-            .Then(context =>
-            {
-                lock (locker)
+
+            // BatchCount != -1 - признак получения записей изображений
+            .If(context => context.Message.BatchCount != -1,
+                p => p
+                .Then(context =>
                 {
-                    //инициализируем 1 раз счетчик обработанных записей, 
-                    //потом будем уменьшать при каждой обработанной записи пока не станет равен == 0
-                    if (context.Saga.AllItemsCount == -1)
+                    lock (locker)
                     {
-                        context.Saga.AllItemsCount = context.Message.AllItemsCount;
+                        //инициализируем 1 раз счетчик обработанных записей, 
+                        //потом будем уменьшать при каждой обработанной записи пока не станет равен == 0
+                        if (context.Saga.AllItemsCount == -1)
+                        {
+                            context.Saga.AllItemsCount = context.Message.AllItemsCount;
+                        }
                     }
-                }
-            })
-            .Send(
+                })
+                // Посылаем сообщения в ImageService для сборки из отдельных частей в целое изображение
+                .Send(
                 new Uri(configuration["QueuePaths:ImageRestoreConsumer"]),
                     context => new DataForProcessingServicesList<ImageDTO>
                     {
                         DataObjects = context.Message.DataItems.DataObjects,
                         CorrelationId = context.Saga.CorrelationId,
                         CallBackType = "Common.Contracts.Processing.ESLogProcessImages"
-                    })
-        ),
-
+                    }
+                )
+            ),
         //отлавливаем сообщения окончания обработки изображений - увеличиваем каждый раз счетчик изображений
         When(ProcessImagesEvent)
-        .Then(context =>
-        {
-            lock (locker)
+            .Then(context =>
             {
-                context.Saga.ItemsCount++;
-                context.Saga.ProgressCurrent = 10 + context.Saga.ItemsCount * 65 / context.Saga.AllItemsCount;
-            }
-        })
-        .Send(
-            new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-            context => new DataForProcessingServicesList<NotifyItem>
+                lock (locker)
+                {
+                    context.Saga.ItemsCount++;
+                    context.Saga.ProgressCurrent = 10 + context.Saga.ItemsCount * 65 / context.Saga.AllItemsCount;
+                }
+            })
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
+                context => new DataForProcessingServicesList<NotifyItem>
+                {
+                    DataObjects = new List<DataForProcessingService>(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = context.Saga.SessionId,
+                    Props = context.Saga.ProgressCurrent.ToString() + ";false"
+                })
+            //конец обработки изображений - переходим на следующий этап
+            .If(context => context.Saga.AllItemsCount == context.Saga.ItemsCount,
+                p => p
+                .Publish(context => new BidRestoreSnapShot
+                {
+                    CorrelationId = context.Message.CorrelationId
+                })
+            .TransitionTo(BidState)),
+        //ошибки обработки получения изображений из EsLog
+        When(FaultEsLogImagesEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
             {
-                DataObjects = new List<DataForProcessingService>(),
                 CorrelationId = context.Saga.CorrelationId,
-                CallBackType = context.Saga.SessionId,
-                Props = context.Saga.ProgressCurrent.ToString() + ";false"
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
             })
-        //конец обработки изображений - переходим для обработки текстовых соображений
-        .If(context => context.Saga.AllItemsCount == context.Saga.ItemsCount,
-            p => p
-            .Publish(context => new BidRestoreSnapShot
+        .TransitionTo(PreCommitState),
+        //ошибки обработки изображений при записи в таблицу в сервисе ImageService
+        When(FaultProcessImagesEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
             {
-                CorrelationId = context.Message.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
             })
-            .TransitionTo(BidState))
+        .TransitionTo(PreCommitState)
         );
     }
     private void ConfigureBidState()
@@ -243,11 +313,24 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     CallBackType = "Common.Contracts.EventSourcing.FinanceRestoreSnapShot"
                 }),
                 p => p
+                //если ставок не было - пропускаем обработку и переходим на следующий этап
                 .Publish(context => new FinanceRestoreSnapShot
                 {
                     CorrelationId = context.Message.CorrelationId
                 }))
-            .TransitionTo(FinanceState));
+            .TransitionTo(FinanceState),
+        When(FaultBidEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+        .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureFinanceState()
@@ -283,7 +366,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     CorrelationId = context.Message.CorrelationId
                 }))
-            .TransitionTo(SearchState));
+            .TransitionTo(SearchState),
+        When(FaultFinanceEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+        .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureSearchState()
@@ -319,7 +414,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     CorrelationId = context.Message.CorrelationId
                 }))
-            .TransitionTo(NotifyState));
+            .TransitionTo(NotifyState),
+        When(FaultSearchEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+        .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureNotifyState()
@@ -349,13 +456,85 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     CallBackType = "Common.Contracts.EventSourcing.RestoreSnapShotESCommit",
                     Props = context.Saga.NotifyMessage
                 })
-            .TransitionTo(CommitState));
+            .TransitionTo(PreCommitState),
+        When(FaultNotifyEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
     }
+
+    /*промежуточный этап перед подтверждением/откатом транзакции
+       на входе события:
+       - BaseServiceError - событие ошибок от предыдущих этапов
+       - Fault<RestoreSnapShotESCommit> - событие ошибки предыдущего этапа
+       - RestoreSnapShotESCommit - событие правильного выполнения предыдущего этапа
+       на выходе - событие для подтверждения/отката транзакции - RestoreSnapShotESCommit
+       */
+
+    private void ConfigurePreCommitState()
+    {
+        During(PreCommitState,
+        When(CommitEvent)
+            .Publish(context => new RestoreSnapShotESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState),
+        When(FaultCommitEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message.Message,
+                    ExceptionMessage = context.Message.Message.ExceptionMessage,
+                    ServiceName = context.Message.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    IsError = context.Message.Message.IsError
+                })
+            .Publish(context => new RestoreSnapShotESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState),
+        //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
+        When(FaultEvent)
+            .Send(
+                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                context => new NotificationServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    Message = context.Message.Message,
+                    ExceptionMessage = context.Message.ExceptionMessage,
+                    ServiceName = context.Message.ServiceName,
+                    UserLogin = context.Saga.UserLogin,
+                    TraceId = Guid.NewGuid(),
+                    IsError = context.Saga.IsError
+                })
+            .Publish(context => new RestoreSnapShotESCommit
+            {
+                CorrelationId = context.Saga.CorrelationId
+            })
+        .TransitionTo(CommitState)
+        );
+    }
+
 
     private void ConfigureCommitState()
     {
         During(CommitState,
         When(CommitEvent)
+        //устанавливаем счетчик в 5 - количество коллекций записей для обработки
+            .Then(context => context.Saga.CommitCounter = 5)
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
@@ -367,17 +546,48 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
-            .TransitionTo(CompletedState));
+            .TransitionTo(CompleteState));
     }
-
 
     private void ConfigureCompletedState()
     {
-        During(CompletedState,
-        When(CompleteEvent).Finalize()
+        During(CompleteState,
+        When(NotifyUIEvent)
+            //ждем сообщений об обработке всех 5 коллекций с записями
+            .Then(context =>
+            {
+                lock (locker)
+                {
+                    context.Saga.CommitCounter--;
+                }
+            })
+            .If(context => context.Saga.CommitCounter == 0,
+            p => p
+            //посылаем финальное сообщение для вывода сообщеничя об итогах восстановления
+                .Send(
+                new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
+                context => new ESContract
+                {
+                    CallBackType = "",
+                    EventData = context.Saga.NotifyMessage,
+                    UserLogin = context.Saga.SessionId
+                }).Finalize()
+            ),
+        When(FaultNotifyUIEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+                IsError = context.Saga.IsError
+            })
+            .Finalize()
         );
     }
-
-
 
 }

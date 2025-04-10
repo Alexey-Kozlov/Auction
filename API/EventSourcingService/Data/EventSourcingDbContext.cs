@@ -1,4 +1,5 @@
 ﻿using Common.Contracts.EventSourcing;
+using Common.Contracts.Image;
 using EventSourcingService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -64,17 +65,16 @@ public class EventSourcingDbContext : DbContext
         FromExpression(() => edit_notification(correlationid, auctionid, eventdata, userLogin));
     public IQueryable<ReturnResultSql> restore_snap_shot_items(
         Guid correlationid,
-        string eventdata,
-        string userLogin) =>
-        FromExpression(() => restore_snap_shot_items(correlationid, eventdata, userLogin));
+        string eventdata) =>
+        FromExpression(() => restore_snap_shot_items(correlationid, eventdata));
     public IQueryable<ReturnResultSql> reset_snap_shot(
         Guid correlationid) =>
         FromExpression(() => reset_snap_shot(correlationid));
-    public IQueryable<ReturnResultSql> restore_snap_shot_images(
-        Guid correlationid,
-        string eventdata,
-        string userLogin) =>
-        FromExpression(() => restore_snap_shot_images(correlationid, eventdata, userLogin));
+    public IQueryable<ImageReturnTypeSql> restore_snap_shot_images(
+        int offset,
+        int maxMessageSize,
+        DateTime eventdata) =>
+        FromExpression(() => restore_snap_shot_images(offset, maxMessageSize, eventdata));
     public IQueryable<ReturnResultSql> set_auction_finished(
         Guid correlationid,
         Guid auctionId) =>
@@ -96,7 +96,7 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
         modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default));
         modelBuilder.HasDbFunction(() => set_auction_finished(default, default));
-        modelBuilder.HasDbFunction(() => restore_snap_shot_items(default, default, default));
+        modelBuilder.HasDbFunction(() => restore_snap_shot_items(default, default));
         modelBuilder.HasDbFunction(() => restore_snap_shot_images(default, default, default));
         modelBuilder.HasDbFunction(() => reset_snap_shot(default));
         modelBuilder.HasDbFunction(() => get_auction_finished(default));

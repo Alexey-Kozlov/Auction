@@ -24,24 +24,31 @@ public class CommitElkConsumer : IConsumer<ElkCommit>
         var correlationId = context.Message.CorrelationId;
         try
         {
-
-
-
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            await _publishEndpoint.Publish(sendObject);
         }
         catch (Exception e)
         {
-            var errorItem = new NotificationServiceError
-            {
-                CorrelationId = context.Message.CorrelationId,
-                Message = e.Message,
-                ExceptionMessage = e.Source + "," + e.StackTrace,
-                ServiceName = "ElkService",
-                UserLogin = "",
-                IsError = true,
-                AuctionId = null,
-                TraceId = Guid.NewGuid()
-            };
-            await _publishEndpoint.Publish(errorItem);
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "BidService_Commit");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
 }

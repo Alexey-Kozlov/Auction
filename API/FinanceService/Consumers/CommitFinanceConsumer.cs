@@ -1,74 +1,55 @@
 ﻿using System.Reflection;
 using Common.Contracts.Finance;
 using Common.Contracts.Processing;
-using FinanceService.Data;
+using FinanceService.Services;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Consumers;
 
 public class CommitFinanceConsumer : IConsumer<FinanceCommit>
 {
-    private readonly FinanceDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
+    private readonly FinanceProceduresService _financeProceduresService;
 
-    public CommitFinanceConsumer(FinanceDbContext dbContext, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public CommitFinanceConsumer(IPublishEndpoint publishEndpoint,
+        IConfiguration configuration, FinanceProceduresService financeProceduresService)
     {
-        _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
+        _financeProceduresService = financeProceduresService;
     }
     public async Task Consume(ConsumeContext<FinanceCommit> context)
     {
-        _dbContext.ChangeTracker.Clear();
         var correlationId = context.Message.CorrelationId;
         try
         {
-            foreach (var item in await _dbContext.FinanceItems.Where(p =>
-                p.CorrelationId == context.Message.CorrelationId).ToListAsync())
-            {
-                if (context.Message.Commited)
-                {
-                    //подтверждение транзакции
-                    if (item.Commited)
-                    {
-                        //удаляем старые записи
-                        _dbContext.FinanceItems.Remove(item);
-                    }
-                    else
-                    {
-                        //подтверждаем новые записи
-                        item.Commited = true;
-                    }
-                }
-                else
-                {
-                    //откат транзакции
-                    if (!item.Commited)
-                    {
-                        //удаляем новые записи
-                        _dbContext.FinanceItems.Remove(item);
-                    }
-                }
-            }
-
-            await _dbContext.SaveChangesAsync();
+            await _financeProceduresService.CommitItems(correlationId, context.Message.Commited);
+            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            await _publishEndpoint.Publish(sendObject);
         }
         catch (Exception e)
         {
-            var errorItem = new NotificationServiceError
-            {
-                CorrelationId = context.Message.CorrelationId,
-                Message = e.Message,
-                ExceptionMessage = e.Source + "," + e.StackTrace,
-                ServiceName = "FinanceService",
-                UserLogin = "",
-                AuctionId = null,
-                TraceId = Guid.NewGuid(),
-                IsError = true
-            };
-            await _publishEndpoint.Publish(errorItem);
+            //ошибки прочие
+            var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+            messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
+            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "FinanceService_Commit");
+            messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
+            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+            var faultType = typeof(FaultMessage<>);
+            var typeParams = new Type[] { messageObject.GetType() };
+            var faultObjectType = faultType.MakeGenericType(typeParams);
+
+            var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+
+            await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
 }

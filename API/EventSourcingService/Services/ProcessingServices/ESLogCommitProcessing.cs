@@ -52,7 +52,5 @@ public class ESLogCommitProcessing
 
             await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
-
     }
-
 }

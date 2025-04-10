@@ -8,7 +8,6 @@ using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
 using ImageService.Services;
-using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -65,6 +64,7 @@ builder.Services.AddOpenTelemetry()
 );
 
 builder.Services.AddSingleton<RestoreImageService>();
+builder.Services.AddScoped<ImageProceduresService>();
 
 var app = builder.Build();
 app.UseAuthentication();

@@ -22,6 +22,8 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     public Event<Fault<FinanceNotificationCreated>> FaultNotificationEvent { get; }
     public Event<BaseServiceError> FaultEvent { get; }
     private IConfiguration configuration { get; }
+    public object locker = new();
+
 
     public FinanceStateMachine(IServiceProvider services)
     {
@@ -55,6 +57,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
+                context.Saga.CommitCounter = 2;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для пополнения счета пользователя
             // - Добавление записей по деньгам в сервисе FinanceService
@@ -164,7 +167,17 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     {
         During(CompleteState,
         When(NotificationEvent)
-        //передаем сообщение для обновления UI (если не было ошибок)
+            //передаем сообщение для обновления UI (если не было ошибок)
+            //ждем сообщений об обработке всех 5 коллекций с записями
+            .Then(context =>
+            {
+                lock (locker)
+                {
+                    context.Saga.CommitCounter--;
+                }
+            })
+            .If(context => context.Saga.CommitCounter == 0,
+            r => r
             .Send(
                 new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
@@ -185,8 +198,8 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Finance.FinanceCreateComplete",
                     Props = $"{context.Saga.Amount.ToString()},{!context.Saga.IsError}"
-                })
-            .Finalize(),
+                }).Finalize()
+            ),
         //обрабатываем ошибки подтверждения/отката транзакции - шлем уведомление пользователю
         When(FaultNotificationEvent)
             .Send(

@@ -471,7 +471,4 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .Finalize()
         );
     }
-
-
-
 }

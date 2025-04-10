@@ -1,4 +1,5 @@
-﻿using Common.Contracts.Notification;
+﻿using Common.Contracts.EventSourcing;
+using Common.Contracts.Notification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +11,12 @@ public class NotificationDbContext : DbContext
     {
     }
     public DbSet<NotifyItem> NotifyItems { get; set; }
+
+    public IQueryable<ReturnRestoreResultSql> notification_restore(
+    Guid correlationid,
+    bool reset,
+    bool commit) =>
+    FromExpression(() => notification_restore(correlationid, reset, commit));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

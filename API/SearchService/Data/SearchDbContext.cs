@@ -43,5 +43,6 @@ public class ItemConfiguration : IEntityTypeConfiguration<AuctionItem>
         builder.HasIndex(p => p.Id).IsUnique(true).HasDatabaseName("PX_SearchItems");
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_Search_AuctionId");
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_Search_CorrelationId");
+
     }
 }

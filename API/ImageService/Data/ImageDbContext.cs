@@ -19,6 +19,12 @@ public class ImageDbContext : DbContext
     int maxMessageSize) =>
     FromExpression(() => get_snap_shot_images(offset, maxMessageSize));
 
+    public IQueryable<ReturnRestoreResultSql> image_restore(
+    Guid correlationid,
+    bool reset,
+    bool commit) =>
+    FromExpression(() => image_restore(correlationid, reset, commit));
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -26,15 +32,6 @@ public class ImageDbContext : DbContext
         modelBuilder.HasDbFunction(() => get_snap_shot_images(default, default));
         modelBuilder.Entity<ImageReturnTypeSql>().HasNoKey();
     }
-}
-
-public class ImageReturnTypeSql
-{
-#nullable enable
-    public byte[]? image { get; set; }
-    public Guid? auctionid { get; set; }
-    public int? recordscount { get; set; }
-#nullable disable
 }
 
 public class ItemConfiguration : IEntityTypeConfiguration<ImageItem>

@@ -14,4 +14,5 @@ public class SetSnapShotState : SagaStateMachineInstance
     public string SessionId { get; set; }
     public DateTime ActionDate { get; set; }
     public bool IsError { get; set; }
+    public int CommitCounter { get; set; }
 }

@@ -1,4 +1,5 @@
 using Common.Contracts.Bid;
+using Common.Contracts.EventSourcing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,6 +12,12 @@ public class BidDbContext : DbContext
     }
 
     public DbSet<BidItem> Bids { get; set; }
+
+    public IQueryable<ReturnRestoreResultSql> bid_restore(
+    Guid correlationid,
+    bool reset,
+    bool commit) =>
+    FromExpression(() => bid_restore(correlationid, reset, commit));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

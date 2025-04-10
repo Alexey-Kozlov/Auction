@@ -43,21 +43,25 @@ public class CommitActivity : IStateMachineActivity<UpdateAuctionState, AuctionU
         await _publishEndpoint.Publish(new ImageCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionUpdatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionUpdatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionUpdatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionUpdatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId
         });
         await next.Execute(context).ConfigureAwait(false);

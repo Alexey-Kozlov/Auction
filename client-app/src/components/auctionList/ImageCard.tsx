@@ -50,7 +50,7 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 						<img
 							src={
 								imageQuery.data?.result?.image
-									? `data:image/png;base64 , ${imageQuery.data.result.image}`
+									? `data:image/jpeg;base64 , ${imageQuery.data.result.image}`
 									: empty
 							}
 							alt=""
@@ -68,7 +68,7 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 				<img
 					src={
 						imageQuery.data?.result?.image
-							? `data:image/png;base64 , ${imageQuery.data.result.image}`
+							? `data:image/jpeg;base64 , ${imageQuery.data.result.image}`
 							: empty
 					}
 					alt=""

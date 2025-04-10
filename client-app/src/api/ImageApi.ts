@@ -4,7 +4,7 @@ import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { v4 as uuidv4 } from "uuid";
 
 const imageApi = createApi({
-	//refetchOnMountOrArgChange: true,
+	refetchOnMountOrArgChange: true,
 	reducerPath: "imageApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + `/api/images`,

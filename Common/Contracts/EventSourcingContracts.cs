@@ -71,29 +71,82 @@ public class ReturnResultSql
     public string entitytype { get; set; }
 }
 
-public class BidRestoreSnapShot
+public class ReturnRestoreResultSql
 {
-    public Guid CorrelationId { get; set; }
+    public bool res { get; set; }
 }
-public class FinanceRestoreSnapShot
+
+public class BidRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
-public class NotifyRestoreSnapShot
+public class FinanceRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
-public class SearchRestoreSnapShot
+public class NotifyRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+}
+
+public class NotifyUIRestoreSnapShot : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+}
+
+public class SearchRestoreSnapShot : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 public class ImageRestoreSnapShot
 {
     public Guid CorrelationId { get; set; }
 }
-public class RestoreSnapShotESCommit
+public class RestoreSnapShotESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
+    public string Message { get; set; }
+    public string ExceptionMessage { get; set; }
+    public string UserLogin { get; set; }
+    public string ServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
 }
 public class RestoreSnapShotComplete
 {

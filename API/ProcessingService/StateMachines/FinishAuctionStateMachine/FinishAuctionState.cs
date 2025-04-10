@@ -9,4 +9,5 @@ public record FinishAuctionState : SagaStateMachineInstance
     public int Amount { get; set; }
     public string DataForProcessingServicesList { get; set; }
     public bool IsError { get; set; }
+    public int CommitCounter { get; set; }
 }

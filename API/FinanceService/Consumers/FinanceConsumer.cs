@@ -54,7 +54,8 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
                     case CRUD.Delete:
                         //удаляем списание денег на ставку
                         var delItem = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
-                            p.FinanceId == typedItem.FinanceId && p.Commited);
+                            p.FinanceId == typedItem.FinanceId && p.Status == FinanceRecordStatus.Расход
+                            && p.Commited);
                         if (delItem == null)
                         {
                             throw new Exception($"Запись для удаления не найдена FinanceId - {typedItem.FinanceId}");

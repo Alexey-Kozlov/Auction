@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
@@ -59,7 +60,20 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             CRUD = CRUD.Create
                         }
                     );
-                    //получаем пользователя - инициатора события
+                    //получаем Id аукциона
+                    if (document.RootElement.TryGetProperty("AuctionId", out jsonElement))
+                    {
+                        var _tmpGuid = "";
+                        if (jsonElement.TryGetsString(out _tmpGuid))
+                        {
+                            if (!string.IsNullOrEmpty(_tmpGuid) && _tmpGuid.ToLower() != "null")
+                            {
+                                auctionId = Guid.Parse(_tmpGuid);
+                            }
+
+                        }
+                    }
+                    //обрабатываем сообщения по их типу
                     switch (item.DataType)
                     {
                         case nameof(BidItem):
@@ -76,25 +90,21 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             break;
                         case nameof(ImageItem):
                             imageFull = await RestoreImages(item, context.Message);
+                            //выходим если была обработана часть изображения
                             if (string.IsNullOrEmpty(imageFull)) return;
+                            item.Data = JsonSerializer.Serialize(new
+                            {
+                                AuctionId = auctionId,
+                                item.Id,
+                                Commited = true,
+                                context.Message.CorrelationId
+                            });
                             break;
                         default:
                             break;
                     }
                     jsonElement.TryGetsString(out userLogin);
-                    //получаем Id аукциона
-                    if (document.RootElement.TryGetProperty("AuctionId", out jsonElement))
-                    {
-                        var _tmpGuid = "";
-                        if (jsonElement.TryGetsString(out _tmpGuid))
-                        {
-                            if (!string.IsNullOrEmpty(_tmpGuid) && _tmpGuid.ToLower() != "null")
-                            {
-                                auctionId = Guid.Parse(_tmpGuid);
-                            }
 
-                        }
-                    }
 
                     _context.EventsLogs.Add(new EventsLog
                     {
@@ -168,13 +178,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
             await _publishEndpoint.Publish(sendObject);
             return null;
         }
-        imageItem.Data = JsonSerializer.Serialize(new
-        {
-            typedItem_.AuctionId,
-            Commited = true,
-            message.CorrelationId,
-            Id = Guid.NewGuid()
-        });
+
         return image_;
     }
 }

@@ -92,3 +92,15 @@ public enum FinanceRecordStatus
      Расход,
      Баланс
 }
+
+public class FinanceReset : IFaultMessage
+{
+     public Guid CorrelationId { get; set; }
+     public string Message { get; set; }
+     public string ExceptionMessage { get; set; }
+     public string UserLogin { get; set; }
+     public string ServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+};

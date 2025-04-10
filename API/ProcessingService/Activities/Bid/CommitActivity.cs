@@ -42,21 +42,25 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId
         });
         await _publishEndpoint.Publish(new BidCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId
         });
 

@@ -1,3 +1,4 @@
+using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,6 +13,11 @@ public class FinanceDbContext : DbContext
 
     public DbSet<FinanceItem> FinanceItems { get; set; }
 
+    public IQueryable<ReturnRestoreResultSql> finance_restore(
+    Guid correlationid,
+    bool reset,
+    bool commit) =>
+    FromExpression(() => finance_restore(correlationid, reset, commit));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

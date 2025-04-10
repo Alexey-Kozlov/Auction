@@ -58,6 +58,7 @@ export default function Detail() {
 		setDeleteAuction(true);
 		dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
 		const auctionDeleted: AuctionDeleted = {
+			id: uuid.v4() as string,
 			auctionId: id!,
 			correlationId: uuid.v4() as string,
 		};
@@ -114,12 +115,14 @@ export default function Detail() {
 		await setNotifyUserApi(notifyUser);
 	};
 
+	//если не нашли данных по указанному id - переход на страницу "Не найдено"
 	useEffect(() => {
 		if (!deleteAuction && !isLoading && (!data || !data.result)) {
 			navigate("/not-found");
 		}
 	}, [isLoading, deleteAuction, data, navigate]);
 
+	//для сохранения идентификатора запроса в логе
 	useEffect(() => {
 		setCookie("RequestType", RequestType[RequestType.ReadDetail]);
 		setCookie("RequestId", uuidv4());

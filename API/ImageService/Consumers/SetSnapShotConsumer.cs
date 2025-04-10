@@ -79,9 +79,11 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                             (
                                 new DataForProcessingService
                                 {
+                                    Id = item.id ?? Guid.NewGuid(),
                                     DataType = nameof(ImageItem),
                                     Data = JsonSerializer.Serialize(new ImageDTO
                                     {
+                                        Id = item.id,
                                         AuctionId = item.auctionid ?? Guid.NewGuid(),
                                         Image = ImageBase64
                                     }),
@@ -115,9 +117,11 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                                 (
                                     new DataForProcessingService
                                     {
+                                        Id = item.id ?? Guid.NewGuid(),
                                         DataType = nameof(ImageItem),
                                         Data = JsonSerializer.Serialize(new ImageDTO
                                         {
+                                            Id = item.id,
                                             AuctionId = item.auctionid ?? Guid.NewGuid(),
                                             Image = ImageBase64.Substring(splitPointer,
                                                 imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
