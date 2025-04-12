@@ -170,7 +170,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
                         CallBackType = context.Saga.SessionId,
-                        Props = "-1" + ";true"
+                        Props = "-1;true"
                     })
                 .Send(
                     new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
@@ -302,22 +302,14 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     Props = (context.Saga.ProgressCurrent = 80).ToString() + ";false"
                 })
             //Обновление ставок (если есть) в сервисе BiddingService
-            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "BidItem"),
-                p => p
-                .Send(
+            .Send(
                 new Uri(configuration["QueuePaths:BidConsumer"]),
                 context => new DataForProcessingServicesList<BidItem>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "BidItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.FinanceRestoreSnapShot"
-                }),
-                p => p
-                //если ставок не было - пропускаем обработку и переходим на следующий этап
-                .Publish(context => new FinanceRestoreSnapShot
-                {
-                    CorrelationId = context.Message.CorrelationId
-                }))
+                })
             .TransitionTo(FinanceState),
         When(FaultBidEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
@@ -351,21 +343,14 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     Props = (context.Saga.ProgressCurrent = 85).ToString() + ";false"
                 })
             //Обновление денег (если есть) в сервисе FinanceService
-            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "FinanceItem"),
-                p => p
-                .Send(
+            .Send(
                 new Uri(configuration["QueuePaths:FinanceConsumer"]),
                 context => new DataForProcessingServicesList<FinanceItem>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "FinanceItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.SearchRestoreSnapShot"
-                }),
-                p => p
-                .Publish(context => new SearchRestoreSnapShot
-                {
-                    CorrelationId = context.Message.CorrelationId
-                }))
+                })
             .TransitionTo(SearchState),
         When(FaultFinanceEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
@@ -399,21 +384,14 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     Props = (context.Saga.ProgressCurrent = 90).ToString() + ";false"
                 })
             //Обновление записей аукционов (если есть) в сервисе SearchService
-            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "AuctionItem"),
-                p => p
-                .Send(
+            .Send(
                 new Uri(configuration["QueuePaths:SearchConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.EventSourcing.NotifyRestoreSnapShot"
-                }),
-                p => p
-                .Publish(context => new NotifyRestoreSnapShot
-                {
-                    CorrelationId = context.Message.CorrelationId
-                }))
+                })
             .TransitionTo(NotifyState),
         When(FaultSearchEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
@@ -490,39 +468,24 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new RestoreSnapShotESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new RestoreSnapShotESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -533,7 +496,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(CommitState,
         When(CommitEvent)
-        //устанавливаем счетчик в 5 - количество коллекций записей для обработки
             .Then(context => context.Saga.CommitCounter = 5)
             .Send(
                 new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
@@ -542,7 +504,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     DataObjects = new List<DataForProcessingService>(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = context.Saga.SessionId,
-                    Props = "100" + ";true"
+                    //-1 - передаем -1 - в случае не отображать уведомление
+                    Props = context.Saga.IsError ? "-1;true" : "100;true"
                 })
             //посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             .Activity(p => p.OfType<CommitActivity>())
@@ -562,16 +525,33 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 }
             })
             .If(context => context.Saga.CommitCounter == 0,
-            p => p
-            //посылаем финальное сообщение для вывода сообщеничя об итогах восстановления
+            r => r
+                .IfElse(context => context.Saga.IsError,
+                p => p
+                //в процессе выполнения произошла ошибка
                 .Send(
-                new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
-                context => new ESContract
-                {
-                    CallBackType = "",
-                    EventData = context.Saga.NotifyMessage,
-                    UserLogin = context.Saga.SessionId
-                }).Finalize()
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
+                    {
+                        CorrelationId = context.Saga.CorrelationId,
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = context.Saga.UserLogin,
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
+                p => p
+                //посылаем финальное сообщение для вывода сообщеничя об итогах восстановления
+                .Send(
+                    new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
+                    context => new ESContract
+                    {
+                        CallBackType = "",
+                        EventData = context.Saga.NotifyMessage,
+                        UserLogin = context.Saga.SessionId
+                    }).Finalize()
+                )
             ),
         When(FaultNotifyUIEvent)
         .Send(

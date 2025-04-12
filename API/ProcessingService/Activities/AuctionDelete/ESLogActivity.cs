@@ -38,7 +38,7 @@ public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAu
             Command.AuctionDelete,
             "",
             context.Saga.AuctionId,
-            false);
+            false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 

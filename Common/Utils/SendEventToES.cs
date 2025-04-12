@@ -16,7 +16,7 @@ public class SendEventToES
 
     public async Task SendItemToEventSourcing<T>(T context, string typeName,
         string callBackType, Guid correlationId, string userLogin, Command command, string image,
-        Guid? auctionId, bool isError)
+        Guid? auctionId, bool isError, string errorMessage, string errorExceptionMessage, string errorServiceName)
     {
         JsonSerializerOptions options = new()
         {
@@ -34,6 +34,9 @@ public class SendEventToES
         message.Command = command;
         message.Image = image;
         message.IsError = isError;
+        message.ErrorMessage = errorMessage;
+        message.ErrorExceptionMessage = errorExceptionMessage;
+        message.ErrorServiceName = errorServiceName;
         await _topicProducer.Produce(message);
     }
 }

@@ -33,7 +33,10 @@ public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCom
             Command.IndexELK,
             "",
             null,
-            context.Saga.IsError);
+            context.Saga.IsError,
+            context.Message.Message,
+            context.Message.ExceptionMessage,
+            context.Message.ServiceName);
         await next.Execute(context).ConfigureAwait(false);
     }
 

@@ -116,39 +116,24 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new FinanceCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new FinanceCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -178,27 +163,44 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             })
             .If(context => context.Saga.CommitCounter == 0,
             r => r
-            .Send(
-                new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>
+                .IfElse(context => context.Saga.IsError,
+                p => p
+                //в процессе выполнения произошла ошибка
+                .Send(
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
                     {
-                        new DataForProcessingService
+                        CorrelationId = context.Saga.CorrelationId,
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = context.Saga.UserLogin,
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
+                p => p
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+                    .Send(
+                    new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>
                         {
-                            CRUD = CRUD.Create,
-                            DataType = nameof(FinanceItem),
-                            Data = JsonSerializer.Serialize(new NotifyItem
+                            new DataForProcessingService
                             {
-                                AuctionId = Guid.NewGuid(),
-                                UserLogin = context.Saga.UserLogin
-                            })
-                        }
-                    },
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Finance.FinanceCreateComplete",
-                    Props = $"{context.Saga.Amount.ToString()},{!context.Saga.IsError}"
-                }).Finalize()
+                                CRUD = CRUD.Create,
+                                DataType = nameof(FinanceItem),
+                                Data = JsonSerializer.Serialize(new NotifyItem
+                                {
+                                    AuctionId = Guid.NewGuid(),
+                                    UserLogin = context.Saga.UserLogin
+                                })
+                            }
+                        },
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "Common.Contracts.Finance.FinanceCreateComplete",
+                        Props = $"{context.Saga.Amount.ToString()},{!context.Saga.IsError}"
+                    })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции - шлем уведомление пользователю
         When(FaultNotificationEvent)
@@ -213,8 +215,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
                     IsError = context.Saga.IsError
-                })
-            .Finalize()
+                }).Finalize()
         );
     }
 

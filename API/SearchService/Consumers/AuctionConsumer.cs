@@ -27,43 +27,46 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
         var correlationId = context.Message.CorrelationId;
         try
         {
-            foreach (var auctionItem in context.Message.DataObjects)
+            if (context.Message.DataObjects != null)
             {
-                var typedItem = JsonSerializer.Deserialize<AuctionItem>(auctionItem.Data);
-                typedItem.CorrelationId = correlationId;
-                switch (auctionItem.CRUD)
+                foreach (var auctionItem in context.Message.DataObjects)
                 {
-                    case CRUD.Delete:
-                        var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p =>
-                            p.AuctionId == typedItem.AuctionId && p.Commited);
-                        if (item == null)
-                        {
-                            throw new Exception($"Запись для удаления не найдена");
-                        }
-                        item.CorrelationId = correlationId;
-                        _dbContext.AuctionItems.Update(item);
-                        break;
-                    case CRUD.Create:
-                        typedItem.Id = Guid.NewGuid();
-                        typedItem.Commited = false;
-                        await _dbContext.AuctionItems.AddAsync(typedItem);
-                        break;
-                    case CRUD.Update:
-                        var item2 = await _dbContext.AuctionItems.FirstOrDefaultAsync(p =>
-                            p.AuctionId == typedItem.AuctionId && p.Commited);
-                        if (item2 == null)
-                        {
-                            throw new Exception($"Запись для обновления не найдена");
-                        }
-                        item2.CorrelationId = correlationId;
-                        _dbContext.AuctionItems.Update(item2);
-                        typedItem.Id = Guid.NewGuid();
-                        typedItem.Commited = false;
-                        await _dbContext.AuctionItems.AddAsync(typedItem);
-                        break;
+                    var typedItem = JsonSerializer.Deserialize<AuctionItem>(auctionItem.Data);
+                    typedItem.CorrelationId = correlationId;
+                    switch (auctionItem.CRUD)
+                    {
+                        case CRUD.Delete:
+                            var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p =>
+                                p.AuctionId == typedItem.AuctionId && p.Commited);
+                            if (item == null)
+                            {
+                                throw new Exception($"Запись для удаления не найдена");
+                            }
+                            item.CorrelationId = correlationId;
+                            _dbContext.AuctionItems.Update(item);
+                            break;
+                        case CRUD.Create:
+                            typedItem.Id = Guid.NewGuid();
+                            typedItem.Commited = false;
+                            await _dbContext.AuctionItems.AddAsync(typedItem);
+                            break;
+                        case CRUD.Update:
+                            var item2 = await _dbContext.AuctionItems.FirstOrDefaultAsync(p =>
+                                p.AuctionId == typedItem.AuctionId && p.Commited);
+                            if (item2 == null)
+                            {
+                                throw new Exception($"Запись для обновления не найдена");
+                            }
+                            item2.CorrelationId = correlationId;
+                            _dbContext.AuctionItems.Update(item2);
+                            typedItem.Id = Guid.NewGuid();
+                            typedItem.Commited = false;
+                            await _dbContext.AuctionItems.AddAsync(typedItem);
+                            break;
+                    }
                 }
+                await _dbContext.SaveChangesAsync();
             }
-            await _dbContext.SaveChangesAsync();
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

@@ -29,6 +29,10 @@ public class ESLogCommitProcessing
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            sendObject.GetType().GetProperty("Message").SetValue(sendObject, context.Message.ErrorMessage);
+            sendObject.GetType().GetProperty("ExceptionMessage").SetValue(sendObject, context.Message.ErrorExceptionMessage);
+            sendObject.GetType().GetProperty("ServiceName").SetValue(sendObject, context.Message.ErrorServiceName);
+            sendObject.GetType().GetProperty("UserLogin").SetValue(sendObject, context.Message.UserLogin);
             await _publishEndpoint.Publish(sendObject);
         }
         catch (Exception e)

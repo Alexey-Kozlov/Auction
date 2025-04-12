@@ -40,66 +40,70 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                     context.Message.CallBackType;
 
                 var correlationId = context.Message.CorrelationId;
-                var crudItem = context.Message.DataObjects.First(p => p.Data == "CRUD");
-                DataForProcessingService imageItem = new DataForProcessingService();
-                if (crudItem.CRUD == CRUD.Create || crudItem.CRUD == CRUD.Update)
+                if (context.Message.DataObjects != null)
                 {
-                    imageItem = context.Message.DataObjects.First(p => p.Data != "");
-                    var image = _restoreImageService.GetImageString(imageItem);
-                    if (string.IsNullOrEmpty(image))
+
+                    var crudItem = context.Message.DataObjects.First(p => p.Data == "CRUD");
+                    DataForProcessingService imageItem = new DataForProcessingService();
+                    if (crudItem.CRUD == CRUD.Create || crudItem.CRUD == CRUD.Update)
                     {
-                        //если вернули пустую строку - еще не все части изображения собраны,
-                        //возвращаем сообщение для финализирования Saga для данного потока.
-                        //Далее ждем, когда все части изображения будут собраны
-                        await _publishEndpoint.Publish(new AuctionUpdateFinalize
+                        imageItem = context.Message.DataObjects.First(p => p.Data != "");
+                        var image = _restoreImageService.GetImageString(imageItem);
+                        if (string.IsNullOrEmpty(image))
                         {
-                            CorrelationId = correlationId
-                        });
-                        var sendObject_dop = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                            _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType.Split(",")[1]);
-                        sendObject_dop.GetType().GetProperty("CorrelationId").SetValue(sendObject_dop, correlationId);
-                        await _publishEndpoint.Publish(sendObject_dop);
-                        return;
+                            //если вернули пустую строку - еще не все части изображения собраны,
+                            //возвращаем сообщение для финализирования Saga для данного потока.
+                            //Далее ждем, когда все части изображения будут собраны
+                            await _publishEndpoint.Publish(new AuctionUpdateFinalize
+                            {
+                                CorrelationId = correlationId
+                            });
+                            var sendObject_dop = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType.Split(",")[1]);
+                            sendObject_dop.GetType().GetProperty("CorrelationId").SetValue(sendObject_dop, correlationId);
+                            await _publishEndpoint.Publish(sendObject_dop);
+                            return;
+                        }
+                        imageItem.Data = image;
                     }
-                    imageItem.Data = image;
+                    var typedItem = new ImageDTO
+                    {
+                        AuctionId = crudItem.MessagePartId,
+                        Image = imageItem.Data
+                    };
+                    typedItem.CorrelationId = correlationId;
+                    switch (crudItem.CRUD)
+                    {
+                        case CRUD.Delete:
+                            var item = await _context.Images.FirstOrDefaultAsync(p =>
+                                p.AuctionId == crudItem.MessagePartId && p.Commited);
+                            if (item != null)
+                            {
+                                item.CorrelationId = correlationId;
+                                _context.Images.Update(item);
+                            }
+                            break;
+                        case CRUD.Create:
+                            typedItem.Id = Guid.NewGuid();
+                            typedItem.Commited = false;
+                            await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
+                            break;
+                        case CRUD.Update:
+                            var item2 = await _context.Images.FirstOrDefaultAsync(p =>
+                                p.AuctionId == crudItem.MessagePartId && p.Commited);
+                            if (item2 != null)
+                            {
+                                item2.CorrelationId = correlationId;
+                                _context.Images.Update(item2);
+                            }
+                            typedItem.Id = Guid.NewGuid();
+                            typedItem.Commited = false;
+                            await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
+                            break;
+                    }
+                    //операция над изображением выполнена, продолжаем обработку в Saga
+                    await _context.SaveChangesAsync();
                 }
-                var typedItem = new ImageDTO
-                {
-                    AuctionId = crudItem.MessagePartId,
-                    Image = imageItem.Data
-                };
-                typedItem.CorrelationId = correlationId;
-                switch (crudItem.CRUD)
-                {
-                    case CRUD.Delete:
-                        var item = await _context.Images.FirstOrDefaultAsync(p =>
-                            p.AuctionId == crudItem.MessagePartId && p.Commited);
-                        if (item != null)
-                        {
-                            item.CorrelationId = correlationId;
-                            _context.Images.Update(item);
-                        }
-                        break;
-                    case CRUD.Create:
-                        typedItem.Id = Guid.NewGuid();
-                        typedItem.Commited = false;
-                        await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
-                        break;
-                    case CRUD.Update:
-                        var item2 = await _context.Images.FirstOrDefaultAsync(p =>
-                            p.AuctionId == crudItem.MessagePartId && p.Commited);
-                        if (item2 != null)
-                        {
-                            item2.CorrelationId = correlationId;
-                            _context.Images.Update(item2);
-                        }
-                        typedItem.Id = Guid.NewGuid();
-                        typedItem.Commited = false;
-                        await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
-                        break;
-                }
-                //операция над изображением выполнена, продолжаем обработку в Saga
-                await _context.SaveChangesAsync();
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                         _configuration["CommonAssembly"]).CreateInstance(callBack);
                 sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);

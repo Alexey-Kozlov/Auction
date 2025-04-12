@@ -33,7 +33,10 @@ public class CommitActivity : IStateMachineActivity<SetSnapShotState, SetSnapSho
             Command.RestoreSnapShot,
             "",
             null,
-            context.Saga.IsError);
+            context.Saga.IsError,
+            context.Message.Message,
+            context.Message.ExceptionMessage,
+            context.Message.ServiceName);
         await next.Execute(context).ConfigureAwait(false);
     }
 

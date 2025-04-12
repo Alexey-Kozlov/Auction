@@ -19,7 +19,8 @@ public class RestoreProgressConsumer : IConsumer<DataForProcessingServicesList<N
         var result = new
         {
             percent = context.Message.Props.Split(';')[0],
-            duration = bool.Parse(context.Message.Props.Split(';')[1]) ? 5000 : 20000
+            duration = bool.Parse(context.Message.Props.Split(';')[1]) ? 5000 : 20000,
+            show = context.Message.Props.Split(';')[0] != "-1"
         };
         await _hubContext.Clients.Group(context.Message.CallBackType)
         .SendAsync("RestoreProgress", result);

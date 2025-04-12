@@ -32,6 +32,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
     public Event<Fault<AuctionUpdatedElk>> FaultElkEvent { get; }
     public Event<Fault<AuctionUpdateESCommit>> FaultCommitEvent { get; }
     public Event<Fault<AuctionUpdatedNotificationEvent>> FaultNotificationUIEvent { get; }
+
     private IConfiguration configuration { get; }
     public object locker = new();
 
@@ -145,6 +146,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
+        .Then(p => Console.WriteLine("1111"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -176,6 +178,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         When(ImageFinalizeEvent).Finalize(),
         //обрабатываем ошибки из сервиса GatewayService            
         When(FaultSearchEvent)
+                .Then(p => Console.WriteLine("222"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -205,6 +208,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .TransitionTo(GatewayState),
         //обрабатываем ошибки из сервиса SearchService            
         When(FaultElkEvent)
+                .Then(p => Console.WriteLine("333"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -223,25 +227,18 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         During(GatewayState,
         When(GatewayEvent)
         //Удаление изображения из кеша в сервисе GatewayService (если были изменено изображение)
-        .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "ImageItem").Any(),
-            p => p
             .Send(
                 new Uri(configuration["QueuePaths:GatewayConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
                 {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "ImageItem").ToList(),
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionUpdateESCommit"
-                }),
-            p => p
-            .Publish(context => new AuctionUpdateESCommit
-            {
-                CorrelationId = context.Message.CorrelationId
-            })
-            )
+                })
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса ImageService            
         When(FaultGatewayEvent)
+                .Then(p => Console.WriteLine("444"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -254,7 +251,6 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         .TransitionTo(PreCommitState)
         );
     }
-
     /*промежуточный этап перед подтверждением/откатом транзакции
        на входе события:
        - BaseServiceError - событие ошибок от предыдущих этапов
@@ -274,39 +270,24 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new AuctionUpdateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new AuctionUpdateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -335,18 +316,21 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             })
             .If(context => context.Saga.CommitCounter == 0,
             r => r
-                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                .IfElse(context => context.Saga.IsError,
                 p => p
-                //Создаем событие в сервис NotificationService для обновления интерфейса
+                //в процессе выполнения произошла ошибка
                 .Send(
-                    new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
                     {
-                        DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{!context.Saga.IsError}"
-                    }),
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = context.Saga.UserLogin,
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(

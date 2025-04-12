@@ -4,8 +4,6 @@ using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
-using Common.Contracts.Processing;
-using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.RestoreStateMachine;
 
@@ -31,31 +29,51 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
         {
             CorrelationId = context.Saga.CorrelationId,
             CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
-            Commited = !context.Saga.IsError
+            Commited = !context.Saga.IsError,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
-            CorrelationId = context.Saga.CorrelationId
+            CorrelationId = context.Saga.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new ImageCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
-            CorrelationId = context.Saga.CorrelationId
+            CorrelationId = context.Saga.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
-            CorrelationId = context.Saga.CorrelationId
+            CorrelationId = context.Saga.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
-            CorrelationId = context.Saga.CorrelationId
+            CorrelationId = context.Saga.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await next.Execute(context).ConfigureAwait(false);
     }

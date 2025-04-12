@@ -281,12 +281,14 @@ export default function SignalRProvider() {
 						auctionId: "",
 						messageType: Math.trunc(Number(result.percent)),
 					};
-					return toast(
-						(p) => (
-							<ProgressMessageToast message={mes} toastId={progressToastId} />
-						),
-						{ duration: result.duration, id: progressToastId }
-					);
+					if (result.show) {
+						return toast(
+							(p) => (
+								<ProgressMessageToast message={mes} toastId={progressToastId} />
+							),
+							{ duration: result.duration, id: progressToastId }
+						);
+					}
 				});
 
 				connection.on("SetSnapShotProgress", (result: ProgressToast) => {

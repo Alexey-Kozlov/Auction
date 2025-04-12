@@ -28,6 +28,10 @@ public class CommitNotificationConsumer : IConsumer<NotificationCommit>
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
+            sendObject.GetType().GetProperty("Message").SetValue(sendObject, context.Message.Message);
+            sendObject.GetType().GetProperty("ExceptionMessage").SetValue(sendObject, context.Message.ExceptionMessage);
+            sendObject.GetType().GetProperty("ServiceName").SetValue(sendObject, context.Message.ServiceName);
+            sendObject.GetType().GetProperty("UserLogin").SetValue(sendObject, context.Message.UserLogin);
             await _publishEndpoint.Publish(sendObject);
         }
         catch (Exception e)

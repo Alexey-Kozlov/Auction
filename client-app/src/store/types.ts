@@ -170,6 +170,7 @@ export type ModalParams = {
 export type ProgressToast = {
 	percent: number;
 	duration: number;
+	show: boolean;
 };
 
 export enum RequestType {

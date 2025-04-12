@@ -13,6 +13,9 @@ public class ESContract
     public Command Command { get; set; }
     public string Image { get; set; }
     public bool IsError { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
 }
 
 //указываем generic T для создания разных типов сообщений

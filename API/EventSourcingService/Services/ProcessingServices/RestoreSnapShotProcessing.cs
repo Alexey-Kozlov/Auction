@@ -85,7 +85,7 @@ public class RestoreSnapShotProcessing
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
             messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
             messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace + e.InnerException?.Message);
-            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_FinanceCreate");
+            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_RestoreSnapShot");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
             messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);

@@ -38,30 +38,50 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             Command.PlaceBid,
             "",
             context.Saga.AuctionId,
-            context.Saga.IsError);
+            context.Saga.IsError,
+            context.Message.Message,
+            context.Message.ExceptionMessage,
+            context.Message.ServiceName);
+
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
-            CorrelationId = context.Message.CorrelationId
+            CorrelationId = context.Message.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new BidCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
-            CorrelationId = context.Message.CorrelationId
+            CorrelationId = context.Message.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
-            CorrelationId = context.Message.CorrelationId
+            CorrelationId = context.Message.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
-            CorrelationId = context.Message.CorrelationId
+            CorrelationId = context.Message.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
 
         await next.Execute(context).ConfigureAwait(false);

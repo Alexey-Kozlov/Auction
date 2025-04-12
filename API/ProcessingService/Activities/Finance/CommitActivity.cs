@@ -34,12 +34,19 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateE
             Command.FinanceCreate,
             "",
             null,
-            context.Saga.IsError);
+            context.Saga.IsError,
+            context.Message.Message,
+            context.Message.ExceptionMessage,
+            context.Message.ServiceName);
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Finance.FinanceNotificationCreated",
-            CorrelationId = context.Saga.CorrelationId
+            CorrelationId = context.Saga.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await next.Execute(context).ConfigureAwait(false);
     }

@@ -124,39 +124,24 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = "SystemService",
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new AuctionFinishedCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = "SystemService",
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new AuctionFinishedCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -185,16 +170,21 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             })
             .If(context => context.Saga.CommitCounter == 0,
             r => r
-                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                .IfElse(context => context.Saga.IsError,
                 p => p
-                    .Send(
-                        new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
-                        context => new DataForProcessingServicesList<AuctionItem>
-                        {
-                            DataObjects = new List<DataForProcessingService>(),
-                            CorrelationId = context.Saga.CorrelationId,
-                            CallBackType = ""
-                        }),
+                //в процессе выполнения произошла ошибка
+                .Send(
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
+                    {
+                        CorrelationId = context.Saga.CorrelationId,
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = "SystemService",
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
                 p => p
                     .Send(
                         new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),

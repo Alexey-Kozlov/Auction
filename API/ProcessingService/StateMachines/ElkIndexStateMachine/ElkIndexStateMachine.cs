@@ -208,39 +208,24 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new ElkIndexESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new ElkIndexESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -259,16 +244,32 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     {
         During(CompleteState,
         When(NotificationEvent)
-            //Создаем событие в сервис NotificationService для обновления интерфейса
-            .Send(
-                new Uri(configuration["QueuePaths:ElkIndexNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = $"{context.Saga.ItemNumber},{!context.Saga.IsError},{context.Saga.SessionId}",
-                }).Finalize(),
+            .IfElse(context => context.Saga.IsError,
+                p => p
+                //в процессе выполнения произошла ошибка
+                .Send(
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
+                    {
+                        CorrelationId = context.Saga.CorrelationId,
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = context.Saga.UserLogin,
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
+                p => p
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+               .Send(
+                    new Uri(configuration["QueuePaths:ElkIndexNotificationConsumer"]),
+                    context => new DataForProcessingServicesList<NotifyItem>
+                    {
+                        DataObjects = new List<DataForProcessingService>(),
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "",
+                        Props = $"{context.Saga.ItemNumber},{!context.Saga.IsError},{context.Saga.SessionId}",
+                    })).Finalize(),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationEvent)
             .Send(

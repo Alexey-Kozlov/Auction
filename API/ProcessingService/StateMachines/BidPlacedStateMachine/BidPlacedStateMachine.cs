@@ -206,9 +206,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotificationEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Publish(contex => new BidCreateESCommit
+            .Publish(context => new BaseServiceError
             {
-                CorrelationId = contex.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Saga.Bidder
             })
         .TransitionTo(PreCommitState)
         );
@@ -233,39 +237,24 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.Bidder,
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new BidCreateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = context.Saga.Bidder,
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new BidCreateESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -295,18 +284,21 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             })
             .If(context => context.Saga.CommitCounter == 0,
             r => r
-                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                .IfElse(context => context.Saga.IsError,
                 p => p
-                //Создаем событие в сервис NotificationService для обновления интерфейса
-                    .Send(
-                    new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                //в процессе выполнения произошла ошибка
+                .Send(
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
                     {
-                        DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{!context.Saga.IsError}"
-                    }),
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = context.Saga.Bidder,
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(

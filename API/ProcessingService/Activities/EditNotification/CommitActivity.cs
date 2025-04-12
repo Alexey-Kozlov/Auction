@@ -34,12 +34,19 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
             Command.EditNotification,
             "",
             null,
-            context.Saga.IsError);
+            context.Saga.IsError,
+            context.Message.Message,
+            context.Message.ExceptionMessage,
+            context.Message.ServiceName);
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Notification.EditNotificationEvent",
-            CorrelationId = context.Message.CorrelationId
+            CorrelationId = context.Message.CorrelationId,
+            Message = context.Message.Message,
+            ExceptionMessage = context.Message.ExceptionMessage,
+            ServiceName = context.Message.ServiceName,
+            UserLogin = context.Message.UserLogin
         });
         await next.Execute(context).ConfigureAwait(false);
     }

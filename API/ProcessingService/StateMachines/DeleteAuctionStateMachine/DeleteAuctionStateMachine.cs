@@ -99,7 +99,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.IsError = false;
-                context.Saga.CommitCounter = 5;
+                context.Saga.CommitCounter = 7;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для удаления аукциона:
             // - Удаление записей по деньгам в сервисе FinanceService
@@ -121,21 +121,14 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
             })
             //Удаление записи (деньги на ставку, если есть) в сервисе FinanceService
-            .IfElse(context => context.Message.DataItems.DataObjects.Any(p => p.DataType == "FinanceItem"),
-                p => p
-                .Send(
+            .Send(
                 new Uri(configuration["QueuePaths:FinanceConsumer"]),
                 context => new DataForProcessingServicesList<FinanceItem>
                 {
                     DataObjects = context.Message.DataItems.DataObjects.Where(p => p.DataType == "FinanceItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedBid"
-                }),
-                p => p
-                .Publish(contex => new AuctionDeletedBid
-                {
-                    CorrelationId = contex.Message.CorrelationId
-                }))
+                })
             .TransitionTo(BidState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
@@ -157,21 +150,14 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         During(BidState,
         When(BidEvent)
             //Удаление записей (ставка, если есть) в сервисе BiddingService
-            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "BidItem"),
-                p => p
-                .Send(
+            .Send(
                 new Uri(configuration["QueuePaths:BidConsumer"]),
                 context => new DataForProcessingServicesList<BidItem>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "BidItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedGateway"
-                }),
-                p => p
-                .Publish(context => new AuctionDeletedGateway
-                {
-                    CorrelationId = context.Message.CorrelationId
-                }))
+                })
             .TransitionTo(GatewayState),
         //обрабатываем ошибки из сервиса FinanceService            
         When(FaultBidEvent)
@@ -222,31 +208,23 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         During(ImageState,
         When(ImageEvent)
             //Удаление изображения аукциона в сервисе ImageService
-            .IfElse(context => JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Any(p => p.DataType == "ImageItem"),
-                p => p
-                .Send(
-                    new Uri(configuration["QueuePaths:ImageConsumer"]),
-                    context => new DataForProcessingServicesList<ImageDTO>
-                    {
-                        DataObjects = new List<DataForProcessingService>
-                        {
-                        //передаем тип операции
-                            new DataForProcessingService
-                            {
-                                CRUD = CRUD.Delete,
-                                Data = "CRUD",
-                                MessagePartId = context.Saga.AuctionId
-                            }
-                        },
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Auction.AuctionDeletedSearch"
-                    }),
-                p => p
-                .Publish(context => new AuctionDeletedSearch
+            .Send(
+                new Uri(configuration["QueuePaths:ImageConsumer"]),
+                context => new DataForProcessingServicesList<ImageDTO>
                 {
-                    CorrelationId = context.Message.CorrelationId
+                    DataObjects = new List<DataForProcessingService>
+                    {
+                    //передаем тип операции
+                        new DataForProcessingService
+                        {
+                            CRUD = CRUD.Delete,
+                            Data = "CRUD",
+                            MessagePartId = context.Saga.AuctionId
+                        }
+                    },
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Auction.AuctionDeletedSearch"
                 })
-            )
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса GatewayService            
         When(FaultImageEvent)
@@ -325,8 +303,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(NotificationState,
         When(NotificationEvent)
-                //Удаление уведомлений (если есть) в сервисе NotificationService
-                .Send(
+            //Удаление уведомлений (если есть) в сервисе NotificationService
+            .Send(
                 new Uri(configuration["QueuePaths:AuctionEditConsumer"]),
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
@@ -375,39 +353,24 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    IsError = context.Message.Message.IsError
-                })
             .Publish(context => new AuctionDeleteESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message.Message,
+                ExceptionMessage = context.Message.Message.ExceptionMessage,
+                ServiceName = context.Message.Message.ServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
         //обработка ошибок - передаем отмену коммита и инфу по ошибке пользователю в UI
         When(FaultEvent)
-            .Send(
-                new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
-                context => new NotificationServiceError
-                {
-                    CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message,
-                    ExceptionMessage = context.Message.ExceptionMessage,
-                    ServiceName = context.Message.ServiceName,
-                    UserLogin = context.Saga.UserLogin,
-                    TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
-                })
             .Publish(context => new AuctionDeleteESCommit
             {
-                CorrelationId = context.Saga.CorrelationId
+                CorrelationId = context.Saga.CorrelationId,
+                Message = context.Message.Message,
+                ExceptionMessage = context.Message.ExceptionMessage,
+                ServiceName = context.Message.ServiceName,
+                UserLogin = context.Message.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -436,18 +399,21 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             })
             .If(context => context.Saga.CommitCounter == 0,
             r => r
-                .IfElse(context => context.Saga.DataForProcessingServicesList == null,
+                .IfElse(context => context.Saga.IsError,
                 p => p
-                //Создаем событие в сервис NotificationService для обновления интерфейса
-                    .Send(
-                    new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                //в процессе выполнения произошла ошибка
+                .Send(
+                    new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+                    context => new NotificationServiceError
                     {
-                        DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{!context.Saga.IsError}"
-                    }),
+                        Message = context.Message.Message,
+                        ExceptionMessage = context.Message.ExceptionMessage,
+                        ServiceName = context.Message.ServiceName,
+                        UserLogin = context.Saga.UserLogin,
+                        TraceId = Guid.NewGuid(),
+                        IsError = context.Saga.IsError
+                    }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(

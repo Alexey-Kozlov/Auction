@@ -39,7 +39,7 @@ public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFi
             Command.FinanceCreate,
             "",
             null,
-            false);
+            false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 

@@ -42,7 +42,7 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
             Command.AuctionCreate,
             JsonSerializer.Serialize(context.Message),
             context.Saga.AuctionId,
-            false);
+            false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 

@@ -22,50 +22,53 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<FinanceItem>> context)
     {
-        _dbContext.ChangeTracker.Clear();
         var correlationId = context.Message.CorrelationId;
         try
         {
-            foreach (var item in context.Message.DataObjects)
+            if (context.Message.DataObjects != null)
             {
-                var typedItem = JsonSerializer.Deserialize<FinanceItem>(item.Data);
-                typedItem.CorrelationId = correlationId;
-                switch (item.CRUD)
+                _dbContext.ChangeTracker.Clear();
+                foreach (var item in context.Message.DataObjects)
                 {
-                    case CRUD.Create:
-                        //добавляем новое поступление денег на счет или списание денег на новую ставку
-                        typedItem.Id = Guid.NewGuid();
-                        typedItem.Commited = false;
-                        await _dbContext.FinanceItems.AddAsync(typedItem);
-                        break;
-                    case CRUD.Update:
-                        //обновляем запись текущего баланса
-                        var finItem = await _dbContext.FinanceItems.Where(p => p.UserLogin == typedItem.UserLogin &&
-                            p.Status == FinanceRecordStatus.Баланс && p.Commited).FirstOrDefaultAsync();
-                        if (finItem != null)
-                        {
-                            finItem.CorrelationId = correlationId;
-                            _dbContext.FinanceItems.Update(finItem);
-                        }
-                        typedItem.Id = Guid.NewGuid();
-                        typedItem.Commited = false;
-                        await _dbContext.FinanceItems.AddAsync(typedItem);
-                        break;
-                    case CRUD.Delete:
-                        //удаляем списание денег на ставку
-                        var delItem = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
-                            p.FinanceId == typedItem.FinanceId && p.Status == FinanceRecordStatus.Расход
-                            && p.Commited);
-                        if (delItem == null)
-                        {
-                            throw new Exception($"Запись для удаления не найдена FinanceId - {typedItem.FinanceId}");
-                        }
-                        delItem.CorrelationId = correlationId;
-                        _dbContext.FinanceItems.Update(delItem);
-                        break;
+                    var typedItem = JsonSerializer.Deserialize<FinanceItem>(item.Data);
+                    typedItem.CorrelationId = correlationId;
+                    switch (item.CRUD)
+                    {
+                        case CRUD.Create:
+                            //добавляем новое поступление денег на счет или списание денег на новую ставку
+                            typedItem.Id = Guid.NewGuid();
+                            typedItem.Commited = false;
+                            await _dbContext.FinanceItems.AddAsync(typedItem);
+                            break;
+                        case CRUD.Update:
+                            //обновляем запись текущего баланса
+                            var finItem = await _dbContext.FinanceItems.Where(p => p.UserLogin == typedItem.UserLogin &&
+                                p.Status == FinanceRecordStatus.Баланс && p.Commited).FirstOrDefaultAsync();
+                            if (finItem != null)
+                            {
+                                finItem.CorrelationId = correlationId;
+                                _dbContext.FinanceItems.Update(finItem);
+                            }
+                            typedItem.Id = Guid.NewGuid();
+                            typedItem.Commited = false;
+                            await _dbContext.FinanceItems.AddAsync(typedItem);
+                            break;
+                        case CRUD.Delete:
+                            //удаляем списание денег на ставку
+                            var delItem = await _dbContext.FinanceItems.FirstOrDefaultAsync(p =>
+                                p.FinanceId == typedItem.FinanceId && p.Status == FinanceRecordStatus.Расход
+                                && p.Commited);
+                            if (delItem == null)
+                            {
+                                throw new Exception($"Запись для удаления не найдена FinanceId - {typedItem.FinanceId}");
+                            }
+                            delItem.CorrelationId = correlationId;
+                            _dbContext.FinanceItems.Update(delItem);
+                            break;
+                    }
                 }
+                await _dbContext.SaveChangesAsync();
             }
-            await _dbContext.SaveChangesAsync();
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
