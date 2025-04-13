@@ -29,9 +29,9 @@ public class ESLogCommitProcessing
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
-            sendObject.GetType().GetProperty("Message").SetValue(sendObject, context.Message.ErrorMessage);
-            sendObject.GetType().GetProperty("ExceptionMessage").SetValue(sendObject, context.Message.ErrorExceptionMessage);
-            sendObject.GetType().GetProperty("ServiceName").SetValue(sendObject, context.Message.ErrorServiceName);
+            sendObject.GetType().GetProperty("ErrorMessage").SetValue(sendObject, context.Message.ErrorMessage);
+            sendObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(sendObject, context.Message.ErrorExceptionMessage);
+            sendObject.GetType().GetProperty("ErrorServiceName").SetValue(sendObject, context.Message.ErrorServiceName);
             sendObject.GetType().GetProperty("UserLogin").SetValue(sendObject, context.Message.UserLogin);
             await _publishEndpoint.Publish(sendObject);
         }
@@ -41,9 +41,9 @@ public class ESLogCommitProcessing
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
-            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_ESLogCommit");
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_ESLogCommit");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
             messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);

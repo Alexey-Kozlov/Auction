@@ -38,48 +38,49 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             "",
             context.Saga.AuctionId,
             context.Saga.IsError,
-            context.Message.Message,
-            context.Message.ExceptionMessage,
-            context.Message.ServiceName);
+            context.Message.ErrorMessage,
+            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorServiceName);
+
         await _publishEndpoint.Publish(new ImageCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
-            Message = context.Message.Message,
-            ExceptionMessage = context.Message.ExceptionMessage,
-            ServiceName = context.Message.ServiceName,
-            UserLogin = context.Message.UserLogin
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
         });
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
-            Message = context.Message.Message,
-            ExceptionMessage = context.Message.ExceptionMessage,
-            ServiceName = context.Message.ServiceName,
-            UserLogin = context.Message.UserLogin
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
-            Message = context.Message.Message,
-            ExceptionMessage = context.Message.ExceptionMessage,
-            ServiceName = context.Message.ServiceName,
-            UserLogin = context.Message.UserLogin
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
-            Message = context.Message.Message,
-            ExceptionMessage = context.Message.ExceptionMessage,
-            ServiceName = context.Message.ServiceName,
-            UserLogin = context.Message.UserLogin
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
         });
         await next.Execute(context).ConfigureAwait(false);
     }

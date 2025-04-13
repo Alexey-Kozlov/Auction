@@ -127,10 +127,10 @@ public class ESLogAuctionDeleted : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -140,10 +140,10 @@ public class ESLogAuctionCreated : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -153,10 +153,10 @@ public class ESLogAuctionUpdated : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -166,10 +166,10 @@ public class ESLogFinanceCreated : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -179,10 +179,10 @@ public class ESLogPlaceBid : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -192,10 +192,10 @@ public class ESLogElkIndex : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -208,10 +208,10 @@ public class ESLogRestoreItems : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -222,10 +222,10 @@ public class ESLogRestoreItems : IFaultMessage
 public class ResetItems : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -235,10 +235,10 @@ public class ESLogRestoreImages : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -251,10 +251,10 @@ public class ESLogEditNotification : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -265,10 +265,10 @@ public class ESLogAuctionFinish : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -279,10 +279,10 @@ public class ESLogResetSnapShot : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -294,10 +294,10 @@ public class ESLogProcessImages : IFaultMessage
 {
 
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -307,10 +307,10 @@ public class ESLogProcessImages : IFaultMessage
 public class BaseServiceError
 {
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -319,10 +319,10 @@ public class BaseServiceError
 public class LoggingServiceError
 {
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
@@ -332,10 +332,10 @@ public class LoggingServiceError
 public class NotificationServiceError
 {
     public Guid CorrelationId { get; set; }
-    public string Message { get; set; }
-    public string ExceptionMessage { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
-    public string ServiceName { get; set; }
     public Guid? AuctionId { get; set; }
     public Guid? TraceId { get; set; }
     public bool IsError { get; set; }

@@ -28,9 +28,9 @@ public class CommitImageConsumer : IConsumer<ImageCommit>
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, context.Message.CorrelationId);
-            sendObject.GetType().GetProperty("Message").SetValue(sendObject, context.Message.Message);
-            sendObject.GetType().GetProperty("ExceptionMessage").SetValue(sendObject, context.Message.ExceptionMessage);
-            sendObject.GetType().GetProperty("ServiceName").SetValue(sendObject, context.Message.ServiceName);
+            sendObject.GetType().GetProperty("ErrorMessage").SetValue(sendObject, context.Message.ErrorMessage);
+            sendObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(sendObject, context.Message.ErrorExceptionMessage);
+            sendObject.GetType().GetProperty("ErrorServiceName").SetValue(sendObject, context.Message.ErrorServiceName);
             sendObject.GetType().GetProperty("UserLogin").SetValue(sendObject, context.Message.UserLogin);
             await _publishEndpoint.Publish(sendObject);
         }
@@ -40,9 +40,9 @@ public class CommitImageConsumer : IConsumer<ImageCommit>
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
-            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ImageService_Commit");
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ImageService_Commit");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);

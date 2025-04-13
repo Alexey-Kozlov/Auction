@@ -1,4 +1,3 @@
-using Common.Utils;
 using Common.Utils.Vault;
 using ElasticSearchService.Consumers;
 using ElasticSearchService.Services;
@@ -44,6 +43,11 @@ builder.Services.AddOpenTelemetry()
             options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
         })
 );
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:Config"];
+    options.InstanceName = "AuctionCache";
+});
 
 var app = builder.Build();
 app.Use(async (context, next) =>

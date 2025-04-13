@@ -5,8 +5,10 @@ using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using Common.Utils;
 using Elastic.Clients.Elasticsearch;
+using ElasticSearchService.DTO;
 using ElasticSearchService.Services;
 using MassTransit;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace ElasticSearchService.Consumers;
 
@@ -17,14 +19,16 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
     private readonly IConfiguration _configuration;
     private readonly IMapper _mapper;
     private static readonly AwaitLocker _locker = new AwaitLocker();
+    private readonly IDistributedCache _cache;
 
     public ElkConsumer(IPublishEndpoint publishEndpoint, ElkClient client, IConfiguration configuration,
-        IMapper mapper)
+        IMapper mapper, IDistributedCache cache)
     {
         _publishEndpoint = publishEndpoint;
         _client = client;
         _configuration = configuration;
         _mapper = mapper;
+        _cache = cache;
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
     {
@@ -33,9 +37,32 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
             try
             {
                 var correlationId = context.Message.CorrelationId;
+
                 foreach (var item in context.Message.DataObjects)
                 {
                     var typedItem = JsonSerializer.Deserialize<AuctionItem>(item.Data);
+
+                    var search = await _client.Client.SearchAsync<AuctionCreatingElk>(indices: "search_index",
+                        p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId))));
+                    //если не переиндексация и не создание - проверяем, что запись уже проиндексирована
+                    if (item.DataType != "ElkIndexReset")
+                    {
+                        if (item.CRUD != CRUD.Create)
+                        {
+                            if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
+                            if (!search.Documents.Any()) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
+                        }
+                        //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
+                        var oldAuction = search.Documents.FirstOrDefault();
+                        var cacheDto = new CacheDTO
+                        {
+                            Record = oldAuction,
+                            CRUD = item.CRUD
+                        };
+                        await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
+                    }
+
+                    //начинаем обновлять запись в елке
                     var elkItem = _mapper.Map<AuctionCreatingElk>(typedItem);
                     switch (item.CRUD)
                     {
@@ -87,9 +114,9 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-                messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
-                messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-                messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ElkService_ELK");
+                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+                messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_ELK");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
                 messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
                 var faultType = typeof(FaultMessage<>);

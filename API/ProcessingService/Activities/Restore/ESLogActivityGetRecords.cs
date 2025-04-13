@@ -37,9 +37,9 @@ public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, Reset
             "",
             null,
             context.Saga.IsError,
-            context.Message.Message,
-            context.Message.ExceptionMessage,
-            context.Message.ServiceName);
+            context.Message.ErrorMessage,
+            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorServiceName);
         await next.Execute(context).ConfigureAwait(false);
     }
 

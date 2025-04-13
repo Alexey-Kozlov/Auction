@@ -120,9 +120,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder
             })
             .TransitionTo(PreCommitState)
@@ -148,9 +148,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder
             })
             .TransitionTo(PreCommitState)
@@ -178,9 +178,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder
             })
             .TransitionTo(PreCommitState)
@@ -209,9 +209,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder
             })
         .TransitionTo(PreCommitState)
@@ -240,9 +240,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Publish(context => new BidCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
@@ -251,10 +251,10 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .Publish(context => new BidCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message,
-                ExceptionMessage = context.Message.ExceptionMessage,
-                ServiceName = context.Message.ServiceName,
-                UserLogin = context.Message.UserLogin
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.Bidder
             })
         .TransitionTo(CommitState)
         );
@@ -292,9 +292,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                     context => new NotificationServiceError
                     {
                         CorrelationId = context.Saga.CorrelationId,
-                        Message = context.Message.Message,
-                        ExceptionMessage = context.Message.ExceptionMessage,
-                        ServiceName = context.Message.ServiceName,
+                        ErrorMessage = context.Message.ErrorMessage,
+                        ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                        ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.Bidder,
                         TraceId = Guid.NewGuid(),
                         IsError = context.Saga.IsError
@@ -319,9 +319,9 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             context => new NotificationServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder,
                 TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,

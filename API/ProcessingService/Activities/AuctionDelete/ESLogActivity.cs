@@ -29,7 +29,7 @@ public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAu
                 AuctionId = context.Message.AuctionId, //важно
                 FinanceId = Guid.NewGuid(), //не важно
                 Status = FinanceRecordStatus.Приход, //не важно
-                UserLogin = context.Message.UserLogin //важно
+                UserLogin = context.Saga.UserLogin //важно
             },
             nameof(FinanceItem),
             "Common.Contracts.Processing.ESLogAuctionDeleted",

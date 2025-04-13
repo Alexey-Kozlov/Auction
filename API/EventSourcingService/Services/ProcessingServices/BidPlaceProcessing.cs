@@ -73,9 +73,9 @@ public class BidPlaceProcessing
                 new ESLogPlaceBid
                 {
                     CorrelationId = context.Message.CorrelationId,
-                    ServiceName = "EventSourcingService_BidPlace",
-                    Message = e.MessageText,
-                    ExceptionMessage = e.Message,
+                    ErrorServiceName = "EventSourcingService_BidPlace",
+                    ErrorMessage = e.MessageText,
+                    ErrorExceptionMessage = e.Message,
                     UserLogin = context.Message.UserLogin,
                     AuctionId = context.Message.AuctionId,
                     IsError = false
@@ -89,9 +89,9 @@ public class BidPlaceProcessing
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
-            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "EventSourcingService_BidPlace");
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_BidPlace");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
             messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);

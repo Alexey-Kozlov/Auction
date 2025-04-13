@@ -100,9 +100,9 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 {
                     SessionId = context.Saga.SessionId,
                     CorrelationId = context.Saga.CorrelationId,
-                    Message = context.Message.Message.Message,
-                    ExceptionMessage = context.Message.Message.ExceptionMessage,
-                    ServiceName = context.Message.Message.ServiceName,
+                    ErrorMessage = context.Message.Message.ErrorMessage,
+                    ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                    ErrorServiceName = context.Message.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
                     IsError = true

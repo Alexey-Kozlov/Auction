@@ -105,7 +105,7 @@ public class SearchServiceSql
 
     public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)
     {
-        var item = await _context.AuctionItems.Where(p => p.AuctionId == Guid.Parse(id)).FirstOrDefaultAsync();
+        var item = await _context.AuctionItems.Where(p => p.AuctionId == Guid.Parse(id) && p.Commited).FirstOrDefaultAsync();
         return new ApiResponse<AuctionItem>
         {
             IsSuccess = true,

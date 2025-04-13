@@ -61,9 +61,9 @@ public class ImageRestoreConsumer : IConsumer<DataForProcessingServicesList<Imag
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("Message").SetValue(messageObject, e.Message);
-            messageObject.GetType().GetProperty("ExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ServiceName").SetValue(messageObject, "ImageService_ImageRestore");
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ImageService_ImageRestore");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);

@@ -43,7 +43,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
                 {
                     messageType = 1, //Предупреждение
                     auctionId = context.Message.AuctionId ?? null,
-                    message = $"{context.Message.Message}"
+                    message = $"{context.Message.ErrorMessage}"
                 });
             }
         }
@@ -56,9 +56,9 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
     {
         var loggingServiceErrorItem = new LoggingServiceError();
         loggingServiceErrorItem.AuctionId = errorItem.AuctionId;
-        loggingServiceErrorItem.Message = errorItem.Message;
-        loggingServiceErrorItem.ExceptionMessage = errorItem.ExceptionMessage;
-        loggingServiceErrorItem.ServiceName = errorItem.ServiceName;
+        loggingServiceErrorItem.ErrorMessage = errorItem.ErrorMessage;
+        loggingServiceErrorItem.ErrorExceptionMessage = errorItem.ErrorExceptionMessage;
+        loggingServiceErrorItem.ErrorServiceName = errorItem.ErrorServiceName;
         loggingServiceErrorItem.UserLogin = group;
         loggingServiceErrorItem.IsError = errorItem.IsError;
         loggingServiceErrorItem.TraceId = errorItem.TraceId;

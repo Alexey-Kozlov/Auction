@@ -13,10 +13,10 @@ public class BidFinanceGranted : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -39,10 +39,10 @@ public class BidPlaced : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -53,10 +53,10 @@ public class BidSearchPlaced : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -65,10 +65,10 @@ public class BidNotification : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -78,10 +78,10 @@ public class BidNotificationEvent : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -91,10 +91,10 @@ public class BidCreateESCommit : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -103,10 +103,10 @@ public class BidComplete : IFaultMessage
 {
 
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
@@ -130,19 +130,19 @@ public class BidCommit
      public Guid CorrelationId { get; set; }
      public bool Commited { get; set; }
      public string CallBackType { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
 }
 
 public class BidReset : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
-     public string Message { get; set; }
-     public string ExceptionMessage { get; set; }
      public string UserLogin { get; set; }
-     public string ServiceName { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }

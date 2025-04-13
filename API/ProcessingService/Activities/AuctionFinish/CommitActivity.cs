@@ -38,28 +38,28 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             "",
             null,
             context.Saga.IsError,
-            context.Message.Message,
-            context.Message.ExceptionMessage,
-            context.Message.ServiceName);
+            context.Message.ErrorMessage,
+            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorServiceName);
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification",
             CorrelationId = context.Saga.CorrelationId,
-            Message = context.Message.Message,
-            ExceptionMessage = context.Message.ExceptionMessage,
-            ServiceName = context.Message.ServiceName,
-            UserLogin = context.Message.UserLogin
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = "SystemService"
         });
         await _publishEndpoint.Publish(new ElkCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionFinishedNotification",
             CorrelationId = context.Saga.CorrelationId,
-            Message = context.Message.Message,
-            ExceptionMessage = context.Message.ExceptionMessage,
-            ServiceName = context.Message.ServiceName,
-            UserLogin = context.Message.UserLogin
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = "SystemService"
         });
         await next.Execute(context).ConfigureAwait(false);
     }

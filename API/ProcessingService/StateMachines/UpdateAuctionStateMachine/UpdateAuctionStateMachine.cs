@@ -146,15 +146,14 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-        .Then(p => Console.WriteLine("1111"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.UserLogin
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(PreCommitState)
         );
@@ -178,15 +177,14 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
         When(ImageFinalizeEvent).Finalize(),
         //обрабатываем ошибки из сервиса GatewayService            
         When(FaultSearchEvent)
-                .Then(p => Console.WriteLine("222"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.UserLogin
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(PreCommitState)
         );
@@ -208,15 +206,14 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .TransitionTo(GatewayState),
         //обрабатываем ошибки из сервиса SearchService            
         When(FaultElkEvent)
-                .Then(p => Console.WriteLine("333"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.UserLogin
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(PreCommitState)
         );
@@ -238,15 +235,14 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса ImageService            
         When(FaultGatewayEvent)
-                .Then(p => Console.WriteLine("444"))
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
-                UserLogin = context.Saga.UserLogin
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(PreCommitState)
         );
@@ -273,9 +269,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .Publish(context => new AuctionUpdateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Message.Message.UserLogin
             })
         .TransitionTo(CommitState),
@@ -284,10 +280,10 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             .Publish(context => new AuctionUpdateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message,
-                ExceptionMessage = context.Message.ExceptionMessage,
-                ServiceName = context.Message.ServiceName,
-                UserLogin = context.Message.UserLogin
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
             })
         .TransitionTo(CommitState)
         );
@@ -324,9 +320,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                     context => new NotificationServiceError
                     {
                         CorrelationId = context.Saga.CorrelationId,
-                        Message = context.Message.Message,
-                        ExceptionMessage = context.Message.ExceptionMessage,
-                        ServiceName = context.Message.ServiceName,
+                        ErrorMessage = context.Message.ErrorMessage,
+                        ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                        ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
                         IsError = context.Saga.IsError
@@ -351,9 +347,9 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             context => new NotificationServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
-                Message = context.Message.Message.Message,
-                ExceptionMessage = context.Message.Message.ExceptionMessage,
-                ServiceName = context.Message.Message.ServiceName,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
