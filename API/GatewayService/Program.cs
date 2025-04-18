@@ -15,6 +15,7 @@ using GatewayService.Logging;
 using Common.Contracts;
 using Confluent.Kafka;
 using Common.Utils;
+using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -152,4 +153,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseLoggingMiddleware();
 app.ImageMiddleware();
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);

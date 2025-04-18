@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using SearchService.Data;
@@ -14,6 +13,9 @@ public class SearchProceduresService
         _dbContext = dbContext;
     }
 
+    //вызов процедур обсклуживания записей аукционов
+
+    //ResetItems - при восстановлении из SnapShot - удаление всех записей из таблицы SearchItems
     public async Task ResetItems(Guid correlationId)
     {
         var correlationid_par = new NpgsqlParameter("correlationid_par", System.Data.DbType.Guid);
@@ -31,6 +33,8 @@ public class SearchProceduresService
             commit_par);
     }
 
+    // CommitItems - при фиксации или откете распределенной транзакции - 
+    // обработка записей в таблице SearchItems
     public async Task CommitItems(Guid correlationId, bool commit)
     {
         var correlationid_par = new NpgsqlParameter("correlationid_par", System.Data.DbType.Guid);

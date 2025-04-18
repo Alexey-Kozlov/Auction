@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -13,16 +12,11 @@ namespace NotificationService.Consumers;
 public class AuctionFinishedConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
-    private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IConfiguration _configuration;
     private readonly NotificationDbContext _dbContext;
 
-    public AuctionFinishedConsumer(IHubContext<NotificationHub> hubContext, NotificationDbContext dbContext,
-        IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public AuctionFinishedConsumer(IHubContext<NotificationHub> hubContext, NotificationDbContext dbContext)
     {
         _hubContext = hubContext;
-        _publishEndpoint = publishEndpoint;
-        _configuration = configuration;
         _dbContext = dbContext;
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)

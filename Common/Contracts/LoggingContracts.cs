@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace Common.Contracts;
 
 public class RequestLoggingContract

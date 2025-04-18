@@ -32,7 +32,10 @@ export default function AuctionCard({ auction }: Props) {
 				</div>
 			</NavLink>
 			<div className="absolute bottom-2 left-2">
-				<CountdownTimer auctionEnd={auction.auctionEnd} />
+				<CountdownTimer
+					auctionEnd={auction.auctionEnd}
+					isFinished={auction.finished}
+				/>
 			</div>
 			<div className="absolute top-2 right-2">
 				<CurrentBid

@@ -1,3 +1,4 @@
+using Common.Utils.Logging;
 using Common.Utils.Vault;
 using ElasticSearchService.Consumers;
 using ElasticSearchService.Services;
@@ -57,4 +58,5 @@ app.Use(async (context, next) =>
     await next.Invoke();
 });
 app.MapControllers();
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);

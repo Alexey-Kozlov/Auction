@@ -16,6 +16,7 @@ export type Auction = {
 	error?: string;
 	usingImage?: boolean;
 	show?: boolean;
+	finished: boolean;
 };
 
 export type Bid = {

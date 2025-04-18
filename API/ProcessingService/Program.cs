@@ -13,6 +13,7 @@ using Common.Contracts;
 using Confluent.Kafka;
 using Common.Utils.Vault;
 using Common.Contracts.EventSourcing;
+using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -127,10 +128,12 @@ builder.Services.AddScoped<SendEventToES>();
 builder.Services.AddScoped<SplitImages>();
 
 var app = builder.Build();
+
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);

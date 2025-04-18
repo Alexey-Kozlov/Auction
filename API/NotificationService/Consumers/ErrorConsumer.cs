@@ -1,6 +1,8 @@
 ﻿using Common.Contracts.Processing;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using NotificationService.Data;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
@@ -9,25 +11,44 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly IPublishEndpoint _publishEndpoint;
-    private string group;
+    private readonly NotificationDbContext _dbContext;
+    private List<string> _groups = new List<string>();
 
-    public ErrorConsumer(IHubContext<NotificationHub> hubContext, IPublishEndpoint publishEndpoint)
+    public ErrorConsumer(IHubContext<NotificationHub> hubContext, IPublishEndpoint publishEndpoint,
+        NotificationDbContext dbContext)
     {
         _hubContext = hubContext;
         _publishEndpoint = publishEndpoint;
+        _dbContext = dbContext;
     }
     public async Task Consume(ConsumeContext<NotificationServiceError> context)
     {
         context.Message.TraceId = context.Message.TraceId ?? Guid.NewGuid();
-        group = string.IsNullOrEmpty(context.Message.UserLogin) ?
+        var group = string.IsNullOrEmpty(context.Message.UserLogin) ?
             context.Message.SessionId :
             context.Message.UserLogin;
+        // если сообщение ошибки от системного сервиса (например, завершение аукциона) - 
+        // пересылаем администратору системы (если не указан AuctionId) или всем кто подписался
+        // на получение уведомлений для данного аукциона (если указан AuctionId)
+        if (group == "SystemService" && !context.Message.AuctionId.HasValue)
+        {
+            _groups.Add("admin");
+        }
+        else if (group == "SystemService" && context.Message.AuctionId.HasValue)
+        {
+            var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == context.Message.AuctionId.Value).ToListAsync();
+            _groups.AddRange(auctionNotifyList.Select(p => p.UserLogin).ToArray());
+        }
+        else
+        {
+            _groups.Add(group);
+        }
         //посылаем ошибку в UI через SignalR
         if (!string.IsNullOrEmpty(group))
         {
             if (context.Message.IsError)
             {
-                await _hubContext.Clients.Group(group).SendAsync("ErrorMessage",
+                await _hubContext.Clients.Groups(_groups).SendAsync("ErrorMessage",
                     new
                     {
                         messageType = 0, //Ошибка
@@ -38,7 +59,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
             }
             else
             {
-                await _hubContext.Clients.Group(group).SendAsync("ErrorMessage",
+                await _hubContext.Clients.Groups(_groups).SendAsync("ErrorMessage",
                 new
                 {
                     messageType = 1, //Предупреждение
@@ -59,7 +80,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         loggingServiceErrorItem.ErrorMessage = errorItem.ErrorMessage;
         loggingServiceErrorItem.ErrorExceptionMessage = errorItem.ErrorExceptionMessage;
         loggingServiceErrorItem.ErrorServiceName = errorItem.ErrorServiceName;
-        loggingServiceErrorItem.UserLogin = group;
+        loggingServiceErrorItem.UserLogin = "SystemService";
         loggingServiceErrorItem.IsError = errorItem.IsError;
         loggingServiceErrorItem.TraceId = errorItem.TraceId;
         //посылаем сообщение об ошибке через RabbitMq в LoggingService -> Consumers -> LoggingServiceErrorConsumer

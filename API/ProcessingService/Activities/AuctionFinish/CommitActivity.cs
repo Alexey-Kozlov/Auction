@@ -34,13 +34,14 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             "Common.Contracts.Auction.AuctionFinishedNotification",
             context.Message.CorrelationId,
             "",
-            Command.AuctionUpdate,
+            Command.AuctionFinished,
             "",
             null,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,
             context.Message.ErrorServiceName);
+
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
@@ -51,6 +52,7 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = "SystemService"
         });
+
         await _publishEndpoint.Publish(new ElkCommit
         {
             Commited = !context.Saga.IsError,

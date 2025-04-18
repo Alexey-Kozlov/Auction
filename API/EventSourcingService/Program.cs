@@ -14,22 +14,24 @@ using Common.Utils.Vault;
 using EventSourcingService.Consumers;
 using EventSourcingService.Services;
 using Common.Contracts.EventSourcing;
+using Common.Utils.Logging;
 
 internal class Program
 {
+    //старая нотация запуска веб-сервера
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Configuration.AddVault(options =>
-                  {
-                      var vaultOptions = builder.Configuration.GetSection("Vault");
-                      options.Address = vaultOptions["Address"];
-                      options.Role = vaultOptions["VAULT_ROLE_ID"];
-                      options.SecretPathPg = vaultOptions["SecretPathPg"];
-                      options.SecretPathRt = vaultOptions["SecretPathRt"];
-                      options.SecretPathApi = vaultOptions["SecretPathApi"];
-                      options.Secret = vaultOptions["VAULT_SECRET_ID"];
-                  });
+        {
+            var vaultOptions = builder.Configuration.GetSection("Vault");
+            options.Address = vaultOptions["Address"];
+            options.Role = vaultOptions["VAULT_ROLE_ID"];
+            options.SecretPathPg = vaultOptions["SecretPathPg"];
+            options.SecretPathRt = vaultOptions["SecretPathRt"];
+            options.SecretPathApi = vaultOptions["SecretPathApi"];
+            options.Secret = vaultOptions["VAULT_SECRET_ID"];
+        });
         builder.Services.AddControllers();
 
         builder.Services.AddDbContext<EventSourcingDbContext>(options =>
@@ -137,6 +139,7 @@ internal class Program
         app.UseAuthorization();
         app.MapControllers();
 
-        app.Run();
+        //запускаем веб-сервер и пишем в консоль хост и порт
+        ConsoleLogging.RunApp(app);
     }
 }

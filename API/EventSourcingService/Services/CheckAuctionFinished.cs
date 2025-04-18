@@ -55,10 +55,10 @@ public class CheckAuctionFinished : BackgroundService
         {
             ct.ThrowIfCancellationRequested();
         }
-        await FinishAuction(auctionData.AuctionId);
+        await FinishAuction(auctionData);
     }
 
-    private async Task FinishAuction(Guid auctionId)
+    private async Task FinishAuction(AuctionFinishedData auctionData)
     {
         using (var scope = _services.CreateAsyncScope())
         {
@@ -68,30 +68,54 @@ public class CheckAuctionFinished : BackgroundService
             var correlationId = Guid.NewGuid();
             using (var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
             {
-                var finishedAuctions = _dbContext.set_auction_finished(correlationId, auctionId);
-                //возвращаем список записей для изменения соответствующих БД в нужных сервисах
-                var listItems = new DataForProcessingServicesList
+                try
                 {
-                    DataObjects = new List<DataForProcessingService>()
-                };
-                var item = finishedAuctions.FirstOrDefault();
-                listItems.DataObjects.Add
-                (
-                    new DataForProcessingService
+                    var finishedAuctions = await _dbContext.set_auction_finished(correlationId, auctionData.AuctionId).ToListAsync();
+                    //возвращаем список записей для изменения соответствующих БД в нужных сервисах
+                    var listItems = new DataForProcessingServicesList
                     {
-                        DataType = item.entitytype,
-                        Data = item.eventdata,
-                        CRUD = (CRUD)item.crud
-                    }
-                );
+                        DataObjects = new List<DataForProcessingService>()
+                    };
+                    var item = finishedAuctions.FirstOrDefault();
+                    listItems.DataObjects.Add
+                    (
+                        new DataForProcessingService
+                        {
+                            DataType = item.entitytype,
+                            Data = item.eventdata,
+                            CRUD = (CRUD)item.crud
+                        }
+                    );
 
-                _auctionMetrics.FinishAuction();
-                var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                    _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
-                sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-                sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
-                await _publishEndpoint.Publish(sendObject);
-                await transaction.CommitAsync();
+                    _auctionMetrics.FinishAuction();
+                    var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                        _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
+                    sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+                    sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+                    await _publishEndpoint.Publish(sendObject);
+                    await transaction.CommitAsync();
+                }
+                catch (Exception e)
+                {
+                    //ошибки прочие
+                    var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                        _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
+                    messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, correlationId);
+                    messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+                    messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+                    messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
+                    messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");
+                    messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, auctionData.AuctionId);
+                    messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+                    var faultType = typeof(FaultMessage<>);
+                    var typeParams = new Type[] { messageObject.GetType() };
+                    var faultObjectType = faultType.MakeGenericType(typeParams);
+
+                    var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+                    await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
+                    await transaction.RollbackAsync();
+                }
             }
         }
     }

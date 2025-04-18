@@ -1,5 +1,6 @@
 using System.Text;
 using Common.Utils;
+using Common.Utils.Logging;
 using Common.Utils.Vault;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -52,5 +53,6 @@ app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExpose
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);
 

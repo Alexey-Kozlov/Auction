@@ -18,31 +18,6 @@ public class ESContract
     public string ErrorServiceName { get; set; }
 }
 
-//указываем generic T для создания разных типов сообщений
-public record SendAllItems<T>(
-    string UserLogin,
-    string SessionId,
-    Guid CorrelationId,
-    DateTime CreateAt
-);
-
-public class SendToSetSnapShot
-{
-    public Guid CorrelationId { get; set; } = Guid.NewGuid();
-    public string UserLogin { get; set; }
-    public List<string> SnapShotItems { get; set; } = new();
-    public string ItemsType { get; set; }
-    public DateTime CreateAt { get; set; }
-    public string SessionId { get; set; }
-}
-
-
-public record EventSourcingInitialized(
-    string Message,
-    Guid CorrelationId,
-    string UserLogin,
-    string SessionId
-);
 
 public class RequestRestoreItems
 {
@@ -136,10 +111,7 @@ public class SearchRestoreSnapShot : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
 }
-public class ImageRestoreSnapShot
-{
-    public Guid CorrelationId { get; set; }
-}
+
 public class RestoreSnapShotESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
@@ -150,10 +122,6 @@ public class RestoreSnapShotESCommit : IFaultMessage
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
-}
-public class RestoreSnapShotComplete
-{
-    public Guid CorrelationId { get; set; }
 }
 
 public class RequestSetSnapShot

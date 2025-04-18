@@ -35,22 +35,21 @@ public class SearchServiceSql
         //сортировка в зависимости от текстового параметра OrderBy
         query = searchParams.OrderBy switch
         {
-            "titleAsc" => query.OrderBy(p => p.Title).ThenBy(p => p.Title),
-            "titleDesc" => query.OrderByDescending(p => p.Title).ThenByDescending(p => p.Title),
-            "newAsc" => query.OrderBy(p => p.CreateAt).ThenBy(p => p.Title),
-            "newDesc" => query.OrderByDescending(p => p.CreateAt).ThenByDescending(p => p.Title),
-            "endAsc" => query.OrderBy(p => p.AuctionEnd),
-            _ => query.OrderByDescending(p => p.AuctionEnd)
+            "titleAsc" => query.OrderBy(p => p.Title).ThenBy(p => p.Id),
+            "titleDesc" => query.OrderByDescending(p => p.Title).ThenBy(p => p.Id),
+            "newAsc" => query.OrderBy(p => p.CreateAt).ThenBy(p => p.Id),
+            "newDesc" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.Id),
+            "endAsc" => query.OrderBy(p => p.AuctionEnd).ThenBy(p => p.Id),
+            _ => query.OrderByDescending(p => p.AuctionEnd).ThenBy(p => p.Id)
         };
         //отбор в зависимости от текстового параметра FilterBy
         if (!string.IsNullOrEmpty(searchParams.FilterBy))
         {
             query = searchParams.FilterBy switch
             {
-                "finished" => query.Where(p => p.AuctionEnd < DateTime.UtcNow),
-                "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(24)
-                    && p.AuctionEnd > DateTime.UtcNow),
-                _ => query.Where(p => p.AuctionEnd > DateTime.UtcNow)
+                "finished" => query.Where(p => p.Finished),
+                "endingSoon" => query.Where(p => p.AuctionEnd < DateTime.UtcNow.AddHours(24) && !p.Finished),
+                _ => query.Where(p => !p.Finished)
             };
         }
 

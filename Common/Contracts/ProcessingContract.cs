@@ -2,8 +2,6 @@ using MassTransit;
 
 namespace Common.Contracts.Processing;
 
-public record FaultMessageSending(Guid CorrelationId, string Message, string UserLogin);
-
 public interface IFaultMessage
 {
     public Guid CorrelationId { get; set; }
@@ -136,9 +134,9 @@ public class ESLogAuctionDeleted : IFaultMessage
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
+
 public class ESLogAuctionCreated : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }
@@ -149,9 +147,9 @@ public class ESLogAuctionCreated : IFaultMessage
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
+
 public class ESLogAuctionUpdated : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }
@@ -162,9 +160,9 @@ public class ESLogAuctionUpdated : IFaultMessage
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
+
 public class ESLogFinanceCreated : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }
@@ -175,9 +173,9 @@ public class ESLogFinanceCreated : IFaultMessage
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
+
 public class ESLogPlaceBid : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }
@@ -188,9 +186,9 @@ public class ESLogPlaceBid : IFaultMessage
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
+
 public class ESLogElkIndex : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }
@@ -204,20 +202,6 @@ public class ESLogElkIndex : IFaultMessage
     public int AllItemsCount { get; set; }
 }
 
-public class ESLogRestoreItems : IFaultMessage
-{
-
-    public Guid CorrelationId { get; set; }
-    public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
-    public string ErrorServiceName { get; set; }
-    public string UserLogin { get; set; }
-    public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
-    public bool IsError { get; set; }
-    public DataForProcessingServicesList DataItems { get; set; }
-    public int BatchCount { get; set; }
-}
 
 public class ResetItems : IFaultMessage
 {
@@ -263,7 +247,6 @@ public class ESLogEditNotification : IFaultMessage
 
 public class ESLogAuctionFinish : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }
@@ -275,24 +258,9 @@ public class ESLogAuctionFinish : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
 }
 
-public class ESLogResetSnapShot : IFaultMessage
-{
-
-    public Guid CorrelationId { get; set; }
-    public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
-    public string ErrorServiceName { get; set; }
-    public string UserLogin { get; set; }
-    public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
-    public bool IsError { get; set; }
-    public DataForProcessingServicesList DataItems { get; set; }
-
-}
 
 public class ESLogProcessImages : IFaultMessage
 {
-
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorExceptionMessage { get; set; }

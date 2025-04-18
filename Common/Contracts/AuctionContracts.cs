@@ -30,13 +30,6 @@ public class AuctionItem
       public bool Commited { get; set; }
 }
 
-public class AuctionImageDTO
-{
-      public string Image { get; set; }
-      public bool UsingImage { get; set; }
-      public bool IsImageSplitted { get; set; }
-}
-
 #region AuctionCreating
 
 public class RequestAuctionCreate : IAuctionImageSplit
@@ -271,19 +264,6 @@ public class AuctionDeleteESCommit : IFaultMessage
       public bool IsError { get; set; }
 };
 
-public class AuctionDeleteComplete : IFaultMessage
-{
-
-      public Guid CorrelationId { get; set; }
-      public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
-      public string ErrorServiceName { get; set; }
-      public string UserLogin { get; set; }
-      public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
-      public bool IsError { get; set; }
-};
-
 #endregion
 
 
@@ -382,18 +362,6 @@ public class AuctionUpdateESCommit : IFaultMessage
       public bool IsError { get; set; }
 };
 
-public class AuctionUpdateComplete : IFaultMessage
-{
-
-      public Guid CorrelationId { get; set; }
-      public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
-      public string ErrorServiceName { get; set; }
-      public string UserLogin { get; set; }
-      public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
-      public bool IsError { get; set; }
-};
 
 public class AuctionUpdateFinalize
 {
@@ -404,50 +372,13 @@ public class AuctionUpdateFinalize
 
 
 #region AuctionFinish
-public record RequestAuctionFinish(
-      Guid Id,
-      bool ItemSold,
-      string Winner,
-      int Amount,
-      Guid CorrelationId
-);
-public record AuctionFinishing(
-      Guid Id,
-      bool ItemSold,
-      string Winner,
-      int Amount,
-      Guid CorrelationId
-);
+
+
 public record AuctionFinished(
     Guid CorrelationId
 );
-public record AuctionFinishingFinance(
-    Guid Id,
-    bool ItemSold,
-    string Winner,
-    Guid CorrelationId
-);
-public record AuctionFinishedFinance(
-    Guid CorrelationId
-);
 
-public record AuctionFinishingSearch(
-      Guid Id,
-      bool ItemSold,
-      string Winner,
-      int Amount,
-      Guid CorrelationId
-);
-public record AuctionFinishedSearch(
-    Guid CorrelationId
-);
-public record AuctionFinishingNotification(
-      Guid Id,
-      bool ItemSold,
-      string Winner,
-      int Amount,
-      Guid CorrelationId
-);
+
 public class AuctionFinishedCommit : IFaultMessage
 {
 
@@ -461,13 +392,6 @@ public class AuctionFinishedCommit : IFaultMessage
       public bool IsError { get; set; }
 };
 
-public record AuctionFinishingElk(
-      Guid Id,
-      bool ItemSold,
-      string Winner,
-      int Amount,
-      Guid CorrelationId
-);
 public class AuctionFinishedElk : IFaultMessage
 {
 
@@ -482,19 +406,6 @@ public class AuctionFinishedElk : IFaultMessage
 };
 
 public class AuctionFinishedNotification : IFaultMessage
-{
-
-      public Guid CorrelationId { get; set; }
-      public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
-      public string ErrorServiceName { get; set; }
-      public string UserLogin { get; set; }
-      public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
-      public bool IsError { get; set; }
-};
-
-public class AuctionFinishedComplete : IFaultMessage
 {
 
       public Guid CorrelationId { get; set; }

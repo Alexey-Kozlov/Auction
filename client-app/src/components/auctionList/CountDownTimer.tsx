@@ -5,9 +5,10 @@ import { useLocation } from "react-router-dom";
 
 type Props = {
 	auctionEnd: Date;
+	isFinished: boolean;
 };
 
-export default function CountdownTimer({ auctionEnd }: Props) {
+export default function CountdownTimer({ auctionEnd, isFinished }: Props) {
 	const dispatch = useDispatch();
 	const pathName = useLocation().pathname;
 
@@ -20,12 +21,22 @@ export default function CountdownTimer({ auctionEnd }: Props) {
 
 	return (
 		<div>
-			<Countdown
-				autoStart={true}
-				date={auctionEnd}
-				renderer={renderer}
-				onComplete={auctionFinished}
-			/>
+			{isFinished ? (
+				<div
+					className={`
+            border-2 border-white text-white py-1 px-2 rounded-lg flex justify-center
+            ${"bg-red-600"}`}
+				>
+					<span>Аукцион завершен</span>
+				</div>
+			) : (
+				<Countdown
+					autoStart={true}
+					date={auctionEnd}
+					renderer={renderer}
+					onComplete={auctionFinished}
+				/>
+			)}
 		</div>
 	);
 }
@@ -56,13 +67,9 @@ const renderer = ({
 						}
         `}
 		>
-			{completed ? (
-				<span>Аукцион завершен</span>
-			) : (
-				<span suppressHydrationWarning={true}>
-					{zeroPad(days)}:{zeroPad(hours)}:{zeroPad(minutes)}:{zeroPad(seconds)}
-				</span>
-			)}
+			<span suppressHydrationWarning={true}>
+				{zeroPad(days)}:{zeroPad(hours)}:{zeroPad(minutes)}:{zeroPad(seconds)}
+			</span>
 		</div>
 	);
 };

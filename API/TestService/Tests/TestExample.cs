@@ -42,7 +42,7 @@ public class AuctionMetricsTest
     [Fact]
     public void Test2()
     {
-        var per1 = 1;
-        Console.WriteLine(per1);
+        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}");
+
     }
 }

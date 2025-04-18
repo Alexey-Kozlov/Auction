@@ -9,6 +9,7 @@ using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
 using Common.Utils;
+using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -75,4 +76,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);

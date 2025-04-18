@@ -1,4 +1,5 @@
 using Common.Contracts;
+using Common.Utils.Logging;
 using Common.Utils.Vault;
 using Logging.Consumers;
 using Logging.Services;
@@ -53,4 +54,5 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
 builder.Services.AddScoped<ElkClient>();
 var app = builder.Build();
 
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);

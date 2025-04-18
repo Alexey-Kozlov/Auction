@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
@@ -9,7 +8,6 @@ using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
 using Common.Utils.Extentions;
-using Common.Utils.Vault;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
 using EventSourcingService.Services;

@@ -7,7 +7,6 @@ using ProcessingService.Activities.AuctionFinish;
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
 public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionState>
 {
-
     public State ElkState { get; }
     public State NotificationState { get; }
     public State PreCommitState { get; }
@@ -19,6 +18,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
     public Event<AuctionFinishedCommit> CommitEvent { get; }
     public Event<AuctionFinishedNotification> NotificationEvent { get; }
     public Event<BaseServiceError> FaultEvent { get; }
+    public Event<Fault<ESLogAuctionFinish>> FaultRequestEvent { get; }
     public Event<Fault<AuctionFinishedElk>> FaultElkEvent { get; }
     public Event<Fault<AuctionFinishedCommit>> FaultCommitEvent { get; }
     public Event<Fault<AuctionFinishedNotification>> FaultNotificationEvent { get; }
@@ -45,6 +45,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         Event(() => CommitEvent);
         Event(() => NotificationEvent);
         Event(() => FaultEvent);
+        Event(() => FaultRequestEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultElkEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
@@ -55,23 +56,38 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
         //аукционы - они завершаются и передается список аукционов для обновения в AuctionService
         Initially(
             When(RequestEvent)
-            .Then(context =>
-            {
-                context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
-                context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
-                context.Saga.IsError = false;
-                context.Saga.CommitCounter = 3;
-            })
-            //Обновление аукциона в сервисе SearchService
-            .Send(
-                new Uri(configuration["QueuePaths:SearchConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
+                .Then(context =>
                 {
-                    DataObjects = context.Message.DataItems.DataObjects,
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Auction.AuctionFinishedElk"
+                    context.Saga.Amount = context.Message.DataItems.DataObjects.Count();
+                    context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
+                    context.Saga.IsError = false;
+                    context.Saga.CommitCounter = 3;
                 })
-            .TransitionTo(ElkState)
+                //Обновление аукциона в сервисе SearchService
+                .Send(
+                    new Uri(configuration["QueuePaths:SearchConsumer"]),
+                    context => new DataForProcessingServicesList<AuctionItem>
+                    {
+                        DataObjects = context.Message.DataItems.DataObjects,
+                        CorrelationId = context.Saga.CorrelationId,
+                        CallBackType = "Common.Contracts.Auction.AuctionFinishedElk"
+                    })
+                .TransitionTo(ElkState),
+            When(FaultRequestEvent)
+                .Then(p =>
+                {
+                    p.Saga.IsError = true;
+                    p.Saga.CommitCounter = 3;
+                })
+                .Publish(context => new BaseServiceError
+                {
+                    CorrelationId = context.Saga.CorrelationId,
+                    ErrorMessage = context.Message.Message.ErrorMessage,
+                    ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                    ErrorServiceName = context.Message.Message.ErrorServiceName,
+                    UserLogin = "SystemService"
+                })
+                .TransitionTo(PreCommitState)
         );
         SetCompletedWhenFinalized();
     }
@@ -90,7 +106,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                     CallBackType = "Common.Contracts.Auction.AuctionFinishedCommit"
                 })
             .TransitionTo(PreCommitState),
-        //обрабатываем ошибки из сервиса SearchService            
+        //обрабатываем ошибки из EventSourcing при завершении аукционов            
         When(FaultElkEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError

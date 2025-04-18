@@ -120,7 +120,6 @@ public class ProcessingController : ControllerBase
         };
     }
 
-    [Authorize]
     [HttpPost("FinanceCreate")]
     public async Task<ApiResponse<object>> FinanceCreate(FinanceAddCreditDTO param)
     {
@@ -174,7 +173,6 @@ public class ProcessingController : ControllerBase
         });
     }
 
-    [Authorize]
     [HttpPost("EditNotification")]
     public async Task<ApiResponse<object>> EditNotification([FromBody] EditNotificationDTO notifyUserDTO)
     {

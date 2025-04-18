@@ -38,6 +38,7 @@ public class SearchController : ControllerBase
         return await _search.SqlSearchItems(searchParams);
     }
 
+    //данные по аукционам для репортинга
     [HttpPost("GetAuctionItemsByQuery")]
     public async Task<string> GetAuctionItemsByQuery(ReportParamsDTO dto)
     {

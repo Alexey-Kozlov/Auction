@@ -9,32 +9,7 @@ public record RequestBidPlace(
      Guid CorrelationId
 );
 
-public class BidFinanceGranted : IFaultMessage
-{
 
-     public Guid CorrelationId { get; set; }
-     public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
-     public string ErrorServiceName { get; set; }
-     public string UserLogin { get; set; }
-     public string CallBackType { get; set; }
-     public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
-};
-
-public record RollbackBidFinanceGranted(
-    Guid Id,
-    string Bidder,
-    int Amount,
-    Guid CorrelationId
-);
-
-public record BidPlacing(
-     Guid Id,
-     string Bidder,
-     int Amount,
-     Guid CorrelationId
-);
 public class BidPlaced : IFaultMessage
 {
 
@@ -99,19 +74,6 @@ public class BidCreateESCommit : IFaultMessage
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
 };
-public class BidComplete : IFaultMessage
-{
-
-     public Guid CorrelationId { get; set; }
-     public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
-     public string ErrorServiceName { get; set; }
-     public string UserLogin { get; set; }
-     public string CallBackType { get; set; }
-     public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
-};
-
 
 public class BidItem
 {

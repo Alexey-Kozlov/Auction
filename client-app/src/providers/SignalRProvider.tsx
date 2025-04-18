@@ -151,6 +151,13 @@ export default function SignalRProvider() {
 				});
 
 				connection.on("AuctionFinished", (finishedAuction: AuctionFinished) => {
+					dispatch(
+						setEventFlag({
+							eventName: "CollectionChanged",
+							ready: true,
+							itemId: finishedAuction.auctionId,
+						})
+					);
 					return toast(
 						(p) => <AuctionFinishedToast finishedAuction={finishedAuction} />,
 						{ duration: 10000 }

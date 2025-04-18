@@ -8,6 +8,7 @@ using OpenTelemetry.Resources;
 using Npgsql;
 using Common.Utils.Vault;
 using ImageService.Services;
+using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -70,4 +71,5 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGrpcService<GrpcImageServer>();
-app.Run();
+//запускаем веб-сервер и пишем в консоль хост и порт
+ConsoleLogging.RunApp(app);
