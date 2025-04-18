@@ -1,5 +1,4 @@
 import toast from "react-hot-toast";
-import { NavLink } from "react-router-dom";
 import { VscError } from "react-icons/vsc";
 import { Message } from "../../store/types";
 

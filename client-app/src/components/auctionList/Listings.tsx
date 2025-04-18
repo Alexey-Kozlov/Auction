@@ -29,17 +29,27 @@ export default function Listings() {
 	const elkSearch =
 		procState.find((p) => p.eventName === "ElkSearch" && p.ready) &&
 		params.searchAdv;
+	//автоматически запускается при изменении url
 	let auctionsData = useGetAuctionsQuery(url, {
 		skip: !params.sessionId,
 		refetchOnMountOrArgChange: true,
 	});
 
+	//Обновляем набор записей при поступлении новых данных из апи - пишем в локальное хранилище
+	// auctionStore -> auctionSlice
 	useEffect(() => {
-		if (!auctionsData.isLoading && auctionsData.data) {
+		if (
+			!auctionsData.isLoading &&
+			!auctionsData.isFetching &&
+			auctionsData.data
+		) {
 			dispatch(setData(auctionsData.data.result));
 		}
-	}, [auctionsData, dispatch]);
+		// eslint-disable-next-line
+	}, [auctionsData]);
 
+	//запрос на обновление данных при поступлении сообщения об изменении коллекции - нужно
+	//принудительно обновить все записи.
 	useEffect(() => {
 		const eventStateChanged = procState.find(
 			(p) => p.eventName === "CollectionChanged" && p.ready
@@ -48,8 +58,10 @@ export default function Listings() {
 			auctionsData.refetch();
 			dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
 		}
-	}, [procState, auctionsData, dispatch]);
+		// eslint-disable-next-line
+	}, [procState]);
 
+	//первоначальая загрузка - выставляем куки для логирования
 	useEffect(() => {
 		setCookie("RequestType", RequestType[RequestType.ReadList]);
 		setCookie("RequestId", uuidv4());
@@ -60,7 +72,8 @@ export default function Listings() {
 		dispatch(setParams({ pageNumber: pageNumber }));
 	}
 
-	if (auctionsData.isLoading) return <h3>Загрузка...</h3>;
+	if (auctionsData.isLoading && auctionsData.isFetching)
+		return <h3>Загрузка...</h3>;
 
 	return (
 		<div>

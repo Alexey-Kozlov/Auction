@@ -1,7 +1,6 @@
 using System.Reflection;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
-using Confluent.Kafka;
 using EventSourcingService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
-import { useNavigate } from "react-router-dom";
 
 type Props = {
 	auctionId: string;
@@ -20,7 +19,6 @@ type Props = {
 };
 
 export default function BidForm({ auctionId, highBid, bidList }: Props) {
-	const navigate = useNavigate();
 	const [placeBid] = usePlaceBidForAuctionMutation();
 	const dispatch = useDispatch();
 	const procState: ProcessingState[] = useSelector(

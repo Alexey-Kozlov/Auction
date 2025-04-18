@@ -70,23 +70,24 @@ public class CheckAuctionFinished : BackgroundService
             {
                 try
                 {
-                    var finishedAuctions = await _dbContext.set_auction_finished(correlationId, auctionData.AuctionId).ToListAsync();
+                    var finishedItem = await _dbContext.set_auction_finished(correlationId, auctionData.AuctionId).FirstOrDefaultAsync();
                     //возвращаем список записей для изменения соответствующих БД в нужных сервисах
                     var listItems = new DataForProcessingServicesList
                     {
                         DataObjects = new List<DataForProcessingService>()
                     };
-                    var item = finishedAuctions.FirstOrDefault();
-                    listItems.DataObjects.Add
-                    (
-                        new DataForProcessingService
-                        {
-                            DataType = item.entitytype,
-                            Data = item.eventdata,
-                            CRUD = (CRUD)item.crud
-                        }
-                    );
-
+                    if (finishedItem != null)
+                    {
+                        listItems.DataObjects.Add
+                        (
+                            new DataForProcessingService
+                            {
+                                DataType = finishedItem.entitytype,
+                                Data = finishedItem.eventdata,
+                                CRUD = (CRUD)finishedItem.crud
+                            }
+                        );
+                    }
                     _auctionMetrics.FinishAuction();
                     var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                         _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");

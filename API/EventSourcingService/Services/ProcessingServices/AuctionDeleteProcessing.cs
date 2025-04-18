@@ -91,8 +91,5 @@ public class AuctionDeleteProcessing
             var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
             await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
-
-
     }
-
 }
