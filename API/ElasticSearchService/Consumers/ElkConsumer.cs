@@ -30,6 +30,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
         _mapper = mapper;
         _cache = cache;
     }
+    //получение запросов на обновление записей, переиндексацию
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
     {
         await _locker.LockAsync(async () =>
@@ -41,7 +42,6 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 foreach (var item in context.Message.DataObjects)
                 {
                     var typedItem = JsonSerializer.Deserialize<AuctionItem>(item.Data);
-
                     var search = await _client.Client.SearchAsync<AuctionCreatingElk>(indices: "search_index",
                         p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId))));
                     //если не переиндексация и не создание - проверяем, что запись уже проиндексирована

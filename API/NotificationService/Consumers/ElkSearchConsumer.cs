@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
@@ -13,15 +12,10 @@ namespace NotificationService.Consumers;
 public class ElkSearchConsumer : IConsumer<DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
-    private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IConfiguration _configuration;
 
-    public ElkSearchConsumer(IHubContext<NotificationHub> hubContext,
-        IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public ElkSearchConsumer(IHubContext<NotificationHub> hubContext)
     {
         _hubContext = hubContext;
-        _publishEndpoint = publishEndpoint;
-        _configuration = configuration;
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>> context)
     {

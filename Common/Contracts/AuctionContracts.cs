@@ -107,6 +107,7 @@ public class AuctionCreatingElk
       public bool ItemSold { get; set; }
       public string Winner { get; set; }
       public int Amount { get; set; }
+      public int CurrentHighBid { get; set; }
 };
 public class AuctionCreatedElk : IFaultMessage
 {

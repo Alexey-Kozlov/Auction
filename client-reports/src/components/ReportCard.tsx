@@ -12,10 +12,10 @@ export default function ReportCard(props: ReportItem) {
 	return (
 		<div
 			onClick={clickHandler}
-			className="block w-48 h-40 px-2 my-4 mr-2 py-4 text-center
-         bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100
-          dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700
-          cursor-pointer  "
+			className="block w-48 h-40 px-2 my-4 mr-2 py-4 text-center border-2
+         bg-white border-gray-200 rounded-lg shadow-sm hover:bg-gray-100
+          dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 hover:border-black
+          hover:border-2 cursor-pointer  "
 		>
 			<h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
 				{props.Name}

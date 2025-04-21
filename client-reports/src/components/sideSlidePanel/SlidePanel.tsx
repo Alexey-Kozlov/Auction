@@ -142,7 +142,10 @@ export default function SlidePanel({ params, reportName }: Props) {
 				)}
 
 				<h2>Параметры отчета "{reportName}"</h2>
-				<div className="grid grid-cols-2" onClick={(e) => e.stopPropagation()}>
+				<div
+					className="grid grid-cols-[2fr,1fr]"
+					onClick={(e) => e.stopPropagation()}
+				>
 					{paramValue &&
 						paramValue!.length !== 0 &&
 						params.map((p, index) => {

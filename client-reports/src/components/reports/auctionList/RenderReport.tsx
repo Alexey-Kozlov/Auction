@@ -35,6 +35,8 @@ export default function RenderReport({ reportId }: Props) {
 		const getReport = async (param: ParameterItem[]) => {
 			var rezult = await auctionListReport(param);
 			setData(rezult.data);
+			//если был отмечен параметр "Отображать ставки по аукционам" - ставим флаг по отображению
+			//2-х дополнительных колонок - автор и размер ставки
 			if (rezult.data && rezult.data.length > 0) {
 				setBidderReportType(rezult.data[0]["Bidder"] !== undefined);
 			}
@@ -43,7 +45,8 @@ export default function RenderReport({ reportId }: Props) {
 		if (reportStore && reportStore.param && reportStore.param.length > 0) {
 			getReport(reportStore.param);
 		}
-	}, [reportStore, dispatch, auctionListReport]);
+		// eslint-disable-next-line
+	}, [reportStore]);
 
 	useEffect(() => {
 		if (eventStore && eventStore.exportPdfClicked) {
@@ -54,7 +57,8 @@ export default function RenderReport({ reportId }: Props) {
 			onDownload();
 			dispatch(setEvent({ exportExcelClicked: false }));
 		}
-	}, [eventStore, dispatch, reactToPrintFn, onDownload]);
+		// eslint-disable-next-line
+	}, [eventStore]);
 
 	return (
 		<div ref={contentRef}>
