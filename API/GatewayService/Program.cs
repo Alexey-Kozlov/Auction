@@ -16,6 +16,7 @@ using Common.Contracts;
 using Confluent.Kafka;
 using Common.Utils;
 using Common.Utils.Logging;
+using Common.Contracts.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -129,7 +130,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 app.UseCors("customPolicy");
-app.UseMiddleware<ExceptionMiddleware>();
+//app.UseMiddleware<ExceptionMiddleware>();
 // app.Use(async (context, next) =>
 // {
 //     // логируем вошедший запрос

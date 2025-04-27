@@ -39,7 +39,8 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 			imageQuery.refetch();
 			dispatch(setEventFlag({ eventName: "ImageChanged", ready: false }));
 		}
-	}, [procState, dispatch, imageQuery, id]);
+		// eslint-disable-next-line
+	}, [procState, id]);
 
 	if (imageQuery.isLoading) return;
 	return (

@@ -36,7 +36,9 @@ export default function FinListings() {
 		(state: RootState) => state.financeStore
 	).items;
 	const url = qs.stringifyUrl({ url: "", query: { ...params, pageSize: 5 } });
-	const financeData = useGetFinanceItemQuery(url);
+	const financeData = useGetFinanceItemQuery(url, {
+		skip: url.endsWith("sessionId="),
+	});
 	const balance = useGetBalanceQuery(null);
 	const procState: ProcessingState[] = useSelector(
 		(state: RootState) => state.processingStore

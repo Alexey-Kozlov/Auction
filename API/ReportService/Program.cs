@@ -35,7 +35,8 @@ builder.Services.AddAuthentication(p =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["api:secret"])),
         ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateAudience = false,
+        NameClaimType = "Login"
     };
 });
 builder.Services.AddControllers().AddJsonOptions(jsonOptions =>

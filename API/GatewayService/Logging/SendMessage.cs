@@ -1,4 +1,4 @@
-using Common.Contracts;
+using Common.Contracts.Logging;
 using MassTransit;
 
 namespace GatewayService.Logging;

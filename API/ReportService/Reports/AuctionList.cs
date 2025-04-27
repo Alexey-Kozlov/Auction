@@ -20,7 +20,7 @@ public class AuctionList
         _services = services;
     }
 
-    public async Task<string> GetAuctionItems(ParamItem[] param)
+    public async Task<string> GetAuctionItems(ParamItem[] param, string currentUser)
     {
         var serializer = new ExpressionSerializer(new JsonSerializer())
         {
@@ -28,6 +28,10 @@ public class AuctionList
         };
         using var scope = _services.CreateScope();
         var httpClient = scope.ServiceProvider.GetRequiredService<HttpClientService>();
+
+        var authorSelector = param.FirstOrDefault(p => p.Id == "Author").Value;
+        var authorJson = System.Text.Json.JsonSerializer.Deserialize<SelectJson[]>(authorSelector);
+        var authorValue = authorJson.FirstOrDefault(p => p.Default).Value;
 
         var bidSelector = param.FirstOrDefault(p => p.Id == "Bids").Value;
         var bidJson = System.Text.Json.JsonSerializer.Deserialize<SelectJson[]>(bidSelector);
@@ -37,13 +41,21 @@ public class AuctionList
         {
             var par = param.FirstOrDefault(p => p.Id == "Seller").Value;
             //если указан логин пользователчя - автора аукционов для отчета
-            Expression<Func<AuctionItem, bool>> auctionExp = item => item.Seller.Contains(par);
-            //если не указан автор аукциона - сбрасываем фильтр          
-            if (string.IsNullOrEmpty(par))
+            Expression<Func<AuctionItem, bool>> auctionExp = item => true;
+
+            //если указан автор аукциона - обновляем фильтр          
+            if (!string.IsNullOrEmpty(par))
             {
-                auctionExp = item => true;
+                auctionExp = item => item.Seller.Contains(par);
             }
 
+            //если указана фильтрация по автору аукциона - делаем фильтр по текущему пользователю
+            if (authorValue == "My")
+            {
+                auctionExp = item => item.Seller == currentUser;
+            }
+
+            //дополнительная фильтрация по ставкам
             switch (bidValue)
             {
                 case "NoBids":

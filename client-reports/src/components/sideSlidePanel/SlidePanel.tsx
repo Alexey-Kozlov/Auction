@@ -108,6 +108,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 		const prm = SetParams(paramValue);
 		dispatch(setReportLoading({ param: prm }));
 	};
+
 	const hitEnter = (e: string) => {
 		if (e === "Enter") reportSubmit();
 	};

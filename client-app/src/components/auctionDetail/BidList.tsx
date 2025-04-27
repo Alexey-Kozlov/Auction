@@ -40,25 +40,28 @@ export default function BidList({ user, auction }: Props) {
 	//при каждом обновлении заявок - вычисление последней заявки для прокрутки
 	//списка заявок вверх (если заявок много)
 	useEffect(() => {
-		if (!bidList.isLoading && bids && bids.length > 0) {
+		if (!bidList.isLoading && !bidList.isFetching && bids && bids.length > 0) {
 			const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
 				return Date.parse(b.bidTime) - Date.parse(a.bidTime);
 			})[0];
 			setLastBidId(maxBidId.bidId);
 		}
-	}, [bidList.isLoading, bids]);
+		// eslint-disable-next-line
+	}, [bidList, bids]);
 
 	//первоначальное заполнение списка заявок
 	useEffect(() => {
-		if (!bidList.isLoading) {
+		if (!bidList.isLoading && !bidList.isFetching) {
 			dispatch(setBids(bidList.data?.result));
 		}
-	}, [auction?.auctionId, bidList.isLoading, bidList.data?.result, dispatch]);
+		// eslint-disable-next-line
+	}, [bidList]);
 
 	//закрытие аукциона
 	useEffect(() => {
 		dispatch(setOpen(openForBids));
-	}, [openForBids, dispatch]);
+		// eslint-disable-next-line
+	}, [openForBids]);
 
 	//перемотка списка завок - самые послелние - в самом верху,
 	//и потом перемотка всей странички вверх - чтобы были видны последние изменения
@@ -74,6 +77,7 @@ export default function BidList({ user, auction }: Props) {
 		setTimeout(() => {
 			window.scrollTo({ top: 0, behavior: "smooth" });
 		}, 1000);
+		// eslint-disable-next-line
 	}, [lastBidId]);
 
 	if (bidList.isLoading) return <span>Загрузка предложений...</span>;

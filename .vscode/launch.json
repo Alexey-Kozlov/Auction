@@ -1,12 +1,80 @@
 {
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Chrome",
+			"name": "Bidding",
+			"type": "dotnet",
 			"request": "launch",
-			"type": "chrome",
-			"url": "http://localhost:3000",
-			"webRoot": "${workspaceFolder}/client-app/src/"
+			"projectPath": "/home/alex/Projects/Auction/API/BiddingService/BiddingService.csproj"
+		},
+		{
+			"name": "ElasticSearch",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/ElasticSearchService/ElasticSearchService.csproj"
+		},
+		{
+			"name": "EventSourcing",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/EventSourcingService/EventSourcingService.csproj"
+		},
+		{
+			"name": "Finance",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/FinanceService/FinanceService.csproj"
+		},
+		{
+			"name": "Gateway",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/GatewayService/GatewayService.csproj"
+		},
+		{
+			"name": "Identity",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/IdentityService/IdentityService.csproj"
+		},
+		{
+			"name": "Image",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/ImageService/ImageService.csproj"
+		},
+		{
+			"name": "Logging",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/LoggingService/LoggingService.csproj"
+		},
+		{
+			"name": "Notification",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/NotificationService/NotificationService.csproj"
+		},
+		{
+			"name": "Processing",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/ProcessingService/ProcessingService.csproj"
+		},
+		{
+			"name": "Report",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/ReportService/ReportService.csproj"
+		},
+		{
+			"name": "Search",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/SearchService/SearchService.csproj"
 		}
 	]
 }

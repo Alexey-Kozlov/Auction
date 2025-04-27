@@ -159,7 +159,10 @@ export default function Detail() {
 						<div>
 							<div className="flex gap-3 justify-end">
 								<h3 className="text-2xl font-semibold">Осталось времени:</h3>
-								<CountdownTimer auctionEnd={auctionDetail!.auctionEnd} />
+								<CountdownTimer
+									auctionEnd={auctionDetail!.auctionEnd}
+									isFinished={auctionDetail.finished}
+								/>
 							</div>
 							{user.name && (
 								<div>

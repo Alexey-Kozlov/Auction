@@ -1,9 +1,11 @@
 import { Dropdown } from "flowbite-react";
 import { TfiPrinter } from "react-icons/tfi";
 import { RiFileExcel2Line } from "react-icons/ri";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setEvent } from "../../../store/EventSlice";
 import { useParams } from "react-router-dom";
+import { User } from "../../../types";
+import { RootState } from "../../../store/Store";
 
 export default function Menu() {
 	const dispatch = useDispatch();
@@ -14,9 +16,10 @@ export default function Menu() {
 	const ExportExcel = () => {
 		dispatch(setEvent({ exportExcelClicked: true }));
 	};
+	const user: User = useSelector((state: RootState) => state.authStore);
 
 	return (
-		<Dropdown inline label={`Действия`}>
+		<Dropdown inline label={`${user.name}`}>
 			<Dropdown.Item
 				icon={TfiPrinter}
 				onClick={ExportPdf}

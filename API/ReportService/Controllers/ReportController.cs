@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReportService.DTO;
@@ -20,7 +21,8 @@ public class ReportController : ControllerBase
     [HttpPost("auctionlist")]
     public async Task<string> AuctionList([FromBody] ParamItem[] param)
     {
-        return await _reportService.GetAuctionListData(param);
+        var currentUser = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        return await _reportService.GetAuctionListData(param, currentUser);
     }
 
     [HttpPost("notifylist")]

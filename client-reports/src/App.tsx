@@ -5,17 +5,15 @@ import List from "./components/layout/List";
 import { useDispatch } from "react-redux";
 import { setParamIsOpen } from "./store/ReportSlice";
 import { useEffect } from "react";
+import { User } from "./types";
+import { setAuthUser } from "./store/authSlice";
 import { useCookies } from "react-cookie";
 
 function App() {
 	const dispatch = useDispatch();
-	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const tokenData = localStorage.getItem("Auction");
-	if (tokenData) {
-		const userLogin = JSON.parse(tokenData).login;
-		setCookie("User", userLogin);
-	}
+	// eslint-disable-next-line
+	const [cookies, setCookie] = useCookies(["RequestId"]);
 
 	const handleCloseParamWindow = () => {
 		dispatch(setParamIsOpen({ isOpen: false }));
@@ -26,7 +24,19 @@ function App() {
 				dispatch(setParamIsOpen({ isOpen: false }));
 			}
 		});
-	}, [dispatch]);
+
+		if (tokenData) {
+			let user: User = { isAdmin: false, login: "", name: "", id: "" };
+			user.login = JSON.parse(tokenData).login;
+			user.id = JSON.parse(tokenData).id;
+			user.name = JSON.parse(tokenData).name;
+			dispatch(setAuthUser({ user }));
+		}
+		//очищаем куку RequestId - в отчетности передаем этот параметр через хедер, вместо TraceId
+		setCookie("RequestId", "");
+
+		// eslint-disable-next-line
+	}, []);
 	return (
 		<>
 			{tokenData && (

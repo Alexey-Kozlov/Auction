@@ -6,14 +6,12 @@ import ReportFooter from "./ReportFooter";
 import Header from "./header/Header";
 import { useCookies } from "react-cookie";
 import { ReportType } from "../../types";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Main() {
 	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
+	const [cookies, setCookie] = useCookies(["User", "RequestType"]);
 	const { id } = useParams();
 	const report = () => {
-		setCookie("RequestId", uuidv4());
 		switch (id) {
 			case "AuctionList":
 				setCookie("RequestType", ReportType[ReportType.AuctionList]);

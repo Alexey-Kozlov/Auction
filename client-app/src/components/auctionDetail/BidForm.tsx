@@ -36,7 +36,8 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 			isNotifyUser.refetch();
 			dispatch(setEventFlag({ eventName: "BidPlaced", ready: false }));
 		}
-	}, [procState, user, dispatch, bidList, isNotifyUser]);
+		// eslint-disable-next-line
+	}, [procState, user]);
 
 	return (
 		<>

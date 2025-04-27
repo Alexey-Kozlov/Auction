@@ -50,7 +50,9 @@ export default function AuctionForm() {
 	const [image, setImage] = useState("");
 	const [isWaiting, setIsWaiting] = useState(false);
 	let auctionEndDate = new Date();
+	//дата нового аукциона - на сутки вперед от текущей
 	auctionEndDate.setDate(auctionEndDate.getDate() + 1);
+
 	const [newAuction, setNewAuction] = useState<Auction>({
 		title: "",
 		properties: "",
@@ -61,19 +63,28 @@ export default function AuctionForm() {
 		error: "",
 		usingImage: false,
 	} as Auction);
+
 	const auctionImage = useGetImageForAuctionQuery(
 		{ id: newAuction.auctionId, cache: false },
 		{ skip: newAuction.auctionId === undefined }
 	);
 
+	//получаем данные по аукциону
 	useEffect(() => {
-		if (!auction.isLoading && auction.data) {
+		if (!auction.isLoading && auction.data && !auction.isFetching) {
 			setNewAuction((prev) => auction.data!.result);
 		}
-	}, [auction.data, auction.isLoading]);
+		// eslint-disable-next-line
+	}, [auction]);
 
+	//получаем изображение аукционга
 	useEffect(() => {
-		if (!auctionImage.isLoading && auctionImage.data?.result?.image) {
+		if (
+			auction.data &&
+			!auctionImage.isLoading &&
+			!auctionImage.isFetching &&
+			auctionImage.data?.result?.image
+		) {
 			setImage("data:image/png;base64, " + auctionImage?.data?.result?.image);
 			setNewAuction((prev) => {
 				return {
@@ -82,33 +93,41 @@ export default function AuctionForm() {
 				};
 			});
 		}
-	}, [auction.data, auctionImage.isLoading, auctionImage.data?.result?.image]);
+		// eslint-disable-next-line
+	}, [auction, auctionImage]);
 
+	//отлавливаем несуществующий адрес страницы
 	useEffect(() => {
 		if (
 			id !== "empty" &&
 			!auction.isLoading &&
+			!auction.isFetching &&
 			auction.data?.isSuccess &&
 			auction.data?.result &&
 			!auction.data?.result.title
 		) {
 			navigate("/not-found");
 		}
-	}, [auction.isLoading, auction.data, id, navigate]);
+		// eslint-disable-next-line
+	}, [auction, id]);
 
+	//возврат на список аукционов после редактирования записи аукциона
+	//при получении сообщения об изменении параметра CollectionChanged -
+	//обновляем значения записи (удаляем кеширование), переходим на список аукционов
 	useEffect(() => {
 		const eventStateAuctionUpdated = procState.find(
 			(p) => p.eventName === "CollectionChanged" && p.ready
 		);
 		if (eventStateAuctionUpdated) {
 			if (id && id !== "empty") {
-				auctionImage.refetch();
 				auction.refetch();
 			}
 			navigate("/");
 		}
-	}, [procState, auction, navigate, id, auctionImage]);
+		// eslint-disable-next-line
+	}, [procState]);
 
+	//первоначальная загрузка - устанавливаем параметры для логирования
 	useEffect(() => {
 		if (id === "empty") {
 			setCookie("RequestType", RequestType[RequestType.Create]);

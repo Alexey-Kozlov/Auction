@@ -10,7 +10,7 @@ const ReportApi = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + "/api/reports",
 		prepareHeaders: (headers: Headers, api) => {
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.RequestId], uuidv4());
 			const tokenData = localStorage.getItem("Auction");
 			if (tokenData) {
 				const token = "Bearer " + JSON.parse(tokenData).token;

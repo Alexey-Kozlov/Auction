@@ -67,6 +67,7 @@ export default function SignalRProvider() {
 				.build();
 			setConnection(newConnection);
 		}
+		// eslint-disable-next-line
 	}, [apiUrl, tokenData]);
 
 	useEffect(() => {

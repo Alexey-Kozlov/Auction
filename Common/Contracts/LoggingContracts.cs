@@ -1,4 +1,4 @@
-namespace Common.Contracts;
+namespace Common.Contracts.Logging;
 
 public class RequestLoggingContract
 {
@@ -21,4 +21,12 @@ public class ItemLoggingContract
     public DateTime RequestDate { get; set; }
     public RequestLoggingContract RequestLoggingContract { get; set; }
     public ResponseLoggingContract ResponseLoggingContract { get; set; }
+    public LogType LogType { get; set; }
+}
+
+public enum LogType
+{
+    Audit,
+    Error,
+    System
 }

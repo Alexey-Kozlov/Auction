@@ -79,7 +79,8 @@ export default function Login() {
 			confirmText: "Подтверждение обновления пароля. Обновить пароль?",
 			confirmTitle: "Обновление пароля",
 		});
-	}, [updatePassword, setPassword]);
+		// eslint-disable-next-line
+	}, [updatePassword]);
 
 	useEffect(() => {
 		setCookie("RequestType", RequestType[RequestType.Login]);

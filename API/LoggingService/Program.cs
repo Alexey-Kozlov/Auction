@@ -1,4 +1,5 @@
 using Common.Contracts;
+using Common.Contracts.Logging;
 using Common.Utils.Logging;
 using Common.Utils.Vault;
 using Logging.Consumers;

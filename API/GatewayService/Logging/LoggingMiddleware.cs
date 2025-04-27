@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text;
-using Common.Contracts;
+using System.Text.Json;
+using Common.Contracts.Logging;
+using GatewayService.Models;
 
 namespace GatewayService.Logging;
 
@@ -19,12 +21,25 @@ public class LoggingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
+        //проверяем путь - если нужно исключить запрос из логгирования
+        if (ExceptionLoggingItems.CheckPathToInclude($"{context.Request.Path}{DecodeUrlString(context.Request.QueryString.Value)}"))
+        {
+            //пропускаем логирование
+            await _next(context);
+            return;
+        }
         var originalBodyStream = context.Response.Body;
         var rezult = new ItemLoggingContract();
         rezult.UserLogin = context.Request.Cookies["User"];
         rezult.RequestId = context.Request.Cookies["RequestId"];
+        if (string.IsNullOrEmpty(context.Request.Cookies["RequestId"]))
+        {
+            rezult.RequestId = string.IsNullOrEmpty(context.Request.Headers["RequestId"]) ?
+                Guid.NewGuid().ToString() : context.Request.Headers["RequestId"];
+        }
         rezult.RequestType = context.Request.Cookies["RequestType"];
         rezult.RequestDate = DateTime.UtcNow;
+        rezult.LogType = LogType.Audit;
         using (var responseBody = new MemoryStream())
         {
             try
@@ -33,6 +48,19 @@ public class LoggingMiddleware
                 context.Response.Body = responseBody;
                 await _next(context);
                 rezult.ResponseLoggingContract = await FormatResponse(context.Response);
+                if (!string.IsNullOrEmpty(rezult.ResponseLoggingContract.Result))
+                {
+                    try
+                    {
+                        var responseDTO = JsonSerializer.Deserialize<ResponseDTO>(rezult.ResponseLoggingContract.Result);
+                        if (responseDTO.statusCode > 399)
+                        {
+                            rezult.LogType = LogType.Error;
+                        }
+                    }
+                    //пропускаем ошибку десериализации, если в ответе был не json а html
+                    catch { }
+                }
                 await responseBody.CopyToAsync(originalBodyStream);
             }
             catch (Exception e)
@@ -44,6 +72,7 @@ public class LoggingMiddleware
                     Result = "",
                     StatusCode = HttpStatusCode.InternalServerError
                 };
+                rezult.LogType = LogType.Error;
             }
             finally
             {
@@ -70,11 +99,6 @@ public class LoggingMiddleware
         request.Body.Position = 0;
 
         rezult.TraceId = string.IsNullOrEmpty(request.Headers["traceid"]) ? Guid.NewGuid().ToString() : request.Headers["traceid"];
-        //если нужно исключить запрос из логгирования - очищаем свойство RequestId
-        if (ExceptionLoggingItems.CheckPathToInclude($"{request.Host}{request.Path}{DecodeUrlString(request.QueryString.Value)}"))
-        {
-            rezult.RequestId = "";
-        }
 
         return new RequestLoggingContract
         {

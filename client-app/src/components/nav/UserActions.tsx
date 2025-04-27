@@ -123,7 +123,7 @@ export default function UserActions() {
 		setShowConfirm(false);
 		setConfirmResult(undefined);
 		// eslint-disable-next-line
-	}, [confirmResult, dispatch]);
+	}, [confirmResult]);
 
 	const handleSetDate = (result: Date) => {
 		setDateValue(result);
@@ -140,14 +140,6 @@ export default function UserActions() {
 			duration: 2000,
 		});
 	};
-
-	// const handleOpenReports = () => {
-	// 	navigate("../reports", {
-	// 		replace: true,
-	// 	});
-	// 	//выполняем второй раз для обновления странички, иначе не будет перехода на микрофронтенд отчетов
-	// 	navigate(0);
-	// };
 
 	return (
 		<>

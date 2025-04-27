@@ -1,7 +1,11 @@
+using System.Text;
 using System.Text.Json;
+using System.Web;
 using Common.Contracts.Auction;
+using Common.Contracts.Logging;
 using Common.Contracts.Processing;
 using MassTransit;
+using MassTransit.KafkaIntegration.Serializers;
 using ProcessingService.Activities.AuctionFinish;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
@@ -202,6 +206,25 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                         IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
+                //отправляем уведомление через Rabbit для логирования системного сервиса - успешно выполнен
+                    .Send(
+                        new Uri(configuration["QueuePaths:LoggingConsumer"]),
+                        context => new ItemLoggingContract
+                        {
+                            LogType = LogType.System,
+                            RequestDate = DateTime.UtcNow,
+                            RequestId = context.Saga.CorrelationId.ToString(),
+                            RequestLoggingContract = new RequestLoggingContract { },
+                            RequestType = "AuctionFinished",
+                            ResponseLoggingContract = new ResponseLoggingContract
+                            {
+                                IsSuccess = true,
+                                StatusCode = System.Net.HttpStatusCode.OK,
+                                Result = GetSystemLogData(JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList))
+                            },
+                            TraceId = context.Saga.CorrelationId.ToString(),
+                            UserLogin = "SystemService"
+                        })
                     .Send(
                         new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
                         context => new DataForProcessingServicesList<AuctionItem>
@@ -227,5 +250,15 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             })
         .Finalize()
         );
+    }
+
+    private string GetSystemLogData(DataForProcessingServicesList message)
+    {
+        var result = new StringBuilder();
+        foreach (var item in message.DataObjects)
+        {
+            result.Append($"Аукцион завершен - {item.Data}");
+        }
+        return result.ToString();
     }
 }

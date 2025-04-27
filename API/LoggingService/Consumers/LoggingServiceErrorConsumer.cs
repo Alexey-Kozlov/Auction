@@ -1,24 +1,22 @@
 
-using Common.Contracts;
+using Common.Contracts.Logging;
 using Common.Contracts.Processing;
-using Logging.Services;
 using MassTransit;
 
 namespace Logging.Consumers;
 
 public class LoggingServiceErrorConsumer : IConsumer<LoggingServiceError>
 {
-    private readonly ElkClient _client;
+    private readonly LoggingConsumer _loggingConsumer;
 
-    public LoggingServiceErrorConsumer(ElkClient client)
+    public LoggingServiceErrorConsumer(LoggingConsumer loggingConsumer)
     {
-        _client = client;
+        _loggingConsumer = loggingConsumer;
     }
 
     public async Task Consume(ConsumeContext<LoggingServiceError> context)
     {
         //подписчик логирования через RabbitMq
-
         var loggingMessage = new ItemLoggingContract
         {
             RequestDate = DateTime.UtcNow,
@@ -32,8 +30,9 @@ public class LoggingServiceErrorConsumer : IConsumer<LoggingServiceError>
                 ErrorMessages = [context.Message.ErrorServiceName, context.Message.ErrorMessage],
                 Result = context.Message.ErrorExceptionMessage,
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
-            }
+            },
+            LogType = LogType.Error
         };
-        await _client.Client.IndexAsync(loggingMessage, p => p.Index("logging_index"));
+        await _loggingConsumer.WriteLog(loggingMessage);
     }
 }

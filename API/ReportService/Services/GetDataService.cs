@@ -13,9 +13,9 @@ public class GetDataService
         _notificationList = notificationList;
     }
 
-    public async Task<string> GetAuctionListData(ParamItem[] param)
+    public async Task<string> GetAuctionListData(ParamItem[] param, string currentUser)
     {
-        return await _auctionList.GetAuctionItems(param);
+        return await _auctionList.GetAuctionItems(param, currentUser);
     }
 
     public async Task<string> GetNotificationListData(ParamItem[] param)

@@ -48,9 +48,17 @@ export enum RequestType {
 	Finance,
 	NotFound,
 	TraceId,
+	RequestId,
 }
 
 export enum ReportType {
 	AuctionList,
 	NotificationList,
 }
+
+export type User = {
+	name: string;
+	login: string;
+	id?: string;
+	isAdmin: boolean;
+};
