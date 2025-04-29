@@ -35,7 +35,7 @@ export default function Listings() {
 		refetchOnMountOrArgChange: true,
 	});
 
-	//Обновляем набор записей при поступлении новых данных из апи - пишем в локальное хранилище
+	// Обновляем набор записей при поступлении новых данных из апи - пишем в локальное хранилище
 	// auctionStore -> auctionSlice
 	useEffect(() => {
 		if (

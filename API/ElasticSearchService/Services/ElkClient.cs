@@ -39,7 +39,9 @@ public class ElkClient
             )
             .Mappings(m => m
                 .Properties(p => p
-                    .Text(t => t.Title, t => t.Analyzer("rebuilt_russian"))
+                // для поля Title дополнительно указываем Keyword - чтобы работала сортировка в поиске 
+                // (используется опертаор Suffix где указывается это поле). Иначе будет ошибка об отсутствии маппинга
+                    .Text(t => t.Title, t => t.Fields(p => p.Keyword(r => r.Suffix("keyword"))).Analyzer("rebuilt_russian"))
                     .Text(t => t.Properties, t => t.Analyzer("rebuilt_russian"))
                     .Text(t => t.Description, t => t.Analyzer("rebuilt_russian"))
                 )

@@ -39,7 +39,7 @@ export default function Detail() {
 	const [notifyUser, setNotifyUser] = useState(false);
 	const [deleteAuction, setDeleteAuction] = useState(false);
 	const [auctionDetail, setAuctionDetail] = useState<Auction>();
-	const { data, isLoading } = useGetDetailedViewDataQuery(id!, {
+	const data = useGetDetailedViewDataQuery(id!, {
 		skip: auctionDetail?.title === "",
 	});
 	const isNotifyUser = useIsNotifyUserQuery(id!, {
@@ -53,31 +53,30 @@ export default function Detail() {
 		(state: RootState) => state.paramStore
 	).sessionId;
 
-	//удаляем аукцион
-	const handleDeleteAuction = async () => {
-		setDeleteAuction(true);
-		dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
-		const auctionDeleted: AuctionDeleted = {
-			id: uuid.v4() as string,
-			auctionId: id!,
-			correlationId: uuid.v4() as string,
-		};
-		await deleteAuctionProc(auctionDeleted);
-	};
-
 	//инициализация данных
 	useEffect(() => {
-		if (!isLoading && data?.isSuccess && data?.result && data?.result.title) {
-			setAuctionDetail(data!.result);
+		if (
+			!data.isLoading &&
+			!data.isFetching &&
+			data.data?.result &&
+			data.data?.result.title
+		) {
+			setAuctionDetail(data.data!.result);
 		}
-	}, [isLoading, data]);
+		// eslint-disable-next-line
+	}, [data]);
 
 	//для управления переключателем по уведомлениям пользователя - при получении сообщения из БД об изменении
 	//переключателя - устанавливаем новое состояние у переключателя и он меняет отображение
 	useEffect(() => {
-		if (!isNotifyUser.isLoading && isNotifyUser.data) {
+		if (
+			!isNotifyUser.isLoading &&
+			!isNotifyUser.isFetching &&
+			isNotifyUser.data
+		) {
 			setNotifyUser(isNotifyUser.data!.result!);
 		}
+		// eslint-disable-next-line
 	}, [isNotifyUser]);
 
 	//обновление переключателя рассылки уведомлений
@@ -90,7 +89,8 @@ export default function Detail() {
 			isNotifyUser.refetch();
 			dispatch(setEventFlag({ eventName: "EditNotification", ready: false }));
 		}
-	}, [procState, isNotifyUser, dispatch]);
+		// eslint-disable-next-line
+	}, [procState]);
 
 	//переход на список аукционов при удалении текущего аукциона
 	useEffect(() => {
@@ -100,7 +100,36 @@ export default function Detail() {
 		if (eventState && deleteAuction) {
 			navigate("/");
 		}
-	}, [procState, navigate, deleteAuction]);
+		// eslint-disable-next-line
+	}, [procState]);
+
+	//если не нашли данных по указанному id - переход на страницу "Не найдено"
+	useEffect(() => {
+		if (!deleteAuction && !data.isLoading && (!data || !data.data!.result)) {
+			navigate("/not-found");
+		}
+		// eslint-disable-next-line
+	}, [data]);
+
+	//для сохранения идентификатора запроса в логе
+	useEffect(() => {
+		setCookie("RequestType", RequestType[RequestType.ReadDetail]);
+		setCookie("RequestId", uuidv4());
+		// eslint-disable-next-line
+	}, []);
+
+	//удаляем аукцион
+	const handleDeleteAuction = async () => {
+		setDeleteAuction(true);
+		setCookie("RequestType", RequestType[RequestType.Delete]);
+		dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
+		const auctionDeleted: AuctionDeleted = {
+			id: uuid.v4() as string,
+			auctionId: id!,
+			correlationId: uuid.v4() as string,
+		};
+		await deleteAuctionProc(auctionDeleted);
+	};
 
 	//обработчик переключения переключателя по уведомлениям пользователя по событиям данного аукциона
 	const handleSetNotifyUser = async (
@@ -115,21 +144,7 @@ export default function Detail() {
 		await setNotifyUserApi(notifyUser);
 	};
 
-	//если не нашли данных по указанному id - переход на страницу "Не найдено"
-	useEffect(() => {
-		if (!deleteAuction && !isLoading && (!data || !data.result)) {
-			navigate("/not-found");
-		}
-	}, [isLoading, deleteAuction, data, navigate]);
-
-	//для сохранения идентификатора запроса в логе
-	useEffect(() => {
-		setCookie("RequestType", RequestType[RequestType.ReadDetail]);
-		setCookie("RequestId", uuidv4());
-		// eslint-disable-next-line
-	}, []);
-
-	if (isLoading) return "Загрузка...";
+	if (data.isLoading) return "Загрузка...";
 
 	return (
 		<div>

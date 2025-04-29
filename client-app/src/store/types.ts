@@ -184,4 +184,5 @@ export enum RequestType {
 	Finance,
 	NotFound,
 	TraceId,
+	Delete,
 }

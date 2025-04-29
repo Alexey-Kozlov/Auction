@@ -53,13 +53,16 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                             if (!search.Documents.Any()) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
                         }
                         //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
-                        var oldAuction = search.Documents.FirstOrDefault();
-                        var cacheDto = new CacheDTO
+                        if (search != null)
                         {
-                            Record = oldAuction,
-                            CRUD = item.CRUD
-                        };
-                        await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
+                            var oldAuction = search.Documents.FirstOrDefault();
+                            var cacheDto = new CacheDTO
+                            {
+                                Record = oldAuction,
+                                CRUD = item.CRUD
+                            };
+                            await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
+                        }
                     }
 
                     //начинаем обновлять запись в елке

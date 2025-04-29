@@ -248,9 +248,9 @@ export default function SignalRProvider() {
 						case 0:
 							//убираем иконку ожидания в случае ошибки
 							dispatch(setEventFlag({ eventName: "ElkSearch", ready: false }));
-							dispatch(
-								setEventFlag({ eventName: "CollectionChanged", ready: true })
-							);
+							// dispatch(
+							// 	setEventFlag({ eventName: "CollectionChanged", ready: true })
+							// );
 							return toast(
 								(p) => <ErrorMessageToast message={message} toastId={p.id} />,
 								{ duration: 5000 }

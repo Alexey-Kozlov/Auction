@@ -58,11 +58,28 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
 
                 )
             );
+            if (!countResponse.IsValidResponse)
+            {
+                var error = new LoggingServiceError
+                {
+                    CorrelationId = Guid.NewGuid(),
+                    ErrorExceptionMessage = string.Join(",", countResponse.ElasticsearchServerError.Error.RootCause),
+                    ErrorMessage = countResponse.DebugInformation,
+                    IsError = true,
+                    ErrorServiceName = "ElasticSearch_SearchCreatingElk"
+                };
+                await _publishEndpoint.Publish(error);
+                throw new Exception(countResponse.DebugInformation);
+            }
+            //итоговый запрос на получение записей
             var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s => s
                 .From((typed.PageNumber - 1) * typed.PageSize)
                 .Size(typed.PageSize)
                 .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
-                .Sort()
+                //.Sort()
+                //.Sort(p => p.Field(f => f.Title, f => f.Order(SortOrder.Asc)))
+                // .Sort(p => p.Field("title", fs => fs.Order(SortOrder.Asc)
+                // .UnmappedType(Elastic.Clients.Elasticsearch.Mapping.FieldType.Keyword)))
                 //запрос - поисковый запрос разбивается на термы, все термы должны быть
                 //указанном поле. Поиск нечеткий (Fuzzy), с учетом русского языка.
                 //поиск по ИЛИ в 3-х полях - Title, Properties, Description
@@ -91,9 +108,25 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
                             )
                         )
                     )
-                )
+                //сортируем сначала по наименованию аукциона, потом по id (если одинаковые наименования)
+                //Suffix - смотрим определение индекса - mappings в формате json, значение Suffix - keyword -
+                //наименование свойства после "fields"
+                ).Sort(p => p.Field(f => f.Title.Suffix("keyword"), fs => fs.Order(SortOrder.Asc)),
+                p => p.Field(f => f.AuctionId.Suffix("keyword"), fs => fs.Order(SortOrder.Asc)))
             );
-
+            if (!elkResponse.IsValidResponse)
+            {
+                var error = new LoggingServiceError
+                {
+                    CorrelationId = Guid.NewGuid(),
+                    ErrorExceptionMessage = string.Join(",", elkResponse.ElasticsearchServerError.Error.RootCause),
+                    ErrorMessage = elkResponse.DebugInformation,
+                    IsError = true,
+                    ErrorServiceName = "ElasticSearch_SearchCreatingElk"
+                };
+                await _publishEndpoint.Publish(error);
+                throw new Exception(countResponse.DebugInformation);
+            }
             var itemsCount = (int)countResponse.Count;
             var pageCount = 0;
             if (itemsCount > 0)
