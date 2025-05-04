@@ -28,6 +28,13 @@ public class AuthController : ControllerBase
         return await _authService.Login(loginRequestDTO);
     }
 
+    [HttpPost("Logout")]
+    public ApiResponse<object> Logout([FromBody] LogoutRequestDTO logoutRequestDTO)
+    {
+        //заглушка, ничего не делаем - вся логика в логировании запроса на Logout в сервисе Gateway
+        return new ApiResponse<object>();
+    }
+
     [HttpPost]
     public async Task<ApiResponse<string>> GetUserName([FromBody] GetUserNameDTO dto)
     {

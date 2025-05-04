@@ -17,20 +17,26 @@ public class LoggingConsumer : IConsumer<ItemLoggingContract>
     {
         //подписчик логирования через Kafka
         var loggingMessage = context.Message;
-        var jsonPolicy = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         //форматирование ошибок
         if (loggingMessage.ResponseLoggingContract.StatusCode == System.Net.HttpStatusCode.OK &&
-            loggingMessage.ResponseLoggingContract.Result != null &&
+            !String.IsNullOrEmpty(loggingMessage.ResponseLoggingContract.Result) &&
             loggingMessage.LogType == LogType.Error)
         {
             loggingMessage.ResponseLoggingContract = JsonSerializer.Deserialize<ResponseLoggingContract>(loggingMessage.ResponseLoggingContract.Result,
-            jsonPolicy);
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
         await WriteLog(loggingMessage);
     }
 
     public async Task WriteLog(ItemLoggingContract message)
     {
+        //удаляем данные о паролях
+        if (message.RequestLoggingContract.Method == "POST" &&
+            message.RequestLoggingContract.Path.Contains("identity") &&
+            message.RequestLoggingContract.Body.Contains("password"))
+        {
+            message.RequestLoggingContract.Body = string.Empty;
+        }
         //в зависимости от типа сообщения - пишем в разные индексы эластика
         //каждый день - новый индекс
         var todayName = $"{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}";

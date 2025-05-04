@@ -40,7 +40,7 @@ public class BidsController : ControllerBase
     }
 
     [HttpPost("GetBidItemsByQuery")]
-    public async Task<string> GetAuctionItemsByQuery(ReportParamsDTO dto)
+    public async Task<string> GetBidItemsByQuery(ReportParamsDTO dto)
     {
         var serializer = new ExpressionSerializer(new JsonSerializer())
         {

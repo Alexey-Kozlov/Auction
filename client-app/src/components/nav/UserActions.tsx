@@ -8,7 +8,7 @@ import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import { GrMoney } from "react-icons/gr";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Message, ModalParams, User } from "../../store/types";
+import { Message, ModalParams, RequestType, User } from "../../store/types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
@@ -18,9 +18,12 @@ import InfoMessageToast from "../signalRNotifications/InfoMessageToast";
 import toast from "react-hot-toast";
 import ModalConfirm from "../modals/ModalConfirm";
 import { useEffect, useState } from "react";
+import { useLogoutUserMutation } from "../../api/AuthApi";
+import { useCookies } from "react-cookie";
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);
+	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const location = useLocation();
@@ -35,6 +38,7 @@ export default function UserActions() {
 		undefined
 	);
 	const [resetLog, setResetLog] = useState(false);
+	const [logoutUser] = useLogoutUserMutation();
 
 	const SetWinner = () => {
 		dispatch(setParams({ winner: user.login, seller: undefined }));
@@ -48,10 +52,12 @@ export default function UserActions() {
 		if (location.pathname !== "/") navigate("/");
 	};
 
-	const handleLogout = () => {
+	const handleLogout = async () => {
+		//посылаем сообщение о выходе пользователя из системы - для логирования
+		setCookie("RequestType", RequestType[RequestType.Logout]);
+		await logoutUser({ login: user.login });
 		localStorage.removeItem("Auction");
-		dispatch(setAuthUser({ ...emptyUserState }));
-		navigate("/");
+		dispatch(setAuthUser(emptyUserState));
 	};
 
 	const handlerElkReindex = () => {

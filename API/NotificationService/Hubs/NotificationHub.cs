@@ -32,5 +32,4 @@ public class NotificationHub : Hub
         }
         return base.OnDisconnectedAsync(exception);
     }
-
 }

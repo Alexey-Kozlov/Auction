@@ -124,7 +124,8 @@ export default function Login() {
 						toast.success(
 							`Успешный вход в систему пользователя ${response.data.result.name}`
 						);
-						navigate("/");
+						//возврат на предыдущую страничку
+						navigate(-1);
 					}
 				}}
 				validationSchema={Yup.object({

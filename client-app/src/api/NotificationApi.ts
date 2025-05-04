@@ -8,7 +8,7 @@ const notificationApi = createApi({
 	refetchOnMountOrArgChange: true,
 	reducerPath: "notificationApi",
 	baseQuery: fetchBaseQuery({
-		baseUrl: process.env.REACT_APP_NOTIFY_API + "/notifications",
+		baseUrl: process.env.REACT_APP_NOTIFY_URL,
 		prepareHeaders: (headers: Headers, api) => {
 			const token = AddTokenHeader();
 			if (token) {

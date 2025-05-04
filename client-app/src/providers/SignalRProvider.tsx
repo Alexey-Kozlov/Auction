@@ -33,19 +33,10 @@ import ProgressMessageToast from "../components/signalRNotifications/ProgressMes
 
 export default function SignalRProvider() {
 	const user: User = useSelector((state: RootState) => state.authStore);
-
-	//const [finishedAuction, setFinishedAuction] = useState<AuctionFinished>();
-	//const finishedAuctionId = finishedAuction?.auctionId ? finishedAuction.auctionId : 'empty';
-	//const auction = useGetAuctionQuery(finishedAuctionId, {
-	//    skip: finishedAuctionId === 'empty'
-	//});
 	const dispatch = useDispatch();
 	const [connection, setConnection] = useState<HubConnection | null>(null);
 
-	const apiUrl =
-		process.env.NODE_ENV === "production"
-			? process.env.REACT_APP_PROD_NOTIFY_URL
-			: process.env.REACT_APP_NOTIFY_URL;
+	const apiUrl = process.env.REACT_APP_NOTIFY_URL;
 
 	const tokenData = localStorage.getItem("Auction");
 	const progressToastId = "RestoreToastId";
@@ -68,7 +59,7 @@ export default function SignalRProvider() {
 			setConnection(newConnection);
 		}
 		// eslint-disable-next-line
-	}, [apiUrl, tokenData]);
+	}, [tokenData]);
 
 	useEffect(() => {
 		const con_execute = async () => {
@@ -334,7 +325,8 @@ export default function SignalRProvider() {
 		return () => {
 			connection?.stop();
 		};
-	}, [connection, user.login, dispatch]);
+		// eslint-disable-next-line
+	}, [connection, user.login]);
 
 	return <></>;
 }

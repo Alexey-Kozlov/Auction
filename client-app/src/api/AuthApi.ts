@@ -3,6 +3,7 @@ import {
 	ApiResponseNet,
 	CreateUser,
 	LoginUser,
+	LogoutUser,
 	RequestType,
 } from "../store/types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
@@ -38,6 +39,23 @@ const authApi = createApi({
 		loginUser: builder.mutation<any, LoginUser>({
 			query: (userCredentials) => ({
 				url: "login",
+				method: "POST",
+				headers: {
+					"Content-type": "application/json",
+				},
+				body: userCredentials,
+			}),
+			transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+				PostApiProcess(response);
+				return response;
+			},
+			transformErrorResponse: (response: any, meta: any) => {
+				PostErrorApiProcess(response);
+			},
+		}),
+		logoutUser: builder.mutation<any, LogoutUser>({
+			query: (userCredentials) => ({
+				url: "logout",
 				method: "POST",
 				headers: {
 					"Content-type": "application/json",
@@ -92,6 +110,7 @@ const authApi = createApi({
 export const {
 	useRegisterUserMutation,
 	useLoginUserMutation,
+	useLogoutUserMutation,
 	useGetUserNameQuery,
 	useSetNewPasswordMutation,
 } = authApi;

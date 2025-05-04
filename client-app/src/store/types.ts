@@ -47,6 +47,10 @@ export type LoginUser = {
 	password: string;
 };
 
+export type LogoutUser = {
+	login: string;
+};
+
 export type User = {
 	name: string;
 	login: string;
@@ -180,9 +184,23 @@ export enum RequestType {
 	Edit,
 	Register,
 	Login,
+	Logout,
 	Create,
 	Finance,
 	NotFound,
 	TraceId,
 	Delete,
 }
+
+export type State = {
+	pageNumber: number;
+	pageSize: number;
+	pageCount: number;
+	orderBy: string;
+	filterBy: string;
+	seller?: string;
+	winner?: string;
+	searchTerm: string;
+	searchAdv: string;
+	sessionId: string;
+};

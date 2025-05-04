@@ -31,6 +31,12 @@ public class LoggingServiceErrorConsumer : IConsumer<LoggingServiceError>
                 Result = context.Message.ErrorExceptionMessage,
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             },
+            RequestLoggingContract = new RequestLoggingContract
+            {
+                Body = "",
+                Method = "",
+                Path = ""
+            },
             LogType = LogType.Error
         };
         await _loggingConsumer.WriteLog(loggingMessage);
