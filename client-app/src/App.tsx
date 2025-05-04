@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ShowEventsPopUp from "./components/services/ShowEventsPopUp";
 import { useCookies } from "react-cookie";
 

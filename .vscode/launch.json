@@ -75,6 +75,12 @@
 			"type": "dotnet",
 			"request": "launch",
 			"projectPath": "/home/alex/Projects/Auction/API/SearchService/SearchService.csproj"
+		},
+		{
+			"name": "Communication",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/CommunicationService/CommunicationService.csproj"
 		}
 	]
 }

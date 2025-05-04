@@ -23,6 +23,7 @@ import { useCookies } from "react-cookie";
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);
+	// eslint-disable-next-line
 	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
