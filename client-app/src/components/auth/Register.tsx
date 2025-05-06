@@ -2,13 +2,13 @@ import React, { useEffect } from "react";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import TextInput from "../inputComponents/TextInput";
-import { Button } from "flowbite-react";
 import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ApiResponse, RequestType } from "../../store/types";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
+import { Button } from "semantic-ui-react";
 
 export default function Register() {
 	const [registerUser] = useRegisterUserMutation();

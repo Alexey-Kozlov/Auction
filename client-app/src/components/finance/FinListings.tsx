@@ -15,7 +15,6 @@ import {
 } from "../../api/FinanceApi";
 import { setFinanceItems } from "../../store/financeSlice";
 import AppPagination from "../auctionList/AddPagination";
-import { Button } from "flowbite-react";
 import { Form, Formik } from "formik";
 import * as Yup from "yup";
 import TextInput from "../inputComponents/TextInput";
@@ -24,6 +23,7 @@ import { setEventFlag } from "../../store/processingSlice";
 import { useFinanceCreateMutation } from "../../api/ProcessingApi";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
+import { Button } from "semantic-ui-react";
 
 export default function FinListings() {
 	const dispatch = useDispatch();

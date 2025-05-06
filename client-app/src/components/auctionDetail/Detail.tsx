@@ -11,7 +11,6 @@ import {
 } from "../../store/types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { Button } from "flowbite-react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import ImageCard from "../auctionList/ImageCard";
 import BidList from "./BidList";
@@ -27,6 +26,7 @@ import uuid from "react-native-uuid";
 import SwitchInput from "../inputComponents/SwitchInput";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
+import { Button } from "semantic-ui-react";
 
 export default function Detail() {
 	const { id } = useParams();

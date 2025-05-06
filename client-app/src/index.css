@@ -1,14 +1,44 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 .datepicker {
 	border: 1px solid rgb(156 163 175) !important;
 	margin-left: 26px;
 }
 
-@layer components {
-	.input-custom {
-		@apply flex-grow pl-5 bg-transparent focus:outline-none border-transparent focus:border-transparent focus:ring-0;
-	}
+.SearchContainer {
+	display: flex;
+	align-items: center;
+}
+
+.SearchHeader {
+	display: flex;
+	align-items: center;
+	border: 2px solid #e5e7eb;
+	border-radius: 9999px;
+	margin: 5px;
+	width: 350px;
+	height: 50px;
+}
+
+.SearchInput {
+	font-size: 1rem;
+	line-height: 1.25rem;
+	color: rgb(75 85 99);
+	background-color: initial;
+	border-color: transparent;
+	flex-grow: 1;
+	padding-left: 1.25rem;
+	outline: none;
+}
+
+.SearchButton {
+	background-color: transparent;
+	border: none;
+}
+
+.SearchIcon {
+	border-radius: 9999px;
+	padding: 0.5rem;
+	background-color: rgb(249 128 128);
+	color: white;
+	cursor: pointer;
+	vertical-align: middle;
 }

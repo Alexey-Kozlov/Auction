@@ -1,22 +1,30 @@
 import { RiAuctionLine } from "react-icons/ri";
 import { useDispatch } from "react-redux";
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 import { setParams } from "../../store/paramSlice";
 
 export default function Logo() {
-    const dispatch = useDispatch();
-    const handleClickHome = () => {
-        dispatch(setParams({ searchTerm: '', searchAdv:'' }));
-    }
+	const dispatch = useDispatch();
+	const handleClickHome = () => {
+		dispatch(setParams({ searchTerm: "", searchAdv: "" }));
+	};
 
-    return (
-        <NavLink onClick={handleClickHome}
-            className='flex items-center gap-2 text-3xl font-semibold text-red-500'
-            to='/'
-        >
-            <RiAuctionLine size={34} />
-            <div>Аукцион</div>
-        </NavLink>
-
-    )
+	return (
+		<NavLink
+			onClick={handleClickHome}
+			style={{
+				display: "flex",
+				alignItems: "center",
+				gap: "5px",
+				fontWeight: "600",
+				fontSize: "30px",
+				lineHeight: "36px",
+				color: "rgb(240 82 82)",
+			}}
+			to="/"
+		>
+			<RiAuctionLine size={34} />
+			<div>Аукцион</div>
+		</NavLink>
+	);
 }

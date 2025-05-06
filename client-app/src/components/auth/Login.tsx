@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import TextInput from "../inputComponents/TextInput";
-import { Button } from "flowbite-react";
 import {
 	useLoginUserMutation,
 	useSetNewPasswordMutation,
@@ -20,6 +19,7 @@ import { setAuthUser } from "../../store/authSlice";
 import ModalConfirm from "../modals/ModalConfirm";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
+import { Button } from "semantic-ui-react";
 
 export default function Login() {
 	const [loginUser] = useLoginUserMutation();

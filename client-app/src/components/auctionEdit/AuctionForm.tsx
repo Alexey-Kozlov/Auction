@@ -14,7 +14,6 @@ import {
 import DatePickerInput from "../inputComponents/DatePickerInput";
 import ImageFileInput from "../inputComponents/ImageFileInput";
 import TextAreaInput from "../inputComponents/TextAreaInput";
-import { Button } from "flowbite-react";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,6 +28,7 @@ import toast from "react-hot-toast";
 import ErrorMessageToast from "../signalRNotifications/ErrorMessageToast";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
+import { Button } from "semantic-ui-react";
 
 export default function AuctionForm() {
 	// eslint-disable-next-line

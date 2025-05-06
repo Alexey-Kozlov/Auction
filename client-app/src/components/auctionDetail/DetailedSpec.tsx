@@ -1,6 +1,6 @@
-import { Table } from "flowbite-react";
 import { Auction } from "../../store/types";
 import { useGetUserNameQuery } from "../../api/AuthApi";
+import { Table } from "semantic-ui-react";
 
 type Props = {
 	auction: Auction;

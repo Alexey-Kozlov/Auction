@@ -1,4 +1,3 @@
-import { Dropdown } from "flowbite-react";
 import { AiFillTrophy, AiOutlineLogout } from "react-icons/ai";
 import { FaTrashRestoreAlt } from "react-icons/fa";
 import { RiRestartFill } from "react-icons/ri";
@@ -20,6 +19,7 @@ import ModalConfirm from "../modals/ModalConfirm";
 import { useEffect, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
 import { useCookies } from "react-cookie";
+import { Dropdown } from "semantic-ui-react";
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);

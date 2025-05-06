@@ -1,4 +1,3 @@
-import { Button } from "flowbite-react";
 import {
 	AiOutlineSortAscending,
 	AiOutlineSortDescending,
@@ -11,6 +10,7 @@ import { RootState } from "../../store/store";
 import { setParams } from "../../store/paramSlice";
 import { useState } from "react";
 import { IconType } from "react-icons/lib";
+import { ButtonGroup, Button, SemanticCOLORS } from "semantic-ui-react";
 
 const pageSizeButtons = [4, 8, 16];
 const orderButtons = [
@@ -119,38 +119,36 @@ export default function Filters() {
 	};
 
 	return (
-		<div className="flex justify-between items-center mb-4">
+		<div>
 			<div style={{ width: "455px" }}>
 				<div style={{ textAlign: "center" }}>
-					<span className="uppercase text-sm text-gray-500 mr-2">
-						Отбор по :{" "}
-					</span>
+					<span>Отбор по : </span>
 				</div>
 
-				<Button.Group>
+				<ButtonGroup>
 					{filterButtons.map(({ label, icon: Icon, value }) => {
 						return (
 							<Button
 								key={value}
 								onClick={() => dispatch(setParams({ filterBy: value }))}
-								color={`${filterBy === value ? "blue" : "gray"}`}
+								color={
+									`${filterBy === value ? "blue" : "grey"}` as SemanticCOLORS
+								}
 								className="focus:ring-0"
 							>
-								<Icon className="mr-3 h-4 w-4" />
+								<Icon />
 								{label}
 							</Button>
 						);
 					})}
-				</Button.Group>
+				</ButtonGroup>
 			</div>
 
 			<div style={{ maxWidth: "475px" }}>
 				<div style={{ textAlign: "center" }}>
-					<span className="uppercase text-sm text-gray-500 mr-2">
-						Сортировать по :{" "}
-					</span>
+					<span>Сортировать по : </span>
 				</div>
-				<Button.Group>
+				<ButtonGroup>
 					{orderItem.map((item) => {
 						const Icon: IconType = orderButtons.find(
 							(p) => p.value === item
@@ -163,41 +161,44 @@ export default function Filters() {
 										orderButtons.find((p) => p.value === item)!.value
 									)
 								}
-								color={`${
-									orderBy === orderButtons.find((p) => p.value === item)!.value
-										? "blue"
-										: "gray"
-								}`}
+								color={
+									`${
+										orderBy ===
+										orderButtons.find((p) => p.value === item)!.value
+											? "blue"
+											: "grey"
+									}` as SemanticCOLORS
+								}
 								className="focus:ring-0"
 							>
-								<Icon className="mr-3 h-4 w-4" />
+								<Icon />
 								{orderButtons.find((p) => p.value === item)!.label}
 							</Button>
 						);
 					})}
-				</Button.Group>
+				</ButtonGroup>
 			</div>
 
 			<div style={{ maxWidth: "140px" }}>
 				<div style={{ textAlign: "center" }}>
-					<span className="uppercase text-sm text-gray-500 mr-2">
-						Размер страницы
-					</span>
+					<span>Размер страницы</span>
 				</div>
-				<Button.Group>
+				<ButtonGroup>
 					{pageSizeButtons.map((value: number, index: number) => {
 						return (
 							<Button
 								key={index}
 								onClick={() => dispatch(setParams({ pageSize: value }))}
-								color={`${pageSize === value ? "blue" : "gray"}`}
+								color={
+									`${pageSize === value ? "blue" : "grey"}` as SemanticCOLORS
+								}
 								className="focus:ring-0"
 							>
 								{value}
 							</Button>
 						);
 					})}
-				</Button.Group>
+				</ButtonGroup>
 			</div>
 		</div>
 	);

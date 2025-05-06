@@ -1,4 +1,3 @@
-import { FileInput } from "flowbite-react";
 import React, { useEffect, useState } from "react";
 import { useField } from "formik";
 import SwitchInput from "./SwitchInput";
@@ -75,12 +74,6 @@ export default function ImageFileInput({
 							{rest.label}
 							{required && <span>*</span>}
 						</label>
-						<FileInput
-							className="mt-2"
-							name={rest.name}
-							placeholder={rest.label}
-							onChange={handleFileChange}
-						/>
 					</div>
 					<div className="mt-4">
 						<label className="inline-flex items-center">

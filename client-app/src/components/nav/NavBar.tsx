@@ -1,18 +1,19 @@
 import Logo from "./Logo";
 import Search from "./Search";
 import UserActions from "./UserActions";
-import { Button } from "flowbite-react";
 import { User } from "../../store/types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useNavigate } from "react-router-dom";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import AddTokenHeader from "../../api/AddTokenHeader";
-import { useEffect } from "react";
+import { createRef, useEffect } from "react";
+import { Button, Sticky } from "semantic-ui-react";
 
 export default function NavBar() {
 	let user: User = useSelector((state: RootState) => state.authStore);
 	const dispatch = useDispatch();
+	const contextRef = createRef();
 	//если токен просрочен - очищаем в хранилище данные о пользователе
 	if (!AddTokenHeader() && user.id) {
 		dispatch(setAuthUser(emptyUserState));
@@ -26,24 +27,26 @@ export default function NavBar() {
 
 	const navigate = useNavigate();
 	return (
-		<header
-			className="sticky top-0 z-50 flex justify-between bg-white p-5 
-        items-center text-gray-800 shadow-md"
+		<div
+			style={{
+				backgroundColor: "white",
+				display: "flex",
+				justifyContent: "space-between",
+				alignItems: "center",
+				padding: "10px",
+				boxShadow: "0 3px 5px #e5e7eb",
+			}}
 		>
 			<Logo />
 			<Search />
 			{user.id ? (
 				<UserActions />
 			) : (
-				<div className="flex">
-					<Button outline onClick={() => navigate("/register")}>
-						Регистрация
-					</Button>
-					<Button className="ml-2" outline onClick={() => navigate("/login")}>
-						Логин
-					</Button>
+				<div>
+					<Button onClick={() => navigate("/register")}>Регистрация</Button>
+					<Button onClick={() => navigate("/login")}>Логин</Button>
 				</div>
 			)}
-		</header>
+		</div>
 	);
 }
