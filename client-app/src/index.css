@@ -3,6 +3,13 @@
 	margin-left: 26px;
 }
 
+.MainContainer {
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 0 2.5rem 0 2.5rem;
+}
+
 .SearchContainer {
 	display: flex;
 	align-items: center;
@@ -13,7 +20,7 @@
 	align-items: center;
 	border: 2px solid #e5e7eb;
 	border-radius: 9999px;
-	margin: 5px;
+	margin: 0 5px 0 5px;
 	width: 350px;
 	height: 50px;
 }
@@ -41,4 +48,286 @@
 	color: white;
 	cursor: pointer;
 	vertical-align: middle;
+}
+
+.SearchIconAdv {
+	border-radius: 9999px;
+	padding: 0.5rem;
+	background-color: rgb(118 169 250);
+	color: white;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.MainButton {
+	background-color: white;
+	color: black;
+	font-weight: 700;
+	font-size: 14px;
+	border: 2px solid black;
+	border-radius: 10px;
+	padding: 10px;
+	margin: 4px;
+	width: 120px;
+}
+
+.MainButton:hover {
+	background-color: rgb(14 116 144);
+	color: white;
+	cursor: pointer;
+}
+
+.NavBarHeader {
+	background-color: white;
+	height: 5px;
+	width: 100%;
+}
+
+.NavBar {
+	padding: 0 10px 0 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: white;
+}
+
+.NavBarFooter1 {
+	height: 5px;
+	width: 100%;
+	background-color: white;
+}
+
+.NavBarFooter2 {
+	height: 5px;
+	width: 100%;
+	background-color: #e5e7eb;
+}
+
+.ListingFilter {
+	background-color: white;
+	height: 100px;
+	display: flex;
+}
+
+.FilterContainer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+	width: 100%;
+}
+
+.FilterItem {
+	text-align: center;
+	font-size: 18px;
+	margin-bottom: 5px;
+}
+
+.FilterIcon {
+	margin-right: 10px;
+}
+
+.ListingContainer {
+	padding: 1.25rem;
+	margin: auto;
+}
+
+.MenuItems {
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+.MenuItemsText {
+	font-size: 16px;
+}
+
+.ListItem {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.ListPagination {
+	display: flex;
+	justify-content: center;
+}
+
+.AuctionCard {
+	flex: 1 0 21%;
+	height: 100%;
+	position: relative;
+	align-items: center;
+	justify-content: center;
+}
+
+.AuctionCardTitleContainer {
+	display: flex;
+	justify-content: center;
+	margin-top: 0.5rem;
+	margin-bottom: 3rem;
+}
+
+.AuctionCardTitle {
+	padding: 0.5rem;
+	border: 2px solid white;
+	border-radius: 0.75rem;
+	background-color: white;
+	transition-duration: 0.7s;
+}
+
+.AuctionCard:hover .AuctionCardTitle {
+	border: 2px solid rgb(55 65 81);
+	background-color: white;
+}
+
+.AuctionCard:hover .AuctionImageCardNoZoom {
+	box-shadow: 0 35px 60px 10px #00000040;
+}
+
+.AuctionCardTitleText {
+	color: rgb(55 65 81);
+	font-weight: 100;
+}
+
+.AuctionCardCountDownContainer {
+	position: absolute;
+	top: 0.5rem;
+	left: 0.5rem;
+}
+
+.AuctionCardCountDownFinished {
+	color: white;
+	padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+	background-color: rgb(224 36 36);
+	border: 2px solid white;
+	border-radius: 0.5rem;
+	justify-content: center;
+	display: flex;
+}
+
+.AuctionCardCountDownCurrent {
+	color: white;
+	padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+	background-color: rgb(5 122 85);
+	border: 2px solid white;
+	border-radius: 0.5rem;
+	justify-content: center;
+	display: flex;
+}
+
+.AuctionCardCurrentBidContainer {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+}
+
+.AuctionCardCurrentBid {
+	color: white;
+	padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+	background-color: rgb(224 36 36);
+	border: 2px solid white;
+	border-radius: 0.5rem;
+	justify-content: center;
+	display: flex;
+}
+
+.AuctionImageContainer {
+	text-align: center;
+}
+
+.AuctionImageCardZoom {
+	object-fit: cover;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	max-height: 512px;
+	max-width: 750px;
+}
+
+.AuctionImageCardNoZoom {
+	object-fit: cover;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	max-width: 356px;
+	max-height: 240px;
+	transition-duration: 0.7s;
+}
+
+.AuctionImageCardNoZoom:hover {
+	box-shadow: 0 35px 60px 10px #00000040;
+}
+
+.DetailContainer {
+	display: flex;
+	justify-content: space-between;
+}
+
+.DetailItem {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.DetailCountDown {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+}
+
+.DetailCountDownItem {
+	font-weight: 600;
+	font-size: 1.5rem;
+	line-height: 2rem;
+}
+
+.DetailImageContainer {
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: 750px 1fr;
+	margin-top: 0.75rem;
+}
+
+.DetailImage {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.DetailSpec {
+	display: grid;
+	grid-template-columns: repeat(1, minmax(0, 1fr));
+	margin-top: 0.75rem;
+}
+
+.DetailBottom {
+	display: flex;
+	justify-content: center;
+	margin-top: 1.5rem;
+}
+
+.DetailHeading {
+	text-align: start;
+}
+
+.DetailHeadingTitle {
+	font-size: 1.5rem;
+	line-height: 2rem;
+	font-weight: 700;
+}
+
+.DetailHeadingSubTitle {
+	color: rgb(115 115 115);
+	font-weight: 300;
+	margin-top: 0.5rem;
+}
+
+/*переопределяем стили Semantic UI*/
+.ui.grey.button,
+.ui.grey.buttons .button {
+	background-color: transparent !important;
+	color: black !important;
+	border: 1px solid black !important;
+}
+
+.ui.grey.button:hover,
+.ui.grey.buttons .button:hover {
+	background-color: rgb(14 116 144) !important;
+	color: white !important;
 }

@@ -55,13 +55,7 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 									: empty
 							}
 							alt=""
-							className={`object-cover ease-in-out  max-w-[750px] max-h-[512px]
-            ${
-							imageQuery.isLoading
-								? "grayscale blur-2xl scale-110"
-								: "grayscale-0 blur-0 scale-100"
-						} 
-            `}
+							className="AuctionImageCardZoom"
 						/>
 					</TransformComponent>
 				</TransformWrapper>
@@ -73,13 +67,7 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 							: empty
 					}
 					alt=""
-					className={`object-cover ease-in-out  w-auto h-auto
-            ${
-							imageQuery.isLoading
-								? "grayscale blur-2xl scale-110"
-								: "grayscale-0 blur-0 scale-100"
-						} 
-            ${dopStyle}`}
+					className="AuctionImageCardNoZoom"
 				/>
 			)}
 		</>

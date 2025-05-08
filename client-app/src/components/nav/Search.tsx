@@ -73,7 +73,7 @@ export default function Search() {
 					}}
 				/>
 				<button className="SearchButton" onClick={() => AdvSearch()}>
-					<FaSearch size={34} className="SearchIcon" />
+					<FaSearch size={34} className="SearchIconAdv" />
 				</button>
 			</div>
 		</div>

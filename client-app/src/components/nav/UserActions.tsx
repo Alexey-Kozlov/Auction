@@ -19,7 +19,14 @@ import ModalConfirm from "../modals/ModalConfirm";
 import { useEffect, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
 import { useCookies } from "react-cookie";
-import { Dropdown } from "semantic-ui-react";
+import {
+	Dropdown,
+	DropdownDivider,
+	DropdownHeader,
+	DropdownItem,
+	DropdownMenu,
+	Label,
+} from "semantic-ui-react";
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);
@@ -40,59 +47,6 @@ export default function UserActions() {
 	);
 	const [resetLog, setResetLog] = useState(false);
 	const [logoutUser] = useLogoutUserMutation();
-
-	const SetWinner = () => {
-		dispatch(setParams({ winner: user.login, seller: undefined }));
-		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
-		if (location.pathname !== "/") navigate("/");
-	};
-
-	const SetSeller = () => {
-		dispatch(setParams({ seller: user.login, winner: undefined }));
-		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
-		if (location.pathname !== "/") navigate("/");
-	};
-
-	const handleLogout = async () => {
-		//посылаем сообщение о выходе пользователя из системы - для логирования
-		setCookie("RequestType", RequestType[RequestType.Logout]);
-		await logoutUser({ login: user.login });
-		localStorage.removeItem("Auction");
-		dispatch(setAuthUser(emptyUserState));
-	};
-
-	const handlerElkReindex = () => {
-		dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
-		const message: Message = {
-			message: "Старт переиндексации ELK...",
-			auctionId: "",
-			messageType: 0,
-		};
-		return toast((p) => <InfoMessageToast message={message} toastId={p.id} />, {
-			duration: 5000,
-		});
-	};
-
-	const handlerSetSnapShot = () => {
-		setDateValue(null);
-		setConfirmParam({
-			confirmText: "Произвести сохранение состояния БД?",
-			confirmTitle: "Сохранение состояния БД",
-			handler: "SetSnapShot",
-		});
-		setShowConfirm(true);
-	};
-
-	const handlerRestoreSnapShot = () => {
-		setDateValue(new Date());
-		setResetLog(false);
-		setConfirmParam({
-			confirmText: "Произвести восстановление БД из лога?",
-			confirmTitle: "Восстановление БД из лога",
-			handler: "RestoreSnapShot",
-		});
-		setShowConfirm(true);
-	};
 
 	useEffect(() => {
 		if (confirmResult) {
@@ -136,7 +90,60 @@ export default function UserActions() {
 		setDateValue(result);
 	};
 
-	const handlerResetImageCache = () => {
+	const handleSetWinnerClick = () => {
+		dispatch(setParams({ winner: user.login, seller: undefined }));
+		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
+		if (location.pathname !== "/") navigate("/");
+	};
+
+	const handleSetSellerClick = () => {
+		dispatch(setParams({ seller: user.login, winner: undefined }));
+		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
+		if (location.pathname !== "/") navigate("/");
+	};
+
+	const handleLogoutClick = async () => {
+		//посылаем сообщение о выходе пользователя из системы - для логирования
+		setCookie("RequestType", RequestType[RequestType.Logout]);
+		await logoutUser({ login: user.login });
+		localStorage.removeItem("Auction");
+		dispatch(setAuthUser(emptyUserState));
+	};
+
+	const handlerElkReindexClick = () => {
+		dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
+		const message: Message = {
+			message: "Старт переиндексации ELK...",
+			auctionId: "",
+			messageType: 0,
+		};
+		return toast((p) => <InfoMessageToast message={message} toastId={p.id} />, {
+			duration: 5000,
+		});
+	};
+
+	const handlerSetSnapShotClick = () => {
+		setDateValue(null);
+		setConfirmParam({
+			confirmText: "Произвести сохранение состояния БД?",
+			confirmTitle: "Сохранение состояния БД",
+			handler: "SetSnapShot",
+		});
+		setShowConfirm(true);
+	};
+
+	const handlerRestoreSnapShotClick = () => {
+		setDateValue(new Date());
+		setResetLog(false);
+		setConfirmParam({
+			confirmText: "Произвести восстановление БД из лога?",
+			confirmTitle: "Восстановление БД из лога",
+			handler: "RestoreSnapShot",
+		});
+		setShowConfirm(true);
+	};
+
+	const handlerResetImageCacheClick = () => {
 		dispatch(setEventFlag({ eventName: "ResetImageCache", ready: false }));
 		const message: Message = {
 			message: "Сброс кеша изобюражений Redis...",
@@ -148,56 +155,142 @@ export default function UserActions() {
 		});
 	};
 
+	const handleFinanceClick = () => {
+		navigate("/finance/list");
+	};
+
+	const handleReportClick = () => {
+		navigate(process.env.REACT_APP_REPORT_URL!);
+	};
+
+	const handleCreateAuctionClick = () => {
+		navigate("/auctions/create");
+	};
+
 	return (
 		<>
-			<Dropdown inline label={`Здравствуйте ${user.name}`}>
-				<Dropdown.Item icon={HiUser} onClick={SetSeller}>
-					Мои аукционы
-				</Dropdown.Item>
-				<Dropdown.Item icon={AiFillTrophy} onClick={SetWinner}>
-					Аукционы выигранные
-				</Dropdown.Item>
-				<NavLink to="/auctions/create">
-					<Dropdown.Item icon={RiAuctionFill}>Создать аукцион</Dropdown.Item>
-				</NavLink>
-				<NavLink to="/finance/list">
-					<Dropdown.Item icon={GrMoney}>Финансы</Dropdown.Item>
-				</NavLink>
-				{user.isAdmin && (
-					<>
-						<Dropdown.Divider />
-						<Dropdown.Item
-							icon={GoCodescanCheckmark}
-							onClick={handlerElkReindex}
-						>
-							Elk индексация
-						</Dropdown.Item>
-						<Dropdown.Item icon={GoDatabase} onClick={handlerSetSnapShot}>
-							Выполнить SnapShot Db
-						</Dropdown.Item>
-						<Dropdown.Item
-							icon={FaTrashRestoreAlt}
-							onClick={handlerRestoreSnapShot}
-						>
-							Восстановить Db из SnapShot
-						</Dropdown.Item>
-						<Dropdown.Item
-							icon={RiRestartFill}
-							onClick={handlerResetImageCache}
-						>
-							Сбросить Кеш изображений
-						</Dropdown.Item>
-					</>
-				)}
-				<Dropdown.Divider />
-				<a href={process.env.REACT_APP_REPORT_URL}>
-					<Dropdown.Item icon={HiOutlineDocumentReport}>Отчеты</Dropdown.Item>
-				</a>
-				<Dropdown.Divider />
-				<Dropdown.Item icon={AiOutlineLogout} onClick={handleLogout}>
-					Выход
-				</Dropdown.Item>
+			<Dropdown labeled text={`Здравствуйте ${user.name}`}>
+				<DropdownMenu>
+					<DropdownHeader content="Выберите действие:" />
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<HiUser className="MenuItems" size={20} />
+									Мои аукционы
+								</span>
+							</>
+						}
+						onClick={handleSetSellerClick}
+					/>
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<AiFillTrophy className="MenuItems" size={20} />
+									Аукционы выигранные
+								</span>
+							</>
+						}
+						onClick={handleSetWinnerClick}
+					/>
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<RiAuctionFill className="MenuItems" size={20} />
+									Создать аукцион
+								</span>
+							</>
+						}
+						onClick={handleCreateAuctionClick}
+					/>
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<GrMoney className="MenuItems" size={20} />
+									Финансы
+								</span>
+							</>
+						}
+						onClick={handleFinanceClick}
+					/>
+					{user.isAdmin && (
+						<>
+							<DropdownDivider />
+							<DropdownItem
+								content={
+									<>
+										<span className="MenuItemsText">
+											<GoCodescanCheckmark className="MenuItems" size={20} />
+											Elk индексация
+										</span>
+									</>
+								}
+								onClick={handlerElkReindexClick}
+							/>
+							<DropdownItem
+								content={
+									<>
+										<span className="MenuItemsText">
+											<GoDatabase className="MenuItems" size={20} />
+											Создать SnapShot
+										</span>
+									</>
+								}
+								onClick={handlerSetSnapShotClick}
+							/>
+							<DropdownItem
+								content={
+									<>
+										<span className="MenuItemsText">
+											<FaTrashRestoreAlt className="MenuItems" size={20} />
+											Восстановить из SnapShot
+										</span>
+									</>
+								}
+								onClick={handlerRestoreSnapShotClick}
+							/>
+							<DropdownItem
+								content={
+									<>
+										<span className="MenuItemsText">
+											<RiRestartFill className="MenuItems" size={20} />
+											Сбросить Кеш изображений
+										</span>
+									</>
+								}
+								onClick={handlerResetImageCacheClick}
+							/>
+						</>
+					)}
+					<DropdownDivider />
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<HiOutlineDocumentReport className="MenuItems" size={20} />
+									Отчеты
+								</span>
+							</>
+						}
+						onClick={handleReportClick}
+					/>
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<AiOutlineLogout className="MenuItems" size={20} />
+									Выход
+								</span>
+							</>
+						}
+						onClick={handleLogoutClick}
+					/>
+				</DropdownMenu>
 			</Dropdown>
+
 			<ModalConfirm
 				openModal={showConfirm}
 				text={confirmParam.confirmText}

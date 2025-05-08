@@ -13,14 +13,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
-import { createRef, useEffect } from "react";
+import { createRef, useEffect, useRef } from "react";
 import ShowEventsPopUp from "./components/services/ShowEventsPopUp";
 import { useCookies } from "react-cookie";
 import { Sticky } from "semantic-ui-react";
 
 function App() {
 	const user: User = useSelector((state: RootState) => state.authStore);
-	const rf = createRef();
 	// eslint-disable-next-line
 	const [cookies, setCookie] = useCookies(["User"]);
 
@@ -31,12 +30,12 @@ function App() {
 	}, [user]);
 
 	return (
-		<div ref={rf as React.RefObject<HTMLDivElement>}>
+		<div>
 			<ToasterProvider />
-			<Sticky context={rf as React.RefObject<HTMLDivElement>}>
+			<Sticky>
 				<NavBar />
 			</Sticky>
-			<div className="container mx-auto px-5 pt-10">
+			<div className="MainContainer">
 				<Routes>
 					<Route path="/" element={<Listings />}></Route>
 					<Route path="/register" element={<Register />}></Route>

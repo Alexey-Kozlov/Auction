@@ -43,6 +43,8 @@ public class ImageCache
                         .Replace("data:image/jpg;base64,", ""));
             float x = 0;
             float y = 0;
+            var cacheImageWidth = Int32.Parse(_config["CacheImageSize:Width"]);
+            var cacheImageHeight = Int32.Parse(_config["CacheImageSize:Height"]);
             using (var ms = new MemoryStream(originImage))
             {
                 using (var image = Image.Load(ms))
@@ -50,17 +52,30 @@ public class ImageCache
                     x = image.Width;
                     y = image.Height;
                     float rate = x / y;
-                    if (x > 720)
+                    if (x > cacheImageWidth && y <= cacheImageHeight)
                     {
-                        x = 720;
+                        x = cacheImageWidth;
                         y = Convert.ToInt32(x / rate);
                     }
-                    else if (y > 480)
+                    if (x <= cacheImageWidth && y > cacheImageHeight)
                     {
-                        y = 480;
+                        y = cacheImageHeight;
                         x = Convert.ToInt32(y * rate);
                     }
-
+                    if (x > cacheImageWidth && y > cacheImageHeight)
+                    {
+                        //выравниваем размер по наиболее болшьшой стороне изображения
+                        if (x >= y)
+                        {
+                            x = cacheImageWidth;
+                            y = Convert.ToInt32(x / rate);
+                        }
+                        else
+                        {
+                            y = cacheImageHeight;
+                            x = Convert.ToInt32(y * rate);
+                        }
+                    }
                     image.Mutate(p => p.Resize(Convert.ToInt32(x), Convert.ToInt32(y)));
                     using (var expStream = new MemoryStream())
                     {

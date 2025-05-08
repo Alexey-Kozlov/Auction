@@ -119,9 +119,9 @@ export default function Filters() {
 	};
 
 	return (
-		<div>
-			<div style={{ width: "455px" }}>
-				<div style={{ textAlign: "center" }}>
+		<div className="FilterContainer">
+			<div>
+				<div className="FilterItem">
 					<span>Отбор по : </span>
 				</div>
 
@@ -134,9 +134,8 @@ export default function Filters() {
 								color={
 									`${filterBy === value ? "blue" : "grey"}` as SemanticCOLORS
 								}
-								className="focus:ring-0"
 							>
-								<Icon />
+								<Icon className="FilterIcon" />
 								{label}
 							</Button>
 						);
@@ -144,8 +143,8 @@ export default function Filters() {
 				</ButtonGroup>
 			</div>
 
-			<div style={{ maxWidth: "475px" }}>
-				<div style={{ textAlign: "center" }}>
+			<div>
+				<div className="FilterItem">
 					<span>Сортировать по : </span>
 				</div>
 				<ButtonGroup>
@@ -169,9 +168,8 @@ export default function Filters() {
 											: "grey"
 									}` as SemanticCOLORS
 								}
-								className="focus:ring-0"
 							>
-								<Icon />
+								<Icon className="FilterIcon" />
 								{orderButtons.find((p) => p.value === item)!.label}
 							</Button>
 						);
@@ -179,8 +177,8 @@ export default function Filters() {
 				</ButtonGroup>
 			</div>
 
-			<div style={{ maxWidth: "140px" }}>
-				<div style={{ textAlign: "center" }}>
+			<div>
+				<div className="FilterItem">
 					<span>Размер страницы</span>
 				</div>
 				<ButtonGroup>
@@ -192,7 +190,6 @@ export default function Filters() {
 								color={
 									`${pageSize === value ? "blue" : "grey"}` as SemanticCOLORS
 								}
-								className="focus:ring-0"
 							>
 								{value}
 							</Button>

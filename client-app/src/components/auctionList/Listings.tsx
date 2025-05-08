@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { createRef, MutableRefObject, useEffect, useRef } from "react";
 import qs from "query-string";
 import { useGetAuctionsQuery } from "../../api/AuctionApi";
 import EmptyFilter from "./EmptyFilter";
@@ -14,6 +14,7 @@ import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
+import { Sticky } from "semantic-ui-react";
 
 export default function Listings() {
 	const dispatch = useDispatch();
@@ -72,40 +73,45 @@ export default function Listings() {
 		dispatch(setParams({ pageNumber: pageNumber }));
 	}
 
+	const stickDiv = useRef<HTMLDivElement>(null);
+
 	if (auctionsData.isLoading && auctionsData.isFetching)
 		return <h3>Загрузка...</h3>;
 
 	return (
-		<div>
-			<Filters />
-			{!elkSearch ? (
-				auctions.length === 0 ? (
-					<EmptyFilter showReset />
+		<div ref={stickDiv}>
+			<Sticky offset={65} context={stickDiv}>
+				<div className="ListingFilter">
+					<Filters />
+				</div>
+			</Sticky>
+
+			<div className="ListingContainer">
+				{!elkSearch ? (
+					auctions.length === 0 ? (
+						<EmptyFilter showReset />
+					) : (
+						<div>
+							<div className="ListItem">
+								{auctions.map((auction: Auction) => {
+									return (
+										<AuctionCard auction={auction} key={auction.auctionId} />
+									);
+								})}
+							</div>
+							<div className="ListPagination">
+								<AppPagination
+									pageChanged={setPageNumber}
+									currentPage={params.pageNumber}
+									totalPages={data.pageCount}
+								/>
+							</div>
+						</div>
+					)
 				) : (
-					<div>
-						<div className="grid grid-cols-4 gap-6 items-center">
-							{auctions.map((auction: Auction) => {
-								return (
-									<AuctionCard auction={auction} key={auction.auctionId} />
-								);
-							})}
-						</div>
-						<div className="flex justify-center mt-4">
-							<AppPagination
-								pageChanged={setPageNumber}
-								currentPage={params.pageNumber}
-								totalPages={
-									auctionsData.data?.result
-										? auctionsData.data?.result.pageCount!
-										: data.pageCount
-								}
-							/>
-						</div>
-					</div>
-				)
-			) : (
-				<Waiter color="rgb(156 163 175)" />
-			)}
+					<Waiter color="rgb(156 163 175)" />
+				)}
+			</div>
 		</div>
 	);
 }

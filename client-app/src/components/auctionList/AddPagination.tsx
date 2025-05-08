@@ -1,4 +1,5 @@
 import { Pagination } from "semantic-ui-react";
+import { number } from "yup";
 
 type Props = {
 	currentPage: number;
@@ -11,5 +12,14 @@ export default function AppPagination({
 	totalPages,
 	pageChanged,
 }: Props) {
-	return <Pagination totalPages={totalPages} layout="pagination" />;
+	return (
+		<Pagination
+			totalPages={totalPages}
+			defaultActivePage={1}
+			activePage={currentPage}
+			onPageChange={(e, { activePage }) =>
+				pageChanged(parseInt(activePage ? activePage.toString() : "0"))
+			}
+		/>
+	);
 }

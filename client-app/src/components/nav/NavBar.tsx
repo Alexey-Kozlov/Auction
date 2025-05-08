@@ -27,26 +27,29 @@ export default function NavBar() {
 
 	const navigate = useNavigate();
 	return (
-		<div
-			style={{
-				backgroundColor: "white",
-				display: "flex",
-				justifyContent: "space-between",
-				alignItems: "center",
-				padding: "10px",
-				boxShadow: "0 3px 5px #e5e7eb",
-			}}
-		>
-			<Logo />
-			<Search />
-			{user.id ? (
-				<UserActions />
-			) : (
-				<div>
-					<Button onClick={() => navigate("/register")}>Регистрация</Button>
-					<Button onClick={() => navigate("/login")}>Логин</Button>
-				</div>
-			)}
-		</div>
+		<>
+			<div className="NavBarHeader"></div>
+			<div className="NavBar">
+				<Logo />
+				<Search />
+				{user.id ? (
+					<UserActions />
+				) : (
+					<div>
+						<button
+							className="MainButton"
+							onClick={() => navigate("/register")}
+						>
+							Регистрация
+						</button>
+						<button className="MainButton" onClick={() => navigate("/login")}>
+							Логин
+						</button>
+					</div>
+				)}
+			</div>
+			<div className="NavBarFooter1"></div>
+			<div className="NavBarFooter2"></div>
+		</>
 	);
 }

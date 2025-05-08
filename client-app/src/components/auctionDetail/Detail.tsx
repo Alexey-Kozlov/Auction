@@ -150,19 +150,18 @@ export default function Detail() {
 		<div>
 			{auctionDetail && (
 				<>
-					<div className="flex justify-between">
-						<div className="flex items-center gap-3">
+					<div className="DetailContainer">
+						<div className="DetailItem">
 							<Heading title={`${auctionDetail?.title}`} />
 							{user?.login === auctionDetail?.seller && (
 								<>
-									<Button outline>
+									<Button>
 										<NavLink to={`/auctions/edit/${id}`}>
 											Редактировать аукцион
 										</NavLink>
 									</Button>
 									<Button
 										isProcessing={!!deleteAuction}
-										outline
 										onClick={handleDeleteAuction}
 									>
 										Удалить аукцион
@@ -172,8 +171,8 @@ export default function Detail() {
 						</div>
 
 						<div>
-							<div className="flex gap-3 justify-end">
-								<h3 className="text-2xl font-semibold">Осталось времени:</h3>
+							<div className="DetailCountDown">
+								<h3 className="DetailCountDownItem">Осталось времени:</h3>
 								<CountdownTimer
 									auctionEnd={auctionDetail!.auctionEnd}
 									isFinished={auctionDetail.finished}
@@ -194,8 +193,8 @@ export default function Detail() {
 							)}
 						</div>
 					</div>
-					<div className="grid grid-cols-[750px_1fr] gap-6 mt-3">
-						<div className="flex items-center justify-center rounded-lg">
+					<div className="DetailImageContainer">
+						<div className="DetailImage">
 							<ImageCard
 								id={auctionDetail!.auctionId}
 								zooming={true}
@@ -204,11 +203,11 @@ export default function Detail() {
 						</div>
 						<BidList user={user} auction={auctionDetail!} />
 					</div>
-					<div className="mt-3 grid grid-cols-1 rounded-lg">
+					<div className="DetailSpec">
 						<DetailedSpecs auction={auctionDetail!} />
 					</div>
 
-					<div className="flex justify-center mt-2">
+					<div className="DetailBottom">
 						<Button outline onClick={() => navigate(-1)} className="mb-2">
 							Назад
 						</Button>
