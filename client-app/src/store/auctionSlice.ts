@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { Auction } from "./types";
+import { Auction } from "../types";
 
 type SearchState = {
 	auctions: Auction[];

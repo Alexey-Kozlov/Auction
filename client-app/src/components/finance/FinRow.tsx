@@ -1,5 +1,5 @@
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
-import { FinanceItem } from "../../store/types";
+import { FinanceItem } from "../../types";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { GrMoney } from "react-icons/gr";
 import ImageCard from "../auctionList/ImageCard";

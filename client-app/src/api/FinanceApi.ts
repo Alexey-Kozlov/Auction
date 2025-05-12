@@ -4,7 +4,7 @@ import {
 	FinanceItem,
 	PagedResult,
 	RequestType,
-} from "../store/types";
+} from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
 import { v4 as uuidv4 } from "uuid";

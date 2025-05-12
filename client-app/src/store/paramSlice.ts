@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { State } from "./types";
+import { State } from "../types";
 
 const initialState: State = {
 	pageNumber: 1,

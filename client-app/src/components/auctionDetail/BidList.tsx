@@ -1,14 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import Heading from "../auctionList/Heading";
-import { Auction, Bid, User } from "../../store/types";
+import { Auction, Bid, User } from "../../types";
 import EmptyFilter from "../auctionList/EmptyFilter";
 import BidItem from "./BidItem";
 import BidForm from "./BidForm";
 import { useGetBidsForAuctionQuery } from "../../api/BidApi";
 import { setBids, setOpen } from "../../store/bidSlice";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
+import { Segment } from "semantic-ui-react";
 
 type Props = {
 	user: User | null;
@@ -35,7 +36,7 @@ export default function BidList({ user, auction }: Props) {
 		return result;
 	};
 
-	const itemsRef = useRef<null | HTMLLIElement>(null);
+	const itemsRef = useRef<null | HTMLDivElement>(null);
 
 	//при каждом обновлении заявок - вычисление последней заявки для прокрутки
 	//списка заявок вверх (если заявок много)
@@ -63,7 +64,7 @@ export default function BidList({ user, auction }: Props) {
 		// eslint-disable-next-line
 	}, [openForBids]);
 
-	//перемотка списка завок - самые послелние - в самом верху,
+	//перемотка списка завок - самые послеДние - в самом верху,
 	//и потом перемотка всей странички вверх - чтобы были видны последние изменения
 	useEffect(() => {
 		if (itemsRef && itemsRef.current) {
@@ -83,52 +84,42 @@ export default function BidList({ user, auction }: Props) {
 	if (bidList.isLoading) return <span>Загрузка предложений...</span>;
 
 	return (
-		<div className="rounded-lg shadow-md">
-			<div className="py-2 px-4 bg-white">
-				<div className="sticky top-0 bg-white p-2">
-					{bids?.length !== 0 && (
-						<Heading
-							title={`Текущее лучшее предложение - ${NumberWithSpaces(
-								bidRestriction()
-							)} руб`}
-						/>
-					)}
-				</div>
-			</div>
-
-			<div className="overflow-auto h-[400px] flex flex-col-reverse px-2">
+		<div>
+			<div className="mb-30">
 				{bids?.length === 0 ? (
-					<EmptyFilter
+					<Heading
 						title="Нет предложений для этого аукциона"
 						subtitle="Сделайте предложение"
 					/>
 				) : (
-					<>
-						{bids?.map((bid, index) => (
-							<li
-								key={bid?.bidId}
-								className="list-none"
-								ref={bid?.bidId === lastBidId ? itemsRef : null}
-							>
-								<BidItem bid={bid} />
-							</li>
-						))}
-					</>
+					<Heading
+						title={`Текущее лучшее предложение - ${NumberWithSpaces(
+							bidRestriction()
+						)} руб`}
+					/>
 				)}
 			</div>
-			<div className="px-2 pb-2 text-gray-500">
+			<div>
+				<div className="BidListHeight">
+					{bids?.map((bid, index) => (
+						<Segment
+							key={bid?.bidId}
+							secondary
+							className="BidListItem"
+							ref={bid?.bidId === lastBidId ? itemsRef : null}
+						>
+							<BidItem bid={bid} />
+						</Segment>
+					))}
+				</div>
+			</div>
+			<div className="DetailNotifyText text-center">
 				{!open ? (
-					<div className="flex items-center justify-center p-2 text-lg font-semibold">
-						Аукцион завершен
-					</div>
+					<div>Аукцион завершен</div>
 				) : !user?.id ? (
-					<div className="flex items-center justify-center p-2 text-lg font-semibold">
-						Войдите в систему чтобы делать заявки
-					</div>
+					<div>Войдите в систему чтобы делать заявки</div>
 				) : user && user.login === auction?.seller ? (
-					<div className="flex items-center justify-center p-2 text-lg font-semibold">
-						Невозможно сделать заявку для собственного аукциона
-					</div>
+					<div>Невозможно сделать заявку для собственного аукциона</div>
 				) : (
 					<BidForm
 						auctionId={auction?.auctionId}

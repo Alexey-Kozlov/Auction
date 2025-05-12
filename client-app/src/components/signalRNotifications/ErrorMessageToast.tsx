@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 import { VscError } from "react-icons/vsc";
-import { Message } from "../../store/types";
+import { Message } from "../../types";
 
 type Props = {
 	message: Message;

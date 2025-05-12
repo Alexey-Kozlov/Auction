@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ApiResponseNet, Bid, RequestType } from "../store/types";
+import { ApiResponseNet, Bid, RequestType } from "../types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { v4 as uuidv4 } from "uuid";

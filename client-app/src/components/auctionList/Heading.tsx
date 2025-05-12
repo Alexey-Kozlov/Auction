@@ -6,7 +6,7 @@ type Props = {
 
 export default function Heading({ center, subtitle, title }: Props) {
 	return (
-		<div className="DetailHeading">
+		<div className="BidItem">
 			<div className="DetailHeadingTitle">{title}</div>
 			<div className="DetailHeadingSubTitle">{subtitle}</div>
 		</div>

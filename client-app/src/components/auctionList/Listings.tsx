@@ -9,7 +9,7 @@ import { setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
 import { setData } from "../../store/auctionSlice";
 import Filters from "./Filters";
-import { Auction, ProcessingState, RequestType } from "../../store/types";
+import { Auction, ProcessingState, RequestType } from "../../types";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { useCookies } from "react-cookie";

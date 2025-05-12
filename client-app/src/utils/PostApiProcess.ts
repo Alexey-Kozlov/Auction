@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { ApiResponseNet } from "../store/types";
+import { ApiResponseNet } from "../types";
 
 export const PostApiProcess = (response: ApiResponseNet<any>) => {
 	if (response && response.errorMessages && !response.isSuccess) {

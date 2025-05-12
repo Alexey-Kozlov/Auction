@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { AuctionFinished, AuctionImage } from "../../store/types";
+import { AuctionFinished, AuctionImage } from "../../types";
 import { NavLink } from "react-router-dom";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 const empty = require("../../assets/Empty.png");

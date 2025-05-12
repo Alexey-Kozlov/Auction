@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import Heading from "../auctionList/Heading";
 import { useNavigate, useParams } from "react-router-dom";
-import { Formik, Form, ErrorMessage } from "formik";
 import TextInput from "../inputComponents/TextInput";
-import * as Yup from "yup";
 import {
 	Auction,
 	AuctionUpdated,
-	Message,
+	FormErrors,
 	ProcessingState,
 	RequestType,
-} from "../../store/types";
+} from "../../types";
 import DatePickerInput from "../inputComponents/DatePickerInput";
 import ImageFileInput from "../inputComponents/ImageFileInput";
 import TextAreaInput from "../inputComponents/TextAreaInput";
@@ -28,7 +26,25 @@ import toast from "react-hot-toast";
 import ErrorMessageToast from "../signalRNotifications/ErrorMessageToast";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
-import { Button } from "semantic-ui-react";
+import {
+	Button,
+	Form,
+	FormField,
+	FormInput,
+	FormTextArea,
+	Grid,
+	GridColumn,
+	GridRow,
+	Input,
+	Label,
+	Message,
+	Segment,
+	Table,
+	TableBody,
+	TableCell,
+	TableRow,
+	TextArea,
+} from "semantic-ui-react";
 
 export default function AuctionForm() {
 	// eslint-disable-next-line
@@ -47,13 +63,12 @@ export default function AuctionForm() {
 
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const [image, setImage] = useState("");
-	const [isWaiting, setIsWaiting] = useState(false);
+
 	let auctionEndDate = new Date();
 	//дата нового аукциона - на сутки вперед от текущей
 	auctionEndDate.setDate(auctionEndDate.getDate() + 1);
-
 	const [newAuction, setNewAuction] = useState<Auction>({
+		id: id,
 		title: "",
 		properties: "",
 		auctionEnd: auctionEndDate,
@@ -63,6 +78,8 @@ export default function AuctionForm() {
 		error: "",
 		usingImage: false,
 	} as Auction);
+	const [image, setImage] = useState("");
+	const [isWaiting, setIsWaiting] = useState(false);
 
 	const auctionImage = useGetImageForAuctionQuery(
 		{ id: newAuction.auctionId, cache: false },
@@ -75,9 +92,9 @@ export default function AuctionForm() {
 			setNewAuction((prev) => auction.data!.result);
 		}
 		// eslint-disable-next-line
-	}, [auction]);
+	}, [id, auction]);
 
-	//получаем изображение аукционга
+	//получаем изображение аукциона
 	useEffect(() => {
 		if (
 			auction.data &&
@@ -94,7 +111,7 @@ export default function AuctionForm() {
 			});
 		}
 		// eslint-disable-next-line
-	}, [auction, auctionImage]);
+	}, [id, auction, auctionImage]);
 
 	//отлавливаем несуществующий адрес страницы
 	useEffect(() => {
@@ -109,7 +126,7 @@ export default function AuctionForm() {
 			navigate("/not-found");
 		}
 		// eslint-disable-next-line
-	}, [auction, id]);
+	}, [id, auction]);
 
 	//возврат на список аукционов после редактирования записи аукциона
 	//при получении сообщения об изменении параметра CollectionChanged -
@@ -138,183 +155,203 @@ export default function AuctionForm() {
 		// eslint-disable-next-line
 	}, []);
 
-	const checkAuctionEndDate = (auctionEnd: Date): boolean => {
-		//устанавливаем ограничение на ввод даты окончания аукциона - не меньше минуты от текущего времени
+	const handleTitleChanged = (value: string) => {
+		setNewAuction((prev) => {
+			return { ...prev, title: value };
+		});
+	};
+
+	const handlePropertiesChanged = (value: string | number | undefined) => {
+		setNewAuction((prev) => {
+			return { ...prev, properties: value ? value.toString() : "" };
+		});
+	};
+
+	const handleDescriptionChanged = (value: string | number | undefined) => {
+		setNewAuction((prev) => {
+			return { ...prev, description: value ? value.toString() : "" };
+		});
+	};
+
+	const handleEndDateChanged = (value: Date) => {
+		setNewAuction((prev) => {
+			return { ...prev, auctionEnd: value };
+		});
+	};
+
+	const handleImageChanged = (value: string) => {
+		setNewAuction((prev) => {
+			return { ...prev, image: value };
+		});
+	};
+
+	const handleImageUsingChanged = (value: boolean) => {
+		setNewAuction((prev) => {
+			return { ...prev, usingImage: value };
+		});
+	};
+
+	const handleReservePriceChanged = (value: number) => {
+		setNewAuction((prev) => {
+			return { ...prev, reservePrice: value };
+		});
+	};
+
+	const [editError, setEditError] = useState<FormErrors | null>(null);
+
+	const editErrorList: FormErrors[] = [
+		{
+			name: "EmptyTitle",
+			topic: "Ошибка - пустое наименование аукциона!",
+			detail: "Нужно указать наименование аукциона",
+		},
+		{
+			name: "ErrorEndDate",
+			topic: "Ошибка - дата окончания аукцилона!",
+			detail: `Нужно указать дату окончания аукцилона не ранее чем за 1 день до текущей даты`,
+		},
+	];
+
+	const handleSubmit = async () => {
+		//проверка на ошибки
+		//время завершения
 		let _date = new Date();
-		_date = new Date(_date.getTime() + 30000);
-		if (auctionEnd < _date) {
-			const message: Message = {
-				auctionId: "",
-				message:
-					"Дата окончания аукциона должна быть больше текущей даты не менее чем на 1 минуту",
-				messageType: 0,
-			};
-			toast((p) => <ErrorMessageToast message={message} toastId={p.id} />);
-			return false;
+		_date = new Date(_date.getTime() + 60000);
+		if (newAuction.auctionEnd < _date) {
+			setEditError(() => editErrorList.find((p) => p.name === "ErrorEndDate")!);
+			return;
 		}
-		return true;
+		//пустое наименование
+		if (!newAuction.title) {
+			setEditError(() => editErrorList.find((p) => p.name === "EmptyTitle")!);
+			return;
+		}
+		//обработка данных
 	};
 
 	if (auction.isLoading) return "Загрузка...";
 
 	return (
-		<div className="mx-auto max-w-[75%] shadow-lg p-10 bg-white rounded-lg">
-			<>
-				<Heading
-					title="Редактирование аукциона"
-					subtitle="Отредактируйте данные ниже"
-				/>
-				<Formik
-					initialValues={newAuction}
-					enableReinitialize
-					onSubmit={async (values) => {
-						if (!checkAuctionEndDate(values.auctionEnd)) return;
-						setIsWaiting(true);
-						const auctionUpdated: AuctionUpdated = {
-							id: auction.data?.result.id
-								? auction.data!.result.id
-								: (uuid.v4() as string),
-							auctionId: id,
-							title: values.title,
-							description: values.description ? values.description : "",
-							properties: values.properties,
-							auctionEnd: values.auctionEnd,
-							reservePrice: values.reservePrice,
-							image: values.image ? values.image : "",
-							correlationId: uuid.v4() as string,
-							usingImage: values.usingImage!,
-						};
-						dispatch(
-							setEventFlag({ eventName: "CollectionChanged", ready: false })
-						);
-						if (id && id !== "empty") {
-							//обновление аукциона
-							await updateAuction(auctionUpdated);
-						} else {
-							//создание аукциона
-							await createAuction(auctionUpdated);
-						}
-					}}
-					validationSchema={Yup.object({
-						title: Yup.string().required(
-							"Необходимо указать наименование товара"
-						),
-						auctionEnd: Yup.date()
-							.required("Необходимо указать дату и время окончания акциона")
-							.min(
-								new Date(),
-								"Дата окончания аукциона должна быть больше текущей даты"
-							),
-					})}
-				>
-					{({
-						handleSubmit,
-						setFieldValue,
-						isSubmitting,
-						errors,
-						isValid,
-						dirty,
-					}) => (
-						<Form onSubmit={handleSubmit} autoComplete="off">
-							<div className="mt-5">
-								<TextInput
-									name="title"
+		<Segment className="FormContainer">
+			<Heading
+				title="Редактирование аукциона"
+				subtitle="Отредактируйте данные ниже"
+			/>
+
+			<Form onSubmit={handleSubmit} error={editError !== null}>
+				<Table singleLine striped className="FormMainTable">
+					<TableBody>
+						<TableRow>
+							<TableCell>
+								Наименование<span>*</span>
+							</TableCell>
+							<TableCell>
+								<FormInput
 									placeholder="Наименование"
-									label="Наименование"
-									labellWidth="w-[250px]"
-									inputWidth="w-[237px]"
-									onChange={() => {}}
-									required
+									onChange={(e, data) => handleTitleChanged(data.value)}
 								/>
-							</div>
-							<div className="mt-5">
-								<TextAreaInput
-									name="properties"
-									label="Описание"
+								<Message
+									error
+									visible={
+										editErrorList.find((p) => p.name === "EmptyTitle") != null
+									}
+									header={editError?.topic}
+									content={editError?.detail}
+								/>
+							</TableCell>
+						</TableRow>
+						<TableRow>
+							<TableCell>Описание</TableCell>
+							<TableCell>
+								<FormTextArea
 									placeholder="Описание"
-									rows={5}
-									labellWidth="w-[250px]"
-									inputWidth="w-[400px]"
+									onChange={(e, data) => handlePropertiesChanged(data.value)}
 								/>
-							</div>
-							<div className="mt-5">
+							</TableCell>
+						</TableRow>
+						<TableRow>
+							<TableCell>
+								Дата окончания аукциона<span>*</span>
+							</TableCell>
+							<TableCell>
 								<DatePickerInput
-									name="auctionEnd"
-									label="Дата окончания аукциона"
-									labellWidth="w-[230px]"
 									showTimeSelect
 									showMonthDropdown
 									showYearDropdown
-									todayButton="Сегодня"
-									closeOnScroll={true}
-									timeCaption="time"
-									locale="ru"
-									dateFormat="dd.MM.yyyy HH:mm"
-									timeIntervals={60}
-									required
+									setValue={newAuction.auctionEnd}
+									getValue={(value) => handleEndDateChanged(value)}
 								/>
-							</div>
-							<div className="mt-5">
+								<Message
+									visible={
+										editErrorList.find((p) => p.name === "ErrorEndDate") != null
+									}
+									error
+									header={editError?.topic}
+									content={editError?.detail}
+								/>
+							</TableCell>
+						</TableRow>
+						<TableRow>
+							<TableCell>Изображение</TableCell>
+							<TableCell>
 								<ImageFileInput
 									name="image"
-									label="Изображение"
 									value={image}
-									labellWidth="w-56"
 									onChange={(imageData: string) => {
-										setFieldValue("image", imageData);
+										handleImageChanged(imageData);
 										setImage(imageData);
 									}}
 									usingImage={(usingImg: boolean) => {
-										setFieldValue("usingImage", usingImg);
+										handleImageUsingChanged(usingImg);
 									}}
 								/>
-							</div>
-
-							{id === "empty" && (
-								<div className="mt-5">
-									<TextInput
-										name="reservePrice"
-										label="Начальная цена"
-										type="number"
-										placeholder="Начальная цена"
-										labellWidth="w-[250px]"
-										inputWidth="w-[237px]"
-										onChange={() => {}}
-									/>
-								</div>
-							)}
-							<div className="mt-5">
-								<TextAreaInput
-									name="description"
-									label="Примечание"
+							</TableCell>
+						</TableRow>
+						<TableRow>
+							<TableCell>Начальная цена</TableCell>
+							<TableCell>
+								<FormInput
+									type="number"
+									placeholder="Наименование"
+									onChange={(e, data) =>
+										handleReservePriceChanged(parseInt(data.value))
+									}
+								/>
+							</TableCell>
+						</TableRow>
+						<TableRow>
+							<TableCell>Примечание</TableCell>
+							<TableCell>
+								<FormTextArea
 									placeholder="Примечание"
-									rows={3}
-									labellWidth="w-[250px]"
-									inputWidth="w-[400px]"
+									onChange={(e, data) => handleDescriptionChanged(data.value)}
 								/>
-							</div>
-							<ErrorMessage name="error" render={() => <p>{errors.error}</p>} />
-							<div className="flex justify-center m-5">
-								<Button
-									disabled={!isValid || !dirty || isSubmitting}
-									isProcessing={isSubmitting || isWaiting}
-									type="submit"
-								>
-									{id ? "Сохранить" : "Создать"}
-								</Button>
-								<Button
-									className="ml-5"
-									onClick={() => {
-										navigate(-1);
-									}}
-								>
-									Отмена
-								</Button>
-							</div>
-						</Form>
-					)}
-				</Formik>
-			</>
-		</div>
+							</TableCell>
+						</TableRow>
+						<TableRow>
+							<TableCell colSpan="2">
+								<div className="flex justify-center mt-10">
+									<Button
+										// disabled={!isValid || !dirty || isSubmitting}
+										// loading={isSubmitting || isWaiting}
+										type="submit"
+									>
+										{id ? "Сохранить" : "Создать"}
+									</Button>
+									<Button
+										className="ml-5"
+										onClick={() => {
+											navigate(-1);
+										}}
+									>
+										Отмена
+									</Button>
+								</div>
+							</TableCell>
+						</TableRow>
+					</TableBody>
+				</Table>
+			</Form>
+		</Segment>
 	);
 }

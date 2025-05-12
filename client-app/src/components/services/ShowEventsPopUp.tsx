@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { ProcessingState, RestoreDb, Session } from "../../store/types";
+import { ProcessingState, RestoreDb, Session } from "../../types";
 import {
 	useElkIndexMutation,
 	useSetSnapShotMutation,

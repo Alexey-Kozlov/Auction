@@ -204,3 +204,9 @@ export type State = {
 	searchAdv: string;
 	sessionId: string;
 };
+
+export type FormErrors = {
+	name: string;
+	topic: string;
+	detail: string;
+};

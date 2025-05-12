@@ -1,16 +1,14 @@
-import { Formik, Form, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import TextInput from "../inputComponents/TextInput";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { usePlaceBidForAuctionMutation } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import { ProcessingState, User } from "../../store/types";
+import { FormErrors, ProcessingState, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
+import { Form, FormInput, Message } from "semantic-ui-react";
 
 type Props = {
 	auctionId: string;
@@ -38,6 +36,52 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 		}
 		// eslint-disable-next-line
 	}, [procState, user]);
+	const [bidValue, setBidValue] = useState<number | string>("");
+	const [bidError, setBidError] = useState<FormErrors | null>(null);
+	const bidErrorList: FormErrors[] = [
+		{
+			name: "NegativeValue",
+			topic: "Ошибка - отрицательная ставка!",
+			detail: "Ставка должна быть больше 0",
+		},
+		{
+			name: "SmallBid",
+			topic: "Ошибка - малый размер ставки!",
+			detail: `Размер новой ставки должен быть больше ${highBid}.`,
+		},
+		{
+			name: "NullBid",
+			topic: "Ошибка - не указана ставка!",
+			detail: `Нужно указать размер новой ставки`,
+		},
+	];
+
+	const handleSubmit = async () => {
+		if (!bidValue || bidValue === "") {
+			setBidError(() => bidErrorList.find((p) => p.name === "NullBid")!);
+			return;
+		}
+		if (Number.isInteger(bidValue) && (bidValue as number) <= 0) {
+			setBidError(() => bidErrorList.find((p) => p.name === "NegativeValue")!);
+			return;
+		} else if (Number.isInteger(bidValue) && (bidValue as number) <= highBid) {
+			setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
+			return;
+		}
+		setBidError(null);
+
+		dispatch(setEventFlag({ eventName: "BidPlaced", ready: false }));
+		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
+
+		await placeBid({
+			amount: bidValue as number,
+			auctionId: auctionId,
+			correlationId: uuid.v4() as string,
+		});
+
+		setBidValue("");
+	};
 
 	return (
 		<>
@@ -45,59 +89,34 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 			!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
 				<Waiter color="rgb(156 163 175)" />
 			) : (
-				<Formik
-					initialValues={{ amount: 0, error: null }}
-					onSubmit={async (values, { setErrors }) => {
-						dispatch(setEventFlag({ eventName: "BidPlaced", ready: false }));
-						dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
-						dispatch(
-							setEventFlag({ eventName: "CollectionChanged", ready: false })
-						);
-						await placeBid({
-							amount: values.amount,
-							auctionId: auctionId,
-							correlationId: uuid.v4() as string,
-						});
-
-						values.amount = 0;
-					}}
-					validationSchema={Yup.object({
-						amount: Yup.number()
-							.required("Необходимо указать предложение")
-							.positive("Предложение должно быть больше 0")
-							.min(
-								highBid + 1,
-								"Предложение должно быть не меньше " + (highBid + 1) + " руб."
-							),
-					})}
-				>
-					{({ handleSubmit, errors }) => (
-						<Form onSubmit={handleSubmit} autoComplete="off">
-							<div className="text-center">
-								<div className="mt-5">
-									<TextInput
-										type="number"
-										name="amount"
-										label={`Ваше предложение (мин. - ${NumberWithSpaces(
-											highBid + 1
-										)} руб)`}
-										placeholder={`Укажите ваше предложение (минимально - ${
-											highBid + 1
-										}) руб`}
-										labellWidth="w-96"
-										inputWidth="w-20"
-										inputDescr="руб."
-										onChange={() => {}}
-									/>
-								</div>
-								<ErrorMessage
-									name="error"
-									render={() => <p className="text-red-500">{errors.error}</p>}
+				<div>
+					<Form onSubmit={handleSubmit} error={bidError !== null}>
+						<div className="text-center">
+							<div className="BidFormInput">
+								<label className="DetailHeadingTitle">
+									{`Ваша ставка (мин. - ${NumberWithSpaces(highBid + 1)} руб)`}
+								</label>
+								<FormInput
+									size="huge"
+									className="ml-10 mr-10 w-100"
+									type="number"
+									name="amount"
+									placeholder={`Ваша ставка (мин. - ${highBid + 1}) руб`}
+									error={bidError !== null}
+									value={bidValue}
+									onChange={(e, { name, value }) =>
+										setBidValue(value === "" ? "" : parseInt(value))
+									}
 								/>
 							</div>
-						</Form>
-					)}
-				</Formik>
+							<Message
+								error
+								header={bidError?.topic}
+								content={bidError?.detail}
+							/>
+						</div>
+					</Form>
+				</div>
 			)}
 		</>
 	);

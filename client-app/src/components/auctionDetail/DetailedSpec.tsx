@@ -1,6 +1,6 @@
-import { Auction } from "../../store/types";
+import { Auction } from "../../types";
 import { useGetUserNameQuery } from "../../api/AuthApi";
-import { Table } from "semantic-ui-react";
+import { Table, TableBody, TableCell, TableRow } from "semantic-ui-react";
 
 type Props = {
 	auction: Auction;
@@ -10,63 +10,51 @@ export default function DetailedSpecs({ auction }: Props) {
 		skip: !auction.seller,
 	});
 	return (
-		<Table striped={true}>
-			<Table.Body className="divide-y">
-				<Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-					<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-						Продавец
-					</Table.Cell>
-					<Table.Cell>{!isLoading && data?.result}</Table.Cell>
-				</Table.Row>
-				<Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-					<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-						Наименование
-					</Table.Cell>
-					<Table.Cell>{auction.title}</Table.Cell>
-				</Table.Row>
-				<Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-					<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-						Описание
-					</Table.Cell>
-					<Table.Cell>
+		<Table celled striped>
+			<TableBody>
+				<TableRow>
+					<TableCell>Продавец</TableCell>
+					<TableCell>{!isLoading && data?.result}</TableCell>
+				</TableRow>
+				<TableRow>
+					<TableCell>Наименование</TableCell>
+					<TableCell>{auction.title}</TableCell>
+				</TableRow>
+				<TableRow>
+					<TableCell>Описание</TableCell>
+					<TableCell>
 						{auction?.properties &&
 							auction.properties.split("\n").map((line, index) => {
 								return <p key={index}>{line}</p>;
 							})}
-					</Table.Cell>
-				</Table.Row>
-				<Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-					<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-						Есть начальная цена?
-					</Table.Cell>
-					<Table.Cell>
+					</TableCell>
+				</TableRow>
+				<TableRow>
+					<TableCell>Есть начальная цена?</TableCell>
+					<TableCell>
 						{auction?.reservePrice > 0
 							? `Да - ${auction?.reservePrice} руб.`
 							: "Нет"}
-					</Table.Cell>
-				</Table.Row>
-				<Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-					<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-						Примечание
-					</Table.Cell>
-					<Table.Cell>
+					</TableCell>
+				</TableRow>
+				<TableRow>
+					<TableCell>Примечание</TableCell>
+					<TableCell>
 						{auction?.description &&
 							auction.description.split("\n").map((line, index) => {
 								return <p key={index}>{line}</p>;
 							})}
-					</Table.Cell>
-				</Table.Row>
-				<Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-					<Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-						Дата завершения
-					</Table.Cell>
-					<Table.Cell>
+					</TableCell>
+				</TableRow>
+				<TableRow>
+					<TableCell>Дата завершения</TableCell>
+					<TableCell>
 						{auction.auctionEnd.toLocaleDateString() +
 							" " +
 							auction.auctionEnd.toLocaleTimeString()}
-					</Table.Cell>
-				</Table.Row>
-			</Table.Body>
+					</TableCell>
+				</TableRow>
+			</TableBody>
 		</Table>
 	);
 }

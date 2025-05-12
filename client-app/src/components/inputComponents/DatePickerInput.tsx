@@ -1,43 +1,34 @@
-import { useField } from "formik";
-import DatePicker, { ReactDatePickerProps, registerLocale } from 'react-datepicker';
-import { ru } from 'date-fns/locale'
+import DatePicker, { registerLocale } from "react-datepicker";
+import { ru } from "date-fns/locale";
 
-interface Props extends ReactDatePickerProps {
-    required?: boolean;
-    labellWidth?: string;
-    label?: string;
-    controlsAlign?: string;
-}
+type Props = {
+	showTimeSelect: boolean;
+	showMonthDropdown: boolean;
+	showYearDropdown: boolean;
+	getValue: (value: Date) => void;
+	setValue: Date;
+};
 
-registerLocale('ru', ru);
+registerLocale("ru", ru);
 
-export default function DatePickerInput({ required, label, labellWidth,
-    controlsAlign, ...rest }: Partial<Props>) {
-
-    const [field, meta, helpers] = useField(rest.name!);
-
-    return (
-        <>
-            <div className={`flex col-sm-6 offset-sm-3 col-xs-12 mt-4 ${controlsAlign}`}>
-                <label className={labellWidth ? labellWidth : 'w-6/12'}>
-                    {label}
-                    {required && (<span>*</span>)}
-                </label>
-                <DatePicker
-                    {...field}
-                    {...rest}
-                    wrapperClassName="datepicker"
-                    selected={(field.value && new Date(field.value)) || null}
-                    onChange={value => helpers.setValue(value)}
-                />
-            </div>
-            <div className="text-left">
-                {
-                    meta.touched && meta.error ?
-                        <p className="text-red-500">{meta.error}</p>
-                        : null
-                }
-            </div>
-        </>
-    )
+export default function DatePickerInput({ ...rest }: Partial<Props>) {
+	return (
+		<DatePicker
+			{...rest}
+			showTimeSelect={rest.showTimeSelect}
+			showMonthDropdown={rest.showMonthDropdown}
+			showYearDropdown={rest.showYearDropdown}
+			wrapperClassName="datepicker"
+			selected={rest.setValue || null}
+			locale={ru}
+			todayButton="Сегодня"
+			closeOnScroll={true}
+			timeCaption="time"
+			dateFormat="dd.MM.yyyy HH:mm"
+			timeIntervals={60}
+			onChange={(value) => {
+				rest.getValue!(value ? value : new Date());
+			}}
+		/>
+	);
 }

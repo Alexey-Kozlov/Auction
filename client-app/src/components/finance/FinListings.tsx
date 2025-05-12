@@ -3,12 +3,7 @@ import qs from "query-string";
 import { useDispatch, useSelector } from "react-redux";
 import { reset, setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
-import {
-	FinanceItem,
-	ProcessingState,
-	RequestType,
-	User,
-} from "../../store/types";
+import { FinanceItem, ProcessingState, RequestType, User } from "../../types";
 import {
 	useGetBalanceQuery,
 	useGetFinanceItemQuery,

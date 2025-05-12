@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Auction } from "../../store/types";
+import { Auction } from "../../types";
 import ImageCard from "./ImageCard";
 import CountdownTimer from "./CountDownTimer";
 import CurrentBid from "./CurrentBid";
@@ -12,7 +12,7 @@ export default function AuctionCard({ auction }: Props) {
 	return (
 		<div className="AuctionCard">
 			<NavLink to={`/auctions/${auction.auctionId}`}>
-				<div className="AuctionImageContainer">
+				<div className="text-center">
 					<ImageCard
 						id={auction.auctionId}
 						dopStyle=" max-h-60"

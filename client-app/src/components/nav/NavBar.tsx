@@ -1,7 +1,7 @@
 import Logo from "./Logo";
 import Search from "./Search";
 import UserActions from "./UserActions";
-import { User } from "../../store/types";
+import { User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useNavigate } from "react-router-dom";

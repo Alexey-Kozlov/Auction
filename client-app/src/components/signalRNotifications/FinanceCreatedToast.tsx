@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { FinanceItem } from "../../store/types";
+import { FinanceItem } from "../../types";
 import { NavLink } from "react-router-dom";
 import { GrMoney } from "react-icons/gr";
 

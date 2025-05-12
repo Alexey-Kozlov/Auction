@@ -7,7 +7,7 @@ import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import { GrMoney } from "react-icons/gr";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Message, ModalParams, RequestType, User } from "../../store/types";
+import { Message, ModalParams, RequestType, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";

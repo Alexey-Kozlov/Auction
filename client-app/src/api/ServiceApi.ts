@@ -1,12 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import {
-	ApiResponseNet,
-	RequestType,
-	RestoreDb,
-	Session,
-} from "../store/types";
+import { ApiResponseNet, RequestType, RestoreDb, Session } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
 const serviceApi = createApi({

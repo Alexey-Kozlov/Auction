@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { User } from "./types";
+import { User } from "../types";
 import { jwtDecode } from "jwt-decode";
 
 export const emptyUserState: User = {

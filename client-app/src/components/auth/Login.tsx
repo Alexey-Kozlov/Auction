@@ -14,7 +14,7 @@ import {
 	LoginResponse,
 	ModalParams,
 	RequestType,
-} from "../../store/types";
+} from "../../types";
 import { setAuthUser } from "../../store/authSlice";
 import ModalConfirm from "../modals/ModalConfirm";
 import { useCookies } from "react-cookie";

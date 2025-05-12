@@ -1,25 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useField } from "formik";
-import SwitchInput from "./SwitchInput";
+import { Checkbox, Input } from "semantic-ui-react";
 
 type Props = {
-	label: string;
 	value?: string;
 	name: string;
-	labellWidth?: string;
 	inputWidth?: string;
 	inputDescr?: string;
-	required?: boolean;
 	controlsAlign?: string;
 	onChange: (imageData: string) => void;
 	usingImage: (usingImage: boolean) => void;
 };
 
 export default function ImageFileInput({
-	labellWidth,
 	inputWidth,
 	inputDescr,
-	required,
 	value,
 	controlsAlign,
 	onChange,
@@ -28,11 +22,9 @@ export default function ImageFileInput({
 }: Props) {
 	const [imageDisplay, setImageDisplay] = useState("");
 	const [usingImg, setUsingImg] = useState(false);
-	const [field, meta] = useField(rest.name);
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files && e.target.files[0];
-		console.log(field.name);
 		if (file) {
 			const reader = new FileReader();
 			reader.readAsDataURL(file);
@@ -56,7 +48,7 @@ export default function ImageFileInput({
 		// eslint-disable-next-line
 	}, [value]);
 
-	const handleImageUsing = async (event: React.FormEvent<HTMLInputElement>) => {
+	const handleImageUsing = (checked: boolean) => {
 		setUsingImg((prev) => {
 			usingImage(!prev);
 			return !prev;
@@ -65,36 +57,27 @@ export default function ImageFileInput({
 
 	return (
 		<>
-			<div
-				className={`flex col-sm-6 offset-sm-3 col-xs-12 mt-4 ${controlsAlign}`}
-			>
-				<div>
+			<div className="flex-column">
+				<div className="flex-column">
 					<div>
-						<label className={labellWidth ? labellWidth : "w-6/12"}>
-							{rest.label}
-							{required && <span>*</span>}
-						</label>
+						<Input className="w-100" type="file" onChange={handleFileChange} />
 					</div>
-					<div className="mt-4">
-						<label className="inline-flex items-center">
-							<p className="mr-2">Требуется изображение</p>
-							<SwitchInput
-								checked={usingImg}
-								handleImageUsing={handleImageUsing}
-							/>
-						</label>
+					<div className="flex mt-10">
+						<p className="mr-2 mr-10">Требуется изображение</p>
+						<Checkbox
+							className="ImageUsing"
+							toggle
+							checked={usingImg}
+							onChange={(e, data) => handleImageUsing(data.checked!)}
+						/>
 					</div>
 				</div>
-				<div className="h-52">
+
+				<div>
 					{usingImg && (
-						<img alt="" className="max-h-full max-w-full" src={imageDisplay} />
+						<img alt="" className="ImageEditPreview" src={imageDisplay} />
 					)}
 				</div>
-			</div>
-			<div className="text-left">
-				{meta.touched && meta.error ? (
-					<p className="text-red-500">{meta.error}</p>
-				) : null}
 			</div>
 		</>
 	);

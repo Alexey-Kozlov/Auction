@@ -1,9 +1,10 @@
 import toast from "react-hot-toast";
-import { AuctionImage } from "../../store/types";
+import { AuctionImage } from "../../types";
 import { NavLink } from "react-router-dom";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useEffect } from "react";
+import { Button } from "semantic-ui-react";
 const empty = require("../../assets/Empty.png");
 
 type Props = {
@@ -27,26 +28,31 @@ export default function BidCreatedToast({ auctionId, toastId }: Props) {
 		<div>
 			{!bidAuction.isLoading && (
 				<>
-					<div className="flex flex-row-reverse">
-						<button onClick={() => toast.dismiss(toastId)}>X</button>
+					<div className="ToastCloseButton">
+						<Button
+							className="MainButton w-40"
+							onClick={() => toast.dismiss(toastId)}
+						>
+							X
+						</Button>
 					</div>
 					<NavLink
 						to={`/auctions/${auctionId}`}
-						className="flex flex-col items-center"
+						className="ToastMessageContainer"
 					>
-						<div className="flex flex-row items-center gap-2">
+						<div className="ToastMessageContainer">
 							<img
+								className="ToastImage"
 								src={
 									!isLoading && (data?.result as AuctionImage)!.image
 										? `data:image/png;base64 , ${data?.result["image"]}`
 										: empty
 								}
 								alt=""
-								height={80}
-								width={80}
-								className="rounded-lg"
 							/>
-							<span>{`Сделана новая ставка для аукциона "${bidAuction.data?.result.title}" - ${bidAuction.data?.result.currentHighBid} руб.`}</span>
+							<span className="ToastItemText">
+								{`Сделана новая ставка для аукциона "${bidAuction.data?.result.title}" - ${bidAuction.data?.result.currentHighBid} руб.`}
+							</span>
 						</div>
 					</NavLink>
 				</>

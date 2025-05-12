@@ -5,7 +5,7 @@ import TextInput from "../inputComponents/TextInput";
 import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ApiResponse, RequestType } from "../../store/types";
+import { ApiResponse, RequestType } from "../../types";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "semantic-ui-react";

@@ -15,7 +15,7 @@ import {
 	PagedResult,
 	ProgressToast,
 	User,
-} from "../store/types";
+} from "../types";
 import { useDispatch, useSelector } from "react-redux";
 import AuctionFinishedToast from "../components/signalRNotifications/AuctionFinishedToast";
 import { RootState } from "../store/store";

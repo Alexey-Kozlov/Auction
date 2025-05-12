@@ -1,6 +1,5 @@
 import DatePicker, { registerLocale } from "react-datepicker";
 import { ru } from "date-fns/locale";
-import SwitchInput from "../inputComponents/SwitchInput";
 import { useState } from "react";
 import { Button, Modal } from "semantic-ui-react";
 registerLocale("ru", ru);
@@ -59,10 +58,10 @@ export default function ModalConfirm({
 									<p className="font-semibold mr-3">
 										Удаление событий после даты восстановления:
 									</p>
-									<SwitchInput
+									{/* <SwitchInput
 										checked={resLog}
 										handleImageUsing={handleResetLog}
-									/>
+									/> */}
 								</label>
 							</div>
 						</>

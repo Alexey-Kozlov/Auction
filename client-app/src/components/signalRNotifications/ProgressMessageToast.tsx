@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import { Message } from "../../store/types";
+import { Message } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
 import { Progress } from "semantic-ui-react";
 

@@ -5,7 +5,7 @@ import {
 	LoginUser,
 	LogoutUser,
 	RequestType,
-} from "../store/types";
+} from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { v4 as uuidv4 } from "uuid";
 

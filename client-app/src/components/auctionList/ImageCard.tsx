@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
-import { ProcessingState } from "../../store/types";
+import { ProcessingState } from "../../types";
 import { RootState } from "../../store/store";
 import { useEffect } from "react";
 import { setEventFlag } from "../../store/processingSlice";

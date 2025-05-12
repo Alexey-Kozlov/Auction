@@ -8,7 +8,7 @@ import {
 	ProcessingState,
 	RequestType,
 	User,
-} from "../../store/types";
+} from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
@@ -23,10 +23,16 @@ import {
 	useSetNotifyUserMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import SwitchInput from "../inputComponents/SwitchInput";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
-import { Button } from "semantic-ui-react";
+import {
+	Button,
+	Checkbox,
+	Grid,
+	GridColumn,
+	GridRow,
+	Segment,
+} from "semantic-ui-react";
 
 export default function Detail() {
 	const { id } = useParams();
@@ -132,13 +138,11 @@ export default function Detail() {
 	};
 
 	//обработчик переключения переключателя по уведомлениям пользователя по событиям данного аукциона
-	const handleSetNotifyUser = async (
-		event: React.FormEvent<HTMLInputElement>
-	) => {
+	const handleSetNotifyUser = async (checked: boolean) => {
 		dispatch(setEventFlag({ eventName: "EditNotification", ready: false }));
 		var notifyUser: NotifyUser = {
 			auctionid: id!,
-			enable: event.currentTarget.checked,
+			enable: checked,
 			sessionid: sessionId,
 		};
 		await setNotifyUserApi(notifyUser);
@@ -147,68 +151,84 @@ export default function Detail() {
 	if (data.isLoading) return "Загрузка...";
 
 	return (
-		<div>
+		<div className="mt-10 ">
 			{auctionDetail && (
 				<>
-					<div className="DetailContainer">
-						<div className="DetailItem">
-							<Heading title={`${auctionDetail?.title}`} />
-							{user?.login === auctionDetail?.seller && (
-								<>
-									<Button>
-										<NavLink to={`/auctions/edit/${id}`}>
+					<Grid columns={2} divided>
+						<GridRow>
+							<GridColumn textAlign="center" verticalAlign="middle">
+								<Heading title={`${auctionDetail?.title}`} />
+								{user?.login === auctionDetail?.seller && (
+									<>
+										<Button
+											className="MainButton w-200"
+											onClick={() => navigate(`/auctions/edit/${id}`)}
+										>
 											Редактировать аукцион
-										</NavLink>
-									</Button>
-									<Button
-										isProcessing={!!deleteAuction}
-										onClick={handleDeleteAuction}
-									>
-										Удалить аукцион
-									</Button>
-								</>
-							)}
-						</div>
-
-						<div>
-							<div className="DetailCountDown">
-								<h3 className="DetailCountDownItem">Осталось времени:</h3>
-								<CountdownTimer
-									auctionEnd={auctionDetail!.auctionEnd}
-									isFinished={auctionDetail.finished}
-								/>
-							</div>
-							{user.name && (
-								<div>
-									<label className="inline-flex items-center mb-5">
-										<h3 className="text-2xl font-semibold mr-3">
-											Получать уведомления этого аукциона:
-										</h3>
-										<SwitchInput
-											checked={notifyUser}
-											handleImageUsing={handleSetNotifyUser}
-										/>
-									</label>
+										</Button>
+										<Button
+											className="MainButton w-200"
+											onClick={handleDeleteAuction}
+											loading={!!deleteAuction}
+										>
+											Удалить аукцион
+										</Button>
+									</>
+								)}
+							</GridColumn>
+							<GridColumn>
+								<Segment>
+									<div>
+										<div className="DetailCountDown">
+											<h3 className="DetailCountDownItem">Осталось времени:</h3>
+											<CountdownTimer
+												auctionEnd={auctionDetail!.auctionEnd}
+												isFinished={auctionDetail.finished}
+											/>
+										</div>
+										{user.name && (
+											<div className="DetailNotify">
+												<h3 className="DetailNotifyText">
+													Получать уведомления этого аукциона:
+												</h3>
+												<Checkbox
+													toggle
+													checked={notifyUser}
+													onChange={(e, data) =>
+														handleSetNotifyUser(data.checked!)
+													}
+												/>
+											</div>
+										)}
+									</div>
+								</Segment>
+							</GridColumn>
+						</GridRow>
+						<GridRow>
+							<GridColumn>
+								<div className="DetailImage">
+									<ImageCard
+										id={auctionDetail!.auctionId}
+										zooming={true}
+										cache={false}
+									/>
 								</div>
-							)}
-						</div>
-					</div>
-					<div className="DetailImageContainer">
-						<div className="DetailImage">
-							<ImageCard
-								id={auctionDetail!.auctionId}
-								zooming={true}
-								cache={false}
-							/>
-						</div>
-						<BidList user={user} auction={auctionDetail!} />
-					</div>
-					<div className="DetailSpec">
-						<DetailedSpecs auction={auctionDetail!} />
-					</div>
+							</GridColumn>
+							<GridColumn>
+								<Segment className="mt-0 h-100">
+									<BidList user={user} auction={auctionDetail!} />
+								</Segment>
+							</GridColumn>
+						</GridRow>
+					</Grid>
 
+					<Segment>
+						<div className="DetailSpec">
+							<DetailedSpecs auction={auctionDetail!} />
+						</div>
+					</Segment>
 					<div className="DetailBottom">
-						<Button outline onClick={() => navigate(-1)} className="mb-2">
+						<Button className="MainButton" onClick={() => navigate(-1)}>
 							Назад
 						</Button>
 					</div>
