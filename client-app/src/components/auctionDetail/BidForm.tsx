@@ -98,7 +98,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 								</label>
 								<FormInput
 									size="huge"
-									className="ml-10 mr-10 w-100"
+									className="ml-10 mr-10 w-100P"
 									type="number"
 									name="amount"
 									placeholder={`Ваша ставка (мин. - ${highBid + 1}) руб`}

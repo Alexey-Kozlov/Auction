@@ -207,8 +207,8 @@ export default function AuctionForm() {
 		},
 		{
 			name: "ErrorEndDate",
-			topic: "Ошибка - дата окончания аукцилона!",
-			detail: `Нужно указать дату окончания аукцилона не ранее чем за 1 день до текущей даты`,
+			topic: "Ошибка - дата окончания аукциона!",
+			detail: `Нужно указать дату окончания аукциона не ранее чем за 1 день до текущей даты`,
 		},
 	];
 
@@ -227,7 +227,42 @@ export default function AuctionForm() {
 			return;
 		}
 		//обработка данных
+		setIsWaiting(true);
+		const auctionUpdated: AuctionUpdated = {
+			id: auction.data?.result.id
+				? auction.data!.result.id
+				: (uuid.v4() as string),
+			auctionId: id,
+			title: newAuction.title,
+			description: newAuction.description ? newAuction.description : "",
+			properties: newAuction.properties,
+			auctionEnd: newAuction.auctionEnd,
+			reservePrice: newAuction.reservePrice,
+			image: newAuction.image ? newAuction.image : "",
+			correlationId: uuid.v4() as string,
+			usingImage: newAuction.usingImage!,
+		};
+
+		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
+		if (id && id !== "empty") {
+			//обновление аукциона
+			await updateAuction(auctionUpdated);
+		} else {
+			//создание аукциона
+			await createAuction(auctionUpdated);
+		}
 	};
+
+	//сбрасываем ошибки валидации
+	if (newAuction.title && editError?.name === "EmptyTitle") {
+		setEditError(() => null);
+	}
+	let _date = new Date();
+	_date = new Date(_date.getTime() + 60000);
+	if (newAuction.auctionEnd > _date && editError?.name === "ErrorEndDate") {
+		setEditError(() => null);
+		return;
+	}
 
 	if (auction.isLoading) return "Загрузка...";
 
@@ -239,7 +274,7 @@ export default function AuctionForm() {
 			/>
 
 			<Form onSubmit={handleSubmit} error={editError !== null}>
-				<Table singleLine striped className="FormMainTable">
+				<Table singleLine striped className="FormMainTable mx-center">
 					<TableBody>
 						<TableRow>
 							<TableCell>
@@ -247,14 +282,14 @@ export default function AuctionForm() {
 							</TableCell>
 							<TableCell>
 								<FormInput
+									className="InputText"
 									placeholder="Наименование"
+									value={newAuction.title}
 									onChange={(e, data) => handleTitleChanged(data.value)}
 								/>
 								<Message
 									error
-									visible={
-										editErrorList.find((p) => p.name === "EmptyTitle") != null
-									}
+									hidden={editError !== null && editError.name !== "EmptyTitle"}
 									header={editError?.topic}
 									content={editError?.detail}
 								/>
@@ -264,7 +299,9 @@ export default function AuctionForm() {
 							<TableCell>Описание</TableCell>
 							<TableCell>
 								<FormTextArea
+									className="InputText"
 									placeholder="Описание"
+									value={newAuction.properties}
 									onChange={(e, data) => handlePropertiesChanged(data.value)}
 								/>
 							</TableCell>
@@ -282,8 +319,8 @@ export default function AuctionForm() {
 									getValue={(value) => handleEndDateChanged(value)}
 								/>
 								<Message
-									visible={
-										editErrorList.find((p) => p.name === "ErrorEndDate") != null
+									hidden={
+										editError !== null && editError.name !== "ErrorEndDate"
 									}
 									error
 									header={editError?.topic}
@@ -311,8 +348,10 @@ export default function AuctionForm() {
 							<TableCell>Начальная цена</TableCell>
 							<TableCell>
 								<FormInput
+									className="InputText"
 									type="number"
 									placeholder="Наименование"
+									value={newAuction.reservePrice}
 									onChange={(e, data) =>
 										handleReservePriceChanged(parseInt(data.value))
 									}
@@ -323,7 +362,9 @@ export default function AuctionForm() {
 							<TableCell>Примечание</TableCell>
 							<TableCell>
 								<FormTextArea
+									className="InputText"
 									placeholder="Примечание"
+									value={newAuction.description}
 									onChange={(e, data) => handleDescriptionChanged(data.value)}
 								/>
 							</TableCell>
@@ -332,14 +373,14 @@ export default function AuctionForm() {
 							<TableCell colSpan="2">
 								<div className="flex justify-center mt-10">
 									<Button
-										// disabled={!isValid || !dirty || isSubmitting}
-										// loading={isSubmitting || isWaiting}
+										className="MainButton w-100"
+										loading={isWaiting}
 										type="submit"
 									>
 										{id ? "Сохранить" : "Создать"}
 									</Button>
 									<Button
-										className="ml-5"
+										className="MainButton w-100 ml-5"
 										onClick={() => {
 											navigate(-1);
 										}}

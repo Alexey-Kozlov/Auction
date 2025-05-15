@@ -1,113 +1,201 @@
-import React, { useEffect } from "react";
-import { Formik, Form, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import TextInput from "../inputComponents/TextInput";
+import React, { useEffect, useState } from "react";
 import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ApiResponse, RequestType } from "../../types";
+import { ApiResponse, CreateUser, FormErrors, RequestType } from "../../types";
 import { useCookies } from "react-cookie";
 import { v4 as uuidv4 } from "uuid";
-import { Button } from "semantic-ui-react";
+import {
+	Button,
+	Form,
+	FormInput,
+	Grid,
+	GridColumn,
+	GridRow,
+	Message,
+} from "semantic-ui-react";
+import Heading from "../auctionList/Heading";
 
 export default function Register() {
 	const [registerUser] = useRegisterUserMutation();
 	// eslint-disable-next-line
 	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const navigate = useNavigate();
+	const [loginUserModel, setLoginUserModel] = useState<CreateUser>({
+		name: "",
+		login: "",
+		password: "",
+	});
+	const [editError, setEditError] = useState<FormErrors | null>(null);
+	const [submittingCreate, setSubmittingCreate] = useState(false);
+	const editErrorList: FormErrors[] = [
+		{
+			name: "EmptyName",
+			topic: "Ошибка - пустое наименование пользователя!",
+			detail: "Нужно указать наименование пользователя",
+		},
+		{
+			name: "EmptyLogin",
+			topic: "Ошибка - пустое значение логина!",
+			detail: "Нужно указать логин пользователя",
+		},
+		{
+			name: "EmptyPassword",
+			topic: "Ошибка - пустое значение пароля!",
+			detail: `Нужно указать пароль пользователя`,
+		},
+	];
 	useEffect(() => {
 		setCookie("RequestType", RequestType[RequestType.Register]);
 		setCookie("RequestId", uuidv4());
 		// eslint-disable-next-line
 	}, []);
 
+	const handleNameChanged = (value: string) => {
+		setEditError(() => null);
+		setLoginUserModel((prev) => {
+			return { ...prev, name: value };
+		});
+	};
+
+	const handleLoginChanged = (value: string) => {
+		setEditError(() => null);
+		setLoginUserModel((prev) => {
+			return { ...prev, login: value };
+		});
+	};
+
+	const handlePasswordChanged = (value: string) => {
+		setEditError(() => null);
+		setLoginUserModel((prev) => {
+			return { ...prev, password: value };
+		});
+	};
+
+	const handleSubmit = async () => {
+		if (!loginUserModel.name) {
+			setEditError(() => editErrorList.find((p) => p.name === "EmptyName")!);
+			return;
+		}
+		if (!loginUserModel.login) {
+			setEditError(() => editErrorList.find((p) => p.name === "EmptyLogin")!);
+			return;
+		}
+		if (!loginUserModel.password) {
+			setEditError(
+				() => editErrorList.find((p) => p.name === "EmptyPassword")!
+			);
+			return;
+		}
+		setSubmittingCreate(true);
+		const response: ApiResponse<object> = await registerUser({
+			login: loginUserModel.login,
+			name: loginUserModel.name,
+			password: loginUserModel.password,
+		});
+		if (response.data && response.data.isSuccess) {
+			toast.success(
+				`Пользователь ${loginUserModel.name} успешно зарегистрирован! Войдите в систему для продолжения.`
+			);
+			navigate("/");
+		}
+		setSubmittingCreate(false);
+	};
+
 	return (
-		<div className="container">
-			<Formik
-				initialValues={{
-					displayName: "",
-					login: "",
-					password: "",
-					error: null,
-				}}
-				onSubmit={async (values, { setErrors }) => {
-					const response: ApiResponse<object> = await registerUser({
-						login: values.login,
-						name: values.displayName,
-						password: values.password,
-					});
-					if (response.data && response.data.isSuccess) {
-						toast.success(
-							`Пользователь ${values.displayName} успешно зарегистрирован! Войдите в систему для продолжения.`
-						);
-						navigate("/");
-					}
-				}}
-				validationSchema={Yup.object({
-					displayName: Yup.string().required(
-						"Необходимо указать имя пользователя"
-					),
-					login: Yup.string().required("Необходимо указать логин пользователя"),
-					password: Yup.string().required(
-						"Необходимо указать пароль пользователя"
-					),
-				})}
-			>
-				{({ handleSubmit, isSubmitting, errors, isValid, dirty }) => (
-					<Form onSubmit={handleSubmit} autoComplete="off">
-						<div className="text-center">
-							<h1 className="text-xl mt-5">Регистрация пользователя</h1>
-							<div className="mt-5">
-								<TextInput
-									name="displayName"
-									placeholder="Имя пользователя"
-									label="Имя пользователя"
-									labellWidth="w-40"
-									inputWidth="w-52"
-									onChange={() => {}}
-									controlsAlign="justify-center"
-									required
-								/>
-							</div>
-							<div className="mt-5">
-								<TextInput
-									name="login"
-									label="Логин"
-									placeholder="Логин"
-									labellWidth="w-40"
-									inputWidth="w-52"
-									onChange={() => {}}
-									controlsAlign="justify-center"
-									required
-								/>
-							</div>
-							<div className="mt-5">
-								<TextInput
-									name="password"
-									label="Пароль"
-									placeholder="Пароль"
-									type="password"
-									labellWidth="w-40"
-									inputWidth="w-52"
-									onChange={() => {}}
-									controlsAlign="justify-center"
-									required
-								/>
-							</div>
-							<ErrorMessage name="error" render={() => <p>{errors.error}</p>} />
-							<div className="flex justify-around mt-5">
-								<Button
-									disabled={!isValid || !dirty || isSubmitting}
-									isProcessing={isSubmitting}
-									type="submit"
-								>
-									Регистрация
-								</Button>
-							</div>
-						</div>
-					</Form>
-				)}
-			</Formik>
+		<div className="mt-50">
+			<Heading
+				title="Вход пользователя"
+				subtitle="Введите логин и пароль для входа в систему"
+			/>
+			<Form onSubmit={handleSubmit} error={editError !== null}>
+				<Grid columns={3} className="FormLoginTable">
+					<GridRow>
+						<GridColumn width={5} verticalAlign="middle">
+							Имя пользователя<span>*</span>
+						</GridColumn>
+						<GridColumn width={8}>
+							<FormInput
+								className="InputLoginText"
+								placeholder="Имя пользователя"
+								value={loginUserModel.name}
+								onChange={(e, data) => handleNameChanged(data.value)}
+							/>
+						</GridColumn>
+					</GridRow>
+					<GridRow columns={1}>
+						<GridColumn verticalAlign="middle">
+							<Message
+								size="tiny"
+								error
+								hidden={editError !== null && editError.name !== "EmptyName"}
+								header={editError?.topic}
+								content={editError?.detail}
+							/>
+						</GridColumn>
+					</GridRow>
+					<GridRow>
+						<GridColumn width={5} verticalAlign="middle">
+							Логин<span>*</span>
+						</GridColumn>
+						<GridColumn width={8}>
+							<FormInput
+								className="InputLoginText"
+								placeholder="Логин"
+								value={loginUserModel.login}
+								onChange={(e, data) => handleLoginChanged(data.value)}
+							/>
+						</GridColumn>
+					</GridRow>
+					<GridRow columns={1}>
+						<GridColumn verticalAlign="middle">
+							<Message
+								size="tiny"
+								error
+								hidden={editError !== null && editError.name !== "EmptyLogin"}
+								header={editError?.topic}
+								content={editError?.detail}
+							/>
+						</GridColumn>
+					</GridRow>
+					<GridRow>
+						<GridColumn width={5} verticalAlign="middle">
+							Пароль<span>*</span>
+						</GridColumn>
+						<GridColumn width={8}>
+							<FormInput
+								className="InputLoginText"
+								placeholder="Пароль"
+								value={loginUserModel.password}
+								onChange={(e, data) => handlePasswordChanged(data.value)}
+							/>
+						</GridColumn>
+					</GridRow>
+					<GridRow columns={1}>
+						<GridColumn verticalAlign="middle">
+							<Message
+								size="tiny"
+								error
+								hidden={
+									editError !== null && editError.name !== "EmptyPassword"
+								}
+								header={editError?.topic}
+								content={editError?.detail}
+							/>
+						</GridColumn>
+					</GridRow>
+				</Grid>
+				<div id="LoginButton">
+					<Button
+						type="submit"
+						loading={submittingCreate}
+						disabled={submittingCreate}
+						className="MainButton w-120"
+					>
+						Регистрация
+					</Button>
+				</div>
+			</Form>
 		</div>
 	);
 }

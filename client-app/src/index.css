@@ -3,6 +3,14 @@
 	width: 100%;
 }
 
+.InputText {
+	font-size: 16px;
+}
+
+.InputText input {
+	padding: 4px 15px 4px 15px !important;
+}
+
 .MainContainer {
 	width: 100%;
 	margin-left: auto;
@@ -384,6 +392,68 @@
 
 .ImageUsing {
 	z-index: 0;
+}
+
+.ModalText {
+	font-size: 18px;
+}
+
+#ModalConfirmYesButton {
+	width: 80px;
+	background-color: firebrick;
+	color: white;
+	border: 2px solid white;
+}
+
+#ModalConfirmYesButton:hover {
+	border: 2px solid black;
+}
+
+#ModalConfirmNoButton {
+	width: 80px;
+	background-color: rgb(133, 250, 133);
+	color: black;
+	border: 2px solid white;
+}
+
+#ModalConfirmNoButton:hover {
+	border: 2px solid black;
+}
+
+.FormLoginTable {
+	max-width: 700px !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	margin-top: 50px !important;
+	font-size: 18px !important;
+}
+
+.InputLoginText {
+	font-size: 18px;
+}
+
+.InputLoginText input {
+	padding: 8px 15px 8px 15px !important;
+	background-color: rgb(232, 240, 254) !important;
+}
+
+#LoginButton {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 500px;
+	margin-top: 30px;
+	padding-bottom: 30px;
+	text-align: center;
+	border-bottom: 1px solid grey;
+}
+
+#ForgotPasswordButton {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 500px;
+	margin-top: 30px;
+	padding-bottom: 30px;
+	text-align: center;
 }
 
 /*переопределяем стили Semantic UI*/

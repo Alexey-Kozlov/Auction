@@ -60,7 +60,7 @@ export default function ImageFileInput({
 			<div className="flex-column">
 				<div className="flex-column">
 					<div>
-						<Input className="w-100" type="file" onChange={handleFileChange} />
+						<Input className="w-100P" type="file" onChange={handleFileChange} />
 					</div>
 					<div className="flex mt-10">
 						<p className="mr-2 mr-10">Требуется изображение</p>

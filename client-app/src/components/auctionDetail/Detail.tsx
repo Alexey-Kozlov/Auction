@@ -33,6 +33,7 @@ import {
 	GridRow,
 	Segment,
 } from "semantic-ui-react";
+import ModalConfirm from "../modals/ModalConfirm";
 
 export default function Detail() {
 	const { id } = useParams();
@@ -43,6 +44,8 @@ export default function Detail() {
 		(state: RootState) => state.processingStore
 	);
 	const [notifyUser, setNotifyUser] = useState(false);
+	const [showConfirm, setShowConfirm] = useState(false);
+	const [confirmResult, setConfirmResult] = useState<boolean | null>(null);
 	const [deleteAuction, setDeleteAuction] = useState(false);
 	const [auctionDetail, setAuctionDetail] = useState<Auction>();
 	const data = useGetDetailedViewDataQuery(id!, {
@@ -126,15 +129,8 @@ export default function Detail() {
 
 	//удаляем аукцион
 	const handleDeleteAuction = async () => {
-		setDeleteAuction(true);
-		setCookie("RequestType", RequestType[RequestType.Delete]);
-		dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
-		const auctionDeleted: AuctionDeleted = {
-			id: uuid.v4() as string,
-			auctionId: id!,
-			correlationId: uuid.v4() as string,
-		};
-		await deleteAuctionProc(auctionDeleted);
+		//подтверждение удаления
+		setShowConfirm(true);
 	};
 
 	//обработчик переключения переключателя по уведомлениям пользователя по событиям данного аукциона
@@ -148,10 +144,35 @@ export default function Detail() {
 		await setNotifyUserApi(notifyUser);
 	};
 
+	useEffect(() => {
+		const deleteAction = async (val: AuctionDeleted) => {
+			await deleteAuctionProc(val);
+		};
+		if (confirmResult) {
+			setDeleteAuction(true);
+			setCookie("RequestType", RequestType[RequestType.Delete]);
+			dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
+			const auctionDeleted: AuctionDeleted = {
+				id: uuid.v4() as string,
+				auctionId: id!,
+				correlationId: uuid.v4() as string,
+			};
+			deleteAction(auctionDeleted);
+		}
+		setShowConfirm(false);
+		setConfirmResult(null);
+	}, [confirmResult]);
+
 	if (data.isLoading) return "Загрузка...";
 
 	return (
 		<div className="mt-10 ">
+			<ModalConfirm
+				openModal={showConfirm}
+				text={"Действительно удалить аукцион '" + auctionDetail?.title + "' ?"}
+				title={"Подтверждение удаления аукциона"}
+				setResult={setConfirmResult}
+			/>
 			{auctionDetail && (
 				<>
 					<Grid columns={2} divided>
