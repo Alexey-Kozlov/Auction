@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import AddTokenHeader from "../../api/AddTokenHeader";
 import { createRef, useEffect } from "react";
-import { Button, Sticky } from "semantic-ui-react";
 
 export default function NavBar() {
 	let user: User = useSelector((state: RootState) => state.authStore);

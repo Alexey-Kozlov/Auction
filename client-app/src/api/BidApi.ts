@@ -2,7 +2,8 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, Bid, RequestType } from "../types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const bidApi = createApi({
 	//refetchOnMountOrArgChange: true,
@@ -14,7 +15,9 @@ const bidApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -23,6 +26,9 @@ const bidApi = createApi({
 		getBidsForAuction: builder.query<ApiResponseNet<Bid[]>, string>({
 			query: (id) => ({
 				url: `/${id}`,
+				headers: {
+					RequestType: RequestType[RequestType.Bids],
+				},
 			}),
 			transformResponse: (response: ApiResponseNet<Bid[]>, meta: any) => {
 				PostApiProcess(response);

@@ -13,7 +13,6 @@ public class SendMessage
 
     public async Task SendLogTopic(ItemLoggingContract message)
     {
-        if (string.IsNullOrEmpty(message.RequestId)) return;
         await _topicProducer.Produce(message);
     }
 }

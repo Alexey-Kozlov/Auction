@@ -10,7 +10,8 @@ import {
 } from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const processingApi = createApi({
 	reducerPath: "processingApi",
@@ -21,7 +22,9 @@ const processingApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -32,7 +35,7 @@ const processingApi = createApi({
 				url: "/placebid",
 				method: "post",
 				headers: {
-					"Content-type": "application/json",
+					RequestType: RequestType[RequestType.Bids],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -50,7 +53,7 @@ const processingApi = createApi({
 				url: "/createauction",
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.Create],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -68,7 +71,7 @@ const processingApi = createApi({
 				url: "/updateauction",
 				method: "post",
 				headers: {
-					"Content-type": "application/json",
+					RequestType: RequestType[RequestType.Edit],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -86,7 +89,7 @@ const processingApi = createApi({
 				url: `/deleteauction`,
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.Delete],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -104,7 +107,7 @@ const processingApi = createApi({
 				url: "/financecreate",
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.Finance],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -122,7 +125,7 @@ const processingApi = createApi({
 				url: "/editnotification",
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.Notification],
 				},
 				body: JSON.stringify(params),
 			}),

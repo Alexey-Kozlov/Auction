@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ApiResponse, CreateUser, FormErrors, RequestType } from "../../types";
-import { useCookies } from "react-cookie";
-import { v4 as uuidv4 } from "uuid";
+import { ApiResponse, CreateUser, FormErrors } from "../../types";
 import {
 	Button,
 	Form,
@@ -19,7 +17,6 @@ import Heading from "../auctionList/Heading";
 export default function Register() {
 	const [registerUser] = useRegisterUserMutation();
 	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const navigate = useNavigate();
 	const [loginUserModel, setLoginUserModel] = useState<CreateUser>({
 		name: "",
@@ -45,11 +42,6 @@ export default function Register() {
 			detail: `Нужно указать пароль пользователя`,
 		},
 	];
-	useEffect(() => {
-		setCookie("RequestType", RequestType[RequestType.Register]);
-		setCookie("RequestId", uuidv4());
-		// eslint-disable-next-line
-	}, []);
 
 	const handleNameChanged = (value: string) => {
 		setEditError(() => null);
@@ -105,8 +97,8 @@ export default function Register() {
 	return (
 		<div className="mt-50">
 			<Heading
-				title="Вход пользователя"
-				subtitle="Введите логин и пароль для входа в систему"
+				title="Регистрация пользователя"
+				subtitle="Введите наименование пользователя, его логин и пароль для регистрации в системе"
 			/>
 			<Form onSubmit={handleSubmit} error={editError !== null}>
 				<Grid columns={3} className="FormLoginTable">
@@ -164,6 +156,7 @@ export default function Register() {
 						</GridColumn>
 						<GridColumn width={8}>
 							<FormInput
+								type="password"
 								className="InputLoginText"
 								placeholder="Пароль"
 								value={loginUserModel.password}

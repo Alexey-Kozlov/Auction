@@ -96,7 +96,13 @@ export type AuctionImage = {
 export type NotifyUser = {
 	auctionid: string;
 	enable: boolean;
-	sessionid: string;
+	sessionid?: string;
+};
+
+export type FinanceStore = {
+	results: FinanceTableItem[];
+	totalCount: number;
+	pageCount: number;
 };
 
 export type FinanceItem = {
@@ -109,10 +115,22 @@ export type FinanceItem = {
 	show: boolean;
 };
 
+export type FinanceTableItem = {
+	id: string;
+	auctionId: string;
+	itemId: string;
+	value: number;
+	actionDate: Date;
+	status: number;
+	show: boolean;
+	auctionTitle: string;
+	auctionSeller: string;
+};
+
 export type FinanceCreate = {
 	amount: number;
 	userlogin: string;
-	sessionid: string;
+	sessionid?: string;
 };
 
 export type ProcessingState = {
@@ -157,11 +175,11 @@ export type Message = {
 };
 
 export type Session = {
-	sessionid: string;
+	sessionid?: string;
 };
 
 export type RestoreDb = {
-	sessionid: string;
+	sessionid?: string;
 	restoreDate: Date;
 	resetLog: boolean;
 };
@@ -190,23 +208,54 @@ export enum RequestType {
 	NotFound,
 	TraceId,
 	Delete,
+	UpdatePassword,
+	Bids,
+	Balance,
+	Image,
+	Notification,
+	ELK,
+	SnapShot,
+	Cache,
+	SignalR,
 }
 
 export type State = {
-	pageNumber: number;
-	pageSize: number;
-	pageCount: number;
-	orderBy: string;
-	filterBy: string;
+	pageNumber?: number;
+	pageSize?: number;
+	pageCount?: number;
+	orderBy?: string;
+	filterBy?: string;
 	seller?: string;
 	winner?: string;
-	searchTerm: string;
-	searchAdv: string;
-	sessionId: string;
+	searchTerm?: string;
+	searchAdv?: string;
+	sessionId?: string;
 };
 
 export type FormErrors = {
 	name: string;
 	topic: string;
 	detail: string;
+};
+
+export enum SortDirection {
+	descending,
+	ascending,
+}
+
+export enum FinanceSortColumn {
+	title,
+	actionDate,
+	status,
+	value,
+	seller,
+}
+
+export type FinanceSortType = {
+	column: FinanceSortColumn;
+	direction: SortDirection;
+};
+
+export type RequestAuctionsArray = {
+	auctionIds: string[];
 };

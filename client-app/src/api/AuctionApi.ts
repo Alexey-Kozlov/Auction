@@ -1,8 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Auction, PagedResult, ApiResponseNet, RequestType } from "../types";
+import {
+	Auction,
+	PagedResult,
+	ApiResponseNet,
+	RequestType,
+	RequestAuctionsArray,
+} from "../types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const auctionApi = createApi({
 	//refetchOnMountOrArgChange: true,
@@ -14,7 +21,9 @@ const auctionApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -23,6 +32,9 @@ const auctionApi = createApi({
 		getDetailedViewData: builder.query<ApiResponseNet<Auction>, string>({
 			query: (id) => ({
 				url: `/search/${id}`,
+				headers: {
+					RequestType: RequestType[RequestType.ReadDetail],
+				},
 			}),
 			transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {
 				PostApiProcess(response);
@@ -46,6 +58,9 @@ const auctionApi = createApi({
 		getAuctions: builder.query<ApiResponseNet<PagedResult<Auction>>, string>({
 			query: (url) => ({
 				url: "/search" + url,
+				headers: {
+					RequestType: RequestType[RequestType.ReadList],
+				},
 			}),
 			transformResponse: (
 				response: ApiResponseNet<PagedResult<Auction>>,
@@ -59,8 +74,30 @@ const auctionApi = createApi({
 			},
 			providesTags: ["auctions"],
 		}),
+		getAuctionsArray: builder.mutation<
+			ApiResponseNet<Auction[]>,
+			RequestAuctionsArray
+		>({
+			query: (params) => ({
+				url: "/search/GetItemsArrayByIds",
+				method: "post",
+				body: JSON.stringify(params),
+			}),
+			transformResponse: (response: ApiResponseNet<Auction[]>, meta: any) => {
+				PostApiProcess(response);
+				return response;
+			},
+			transformErrorResponse: (response: any, meta: any) => {
+				PostErrorApiProcess(response);
+			},
+			invalidatesTags: ["auctions"],
+		}),
 	}),
 });
 
-export const { useGetAuctionsQuery, useGetDetailedViewDataQuery } = auctionApi;
+export const {
+	useGetAuctionsQuery,
+	useGetDetailedViewDataQuery,
+	useGetAuctionsArrayMutation,
+} = auctionApi;
 export default auctionApi;

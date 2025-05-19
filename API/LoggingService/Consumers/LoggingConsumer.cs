@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Common.Contracts;
 using Common.Contracts.Logging;
 using Logging.Services;
 using MassTransit;
@@ -22,8 +23,27 @@ public class LoggingConsumer : IConsumer<ItemLoggingContract>
             !String.IsNullOrEmpty(loggingMessage.ResponseLoggingContract.Result) &&
             loggingMessage.LogType == LogType.Error)
         {
-            loggingMessage.ResponseLoggingContract = JsonSerializer.Deserialize<ResponseLoggingContract>(loggingMessage.ResponseLoggingContract.Result,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            try
+            {
+                loggingMessage.ResponseLoggingContract = JsonSerializer.Deserialize<ResponseLoggingContract>(loggingMessage.ResponseLoggingContract.Result,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+            catch
+            {
+                var errorMes = JsonSerializer.Deserialize<ApiErrorResponse>(loggingMessage.ResponseLoggingContract.Result,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+                loggingMessage.ResponseLoggingContract = new ResponseLoggingContract
+                {
+                    ErrorMessages = errorMes.ErrorMessages,
+                    IsSuccess = errorMes.IsSuccess,
+                    StatusCode = errorMes.StatusCode,
+                    Result = ""
+                };
+                loggingMessage.LogType = errorMes.StatusCode == System.Net.HttpStatusCode.Forbidden ?
+                    LogType.Audit : LogType.Error;
+            }
+
         }
         await WriteLog(loggingMessage);
     }

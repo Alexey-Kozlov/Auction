@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import Heading from "../auctionList/Heading";
 import { useNavigate, useParams } from "react-router-dom";
-import TextInput from "../inputComponents/TextInput";
 import {
 	Auction,
 	AuctionUpdated,
 	FormErrors,
 	ProcessingState,
-	RequestType,
 } from "../../types";
 import DatePickerInput from "../inputComponents/DatePickerInput";
 import ImageFileInput from "../inputComponents/ImageFileInput";
-import TextAreaInput from "../inputComponents/TextAreaInput";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,33 +19,21 @@ import {
 	useUpdateAuctionMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import toast from "react-hot-toast";
-import ErrorMessageToast from "../signalRNotifications/ErrorMessageToast";
-import { useCookies } from "react-cookie";
-import { v4 as uuidv4 } from "uuid";
 import {
 	Button,
 	Form,
-	FormField,
 	FormInput,
 	FormTextArea,
-	Grid,
-	GridColumn,
-	GridRow,
-	Input,
-	Label,
 	Message,
 	Segment,
 	Table,
 	TableBody,
 	TableCell,
 	TableRow,
-	TextArea,
 } from "semantic-ui-react";
 
 export default function AuctionForm() {
 	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	let { id } = useParams();
 	if (!id) id = "empty";
 
@@ -80,6 +65,21 @@ export default function AuctionForm() {
 	} as Auction);
 	const [image, setImage] = useState("");
 	const [isWaiting, setIsWaiting] = useState(false);
+	const [isFormChanged, setIsFormChanged] = useState(false);
+	const [editError, setEditError] = useState<FormErrors | null>(null);
+
+	const editErrorList: FormErrors[] = [
+		{
+			name: "EmptyTitle",
+			topic: "Ошибка - пустое наименование аукциона!",
+			detail: "Нужно указать наименование аукциона",
+		},
+		{
+			name: "ErrorEndDate",
+			topic: "Ошибка - дата окончания аукциона!",
+			detail: `Нужно указать дату окончания аукциона не ранее чем за 1 день до текущей даты`,
+		},
+	];
 
 	const auctionImage = useGetImageForAuctionQuery(
 		{ id: newAuction.auctionId, cache: false },
@@ -144,73 +144,63 @@ export default function AuctionForm() {
 		// eslint-disable-next-line
 	}, [procState]);
 
-	//первоначальная загрузка - устанавливаем параметры для логирования
-	useEffect(() => {
-		if (id === "empty") {
-			setCookie("RequestType", RequestType[RequestType.Create]);
-		} else {
-			setCookie("RequestType", RequestType[RequestType.Edit]);
-		}
-		setCookie("RequestId", uuidv4());
-		// eslint-disable-next-line
-	}, []);
-
+	//хендлеры по изменению данных
 	const handleTitleChanged = (value: string) => {
+		setIsFormChanged(true);
+		setEditError(() => null);
 		setNewAuction((prev) => {
 			return { ...prev, title: value };
 		});
 	};
 
 	const handlePropertiesChanged = (value: string | number | undefined) => {
+		setIsFormChanged(true);
+		setEditError(() => null);
 		setNewAuction((prev) => {
 			return { ...prev, properties: value ? value.toString() : "" };
 		});
 	};
 
 	const handleDescriptionChanged = (value: string | number | undefined) => {
+		setIsFormChanged(true);
+		setEditError(() => null);
 		setNewAuction((prev) => {
 			return { ...prev, description: value ? value.toString() : "" };
 		});
 	};
 
 	const handleEndDateChanged = (value: Date) => {
+		setIsFormChanged(true);
+		setEditError(() => null);
 		setNewAuction((prev) => {
 			return { ...prev, auctionEnd: value };
 		});
 	};
 
 	const handleImageChanged = (value: string) => {
+		setIsFormChanged(true);
+		setEditError(() => null);
 		setNewAuction((prev) => {
 			return { ...prev, image: value };
 		});
 	};
 
 	const handleImageUsingChanged = (value: boolean) => {
+		setIsFormChanged(true);
+		setEditError(() => null);
 		setNewAuction((prev) => {
 			return { ...prev, usingImage: value };
 		});
 	};
 
 	const handleReservePriceChanged = (value: number) => {
+		if (value < 0) return;
+		setEditError(() => null);
+		setIsFormChanged(true);
 		setNewAuction((prev) => {
 			return { ...prev, reservePrice: value };
 		});
 	};
-
-	const [editError, setEditError] = useState<FormErrors | null>(null);
-
-	const editErrorList: FormErrors[] = [
-		{
-			name: "EmptyTitle",
-			topic: "Ошибка - пустое наименование аукциона!",
-			detail: "Нужно указать наименование аукциона",
-		},
-		{
-			name: "ErrorEndDate",
-			topic: "Ошибка - дата окончания аукциона!",
-			detail: `Нужно указать дату окончания аукциона не ранее чем за 1 день до текущей даты`,
-		},
-	];
 
 	const handleSubmit = async () => {
 		//проверка на ошибки
@@ -252,17 +242,6 @@ export default function AuctionForm() {
 			await createAuction(auctionUpdated);
 		}
 	};
-
-	//сбрасываем ошибки валидации
-	if (newAuction.title && editError?.name === "EmptyTitle") {
-		setEditError(() => null);
-	}
-	let _date = new Date();
-	_date = new Date(_date.getTime() + 60000);
-	if (newAuction.auctionEnd > _date && editError?.name === "ErrorEndDate") {
-		setEditError(() => null);
-		return;
-	}
 
 	if (auction.isLoading) return "Загрузка...";
 
@@ -350,7 +329,7 @@ export default function AuctionForm() {
 								<FormInput
 									className="InputText"
 									type="number"
-									placeholder="Наименование"
+									placeholder="Начальная цена"
 									value={newAuction.reservePrice}
 									onChange={(e, data) =>
 										handleReservePriceChanged(parseInt(data.value))
@@ -375,13 +354,15 @@ export default function AuctionForm() {
 									<Button
 										className="MainButton w-100"
 										loading={isWaiting}
+										disabled={!isFormChanged || isWaiting}
 										type="submit"
 									>
 										{id ? "Сохранить" : "Создать"}
 									</Button>
 									<Button
 										className="MainButton w-100 ml-5"
-										onClick={() => {
+										onClick={(e) => {
+											e.preventDefault();
 											navigate(-1);
 										}}
 									>

@@ -12,15 +12,11 @@ namespace NotificationService.Consumers;
 public class ElkindexConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
-    private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IConfiguration _configuration;
 
-    public ElkindexConsumer(IHubContext<NotificationHub> hubContext,
-        IPublishEndpoint publishEndpoint, IConfiguration configuration)
+    public ElkindexConsumer(IHubContext<NotificationHub> hubContext)
     {
         _hubContext = hubContext;
-        _publishEndpoint = publishEndpoint;
-        _configuration = configuration;
+
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
     {

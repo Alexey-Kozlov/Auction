@@ -7,14 +7,17 @@ import {
 	RequestType,
 } from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const authApi = createApi({
 	reducerPath: "authApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_AUTH,
 		prepareHeaders: (headers: Headers, api) => {
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -24,7 +27,7 @@ const authApi = createApi({
 				url: "register",
 				method: "POST",
 				headers: {
-					"Content-type": "application/json",
+					RequestType: RequestType[RequestType.Register],
 				},
 				body: userData,
 			}),
@@ -41,7 +44,7 @@ const authApi = createApi({
 				url: "login",
 				method: "POST",
 				headers: {
-					"Content-type": "application/json",
+					RequestType: RequestType[RequestType.Login],
 				},
 				body: userCredentials,
 			}),
@@ -58,7 +61,7 @@ const authApi = createApi({
 				url: "logout",
 				method: "POST",
 				headers: {
-					"Content-type": "application/json",
+					RequestType: RequestType[RequestType.Logout],
 				},
 				body: userCredentials,
 			}),
@@ -74,9 +77,6 @@ const authApi = createApi({
 			query: (login) => ({
 				url: "",
 				method: "POST",
-				headers: {
-					"content-type": "application/json",
-				},
 				body: { login: login },
 			}),
 			transformResponse: (response: ApiResponseNet<string>, meta: any) => {
@@ -92,7 +92,7 @@ const authApi = createApi({
 				url: "setnewpassword",
 				method: "POST",
 				headers: {
-					"Content-type": "application/json",
+					RequestType: RequestType[RequestType.UpdatePassword],
 				},
 				body: userData,
 			}),

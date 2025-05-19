@@ -36,35 +36,28 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 		}
 		// eslint-disable-next-line
 	}, [procState, user]);
-	const [bidValue, setBidValue] = useState<number | string>("");
+	const [bidValue, setBidValue] = useState<number | string | null>(0);
 	const [bidError, setBidError] = useState<FormErrors | null>(null);
 	const bidErrorList: FormErrors[] = [
-		{
-			name: "NegativeValue",
-			topic: "Ошибка - отрицательная ставка!",
-			detail: "Ставка должна быть больше 0",
-		},
 		{
 			name: "SmallBid",
 			topic: "Ошибка - малый размер ставки!",
 			detail: `Размер новой ставки должен быть больше ${highBid}.`,
 		},
-		{
-			name: "NullBid",
-			topic: "Ошибка - не указана ставка!",
-			detail: `Нужно указать размер новой ставки`,
-		},
 	];
 
-	const handleSubmit = async () => {
-		if (!bidValue || bidValue === "") {
-			setBidError(() => bidErrorList.find((p) => p.name === "NullBid")!);
+	const handleBidChanged = (bid: number | "" | null) => {
+		if (bid !== "" && bid !== null && bid <= 0) {
+			setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
 			return;
 		}
-		if (Number.isInteger(bidValue) && (bidValue as number) <= 0) {
-			setBidError(() => bidErrorList.find((p) => p.name === "NegativeValue")!);
-			return;
-		} else if (Number.isInteger(bidValue) && (bidValue as number) <= highBid) {
+		//сбрасываем ошибки валидации ставки
+		setBidError(() => null);
+		setBidValue(bid);
+	};
+
+	const handleSubmit = async () => {
+		if (Number.isInteger(bidValue) && (bidValue as number) <= highBid) {
 			setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
 			return;
 		}
@@ -80,7 +73,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 			correlationId: uuid.v4() as string,
 		});
 
-		setBidValue("");
+		setBidValue(null);
 	};
 
 	return (
@@ -94,23 +87,24 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 						<div className="text-center">
 							<div className="BidFormInput">
 								<label className="DetailHeadingTitle">
-									{`Ваша ставка (мин. - ${NumberWithSpaces(highBid + 1)} руб)`}
+									{`Ваша ставка (мин. ${NumberWithSpaces(highBid + 1)} руб)`}
 								</label>
 								<FormInput
 									size="huge"
 									className="ml-10 mr-10 w-100P"
 									type="number"
 									name="amount"
-									placeholder={`Ваша ставка (мин. - ${highBid + 1}) руб`}
+									placeholder={`Ваша ставка (мин. ${highBid + 1}) руб`}
 									error={bidError !== null}
 									value={bidValue}
 									onChange={(e, { name, value }) =>
-										setBidValue(value === "" ? "" : parseInt(value))
+										handleBidChanged(value === "" ? "" : parseInt(value))
 									}
 								/>
 							</div>
 							<Message
 								error
+								hidden={bidError !== null && bidError.name !== "SmallBid"}
 								header={bidError?.topic}
 								content={bidError?.detail}
 							/>

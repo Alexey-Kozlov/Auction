@@ -7,13 +7,10 @@ import { setParamIsOpen } from "./store/ReportSlice";
 import { useEffect } from "react";
 import { User } from "./types";
 import { setAuthUser } from "./store/authSlice";
-import { useCookies } from "react-cookie";
 
 function App() {
 	const dispatch = useDispatch();
 	const tokenData = localStorage.getItem("Auction");
-	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["RequestId"]);
 
 	const handleCloseParamWindow = () => {
 		dispatch(setParamIsOpen({ isOpen: false }));
@@ -32,9 +29,6 @@ function App() {
 			user.name = JSON.parse(tokenData).name;
 			dispatch(setAuthUser({ user }));
 		}
-		//очищаем куку RequestId - в отчетности передаем этот параметр через хедер, вместо TraceId
-		setCookie("RequestId", "");
-
 		// eslint-disable-next-line
 	}, []);
 	return (

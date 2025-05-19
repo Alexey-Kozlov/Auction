@@ -46,12 +46,12 @@ public class FinanceController : ControllerBase
     {
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login")
             .Select(p => p.Value).FirstOrDefault();
-        var balanceItemList = _context.FinanceItems.Where(p => p.Commited && p.UserLogin == userLogin &&
+        var historyItemList = _context.FinanceItems.Where(p => p.Commited && p.UserLogin == userLogin &&
             p.Status != FinanceRecordStatus.Баланс)
             .OrderByDescending(p => p.ActionDate) as IQueryable<FinanceItem>;
         var pageCount = 0;
-        var itemsCount = await balanceItemList.CountAsync();
-        var result = await balanceItemList.Skip((pagedParams.PageNumber - 1) * pagedParams.PageSize)
+        var itemsCount = await historyItemList.CountAsync();
+        var result = await historyItemList.Skip((pagedParams.PageNumber - 1) * pagedParams.PageSize)
             .Take(pagedParams.PageSize)
             .ToListAsync();
         if (itemsCount > 0)
@@ -83,7 +83,35 @@ public class FinanceController : ControllerBase
                 TotalCount = itemsCount
             }
         };
-
     }
 
+    [HttpGet("SortByColumn")]
+    public async Task SortByColumn([FromQuery] PagedParamsDTO sortParams)
+    {
+        // запрос на сортировку по столбцу, отбираем все данные, без пежинации. 
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login")
+            .Select(p => p.Value).FirstOrDefault();
+        var historyItemList = await _context.FinanceItems.Where(p => p.Commited && p.UserLogin == userLogin &&
+            p.Status != FinanceRecordStatus.Баланс).Select(p => new FinanceHistoryItem
+            {
+                ActionDate = p.ActionDate,
+                AuctionId = p.AuctionId,
+                FinanceId = p.FinanceId,
+                Id = p.Id,
+                Status = p.Status,
+                UserLogin = p.UserLogin,
+                Value = p.Value
+            }).ToListAsync();
+        //посылаем на обработку в сервис SearchService - для добавления значений полей auctionTitle и auctionSeller
+        //и сортировки по нужному полю, отсылаем асинхронно через Rabbit
+        var sortRequest = new FinanceSortRequest
+        {
+            FinanceItems = historyItemList,
+            OrderBy = sortParams.OrderBy,
+            SessionId = sortParams.SessionId,
+            PageNumber = sortParams.PageNumber,
+            PageSize = sortParams.PageSize
+        };
+        await _publishEndpoint.Publish(sortRequest);
+    }
 }

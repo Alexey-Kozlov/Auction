@@ -6,12 +6,11 @@ import {
 	AuctionDeleted,
 	NotifyUser,
 	ProcessingState,
-	RequestType,
 	User,
 } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ImageCard from "../auctionList/ImageCard";
 import BidList from "./BidList";
 import DetailedSpecs from "./DetailedSpec";
@@ -23,8 +22,6 @@ import {
 	useSetNotifyUserMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import { useCookies } from "react-cookie";
-import { v4 as uuidv4 } from "uuid";
 import {
 	Button,
 	Checkbox,
@@ -37,8 +34,6 @@ import ModalConfirm from "../modals/ModalConfirm";
 
 export default function Detail() {
 	const { id } = useParams();
-	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const user: User = useSelector((state: RootState) => state.authStore);
 	const procState: ProcessingState[] = useSelector(
 		(state: RootState) => state.processingStore
@@ -120,15 +115,8 @@ export default function Detail() {
 		// eslint-disable-next-line
 	}, [data]);
 
-	//для сохранения идентификатора запроса в логе
-	useEffect(() => {
-		setCookie("RequestType", RequestType[RequestType.ReadDetail]);
-		setCookie("RequestId", uuidv4());
-		// eslint-disable-next-line
-	}, []);
-
 	//удаляем аукцион
-	const handleDeleteAuction = async () => {
+	const handleDeleteAuction = () => {
 		//подтверждение удаления
 		setShowConfirm(true);
 	};
@@ -150,7 +138,6 @@ export default function Detail() {
 		};
 		if (confirmResult) {
 			setDeleteAuction(true);
-			setCookie("RequestType", RequestType[RequestType.Delete]);
 			dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
 			const auctionDeleted: AuctionDeleted = {
 				id: uuid.v4() as string,
@@ -161,6 +148,7 @@ export default function Detail() {
 		}
 		setShowConfirm(false);
 		setConfirmResult(null);
+		// eslint-disable-next-line
 	}, [confirmResult]);
 
 	if (data.isLoading) return "Загрузка...";

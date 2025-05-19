@@ -21,6 +21,7 @@
 .SearchContainer {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 }
 
 .SearchHeader {
@@ -97,6 +98,7 @@
 	justify-content: space-between;
 	align-items: center;
 	background-color: white;
+	flex-wrap: wrap;
 }
 
 .NavBarFooter1 {
@@ -123,6 +125,7 @@
 	justify-content: space-between;
 	margin-bottom: 1rem;
 	width: 100%;
+	flex-wrap: wrap;
 }
 
 .FilterItem {
@@ -137,7 +140,9 @@
 
 .ListingContainer {
 	padding: 1.25rem;
-	margin: auto;
+	margin-left: auto;
+	margin-right: auto;
+	padding-bottom: 0;
 }
 
 .MenuItems {
@@ -454,6 +459,50 @@
 	margin-top: 30px;
 	padding-bottom: 30px;
 	text-align: center;
+}
+
+.FinanceListImage {
+	max-height: 100px;
+	max-width: 150px;
+}
+
+.FinanceListText {
+	text-decoration: none;
+	font-size: 16px;
+	color: black;
+}
+
+.FinanceBalanceContainer {
+	display: flex;
+	justify-content: space-between;
+}
+
+.FinanceBalanceLabel {
+	font-weight: 500;
+	font-size: 16px;
+}
+
+.FinanceBalanceValue {
+	font-weight: 700;
+	font-size: 22px;
+	color: blue;
+	margin-left: 10px;
+}
+
+.FinanceAmountContainer {
+	display: flex;
+	width: 500px;
+	align-items: center;
+}
+
+.FinanceAmount {
+	width: 150px;
+	margin: 0 10px 0 10px !important;
+}
+
+.FinanceAmount input {
+	font-size: 16px;
+	border: 1px solid gray;
 }
 
 /*переопределяем стили Semantic UI*/

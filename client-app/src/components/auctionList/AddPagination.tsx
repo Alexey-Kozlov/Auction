@@ -1,5 +1,4 @@
 import { Pagination } from "semantic-ui-react";
-import { number } from "yup";
 
 type Props = {
 	currentPage: number;

@@ -7,7 +7,8 @@ import {
 } from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import AddTokenHeader from "./AddTokenHeader";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const financeApi = createApi({
 	refetchOnMountOrArgChange: true,
@@ -19,7 +20,9 @@ const financeApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -31,6 +34,9 @@ const financeApi = createApi({
 		>({
 			query: (url) => ({
 				url: "/gethistory" + url,
+				headers: {
+					RequestType: RequestType[RequestType.Finance],
+				},
 			}),
 			transformResponse: (
 				response: ApiResponseNet<PagedResult<FinanceItem>>,
@@ -47,6 +53,9 @@ const financeApi = createApi({
 		getBalance: builder.query<ApiResponseNet<number>, null>({
 			query: () => ({
 				url: "/getbalance",
+				headers: {
+					RequestType: RequestType[RequestType.Balance],
+				},
 			}),
 			transformResponse: (response: ApiResponseNet<number>, meta: any) => {
 				PostApiProcess(response);
@@ -57,8 +66,21 @@ const financeApi = createApi({
 			},
 			providesTags: ["finance"],
 		}),
+		getSortItems: builder.query<void, string>({
+			query: (url) => ({
+				url: "/sortByColumn" + url,
+			}),
+			transformErrorResponse: (response: any, meta: any) => {
+				PostErrorApiProcess(response);
+			},
+			providesTags: ["finance"],
+		}),
 	}),
 });
 
-export const { useGetFinanceItemQuery, useGetBalanceQuery } = financeApi;
+export const {
+	useGetFinanceItemQuery,
+	useGetBalanceQuery,
+	useGetSortItemsQuery,
+} = financeApi;
 export default financeApi;

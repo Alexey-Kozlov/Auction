@@ -1,2 +1,9 @@
 namespace FinanceService.DTO;
-public record PagedParamsDTO(int PageNumber = 1, int PageSize = 5);
+
+public class PagedParamsDTO
+{
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public string OrderBy { get; set; }
+    public string SessionId { get; set; }
+}

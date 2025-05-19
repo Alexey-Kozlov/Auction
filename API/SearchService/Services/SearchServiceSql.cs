@@ -113,6 +113,17 @@ public class SearchServiceSql
         };
     }
 
+    public async Task<ApiResponse<List<AuctionItem>>> SearchItemArray(RequestAuctionArray ids)
+    {
+        var items = await _context.AuctionItems.Where(p => ids.AuctionIds.Contains(p.AuctionId) && p.Commited).ToListAsync();
+        return new ApiResponse<List<AuctionItem>>
+        {
+            IsSuccess = true,
+            StatusCode = System.Net.HttpStatusCode.OK,
+            Result = items
+        };
+    }
+
     public async Task<ApiResponse<List<AuctionItem>>> GetAuctionItemsByQuery(string queryText)
     {
         var serializer = new ExpressionSerializer(new JsonSerializer())

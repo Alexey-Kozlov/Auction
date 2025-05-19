@@ -8,27 +8,12 @@ import Login from "./components/auth/Login";
 import Detail from "./components/auctionDetail/Detail";
 import AuctionForm from "./components/auctionEdit/AuctionForm";
 import SignalRProvider from "./providers/SignalRProvider";
-import { User } from "./types";
-import { useSelector } from "react-redux";
-import { RootState } from "./store/store";
 import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
-import { useEffect } from "react";
 import ShowEventsPopUp from "./components/services/ShowEventsPopUp";
-import { useCookies } from "react-cookie";
 import { Sticky } from "semantic-ui-react";
 
 function App() {
-	const user: User = useSelector((state: RootState) => state.authStore);
-	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User"]);
-
-	//для обновления экрана при смене пользователя
-	useEffect(() => {
-		setCookie("User", user.login);
-		// eslint-disable-next-line
-	}, [user]);
-
 	return (
 		<div>
 			<ToasterProvider />

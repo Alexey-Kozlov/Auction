@@ -18,7 +18,6 @@ import toast from "react-hot-toast";
 import ModalConfirm from "../modals/ModalConfirm";
 import { useEffect, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
-import { useCookies } from "react-cookie";
 import {
 	Dropdown,
 	DropdownDivider,
@@ -30,8 +29,6 @@ import {
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);
-	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const location = useLocation();
@@ -103,8 +100,6 @@ export default function UserActions() {
 	};
 
 	const handleLogoutClick = async () => {
-		//посылаем сообщение о выходе пользователя из системы - для логирования
-		setCookie("RequestType", RequestType[RequestType.Logout]);
 		await logoutUser({ login: user.login });
 		localStorage.removeItem("Auction");
 		dispatch(setAuthUser(emptyUserState));
@@ -291,7 +286,7 @@ export default function UserActions() {
 				</DropdownMenu>
 			</Dropdown>
 
-			<ModalConfirm
+			{/* <ModalConfirm
 				openModal={showConfirm}
 				text={confirmParam.confirmText}
 				title={confirmParam.confirmTitle}
@@ -301,7 +296,7 @@ export default function UserActions() {
 				resetLog={(rezult) => {
 					setResetLog(rezult);
 				}}
-			/>
+			/> */}
 		</>
 	);
 }

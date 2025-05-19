@@ -11,6 +11,7 @@ using System.Text.Json;
 using Common.Contracts;
 
 namespace IdentityService.Services;
+
 public class AuthService : IAuthService
 {
     private readonly ApplicationDbContext _db;
@@ -66,9 +67,9 @@ public class AuthService : IAuthService
         {
             return new ApiResponse<LoginResponseDTO>()
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Forbidden,
                 IsSuccess = false,
-                ErrorMessages = ["Ошибка пользователя или пароля"],
+                ErrorMessages = [$"Ошибка пользователя или пароля, пользователь - '{loginRequestDTO.Login}'"],
                 Result = new LoginResponseDTO()
             };
         }
@@ -77,9 +78,9 @@ public class AuthService : IAuthService
         {
             return new ApiResponse<LoginResponseDTO>()
             {
-                StatusCode = HttpStatusCode.BadRequest,
+                StatusCode = HttpStatusCode.Forbidden,
                 IsSuccess = false,
-                ErrorMessages = ["Ошибка пользователя или пароля"],
+                ErrorMessages = [$"Ошибка пользователя или пароля, пользователь - '{loginRequestDTO.Login}'"],
                 Result = new LoginResponseDTO()
             };
         }

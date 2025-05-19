@@ -6,17 +6,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import {
-	ApiResponse,
-	FormErrors,
-	LoginResponse,
-	LoginUser,
-	RequestType,
-} from "../../types";
+import { ApiResponse, FormErrors, LoginResponse, LoginUser } from "../../types";
 import { setAuthUser } from "../../store/authSlice";
 import ModalConfirm from "../modals/ModalConfirm";
-import { useCookies } from "react-cookie";
-import { v4 as uuidv4 } from "uuid";
 import {
 	Button,
 	Form,
@@ -32,7 +24,6 @@ export default function Login() {
 	const [loginUser] = useLoginUserMutation();
 	const [setPassword] = useSetNewPasswordMutation();
 	// eslint-disable-next-line
-	const [cookies, setCookie] = useCookies(["User", "RequestType", "RequestId"]);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [showConfirm, setShowConfirm] = useState(false);
@@ -83,12 +74,6 @@ export default function Login() {
 		setShowConfirm(false);
 		// eslint-disable-next-line
 	}, [updatePassword]);
-
-	useEffect(() => {
-		setCookie("RequestType", RequestType[RequestType.Login]);
-		setCookie("RequestId", uuidv4());
-		// eslint-disable-next-line
-	}, []);
 
 	const handleLoginChanged = (value: string) => {
 		setEditError(() => null);
@@ -154,9 +139,8 @@ export default function Login() {
 			);
 			//возврат на предыдущую страничку
 			navigate(-1);
-		} else {
-			setSubmittingLogin(false);
 		}
+		setSubmittingLogin(false);
 	};
 
 	return (
@@ -208,6 +192,7 @@ export default function Login() {
 						</GridColumn>
 						<GridColumn width={8}>
 							<FormInput
+								type="password"
 								className="InputLoginText"
 								placeholder="Пароль"
 								value={loginUserModel.password}

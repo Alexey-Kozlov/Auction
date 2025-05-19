@@ -89,6 +89,27 @@ public class FinanceItem
      public bool Commited { get; set; }
 }
 
+public class FinanceHistoryItem
+{
+     public Guid? Id { get; set; }
+     public Guid FinanceId { get; set; }
+     public Guid? AuctionId { get; set; }
+     public string UserLogin { get; set; }
+     public int Value { get; set; }
+     public DateTime ActionDate { get; set; }
+     public FinanceRecordStatus Status { get; set; }
+     public string AuctionTitle { get; set; }
+     public string AuctionSeller { get; set; }
+}
+
+public class FinanceSortRequest
+{
+     public List<FinanceHistoryItem> FinanceItems { get; set; }
+     public string OrderBy { get; set; }
+     public string SessionId { get; set; }
+     public int PageNumber { get; set; }
+     public int PageSize { get; set; }
+}
 
 public enum FinanceRecordStatus
 {

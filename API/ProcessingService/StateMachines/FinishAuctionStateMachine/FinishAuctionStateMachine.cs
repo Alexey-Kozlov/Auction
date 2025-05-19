@@ -9,6 +9,7 @@ using MassTransit.KafkaIntegration.Serializers;
 using ProcessingService.Activities.AuctionFinish;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
+
 public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionState>
 {
     public State ElkState { get; }
@@ -213,7 +214,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                         {
                             LogType = LogType.System,
                             RequestDate = DateTime.UtcNow,
-                            RequestId = context.Saga.CorrelationId.ToString(),
                             RequestLoggingContract = new RequestLoggingContract { },
                             RequestType = "AuctionFinished",
                             ResponseLoggingContract = new ResponseLoggingContract

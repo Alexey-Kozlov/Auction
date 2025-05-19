@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, ParameterItem, RequestType } from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../api/PostResponse";
 import { AuctionListTypes } from "../components/reports/auctionList/AuctionListTypes";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 
 const ReportApi = createApi({
 	//refetchOnMountOrArgChange: true,
@@ -10,7 +10,8 @@ const ReportApi = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + "/api/reports",
 		prepareHeaders: (headers: Headers, api) => {
-			headers.append(RequestType[RequestType.RequestId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
 			const tokenData = localStorage.getItem("Auction");
 			if (tokenData) {
 				const token = "Bearer " + JSON.parse(tokenData).token;
@@ -25,9 +26,6 @@ const ReportApi = createApi({
 			query: (params) => ({
 				url: "/auctionlist",
 				method: "post",
-				headers: {
-					"Content-type": "application/json",
-				},
 				body: JSON.stringify(params),
 			}),
 			transformResponse: (
@@ -46,9 +44,6 @@ const ReportApi = createApi({
 			query: (params) => ({
 				url: "/notifylist",
 				method: "post",
-				headers: {
-					"Content-type": "application/json",
-				},
 				body: JSON.stringify(params),
 			}),
 			transformResponse: (

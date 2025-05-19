@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import Heading from "../auctionList/Heading";
 import { Auction, Bid, User } from "../../types";
-import EmptyFilter from "../auctionList/EmptyFilter";
 import BidItem from "./BidItem";
 import BidForm from "./BidForm";
 import { useGetBidsForAuctionQuery } from "../../api/BidApi";

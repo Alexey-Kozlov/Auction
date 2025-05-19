@@ -48,7 +48,6 @@ export enum RequestType {
 	Finance,
 	NotFound,
 	TraceId,
-	RequestId,
 }
 
 export enum ReportType {

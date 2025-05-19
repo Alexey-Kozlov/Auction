@@ -21,8 +21,9 @@ public class LoggingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        //проверяем путь - если нужно исключить запрос из логгирования
-        if (ExceptionLoggingItems.CheckPathToInclude($"{context.Request.Path}{DecodeUrlString(context.Request.QueryString.Value)}"))
+        //проверяем путь - если нужно исключить запрос из логгирования, или если нет TraceId
+        if (ExceptionLoggingItems.CheckPathToInclude($"{context.Request.Path}{DecodeUrlString(context.Request.QueryString.Value)}") ||
+            string.IsNullOrEmpty(context.Request.Headers["traceid"]))
         {
             //пропускаем логирование
             await _next(context);
@@ -30,14 +31,6 @@ public class LoggingMiddleware
         }
         var originalBodyStream = context.Response.Body;
         var rezult = new ItemLoggingContract();
-        rezult.UserLogin = context.Request.Cookies["User"];
-        rezult.RequestId = context.Request.Cookies["RequestId"];
-        if (string.IsNullOrEmpty(context.Request.Cookies["RequestId"]))
-        {
-            rezult.RequestId = string.IsNullOrEmpty(context.Request.Headers["RequestId"]) ?
-                Guid.NewGuid().ToString() : context.Request.Headers["RequestId"];
-        }
-        rezult.RequestType = context.Request.Cookies["RequestType"];
         rezult.RequestDate = DateTime.UtcNow;
         rezult.LogType = LogType.Audit;
         using (var responseBody = new MemoryStream())
@@ -110,9 +103,9 @@ public class LoggingMiddleware
             bodyAsText = $"Размер превышает лимит '{messageLimit}' на запись в лог - {bodyAsText.Length}";
         }
         request.Body.Position = 0;
-
-        rezult.TraceId = string.IsNullOrEmpty(request.Headers["traceid"]) ? Guid.NewGuid().ToString() : request.Headers["traceid"];
-
+        rezult.TraceId = request.Headers["traceid"];
+        rezult.UserLogin = request.Headers["User"];
+        rezult.RequestType = request.Headers["RequestType"];
         return new RequestLoggingContract
         {
             Body = bodyAsText,

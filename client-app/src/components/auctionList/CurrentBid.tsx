@@ -5,11 +5,5 @@ type Props = {
 
 export default function CurrentBid({ reservePrice, amount }: Props) {
 	const text = amount ? amount + " руб." : "Нет предложений";
-	const color = amount
-		? amount > reservePrice
-			? "bg-green-600"
-			: "bg-amber-600"
-		: "bg-red-600";
-
 	return <div className="AuctionCardCurrentBid">{text}</div>;
 }

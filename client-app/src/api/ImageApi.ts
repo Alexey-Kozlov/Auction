@@ -1,7 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, AuctionImage, RequestType } from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const imageApi = createApi({
 	refetchOnMountOrArgChange: true,
@@ -9,7 +10,9 @@ const imageApi = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + `/api/images`,
 		prepareHeaders: (headers: Headers, api) => {
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -22,6 +25,9 @@ const imageApi = createApi({
 			query: (arg) => ({
 				url: `/`,
 				params: { id: arg.id, cache: arg.cache },
+				headers: {
+					RequestType: RequestType[RequestType.Image],
+				},
 			}),
 			transformResponse: (
 				response: ApiResponseNet<AuctionImage>,

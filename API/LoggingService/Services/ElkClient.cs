@@ -1,4 +1,3 @@
-using Common.Contracts.Logging;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 

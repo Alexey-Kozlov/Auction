@@ -11,6 +11,7 @@ import {
 	AuctionFinished,
 	Bid,
 	FinanceItem,
+	FinanceTableItem,
 	Message,
 	PagedResult,
 	ProgressToast,
@@ -30,6 +31,7 @@ import AuctionUpdatedToast from "../components/signalRNotifications/AuctionUpdat
 import AuctionDeletedToast from "../components/signalRNotifications/AuctionDeletedToast";
 import FinanceCreatedToast from "../components/signalRNotifications/FinanceCreatedToast";
 import ProgressMessageToast from "../components/signalRNotifications/ProgressMessageToast";
+import { setFinanceItems } from "../store/financeSlice";
 
 export default function SignalRProvider() {
 	const user: User = useSelector((state: RootState) => state.authStore);
@@ -318,6 +320,12 @@ export default function SignalRProvider() {
 						(p) => <InfoMessageToast message={mes} toastId={p.id} />,
 						{ duration: 2000 }
 					);
+				});
+
+				connection.on("FinanceSort", (elk: any) => {
+					const financeSort = elk as PagedResult<FinanceTableItem>;
+					dispatch(setFinanceItems(financeSort));
+					dispatch(setEventFlag({ eventName: "FinanceSort", ready: false }));
 				});
 			}
 		};

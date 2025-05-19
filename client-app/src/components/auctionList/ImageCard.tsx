@@ -67,7 +67,7 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 							: empty
 					}
 					alt=""
-					className="AuctionImageCardNoZoom"
+					className={"AuctionImageCardNoZoom " + dopStyle}
 				/>
 			)}
 		</>

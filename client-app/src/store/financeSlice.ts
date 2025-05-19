@@ -1,15 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { FinanceItem } from "../types";
+import { FinanceStore } from "../types";
 
-type State = {
-	items: FinanceItem[];
-	totalCount: number;
-	pageCount: number;
-};
-
-const initialState: State = {
+const initialState: FinanceStore = {
 	pageCount: 0,
-	items: [],
+	results: [],
 	totalCount: 0,
 };
 
@@ -18,7 +12,7 @@ export const financeSlice = createSlice({
 	initialState: initialState,
 	reducers: {
 		setFinanceItems: (state, action) => {
-			if (action.payload?.results) state.items = action.payload.results;
+			if (action.payload?.results) state.results = action.payload.results;
 			if (action.payload?.pageCount) state.pageCount = action.payload.pageCount;
 			if (action.payload?.totalCount)
 				state.totalCount = action.payload.totalCount;

@@ -2,7 +2,8 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import { ApiResponseNet, RequestType, RestoreDb, Session } from "../types";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
+import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const serviceApi = createApi({
 	refetchOnMountOrArgChange: true,
@@ -14,7 +15,9 @@ const serviceApi = createApi({
 			if (token) {
 				headers.append("Authorization", token);
 			}
-			headers.append(RequestType[RequestType.TraceId], uuidv4());
+			headers.append(RequestType[RequestType.TraceId], uuid.v4() as string);
+			headers.append("Content-type", "application/json");
+			headers.append("User", GetCurrentUser());
 			return headers;
 		},
 	}),
@@ -25,7 +28,7 @@ const serviceApi = createApi({
 				url: "/elkindex",
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.ELK],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -43,7 +46,7 @@ const serviceApi = createApi({
 				url: "/setsnapshot",
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.SnapShot],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -61,7 +64,7 @@ const serviceApi = createApi({
 				url: "/restoresnapshot",
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.SnapShot],
 				},
 				body: JSON.stringify(params),
 			}),
@@ -79,7 +82,7 @@ const serviceApi = createApi({
 				url: `/resetimagecache`,
 				method: "post",
 				headers: {
-					"content-type": "application/json",
+					RequestType: RequestType[RequestType.Cache],
 				},
 				body: JSON.stringify(params),
 			}),

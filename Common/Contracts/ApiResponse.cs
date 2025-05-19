@@ -12,9 +12,18 @@ public class ApiResponse<T>
 }
 
 [Serializable]
+public class ApiErrorResponse
+{
+    public HttpStatusCode StatusCode { get; set; }
+    public bool IsSuccess { get; set; } = true;
+    public List<string> ErrorMessages { get; set; } = new();
+}
+
+[Serializable]
 public class PagedResult<T>
 {
     public T Results { get; set; }
     public int PageCount { get; set; }
     public int TotalCount { get; set; }
+    public string SessionId { get; set; }
 }

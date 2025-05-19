@@ -40,10 +40,8 @@ export default function ImageFileInput({
 		if (value) {
 			setImageDisplay(`${value}`);
 			setUsingImg((prev) => true);
-			usingImage(true);
 		} else {
 			setUsingImg((prev) => false);
-			usingImage(usingImg);
 		}
 		// eslint-disable-next-line
 	}, [value]);
