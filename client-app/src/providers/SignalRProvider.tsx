@@ -176,6 +176,7 @@ export default function SignalRProvider() {
 
 				connection.on("FinanceCreate", (finance: FinanceItem) => {
 					dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
+					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					if (finance.show) {
 						return toast(
 							(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
@@ -322,11 +323,13 @@ export default function SignalRProvider() {
 					);
 				});
 
-				connection.on("FinanceSort", (elk: any) => {
-					const financeSort = elk as PagedResult<FinanceTableItem>;
-					dispatch(setFinanceItems(financeSort));
-					dispatch(setEventFlag({ eventName: "FinanceSort", ready: false }));
-				});
+				connection.on(
+					"FinanceHistory",
+					(finance: PagedResult<FinanceTableItem>) => {
+						dispatch(setFinanceItems(finance));
+						dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					}
+				);
 			}
 		};
 		con_execute();

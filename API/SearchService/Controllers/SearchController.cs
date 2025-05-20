@@ -24,13 +24,6 @@ public class SearchController : ControllerBase
         return await _search.SearchItemById(id);
     }
 
-    [HttpPost("GetItemsArrayByIds")]
-    public async Task<ApiResponse<List<AuctionItem>>> GetItemsArrayByIds([FromBody] RequestAuctionArray ids)
-    {
-        //поиск по id
-        return await _search.SearchItemArray(ids);
-    }
-
     [HttpGet]
     public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
     {

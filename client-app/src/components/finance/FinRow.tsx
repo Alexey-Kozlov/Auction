@@ -1,4 +1,3 @@
-import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { FinanceTableItem } from "../../types";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { GrMoney } from "react-icons/gr";

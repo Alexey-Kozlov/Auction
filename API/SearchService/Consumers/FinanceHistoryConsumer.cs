@@ -7,11 +7,11 @@ using SearchService.Data;
 
 namespace SearchService.Consumers;
 
-public class FinanceSortConsumer : IConsumer<FinanceSortRequest>
+public class FinanceHistoryConsumer : IConsumer<FinanceSortRequest>
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly SearchDbContext _dbContext;
-    public FinanceSortConsumer(IPublishEndpoint publishEndpoint, SearchDbContext dbContext)
+    public FinanceHistoryConsumer(IPublishEndpoint publishEndpoint, SearchDbContext dbContext)
     {
         _publishEndpoint = publishEndpoint;
         _dbContext = dbContext;
@@ -55,6 +55,8 @@ public class FinanceSortConsumer : IConsumer<FinanceSortRequest>
             "valueDesc" => rezult.OrderByDescending(p => p.Value).ThenBy(p => p.Id),
             _ => rezult.OrderBy(p => p.Id)
         };
+        var pageCount = (rezult.Count() + context.Message.PageSize - 1) / context.Message.PageSize;
+        var totalCount = rezult.Count();
         //добавляем пагинацию
         rezult = rezult.Skip((context.Message.PageNumber - 1) * context.Message.PageSize)
             .Take(context.Message.PageSize);
@@ -65,8 +67,8 @@ public class FinanceSortConsumer : IConsumer<FinanceSortRequest>
             Result = new PagedResult<List<FinanceHistoryItem>>()
             {
                 Results = rezult.ToList(),
-                PageCount = (rezult.Count() + context.Message.PageSize - 1) / context.Message.PageSize,
-                TotalCount = rezult.Count(),
+                PageCount = pageCount,
+                TotalCount = totalCount,
                 SessionId = context.Message.SessionId
             }
         };

@@ -21,6 +21,6 @@ public class FinanceSortConsumer : IConsumer<ApiResponse<PagedResult<List<Financ
     {
         //пересылка результатов сортировки финансовой истории
         await _hubContext.Clients.Group(context.Message.Result.SessionId)
-            .SendAsync("FinanceSort", context.Message.Result);
+            .SendAsync("FinanceHistory", context.Message.Result);
     }
 }

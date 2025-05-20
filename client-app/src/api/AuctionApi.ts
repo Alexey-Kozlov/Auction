@@ -1,11 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {
-	Auction,
-	PagedResult,
-	ApiResponseNet,
-	RequestType,
-	RequestAuctionsArray,
-} from "../types";
+import { Auction, PagedResult, ApiResponseNet, RequestType } from "../types";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
 import uuid from "react-native-uuid";
@@ -74,30 +68,8 @@ const auctionApi = createApi({
 			},
 			providesTags: ["auctions"],
 		}),
-		getAuctionsArray: builder.mutation<
-			ApiResponseNet<Auction[]>,
-			RequestAuctionsArray
-		>({
-			query: (params) => ({
-				url: "/search/GetItemsArrayByIds",
-				method: "post",
-				body: JSON.stringify(params),
-			}),
-			transformResponse: (response: ApiResponseNet<Auction[]>, meta: any) => {
-				PostApiProcess(response);
-				return response;
-			},
-			transformErrorResponse: (response: any, meta: any) => {
-				PostErrorApiProcess(response);
-			},
-			invalidatesTags: ["auctions"],
-		}),
 	}),
 });
 
-export const {
-	useGetAuctionsQuery,
-	useGetDetailedViewDataQuery,
-	useGetAuctionsArrayMutation,
-} = auctionApi;
+export const { useGetAuctionsQuery, useGetDetailedViewDataQuery } = auctionApi;
 export default auctionApi;
