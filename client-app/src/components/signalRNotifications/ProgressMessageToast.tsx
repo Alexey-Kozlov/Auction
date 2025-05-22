@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import { Message } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
-import { Progress } from "semantic-ui-react";
+import { Button, Progress } from "semantic-ui-react";
 
 type Props = {
 	message: Message;
@@ -12,22 +12,27 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 	return (
 		<div>
 			<>
-				<div className="flex flex-row-reverse">
-					<button onClick={() => toast.dismiss(toastId)}>X</button>
+				<div className="ToastCloseButton">
+					<Button
+						className="MainButton w-40"
+						onClick={() => toast.dismiss(toastId)}
+					>
+						X
+					</Button>
 				</div>
-				<div className="flex flex-col items-center w-80">
-					<div className="flex flex-row  gap-2">
+				<div className="ToastMessageContainer">
+					<div className="flex">
 						<div>
 							<BsInfoCircle size={36} />
 						</div>
 
-						<div className="text-center">
+						<div className="text-center ToastItemText">
 							{message.message !== "-1"
 								? message.message + ", завершено - " + message.messageType + "%"
 								: "Записи не найдены"}
 						</div>
 					</div>
-					<div className="flex flex-row">
+					<div className="flex">
 						<div>
 							{message.message !== "-1" && (
 								<Progress
@@ -36,7 +41,6 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 									labelProgress
 									labelText
 									color="blue"
-									className="w-80"
 								/>
 							)}
 						</div>

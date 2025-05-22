@@ -11,21 +11,19 @@ type Props = {
 export default function AuctionCard({ auction }: Props) {
 	return (
 		<div className="AuctionCard">
-			<NavLink to={`/auctions/${auction.auctionId}`}>
-				<div className="text-center">
-					<ImageCard
-						id={auction.auctionId}
-						dopStyle=" max-h-60"
-						zooming={false}
-						cache={true}
-					/>
-				</div>
-				<div className="AuctionCardTitleContainer">
-					<div className="AuctionCardTitle">
-						<h3 className="AuctionCardTitleText">{auction.title}</h3>
+			<div className="AuctionCardItem">
+				<NavLink to={`/auctions/${auction.auctionId}`}>
+					<div className="text-center">
+						<ImageCard id={auction.auctionId} zooming={false} cache={true} />
 					</div>
-				</div>
-			</NavLink>
+					<div className="AuctionCardTitleContainer">
+						<div className="AuctionCardTitle">
+							<h3 className="AuctionCardTitleText">{auction.title}</h3>
+						</div>
+					</div>
+				</NavLink>
+			</div>
+
 			<div className="AuctionCardCountDownContainer">
 				<CountdownTimer
 					auctionEnd={auction.auctionEnd}

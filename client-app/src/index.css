@@ -101,6 +101,16 @@
 	flex-wrap: wrap;
 }
 
+#NavBarLogo {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-weight: 600;
+	font-size: 30px;
+	line-height: 36px;
+	color: rgb(240 82 82);
+}
+
 .NavBarFooter1 {
 	height: 5px;
 	width: 100%;
@@ -111,6 +121,11 @@
 	height: 5px;
 	width: 100%;
 	background-color: #e5e7eb;
+}
+
+.UserTitle {
+	font-size: 16px !important;
+	font-weight: 600;
 }
 
 .ListingFilter {
@@ -157,7 +172,7 @@
 .ListItem {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
+	align-items: start;
 }
 
 .ListPagination {
@@ -166,12 +181,16 @@
 }
 
 .AuctionCard {
-	flex: 1 0 21%;
-	height: 100%;
+	flex: 1 0 20%;
+	height: 300px;
 	position: relative;
-	align-items: center;
-	justify-content: center;
 	max-width: 360px;
+}
+
+.AuctionCardItem {
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 .AuctionCardTitleContainer {
@@ -491,7 +510,7 @@
 
 .FinanceAmountContainer {
 	display: flex;
-	width: 500px;
+	width: 550px;
 	align-items: center;
 }
 
@@ -503,6 +522,11 @@
 .FinanceAmount input {
 	font-size: 16px;
 	border: 1px solid gray;
+}
+
+.FinanceAddLabel {
+	font-size: larger;
+	width: 200px;
 }
 
 /*переопределяем стили Semantic UI*/

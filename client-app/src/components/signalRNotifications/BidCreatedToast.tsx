@@ -3,7 +3,6 @@ import { AuctionImage } from "../../types";
 import { NavLink } from "react-router-dom";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
-import { useEffect } from "react";
 import { Button } from "semantic-ui-react";
 const empty = require("../../assets/Empty.png");
 
@@ -17,16 +16,13 @@ export default function BidCreatedToast({ auctionId, toastId }: Props) {
 		id: auctionId,
 		cache: true,
 	});
-	const bidAuction = useGetDetailedViewDataQuery(auctionId);
-	useEffect(() => {
-		if (bidAuction.isSuccess && auctionId) {
-			bidAuction.refetch();
-		}
-	}, [bidAuction, auctionId]);
+	const bidAuction = useGetDetailedViewDataQuery(auctionId, {
+		refetchOnMountOrArgChange: true,
+	});
 
 	return (
 		<div>
-			{!bidAuction.isLoading && (
+			{!bidAuction.isLoading && !bidAuction.isFetching && (
 				<>
 					<div className="ToastCloseButton">
 						<Button
@@ -36,10 +32,7 @@ export default function BidCreatedToast({ auctionId, toastId }: Props) {
 							X
 						</Button>
 					</div>
-					<NavLink
-						to={`/auctions/${auctionId}`}
-						className="ToastMessageContainer"
-					>
+					<NavLink to={`/auctions/${auctionId}`}>
 						<div className="ToastMessageContainer">
 							<img
 								className="ToastImage"

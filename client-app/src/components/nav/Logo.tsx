@@ -10,19 +10,7 @@ export default function Logo() {
 	};
 
 	return (
-		<NavLink
-			onClick={handleClickHome}
-			style={{
-				display: "flex",
-				alignItems: "center",
-				gap: "5px",
-				fontWeight: "600",
-				fontSize: "30px",
-				lineHeight: "36px",
-				color: "rgb(240 82 82)",
-			}}
-			to="/"
-		>
+		<NavLink id="NavBarLogo" onClick={handleClickHome} to="/">
 			<RiAuctionLine size={34} />
 			<div>Аукцион</div>
 		</NavLink>

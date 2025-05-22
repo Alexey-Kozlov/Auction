@@ -5,7 +5,6 @@ import {
 } from "@microsoft/signalr";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import AuctionCreatedToast from "../components/signalRNotifications/AuctionCreatedToast";
 import {
 	Auction,
 	AuctionFinished,
@@ -15,23 +14,20 @@ import {
 	Message,
 	PagedResult,
 	ProgressToast,
+	ToastType,
 	User,
 } from "../types";
 import { useDispatch, useSelector } from "react-redux";
-import AuctionFinishedToast from "../components/signalRNotifications/AuctionFinishedToast";
 import { RootState } from "../store/store";
 import BidCreatedToast from "../components/signalRNotifications/BidCreatedToast";
 import { setEventFlag } from "../store/processingSlice";
-import ErrorMessageToast from "../components/signalRNotifications/ErrorMessageToast";
-import WarningMessageToast from "../components/signalRNotifications/WarningMessageToast";
-import InfoMessageToast from "../components/signalRNotifications/InfoMessageToast";
+import MessageToast from "../components/signalRNotifications/MessageToast";
 import { setData } from "../store/auctionSlice";
 import { setParams } from "../store/paramSlice";
-import AuctionUpdatedToast from "../components/signalRNotifications/AuctionUpdatedToast";
-import AuctionDeletedToast from "../components/signalRNotifications/AuctionDeletedToast";
 import FinanceCreatedToast from "../components/signalRNotifications/FinanceCreatedToast";
 import ProgressMessageToast from "../components/signalRNotifications/ProgressMessageToast";
 import { setFinanceItems } from "../store/financeSlice";
+import AuctionToast from "../components/signalRNotifications/AuctionToast";
 
 export default function SignalRProvider() {
 	const user: User = useSelector((state: RootState) => state.authStore);
@@ -115,7 +111,13 @@ export default function SignalRProvider() {
 					);
 					if (user?.login !== auction.seller && auction.show) {
 						return toast(
-							(p) => <AuctionCreatedToast auction={auction} toastId={p.id} />,
+							(p) => (
+								<AuctionToast
+									auctionId={auction.auctionId}
+									toastId={p.id}
+									message={`Создан новый аукцион - "${auction.title}"`}
+								/>
+							),
 							{ duration: 5000 }
 						);
 					}
@@ -138,7 +140,13 @@ export default function SignalRProvider() {
 					);
 					if (auction.show) {
 						return toast(
-							(p) => <AuctionUpdatedToast auction={auction} toastId={p.id} />,
+							(p) => (
+								<AuctionToast
+									auctionId={auction.auctionId}
+									toastId={p.id}
+									message={`Обновлен аукцион - "${auction.title}"`}
+								/>
+							),
 							{ duration: 5000 }
 						);
 					}
@@ -153,7 +161,14 @@ export default function SignalRProvider() {
 						})
 					);
 					return toast(
-						(p) => <AuctionFinishedToast finishedAuction={finishedAuction} />,
+						(p) => (
+							<AuctionToast
+								auctionId={finishedAuction.auctionId}
+								toastId={p.id}
+								message={`Поздравления для победителя аукциона "${finishedAuction.winner}",
+                                итоговая стоимость лота - ${finishedAuction.amount} руб.`}
+							/>
+						),
 						{ duration: 10000 }
 					);
 				});
@@ -168,7 +183,13 @@ export default function SignalRProvider() {
 					);
 					if (auction.show) {
 						return toast(
-							(p) => <AuctionDeletedToast auction={auction} toastId={p.id} />,
+							(p) => (
+								<AuctionToast
+									auctionId={auction.auctionId}
+									toastId={p.id}
+									message={`Аукцион - "${auction.title}" удален`}
+								/>
+							),
 							{ duration: 5000 }
 						);
 					}
@@ -204,7 +225,13 @@ export default function SignalRProvider() {
 					};
 					if (result.show) {
 						return toast(
-							(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+							(p) => (
+								<MessageToast
+									message={mes}
+									toastId={p.id}
+									toastType={ToastType.Info}
+								/>
+							),
 							{ duration: 5000 }
 						);
 					}
@@ -218,7 +245,13 @@ export default function SignalRProvider() {
 						messageType: 0,
 					};
 					return toast(
-						(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+						(p) => (
+							<MessageToast
+								message={mes}
+								toastId={p.id}
+								toastType={ToastType.Info}
+							/>
+						),
 						{ duration: 5000 }
 					);
 				});
@@ -231,7 +264,13 @@ export default function SignalRProvider() {
 						messageType: 0,
 					};
 					return toast(
-						(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+						(p) => (
+							<MessageToast
+								message={mes}
+								toastId={p.id}
+								toastType={ToastType.Info}
+							/>
+						),
 						{ duration: 5000 }
 					);
 				});
@@ -242,22 +281,37 @@ export default function SignalRProvider() {
 						case 0:
 							//убираем иконку ожидания в случае ошибки
 							dispatch(setEventFlag({ eventName: "ElkSearch", ready: false }));
-							// dispatch(
-							// 	setEventFlag({ eventName: "CollectionChanged", ready: true })
-							// );
 							return toast(
-								(p) => <ErrorMessageToast message={message} toastId={p.id} />,
+								(p) => (
+									<MessageToast
+										message={message}
+										toastId={p.id}
+										toastType={ToastType.Error}
+									/>
+								),
 								{ duration: 5000 }
 							);
 						case 1:
 							return toast(
-								(p) => <WarningMessageToast message={message} toastId={p.id} />,
+								(p) => (
+									<MessageToast
+										message={message}
+										toastId={p.id}
+										toastType={ToastType.Warning}
+									/>
+								),
 								{ duration: 5000 }
 							);
 
 						case 2:
 							return toast(
-								(p) => <InfoMessageToast message={message} toastId={p.id} />,
+								(p) => (
+									<MessageToast
+										message={message}
+										toastId={p.id}
+										toastType={ToastType.Info}
+									/>
+								),
 								{ duration: 5000 }
 							);
 					}
@@ -274,7 +328,13 @@ export default function SignalRProvider() {
 					};
 					if (result.show) {
 						return toast(
-							(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+							(p) => (
+								<MessageToast
+									message={mes}
+									toastId={p.id}
+									toastType={ToastType.Info}
+								/>
+							),
 							{ duration: 5000 }
 						);
 					}
@@ -318,7 +378,13 @@ export default function SignalRProvider() {
 						messageType: 0,
 					};
 					return toast(
-						(p) => <InfoMessageToast message={mes} toastId={p.id} />,
+						(p) => (
+							<MessageToast
+								message={mes}
+								toastId={p.id}
+								toastType={ToastType.Info}
+							/>
+						),
 						{ duration: 2000 }
 					);
 				});

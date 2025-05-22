@@ -92,7 +92,7 @@ export default function Listings() {
 							<div className="ListPagination">
 								<AppPagination
 									pageChanged={setPageNumber}
-									currentPage={params.pageNumber}
+									currentPage={params.pageNumber!}
 									totalPages={data.pageCount}
 								/>
 							</div>

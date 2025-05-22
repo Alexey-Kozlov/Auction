@@ -32,9 +32,11 @@ import {
 } from "semantic-ui-react";
 import FinRow from "./FinRow";
 import Waiter from "../Waiter";
+import { useNavigate } from "react-router-dom";
 
 export default function FinListings() {
 	const dispatch = useDispatch();
+	const navigate = useNavigate();
 	const [isWaiting, setIsWaiting] = useState(false);
 	const [amount, setAmount] = useState<number | string | null>("");
 	const [editError, setEditError] = useState<FormErrors | null>(null);
@@ -103,6 +105,13 @@ export default function FinListings() {
 		}
 		// eslint-disable-next-line
 	}, [procState]);
+
+	//если вышли из пользователя - переход на начало сайта
+	useEffect(() => {
+		if (!user.login) {
+			navigate("/");
+		}
+	}, [user]);
 
 	function setPageNumber(pageNumber: number) {
 		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
@@ -181,7 +190,7 @@ export default function FinListings() {
 							<div className="w-200"></div>
 							<div>
 								<div className="FinanceAmountContainer">
-									<div>
+									<div className="FinanceAddLabel">
 										Сумма для зачисления<span>*</span>
 									</div>
 									<div>

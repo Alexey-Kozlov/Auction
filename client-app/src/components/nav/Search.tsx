@@ -40,8 +40,8 @@ export default function Search() {
 	};
 	//для сброса значений поиска при щелчке на сброс фильтров
 	useEffect(() => {
-		setSearch(params.searchTerm);
-		setSearchAdv(params.searchAdv);
+		setSearch(params.searchTerm ? params.searchTerm : "");
+		setSearchAdv(params.searchAdv ? params.searchAdv : "");
 	}, [params.searchTerm, params.searchAdv]);
 
 	return (

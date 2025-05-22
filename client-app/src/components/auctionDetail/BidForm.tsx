@@ -36,7 +36,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 		}
 		// eslint-disable-next-line
 	}, [procState, user]);
-	const [bidValue, setBidValue] = useState<number | string | null>(0);
+	const [bidValue, setBidValue] = useState<number | string>(0);
 	const [bidError, setBidError] = useState<FormErrors | null>(null);
 	const bidErrorList: FormErrors[] = [
 		{
@@ -46,7 +46,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 		},
 	];
 
-	const handleBidChanged = (bid: number | "" | null) => {
+	const handleBidChanged = (bid: number | "") => {
 		if (bid !== "" && bid !== null && bid <= 0) {
 			setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
 			return;
@@ -73,7 +73,7 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 			correlationId: uuid.v4() as string,
 		});
 
-		setBidValue(null);
+		setBidValue("");
 	};
 
 	return (

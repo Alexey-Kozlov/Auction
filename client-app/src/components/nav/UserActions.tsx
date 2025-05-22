@@ -6,16 +6,15 @@ import { HiUser } from "react-icons/hi2";
 import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import { GrMoney } from "react-icons/gr";
 import { HiOutlineDocumentReport } from "react-icons/hi";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Message, ModalParams, RequestType, User } from "../../types";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Message, ModalParams, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import { setParams } from "../../store/paramSlice";
 import { setEventFlag } from "../../store/processingSlice";
-import InfoMessageToast from "../signalRNotifications/InfoMessageToast";
+import InfoMessageToast from "../signalRNotifications/MessageToast";
 import toast from "react-hot-toast";
-import ModalConfirm from "../modals/ModalConfirm";
 import { useEffect, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
 import {
@@ -24,7 +23,6 @@ import {
 	DropdownHeader,
 	DropdownItem,
 	DropdownMenu,
-	Label,
 } from "semantic-ui-react";
 
 export default function UserActions() {
@@ -164,7 +162,11 @@ export default function UserActions() {
 
 	return (
 		<>
-			<Dropdown labeled text={`Здравствуйте ${user.name}`}>
+			<Dropdown
+				className="UserTitle"
+				labeled
+				text={`Здравствуйте ${user.name}`}
+			>
 				<DropdownMenu>
 					<DropdownHeader content="Выберите действие:" />
 					<DropdownItem

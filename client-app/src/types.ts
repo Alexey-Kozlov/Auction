@@ -259,3 +259,9 @@ export type FinanceSortType = {
 export type RequestAuctionsArray = {
 	auctionIds: string[];
 };
+
+export enum ToastType {
+	Info,
+	Warning,
+	Error,
+}
