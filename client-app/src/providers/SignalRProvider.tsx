@@ -213,41 +213,31 @@ export default function SignalRProvider() {
 				connection.on("ElkSearch", (elk: any) => {
 					const elkData = elk as PagedResult<Auction>;
 					dispatch(setData(elkData));
-					dispatch(setEventFlag({ eventName: "ElkSearch", ready: false }));
+					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 				});
 
-				connection.on("ElkIndex", (result: any) => {
-					dispatch(setEventFlag({ eventName: "ElkIndex", ready: false }));
-					const mes: Message = {
-						message: result.message,
-						auctionId: "",
-						messageType: 0,
-					};
+				connection.on("ElkIndex", (result: ProgressToast) => {
+					dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
 					if (result.show) {
 						return toast(
 							(p) => (
 								<MessageToast
-									message={mes}
+									message={result.message}
 									toastId={p.id}
 									toastType={ToastType.Info}
 								/>
 							),
-							{ duration: 5000 }
+							{ duration: result.duration }
 						);
 					}
 				});
 
 				connection.on("SetSnapShot", (result: string) => {
 					dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
-					const mes: Message = {
-						message: result,
-						auctionId: "",
-						messageType: 0,
-					};
 					return toast(
 						(p) => (
 							<MessageToast
-								message={mes}
+								message={result}
 								toastId={p.id}
 								toastType={ToastType.Info}
 							/>
@@ -258,15 +248,10 @@ export default function SignalRProvider() {
 
 				connection.on("RestoreSnapShot", (result: string) => {
 					dispatch(setEventFlag({ eventName: "RestoreSnapShot", ready: true }));
-					const mes: Message = {
-						message: result,
-						auctionId: "",
-						messageType: 0,
-					};
 					return toast(
 						(p) => (
 							<MessageToast
-								message={mes}
+								message={result}
 								toastId={p.id}
 								toastType={ToastType.Info}
 							/>
@@ -277,60 +262,41 @@ export default function SignalRProvider() {
 
 				connection.on("ErrorMessage", (message: Message) => {
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-					switch (message.messageType) {
-						case 0:
-							//убираем иконку ожидания в случае ошибки
-							dispatch(setEventFlag({ eventName: "ElkSearch", ready: false }));
-							return toast(
-								(p) => (
-									<MessageToast
-										message={message}
-										toastId={p.id}
-										toastType={ToastType.Error}
-									/>
-								),
-								{ duration: 5000 }
-							);
-						case 1:
-							return toast(
-								(p) => (
-									<MessageToast
-										message={message}
-										toastId={p.id}
-										toastType={ToastType.Warning}
-									/>
-								),
-								{ duration: 5000 }
-							);
-
-						case 2:
-							return toast(
-								(p) => (
-									<MessageToast
-										message={message}
-										toastId={p.id}
-										toastType={ToastType.Info}
-									/>
-								),
-								{ duration: 5000 }
-							);
-					}
+					const getMessageType = (): ToastType => {
+						switch (message.messageType) {
+							case 0:
+								return ToastType.Error;
+							case 1:
+								return ToastType.Warning;
+							case 2:
+								return ToastType.Info;
+							default:
+								return ToastType.Info;
+						}
+					};
+					//убираем иконку ожидания
+					dispatch(setEventFlag({ eventName: "ElkSearch", ready: true }));
+					return toast(
+						(p) => (
+							<MessageToast
+								message={message.message}
+								toastId={p.id}
+								toastType={getMessageType()}
+							/>
+						),
+						{ duration: 5000 }
+					);
 				});
 
 				connection.on("EditNotification", (result: any) => {
 					dispatch(
 						setEventFlag({ eventName: "EditNotification", ready: true })
 					);
-					const mes: Message = {
-						message: result.message,
-						auctionId: "",
-						messageType: 0,
-					};
 					if (result.show) {
 						return toast(
 							(p) => (
 								<MessageToast
-									message={mes}
+									message={result.message}
 									toastId={p.id}
 									toastType={ToastType.Info}
 								/>
@@ -341,15 +307,13 @@ export default function SignalRProvider() {
 				});
 
 				connection.on("RestoreProgress", (result: ProgressToast) => {
-					const mes: Message = {
-						message: "Восстановление БД",
-						auctionId: "",
-						messageType: Math.trunc(Number(result.percent)),
-					};
 					if (result.show) {
 						return toast(
 							(p) => (
-								<ProgressMessageToast message={mes} toastId={progressToastId} />
+								<ProgressMessageToast
+									message={result}
+									toastId={progressToastId}
+								/>
 							),
 							{ duration: result.duration, id: progressToastId }
 						);
@@ -357,14 +321,12 @@ export default function SignalRProvider() {
 				});
 
 				connection.on("SetSnapShotProgress", (result: ProgressToast) => {
-					const mes: Message = {
-						message: "Создание SnapShot",
-						auctionId: "",
-						messageType: Math.trunc(Number(result.percent)),
-					};
 					return toast(
 						(p) => (
-							<ProgressMessageToast message={mes} toastId={progressToastId} />
+							<ProgressMessageToast
+								message={result}
+								toastId={progressToastId}
+							/>
 						),
 						{ duration: result.duration, id: progressToastId }
 					);
@@ -372,15 +334,10 @@ export default function SignalRProvider() {
 
 				connection.on("ResetImageCache", (result: string) => {
 					dispatch(setEventFlag({ eventName: "ResetImageCache", ready: true }));
-					const mes: Message = {
-						message: result,
-						auctionId: "",
-						messageType: 0,
-					};
 					return toast(
 						(p) => (
 							<MessageToast
-								message={mes}
+								message={result}
 								toastId={p.id}
 								toastType={ToastType.Info}
 							/>

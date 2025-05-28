@@ -83,25 +83,21 @@ export default function Detail() {
 		// eslint-disable-next-line
 	}, [isNotifyUser]);
 
-	//обновление переключателя рассылки уведомлений
 	useEffect(() => {
+		//обновление переключателя рассылки уведомлений
 		const eventState = procState.find(
-			(p) => p.eventName === "EditNotification"
+			(p) => p.eventName === "EditNotification" && p.ready && p.lastChanged
 		);
-		if (eventState && eventState.ready) {
+		if (eventState) {
 			//обновление переключателя
 			isNotifyUser.refetch();
 			dispatch(setEventFlag({ eventName: "EditNotification", ready: false }));
 		}
-		// eslint-disable-next-line
-	}, [procState]);
-
-	//переход на список аукционов при удалении текущего аукциона
-	useEffect(() => {
-		const eventState = procState.find(
-			(p) => p.eventName === "CollectionChanged" && p.ready
+		//переход на список аукционов при удалении текущего аукциона
+		const eventState2 = procState.find(
+			(p) => p.eventName === "CollectionChanged" && p.ready && p.lastChanged
 		);
-		if (eventState && deleteAuction) {
+		if (eventState2 && deleteAuction) {
 			navigate("/");
 		}
 		// eslint-disable-next-line

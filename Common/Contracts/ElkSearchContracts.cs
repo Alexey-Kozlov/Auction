@@ -21,13 +21,21 @@ public record ElkSearchCreating(
 );
 
 
-public record RequestElkIndex(
-     string UserLogin,
-     Guid CorrelationId,
-     string SessionId
-);
+public class RequestElkIndex
+{
+     public string UserLogin { get; set; }
+     public Guid CorrelationId { get; set; }
+     public string SessionId { get; set; }
+     public string CallBackType { get; set; }
+     public bool ShowMessages { get; set; }
+}
 
 
+public class ElkIndexResetRequest
+{
+     public Guid CorrelationId { get; set; }
+     public string CallBackType { get; set; }
+}
 
 public class ElkIndexReset : IFaultMessage
 {

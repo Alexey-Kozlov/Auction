@@ -111,6 +111,7 @@ export default function FinListings() {
 		if (!user.login) {
 			navigate("/");
 		}
+		// eslint-disable-next-line
 	}, [user]);
 
 	function setPageNumber(pageNumber: number) {

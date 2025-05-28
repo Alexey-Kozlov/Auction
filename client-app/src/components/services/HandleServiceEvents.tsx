@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { ProcessingState, RestoreDb, Session } from "../../types";
@@ -8,9 +8,8 @@ import {
 	useRestoreSnapShotMutation,
 	useResetImageCacheMutation,
 } from "../../api/ServiceApi";
-import { setEventFlag } from "../../store/processingSlice";
 
-export default function ShowEventsPopUp() {
+export default function HandleServiceEvents() {
 	const dispatch = useDispatch();
 	const events: ProcessingState[] = useSelector(
 		(state: RootState) => state.processingStore
@@ -23,52 +22,54 @@ export default function ShowEventsPopUp() {
 	const [restoreSnapShot] = useRestoreSnapShotMutation();
 	const [resetImageCache] = useResetImageCacheMutation();
 	useEffect(() => {
-		const doElkIndex = async (ses: Session) => {
-			await elkIndex(ses);
-		};
-		const doSetSnapShot = async (ses: Session) => {
-			await snapShotDb(ses);
-		};
-		const doRestoreSnapShot = async (ses: RestoreDb) => {
-			await restoreSnapShot(ses);
-		};
-		const doResetImageCache = async (ses: Session) => {
-			await resetImageCache(ses);
-		};
-
-		if (events.find((p) => p.eventName === "ElkIndex" && p.ready)) {
+		//запускаем переиндексацию
+		if (
+			events.find(
+				(p) => p.eventName === "ElkIndex" && !p.ready && p.lastChanged
+			)
+		) {
 			const sesion: Session = { sessionid: sessionId };
-			doElkIndex(sesion);
-			dispatch(setEventFlag({ eventName: "ElkIndex", ready: false }));
+			elkIndex(sesion);
 		}
-		if (events.find((p) => p.eventName === "SetSnapShot" && !p.ready)) {
+
+		//запускаем создание снапшота
+		if (
+			events.find(
+				(p) => p.eventName === "SetSnapShot" && !p.ready && p.lastChanged
+			)
+		) {
 			const session: Session = { sessionid: sessionId };
-			doSetSnapShot(session);
+			snapShotDb(session);
 		}
-		if (events.find((p) => p.eventName === "RestoreSnapShot" && !p.ready)) {
+
+		//запускаем восстановление снапшота
+		if (
+			events.find(
+				(p) => p.eventName === "RestoreSnapShot" && !p.ready && p.lastChanged
+			)
+		) {
 			let restoreData = events.find(
-				(p) => p.eventName === "RestoreSnapShot" && !p.ready
+				(p) => p.eventName === "RestoreSnapShot" && !p.ready && p.lastChanged
 			)?.param;
 			const data: RestoreDb = {
 				sessionid: sessionId,
 				resetLog: restoreData.resetLog,
 				restoreDate: restoreData.dateValue,
 			};
-			doRestoreSnapShot(data);
+			restoreSnapShot(data);
 		}
-		if (events.find((p) => p.eventName === "ResetImageCache" && !p.ready)) {
+
+		//запускаем сброс кеша изображений
+		if (
+			events.find(
+				(p) => p.eventName === "ResetImageCache" && !p.ready && p.lastChanged
+			)
+		) {
 			const session: Session = { sessionid: sessionId };
-			doResetImageCache(session);
+			resetImageCache(session);
 		}
-	}, [
-		events,
-		sessionId,
-		elkIndex,
-		snapShotDb,
-		restoreSnapShot,
-		dispatch,
-		resetImageCache,
-	]);
+		// eslint-disable-next-line
+	}, [events, sessionId]);
 
 	return <></>;
 }

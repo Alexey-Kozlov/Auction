@@ -10,16 +10,13 @@ import AuctionForm from "./components/auctionEdit/AuctionForm";
 import SignalRProvider from "./providers/SignalRProvider";
 import NotFound from "./components/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
-import ShowEventsPopUp from "./components/services/ShowEventsPopUp";
-import { Sticky } from "semantic-ui-react";
+import HandleServiceEvents from "./components/services/HandleServiceEvents";
 
 function App() {
 	return (
 		<div>
 			<ToasterProvider />
-			<Sticky>
-				<NavBar />
-			</Sticky>
+			<NavBar />
 			<div className="MainContainer">
 				<Routes>
 					<Route path="/" element={<Listings />}></Route>
@@ -32,7 +29,7 @@ function App() {
 					<Route path="/not-found" element={<NotFound />}></Route>
 				</Routes>
 				<SignalRProvider />
-				<ShowEventsPopUp />
+				<HandleServiceEvents />
 			</div>
 		</div>
 	);

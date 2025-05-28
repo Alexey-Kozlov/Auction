@@ -28,7 +28,7 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
         await _publishEndpoint.Publish(new BidCommit
         {
             CorrelationId = context.Saga.CorrelationId,
-            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             Commited = !context.Saga.IsError,
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
@@ -38,7 +38,7 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
         await _publishEndpoint.Publish(new FinanceCommit
         {
             Commited = !context.Saga.IsError,
-            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
@@ -48,7 +48,7 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
         await _publishEndpoint.Publish(new ImageCommit
         {
             Commited = !context.Saga.IsError,
-            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
@@ -58,7 +58,7 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
         await _publishEndpoint.Publish(new AuctionCommit
         {
             Commited = !context.Saga.IsError,
-            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
@@ -68,7 +68,7 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,
-            CallBackType = "Common.Contracts.EventSourcing.NotifyUIRestoreSnapShot",
+            CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,

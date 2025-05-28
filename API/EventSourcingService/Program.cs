@@ -41,6 +41,8 @@ internal class Program
             conStrBuilder.Username = builder.Configuration["pg:username"];
             conStrBuilder.Database = builder.Configuration["pg:database"];
             conStrBuilder.Host = builder.Configuration["pg:host"];
+            conStrBuilder.Timeout = 300;
+            conStrBuilder.CommandTimeout = 300;
             options.UseNpgsql(conStrBuilder.ConnectionString);
         }, ServiceLifetime.Transient, ServiceLifetime.Transient);
 
@@ -119,7 +121,7 @@ internal class Program
                 })
             );
         builder.Services.AddSingleton<CheckAuctionFinished>();
-        builder.Services.AddSingleton<IHostedService>(p => p.GetRequiredService<CheckAuctionFinished>());
+        builder.Services.AddHostedService(p => p.GetRequiredService<CheckAuctionFinished>());
         builder.Services.AddSingleton<AuctionMetrics>();
         builder.Services.AddScoped<ElkIndexProcessing>();
         builder.Services.AddScoped<AuctionDeleteProcessing>();

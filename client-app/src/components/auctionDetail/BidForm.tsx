@@ -28,8 +28,10 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 	});
 	//обновляем список ставок и переключатель уведомлений после добавления ставки
 	useEffect(() => {
-		const eventState = procState.find((p) => p.eventName === "BidPlaced");
-		if (eventState && eventState.ready) {
+		const eventState = procState.find(
+			(p) => p.eventName === "BidPlaced" && p.ready
+		);
+		if (eventState) {
 			bidList.refetch();
 			isNotifyUser.refetch();
 			dispatch(setEventFlag({ eventName: "BidPlaced", ready: false }));

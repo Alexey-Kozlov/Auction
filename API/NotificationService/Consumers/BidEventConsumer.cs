@@ -34,10 +34,6 @@ public class BidEventConsumer : IConsumer<DataForProcessingServicesList<NotifyIt
                     new { auctionId = typedItem.AuctionId, show = Boolean.Parse(context.Message.Props) });
             }
         }
-        else
-        {
-            await _hubContext.Clients.All.SendAsync("BidPlaced", new { show = false });
-        }
     }
 
 }

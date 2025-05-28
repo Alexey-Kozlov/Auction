@@ -9,7 +9,7 @@ using ProcessingService.StateMachines.RestoreStateMachine;
 
 namespace ProcessingService.Activities.Restore;
 
-public class ItemsResetActivity : IStateMachineActivity<RestoreState, RequestRestoreItems>
+public class ItemsResetActivity : IStateMachineActivity<RestoreState, SendStopFinishService>
 {
     private readonly IPublishEndpoint _publishEndpoint;
     public ItemsResetActivity(IPublishEndpoint publishEndpoint)
@@ -22,7 +22,7 @@ public class ItemsResetActivity : IStateMachineActivity<RestoreState, RequestRes
         visitor.Visit(this);
     }
 
-    public async Task Execute(BehaviorContext<RestoreState, RequestRestoreItems> context, IBehavior<RestoreState, RequestRestoreItems> next)
+    public async Task Execute(BehaviorContext<RestoreState, SendStopFinishService> context, IBehavior<RestoreState, SendStopFinishService> next)
     {
         //посылаем сообщения на удаление всех записей из соответствующих сервисов
         await _publishEndpoint.Publish(new FinanceReset
@@ -54,7 +54,7 @@ public class ItemsResetActivity : IStateMachineActivity<RestoreState, RequestRes
         await next.Execute(context).ConfigureAwait(false);
     }
 
-    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, RequestRestoreItems, TException> context, IBehavior<RestoreState, RequestRestoreItems> next) where TException : Exception
+    public Task Faulted<TException>(BehaviorExceptionContext<RestoreState, SendStopFinishService, TException> context, IBehavior<RestoreState, SendStopFinishService> next) where TException : Exception
     {
         return next.Faulted(context);
     }

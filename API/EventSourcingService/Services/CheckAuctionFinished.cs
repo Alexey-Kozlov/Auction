@@ -10,32 +10,46 @@ using System.Collections.Concurrent;
 
 namespace EventSourcingService.Services;
 
-public class CheckAuctionFinished : BackgroundService
+public class CheckAuctionFinished : IHostedService, IDisposable
 {
     private readonly IServiceProvider _services;
     private readonly AuctionMetrics _auctionMetrics;
     private ConcurrentDictionary<Guid, CancellationTokenSource> tokens = new();
+    private Timer _timer;
+    public bool IsRunning { get; set; }
 
     public CheckAuctionFinished(IServiceProvider services, AuctionMetrics auctionMetrics)
     {
         _services = services;
         _auctionMetrics = auctionMetrics;
     }
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+
+    private void DoWork()
     {
         //получаем даты, когда должны завершиться аукционы
         //заполняем список задач на завершение и запускаем задания на завершение 
         //при наступлении даты завершения аукциона
-        foreach (var auction in GetAuctionsToFinish())
+        try
         {
-            var cancelTokenSource = new CancellationTokenSource();
-            tokens[auction.AuctionId] = cancelTokenSource;
-            Task.Run(async () =>
+            IsRunning = true;
+            Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss") + " - Background Service is started");
+            foreach (var auction in GetAuctionsToFinish())
             {
-                await DelayFinishAuction(tokens[auction.AuctionId].Token, auction);
-            }, tokens[auction.AuctionId].Token);
+                var cancelTokenSource = new CancellationTokenSource();
+                tokens[auction.AuctionId] = cancelTokenSource;
+                Task.Run(async () =>
+                {
+                    await DelayFinishAuction(tokens[auction.AuctionId].Token, auction);
+                }, tokens[auction.AuctionId].Token);
+            }
         }
-        return Task.CompletedTask;
+        catch (Exception ex)
+        {
+            IsRunning = false;
+            Console.WriteLine("Background Service Error {0}", ex.Message);
+            throw;
+        }
+
     }
 
     private async Task DelayFinishAuction(CancellationToken ct, AuctionFinishedData auctionData)
@@ -66,62 +80,57 @@ public class CheckAuctionFinished : BackgroundService
             var _dbContext = scope.ServiceProvider.GetRequiredService<EventSourcingDbContext>();
             var _configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
             var correlationId = Guid.NewGuid();
-            using (var transaction = _dbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
+            try
             {
-                try
+                var finishedItem = await _dbContext.set_auction_finished(correlationId, auctionData.AuctionId).FirstOrDefaultAsync();
+                //возвращаем список записей для изменения соответствующих БД в нужных сервисах
+                var listItems = new DataForProcessingServicesList
                 {
-                    var finishedItem = await _dbContext.set_auction_finished(correlationId, auctionData.AuctionId).FirstOrDefaultAsync();
-                    //возвращаем список записей для изменения соответствующих БД в нужных сервисах
-                    var listItems = new DataForProcessingServicesList
-                    {
-                        DataObjects = new List<DataForProcessingService>()
-                    };
-                    if (finishedItem != null)
-                    {
-                        listItems.DataObjects.Add
-                        (
-                            new DataForProcessingService
-                            {
-                                DataType = finishedItem.entitytype,
-                                Data = finishedItem.eventdata,
-                                CRUD = (CRUD)finishedItem.crud
-                            }
-                        );
-                    }
-                    _auctionMetrics.FinishAuction();
-                    var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                        _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
-                    sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
-                    sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
-                    await _publishEndpoint.Publish(sendObject);
-                    await transaction.CommitAsync();
-                }
-                catch (Exception e)
+                    DataObjects = new List<DataForProcessingService>()
+                };
+                if (finishedItem != null)
                 {
-                    //ошибки прочие
-                    var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                        _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
-                    messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, correlationId);
-                    messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
-                    messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
-                    messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
-                    messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");
-                    messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, auctionData.AuctionId);
-                    messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
-
-                    var faultType = typeof(FaultMessage<>);
-                    var typeParams = new Type[] { messageObject.GetType() };
-                    var faultObjectType = faultType.MakeGenericType(typeParams);
-
-                    var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
-                    await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
-                    await transaction.RollbackAsync();
+                    listItems.DataObjects.Add
+                    (
+                        new DataForProcessingService
+                        {
+                            DataType = finishedItem.entitytype,
+                            Data = finishedItem.eventdata,
+                            CRUD = (CRUD)finishedItem.crud
+                        }
+                    );
                 }
+                _auctionMetrics.FinishAuction();
+                var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                    _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
+                sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+                sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+                await _publishEndpoint.Publish(sendObject);
+            }
+            catch (Exception e)
+            {
+                //ошибки прочие
+                var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                    _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
+                messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, correlationId);
+                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+                messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
+                messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");
+                messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, auctionData.AuctionId);
+                messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
+                var faultType = typeof(FaultMessage<>);
+                var typeParams = new Type[] { messageObject.GetType() };
+                var faultObjectType = faultType.MakeGenericType(typeParams);
+
+                var faultObject = Activator.CreateInstance(faultObjectType, new object[] { messageObject });
+                await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
             }
         }
     }
 
-    //получаем список дат окончания всех аукционов
+    //получаем список дат окончания всех активных (не завершенных) аукционов
     private List<AuctionFinishedData> GetAuctionsToFinish()
     {
         var finishedList = new List<AuctionFinishedData>();
@@ -167,4 +176,30 @@ public class CheckAuctionFinished : BackgroundService
         return Task.CompletedTask;
     }
 
+    public void Dispose()
+    {
+        if (_timer != null) _timer.Dispose();
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss") + " - BackService is Starting... ");
+        //как вариант - периодический запуск метода, например каждую минуту
+        //_timer = new Timer(DoWorkAsync, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+        //здесь - просто заглушка
+        _timer = new Timer(Fake);
+        //рабочий метод
+        DoWork();
+        return Task.CompletedTask;
+    }
+    //заглушка
+    private void Fake(object state) { }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        IsRunning = false;
+        Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss") + " - BackService is Stopping... ");
+        _timer?.Change(Timeout.Infinite, 0);
+        return Task.CompletedTask;
+    }
 }

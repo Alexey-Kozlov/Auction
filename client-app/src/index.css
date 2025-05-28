@@ -85,6 +85,12 @@
 	color: white !important;
 	cursor: pointer !important;
 }
+.NavBarContainer {
+	position: sticky;
+	top: 0;
+	background-color: white;
+	z-index: 10;
+}
 
 .NavBarHeader {
 	background-color: white;
@@ -123,15 +129,22 @@
 	background-color: #e5e7eb;
 }
 
+.UserActionsPanel .ui.dropdown .menu {
+	z-index: 15 !important;
+}
+
 .UserTitle {
 	font-size: 16px !important;
 	font-weight: 600;
 }
 
 .ListingFilter {
+	position: sticky;
+	top: 65px;
 	background-color: white;
 	height: 100px;
 	display: flex;
+	z-index: 1;
 }
 
 .FilterContainer {
@@ -385,8 +398,25 @@
 .ToastMessageContainer {
 	display: flex;
 	align-items: center;
+	flex-direction: row;
+	text-align: center;
+	justify-content: center;
+}
+
+.ToastMessageContainerProgress {
+	display: flex;
+	align-items: center;
 	flex-direction: column;
 	text-align: center;
+	justify-content: center;
+}
+
+.ToastMessageProgressText {
+	display: flex;
+	align-items: center;
+}
+.ToastMessageProgressIcon {
+	margin: 5px !important;
 }
 
 .ToastItemText {

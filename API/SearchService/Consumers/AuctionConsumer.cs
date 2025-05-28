@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using AutoMapper;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -40,7 +39,7 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                                 p.AuctionId == typedItem.AuctionId && p.Commited);
                             if (item == null)
                             {
-                                throw new Exception($"Запись для удаления не найдена");
+                                throw new Exception($"Запись для удаления не найдена, AuctionId - {typedItem.AuctionId}");
                             }
                             item.CorrelationId = correlationId;
                             _dbContext.AuctionItems.Update(item);
@@ -55,7 +54,7 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                                 p.AuctionId == typedItem.AuctionId && p.Commited);
                             if (item2 == null)
                             {
-                                throw new Exception($"Запись для обновления не найдена");
+                                throw new Exception($"Запись для обновления не найдена, AuctionId - {typedItem.AuctionId}");
                             }
                             item2.CorrelationId = correlationId;
                             _dbContext.AuctionItems.Update(item2);

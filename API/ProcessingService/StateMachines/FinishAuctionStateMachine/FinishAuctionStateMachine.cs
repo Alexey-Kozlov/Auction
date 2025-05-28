@@ -1,11 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using System.Web;
 using Common.Contracts.Auction;
 using Common.Contracts.Logging;
 using Common.Contracts.Processing;
 using MassTransit;
-using MassTransit.KafkaIntegration.Serializers;
 using ProcessingService.Activities.AuctionFinish;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;

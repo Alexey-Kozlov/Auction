@@ -55,13 +55,6 @@ public class RestoreSnapShotProcessing
                             CRUD = (CRUD)item.crud
                         }
                     );
-                    //для записей аукционов - переинициализируем дату завершения аукционов
-                    if (item.entitytype == "AuctionItem")
-                    {
-                        var auction = JsonSerializer.Deserialize<AuctionItem>(item.eventdata);
-                        await _checkAuctionFinished.UpdateFinishTasks(auction.AuctionId,
-                         auction.AuctionEnd, CRUD.Create);
-                    }
                 }
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

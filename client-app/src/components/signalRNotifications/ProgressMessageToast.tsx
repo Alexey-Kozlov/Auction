@@ -1,10 +1,10 @@
 import toast from "react-hot-toast";
-import { Message } from "../../types";
+import { ProgressToast } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
 import { Button, Progress } from "semantic-ui-react";
 
 type Props = {
-	message: Message;
+	message: ProgressToast;
 	toastId: string;
 };
 
@@ -20,30 +20,27 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 						X
 					</Button>
 				</div>
-				<div className="ToastMessageContainer">
-					<div className="flex">
-						<div>
+				<div className="ToastMessageContainerProgress">
+					<div className="ToastMessageProgressText">
+						<div className="ToastMessageProgressIcon">
 							<BsInfoCircle size={36} />
 						</div>
 
-						<div className="text-center ToastItemText">
-							{message.message !== "-1"
-								? message.message + ", завершено - " + message.messageType + "%"
-								: "Записи не найдены"}
-						</div>
+						<div className="text-center ToastItemText">{message.message}</div>
 					</div>
-					<div className="flex">
-						<div>
-							{message.message !== "-1" && (
-								<Progress
-									percent={message.messageType}
-									textLabel="Выполнено"
-									labelProgress
-									labelText
-									color="blue"
-								/>
-							)}
-						</div>
+					<div className="text-center ToastItemText">
+						{"Восстановлено " + Math.trunc(message.percent) + " %"}
+					</div>
+					<div className="flex w-100P">
+						{message.show && (
+							<Progress
+								className="w-100P"
+								percent={message.percent}
+								indicating
+								size="small"
+								color="blue"
+							/>
+						)}
 					</div>
 				</div>
 			</>

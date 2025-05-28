@@ -10,4 +10,6 @@ public class ElkIndexState : SagaStateMachineInstance
     public string SessionId { get; set; }
     public int ItemNumber { get; set; }
     public bool IsError { get; set; }
+    public string CallBackType { get; set; }
+    public bool ShowMessages { get; set; }
 }

@@ -233,3 +233,49 @@ public class AuctionFinishedData
     public Guid AuctionId { get; set; }
     public DateTime AuctionEnd { get; set; }
 }
+
+public class SendStartFinishService : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string CallBackType { get; set; }
+    public string ErrorMessage { get; set; }
+
+    public string ErrorExceptionMessage { get; set; }
+
+    public string ErrorServiceName { get; set; }
+
+    public string UserLogin { get; set; }
+
+    public Guid? AuctionId { get; set; }
+
+    public bool IsError { get; set; }
+}
+
+public class SendStopFinishService : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string CallBackType { get; set; }
+    public string ErrorMessage { get; set; }
+
+    public string ErrorExceptionMessage { get; set; }
+
+    public string ErrorServiceName { get; set; }
+
+    public string UserLogin { get; set; }
+
+    public Guid? AuctionId { get; set; }
+
+    public bool IsError { get; set; }
+}
+
+public class StartFinishService
+{
+    public Guid CorrelationId { get; set; }
+    public string CallBackType { get; set; }
+}
+
+public class StopFinishService
+{
+    public Guid CorrelationId { get; set; }
+    public string CallBackType { get; set; }
+}

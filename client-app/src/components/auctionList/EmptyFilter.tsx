@@ -21,8 +21,12 @@ export default function EmptyFilter({
 	return (
 		<div>
 			<Heading title={title} subtitle={subtitle} center />
-			<div className="mt-4">
-				{showReset && <Button onClick={clearFilters}>Удалить фильтры</Button>}
+			<div className="AuctionCardTitleContainer">
+				{showReset && (
+					<Button className="MainButton w-200" onClick={clearFilters}>
+						Удалить фильтры
+					</Button>
+				)}
 			</div>
 		</div>
 	);

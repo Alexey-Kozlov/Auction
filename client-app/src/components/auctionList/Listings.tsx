@@ -24,9 +24,7 @@ export default function Listings() {
 	const procState: ProcessingState[] = useSelector(
 		(state: RootState) => state.processingStore
 	);
-	const elkSearch =
-		procState.find((p) => p.eventName === "ElkSearch" && p.ready) &&
-		params.searchAdv;
+
 	//автоматически запускается при изменении url
 	let auctionsData = useGetAuctionsQuery(url, {
 		skip: !params.sessionId,
@@ -41,7 +39,9 @@ export default function Listings() {
 			!auctionsData.isFetching &&
 			auctionsData.data
 		) {
+			//данные готовы - заполняем локальное хранилище и скрываем иконку ожидания
 			dispatch(setData(auctionsData.data.result));
+			dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 		}
 		// eslint-disable-next-line
 	}, [auctionsData]);
@@ -50,7 +50,7 @@ export default function Listings() {
 	//принудительно обновить все записи.
 	useEffect(() => {
 		const eventStateChanged = procState.find(
-			(p) => p.eventName === "CollectionChanged" && p.ready
+			(p) => p.eventName === "CollectionChanged" && p.ready && p.lastChanged
 		);
 		if (eventStateChanged) {
 			auctionsData.refetch();
@@ -63,43 +63,38 @@ export default function Listings() {
 		dispatch(setParams({ pageNumber: pageNumber }));
 	}
 
-	const stickDiv = useRef<HTMLDivElement>(null);
-
 	if (auctionsData.isLoading && auctionsData.isFetching)
 		return <h3>Загрузка...</h3>;
 
 	return (
-		<div ref={stickDiv}>
-			<Sticky offset={65} context={stickDiv}>
-				<div className="ListingFilter">
-					<Filters />
-				</div>
-			</Sticky>
+		<div>
+			<div className="ListingFilter">
+				<Filters />
+			</div>
 
 			<div className="ListingContainer">
-				{!elkSearch ? (
-					auctions.length === 0 ? (
-						<EmptyFilter showReset />
-					) : (
-						<div>
-							<div className="ListItem">
-								{auctions.map((auction: Auction) => {
-									return (
-										<AuctionCard auction={auction} key={auction.auctionId} />
-									);
-								})}
-							</div>
-							<div className="ListPagination">
-								<AppPagination
-									pageChanged={setPageNumber}
-									currentPage={params.pageNumber!}
-									totalPages={data.pageCount}
-								/>
-							</div>
-						</div>
-					)
-				) : (
+				{procState.find((p) => p.eventName === "WaiterHide") &&
+				!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
 					<Waiter color="rgb(156 163 175)" />
+				) : auctions.length === 0 ? (
+					<EmptyFilter showReset />
+				) : (
+					<div>
+						<div className="ListItem">
+							{auctions.map((auction: Auction) => {
+								return (
+									<AuctionCard auction={auction} key={auction.auctionId} />
+								);
+							})}
+						</div>
+						<div className="ListPagination">
+							<AppPagination
+								pageChanged={setPageNumber}
+								currentPage={params.pageNumber!}
+								totalPages={data.pageCount}
+							/>
+						</div>
+					</div>
 				)}
 			</div>
 		</div>

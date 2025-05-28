@@ -8,6 +8,7 @@ using MassTransit;
 using ProcessingService.Activities.Bid;
 
 namespace ProcessingService.StateMachines.BidPlacedStateMachine;
+
 public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
 {
     public State FinanceState { get; }
@@ -17,6 +18,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
+    public State AbortState { get; }
 
 
     public Event<RequestBidPlace> RequestEvent { get; }
@@ -50,6 +52,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompleteState();
+        ConfigureAbortState();
     }
 
     private void ConfigureEvents()
@@ -88,9 +91,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.CommitCounter = 5;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для создания ставки:
-            // - Возврат денег по предыдущей ставке (если была) - возврат денег и баланса предыдущего пользователя в FinanceService
-            // - Проверка на превышение ставкой текущего баланса
-            // - Создание записи в ES лог по списанию денег, списание денег и возврат баланса текущего пользователя в FinanceService
             .Activity(p => p.OfType<ESLogActivity>()
             .TransitionTo(FinanceState))
         );
@@ -125,7 +125,13 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder
             })
-            .TransitionTo(PreCommitState)
+            // если возникла предусмотренная ошибка - например, недостаточно денег, тогда IsError = false,
+            // в этом случае прерываем процесс и отсылаем уведомление
+            .IfElse(p => !p.Message.Message.IsError,
+                t => t.TransitionTo(AbortState),
+                f => f.TransitionTo(PreCommitState)
+            )
+
         );
     }
 
@@ -329,5 +335,24 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             })
             .Finalize()
         );
+    }
+
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.Bidder,
+                TraceId = Guid.NewGuid(),
+                IsError = context.Saga.IsError
+            })
+        .Finalize());
     }
 }

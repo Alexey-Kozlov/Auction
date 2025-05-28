@@ -1,12 +1,13 @@
-using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
+using Common.Contracts.EventSourcing;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.ElkIndex;
 
 namespace ProcessingService.StateMachines.ElkIndexStateMachine;
+
 public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
 {
     public State ResetIndexState { get; }
@@ -69,23 +70,16 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.IsError = false;
+                context.Saga.CallBackType = context.Message.CallBackType;
+                context.Saga.ShowMessages = context.Message.ShowMessages;
                 CurrentBatchCount = 0;
                 AllBatchCount = 0;
             })
             //посылаем сообщение для сброса индекса поиска
             .Send(
-                new Uri(configuration["QueuePaths:ElkConsumer"]),
-                context => new DataForProcessingServicesList<AuctionItem>
+                new Uri(configuration["QueuePaths:ElkReset"]),
+                context => new ElkIndexResetRequest
                 {
-                    DataObjects = new List<DataForProcessingService>
-                    {
-                        new DataForProcessingService
-                        {
-                            CRUD = CRUD.Create,
-                            DataType = "ElkIndexReset",
-                            Data = JsonSerializer.Serialize(new AuctionItem())
-                        }
-                    },
                     CorrelationId = context.Message.CorrelationId,
                     CallBackType = "Common.Contracts.ELKSearch.ElkIndexReset"
                 })
@@ -95,7 +89,9 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
         //ВАЖНО! Этот оператор для подавления ошибки - что сообщение не было принято и обработано
         //без этого оператора будут ошибки, т.к. у нас генерируется много сообщений в сервис ElasticSearchService
         //и принимаются оттуда же без передачи в конкретное состояние.
+
         //OnUnhandledEvent(async e => await e.Ignore());
+
         SetCompletedWhenFinalized();
     }
     private void ConfigureResetIndexState()
@@ -263,13 +259,24 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                .Send(
                     new Uri(configuration["QueuePaths:ElkIndexNotificationConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                    context => new NotificationProgress
                     {
-                        DataObjects = new List<DataForProcessingService>(),
                         CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{context.Saga.ItemNumber},{!context.Saga.IsError},{context.Saga.SessionId}",
-                    })).Finalize(),
+                        SessionId = context.Saga.SessionId,
+                        Percent = 100,
+                        Show = !context.Saga.IsError && context.Saga.ShowMessages,
+                        Duration = 5000,
+                        Message = $"Проиндексировано - {context.Saga.ItemNumber} записей"
+                    })
+                // если в начальном сообщении был указан параметр CallBackType - посылаем сообщение
+                // по этому параметру - это значит был вызов процесса индексации из другого процесса
+                .If(context => !string.IsNullOrEmpty(context.Saga.CallBackType),
+                    P => P
+                    .Publish(t => new RestoreSnapShotESCommit
+                    {
+                        CorrelationId = t.Saga.CorrelationId
+                    })))
+        .Finalize(),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationEvent)
             .Send(
@@ -283,7 +290,8 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
                     IsError = context.Saga.IsError
-                }).Finalize()
+                })
+        .Finalize()
         );
     }
 

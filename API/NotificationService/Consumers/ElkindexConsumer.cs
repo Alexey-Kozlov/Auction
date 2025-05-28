@@ -1,15 +1,11 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using Common.Contracts.ELKSearch;
-using Common.Contracts.Notification;
-using Common.Contracts.Processing;
+﻿using Common.Contracts.Notification;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.Hubs;
 
 namespace NotificationService.Consumers;
 
-public class ElkindexConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
+public class ElkindexConsumer : IConsumer<NotificationProgress>
 {
     private readonly IHubContext<NotificationHub> _hubContext;
 
@@ -18,15 +14,16 @@ public class ElkindexConsumer : IConsumer<DataForProcessingServicesList<NotifyIt
         _hubContext = hubContext;
 
     }
-    public async Task Consume(ConsumeContext<DataForProcessingServicesList<NotifyItem>> context)
+    public async Task Consume(ConsumeContext<NotificationProgress> context)
     {
-        var data = context.Message.Props.Split(",");
-        //параметр 0 - количество проиндексированных записей
-        //параметр 1 - флаг олтображать / не отображать
-        //параметр 2 - SessionId
+        var result = new
+        {
+            percent = context.Message.Percent,
+            duration = context.Message.Duration,
+            message = context.Message.Message,
+            show = context.Message.Show
+        };
         //уведомление при окончании индексации
-        await _hubContext.Clients.Group(data[2]).SendAsync("ElkIndex",
-            new { show = Boolean.Parse(data[1]), message = $"Проиндексировано - {data[0]} записей" });
-
+        await _hubContext.Clients.Group(context.Message.SessionId).SendAsync("ElkIndex", result);
     }
 }

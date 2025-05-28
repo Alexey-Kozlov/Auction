@@ -138,6 +138,7 @@ export type ProcessingState = {
 	ready: boolean;
 	itemId?: string;
 	param?: any;
+	lastChanged: boolean;
 };
 
 export type AuctionUpdated = {
@@ -194,6 +195,7 @@ export type ProgressToast = {
 	percent: number;
 	duration: number;
 	show: boolean;
+	message: string;
 };
 
 export enum RequestType {

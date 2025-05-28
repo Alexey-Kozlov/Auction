@@ -7,13 +7,12 @@ import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import { GrMoney } from "react-icons/gr";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Message, ModalParams, User } from "../../types";
+import { ModalParams, ToastType, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import { setParams } from "../../store/paramSlice";
 import { setEventFlag } from "../../store/processingSlice";
-import InfoMessageToast from "../signalRNotifications/MessageToast";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
@@ -24,6 +23,9 @@ import {
 	DropdownItem,
 	DropdownMenu,
 } from "semantic-ui-react";
+import MessageToast from "../signalRNotifications/MessageToast";
+import ModalConfirm from "../modals/ModalConfirm";
+import ModalRestore from "../modals/ModalRestore";
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);
@@ -36,6 +38,7 @@ export default function UserActions() {
 		handler: "",
 	});
 	const [showConfirm, setShowConfirm] = useState(false);
+	const [showConfirmRestore, setShowConfirmRestore] = useState(false);
 	const [dateValue, setDateValue] = useState<Date | null>(new Date());
 	const [confirmResult, setConfirmResult] = useState<boolean | undefined>(
 		undefined
@@ -46,6 +49,7 @@ export default function UserActions() {
 	useEffect(() => {
 		if (confirmResult) {
 			//нажали "Ок" в модалке восстановления SnapShot
+			//устанавливаем параметр в хранилище, отслеживаем изменение в ShowEventsPopUo.tsx
 			if (confirmParam.handler === "RestoreSnapShot") {
 				dispatch(
 					setEventFlag({
@@ -54,29 +58,38 @@ export default function UserActions() {
 						param: { dateValue: dateValue, resetLog: resetLog },
 					})
 				);
-				const message: Message = {
-					message: "Старт восстановления БД из ES...",
-					auctionId: "",
-					messageType: 0,
-				};
-				toast((p) => <InfoMessageToast message={message} toastId={p.id} />, {
-					duration: 5000,
-				});
+				toast(
+					(p) => (
+						<MessageToast
+							message={"Старт восстановления БД из ES..."}
+							toastId={p.id}
+							toastType={ToastType.Info}
+						/>
+					),
+					{
+						duration: 5000,
+					}
+				);
 			}
 			//нажали "Ок" в окне создания SnapShot
 			if (confirmParam.handler === "SetSnapShot") {
 				dispatch(setEventFlag({ eventName: "SetSnapShot", ready: false }));
-				const message: Message = {
-					message: "Старт создания снимка БД в ES...",
-					auctionId: "",
-					messageType: 0,
-				};
-				toast((p) => <InfoMessageToast message={message} toastId={p.id} />, {
-					duration: 5000,
-				});
+				toast(
+					(p) => (
+						<MessageToast
+							message={"Старт создания снимка БД в ES..."}
+							toastId={p.id}
+							toastType={ToastType.Info}
+						/>
+					),
+					{
+						duration: 5000,
+					}
+				);
 			}
 		}
 		setShowConfirm(false);
+		setShowConfirmRestore(false);
 		setConfirmResult(undefined);
 		// eslint-disable-next-line
 	}, [confirmResult]);
@@ -87,13 +100,13 @@ export default function UserActions() {
 
 	const handleSetWinnerClick = () => {
 		dispatch(setParams({ winner: user.login, seller: undefined }));
-		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
+		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
 		if (location.pathname !== "/") navigate("/");
 	};
 
 	const handleSetSellerClick = () => {
 		dispatch(setParams({ seller: user.login, winner: undefined }));
-		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
+		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
 		if (location.pathname !== "/") navigate("/");
 	};
 
@@ -104,15 +117,19 @@ export default function UserActions() {
 	};
 
 	const handlerElkReindexClick = () => {
-		dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
-		const message: Message = {
-			message: "Старт переиндексации ELK...",
-			auctionId: "",
-			messageType: 0,
-		};
-		return toast((p) => <InfoMessageToast message={message} toastId={p.id} />, {
-			duration: 5000,
-		});
+		dispatch(setEventFlag({ eventName: "ElkIndex", ready: false }));
+		return toast(
+			(p) => (
+				<MessageToast
+					message={"Старт переиндексации ELK..."}
+					toastId={p.id}
+					toastType={ToastType.Info}
+				/>
+			),
+			{
+				duration: 5000,
+			}
+		);
 	};
 
 	const handlerSetSnapShotClick = () => {
@@ -122,7 +139,7 @@ export default function UserActions() {
 			confirmTitle: "Сохранение состояния БД",
 			handler: "SetSnapShot",
 		});
-		setShowConfirm(true);
+		setShowConfirm(() => true);
 	};
 
 	const handlerRestoreSnapShotClick = () => {
@@ -133,19 +150,23 @@ export default function UserActions() {
 			confirmTitle: "Восстановление БД из лога",
 			handler: "RestoreSnapShot",
 		});
-		setShowConfirm(true);
+		setShowConfirmRestore(() => true);
 	};
 
 	const handlerResetImageCacheClick = () => {
 		dispatch(setEventFlag({ eventName: "ResetImageCache", ready: false }));
-		const message: Message = {
-			message: "Сброс кеша изобюражений Redis...",
-			auctionId: "",
-			messageType: 0,
-		};
-		toast((p) => <InfoMessageToast message={message} toastId={p.id} />, {
-			duration: 2000,
-		});
+		toast(
+			(p) => (
+				<MessageToast
+					message={"Сброс кеша изобюражений Redis..."}
+					toastId={p.id}
+					toastType={ToastType.Info}
+				/>
+			),
+			{
+				duration: 2000,
+			}
+		);
 	};
 
 	const handleFinanceClick = () => {
@@ -161,7 +182,7 @@ export default function UserActions() {
 	};
 
 	return (
-		<>
+		<div className="UserActionsPanel">
 			<Dropdown
 				className="UserTitle"
 				labeled
@@ -287,9 +308,14 @@ export default function UserActions() {
 					/>
 				</DropdownMenu>
 			</Dropdown>
-
-			{/* <ModalConfirm
+			<ModalConfirm
 				openModal={showConfirm}
+				text={confirmParam.confirmText}
+				title={confirmParam.confirmTitle}
+				setResult={setConfirmResult}
+			/>
+			<ModalRestore
+				openModal={showConfirmRestore}
 				text={confirmParam.confirmText}
 				title={confirmParam.confirmTitle}
 				setResult={setConfirmResult}
@@ -298,7 +324,7 @@ export default function UserActions() {
 				resetLog={(rezult) => {
 					setResetLog(rezult);
 				}}
-			/> */}
-		</>
+			/>
+		</div>
 	);
 }

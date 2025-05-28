@@ -140,7 +140,14 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем реиндексацию ELK
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new RequestElkIndex(userLogin, Guid.NewGuid(), param.SessionId));
+        await _publishEndpoint.Publish(new RequestElkIndex
+        {
+            CorrelationId = Guid.NewGuid(),
+            SessionId = param.SessionId,
+            UserLogin = userLogin,
+            CallBackType = "",
+            ShowMessages = true
+        });
     }
 
     [Authorize(Roles = "Admin")]

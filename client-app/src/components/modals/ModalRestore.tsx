@@ -1,8 +1,17 @@
-import DatePicker, { registerLocale } from "react-datepicker";
-import { ru } from "date-fns/locale";
 import { useState } from "react";
-import { Button, Modal } from "semantic-ui-react";
-registerLocale("ru", ru);
+import {
+	Button,
+	Checkbox,
+	Form,
+	Grid,
+	GridColumn,
+	GridRow,
+	Header,
+	Modal,
+	ModalActions,
+	ModalContent,
+} from "semantic-ui-react";
+import DatePickerInput from "../inputComponents/DatePickerInput";
 
 type Props = {
 	openModal: boolean;
@@ -24,55 +33,68 @@ export default function ModalRestore({
 	dateValue,
 }: Props) {
 	const [resLog, setResetLog] = useState(false);
-	const handleResetLog = (event: React.FormEvent<HTMLInputElement>) => {
-		setResetLog(event.currentTarget.checked);
-		resetLog(event.currentTarget.checked);
+	const handleResetLog = (checked: boolean) => {
+		setResetLog(() => checked);
+		resetLog(checked);
 	};
 
 	return (
 		<Modal
-			show={openModal}
+			dimmer="blurring"
+			size="small"
+			closeOnEscape={true}
+			closeIcon
+			open={openModal}
 			onClose={() => {
 				setResult(false);
-				setResetLog((prev) => false);
 			}}
 		>
-			<Modal.Header>{title}</Modal.Header>
-			<Modal.Content>
-				<div className="space-y-6">
-					{dateValue && (
-						<>
-							<div>
-								Укажите дату восстановления:
-								<DatePicker
-									wrapperClassName="datepicker"
-									locale="ru"
-									showTimeSelect
-									dateFormat="dd.MM.yyyy HH:mm"
-									onChange={(value) => returnData(value!)}
-									selected={dateValue}
-								/>
-							</div>
-							<div>
-								<label className="inline-flex items-center mb-5">
-									<p className="font-semibold mr-3">
-										Удаление событий после даты восстановления:
-									</p>
-									{/* <SwitchInput
+			<Header>{title}</Header>
+			<ModalContent>
+				<Form>
+					<Grid columns={2}>
+						<GridRow>
+							<GridColumn verticalAlign="middle">
+								<div className="flex ModalText">
+									Укажите дату восстановления:
+								</div>
+							</GridColumn>
+							<GridColumn verticalAlign="middle">
+								<div className="z-index w-100P">
+									<DatePickerInput
+										showTimeSelect
+										showMonthDropdown
+										showYearDropdown
+										setValue={dateValue!}
+										getValue={(value) => returnData(value)}
+									/>
+								</div>
+							</GridColumn>
+						</GridRow>
+						<GridRow>
+							<GridColumn verticalAlign="middle">
+								<div className="flex ModalText">
+									Удаление событий после даты восстановления:
+								</div>
+							</GridColumn>
+							<GridColumn verticalAlign="middle">
+								<div>
+									<Checkbox
+										toggle
 										checked={resLog}
-										handleImageUsing={handleResetLog}
-									/> */}
-								</label>
-							</div>
-						</>
-					)}
-					<div className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-						{text}
-					</div>
-				</div>
-			</Modal.Content>
-			<Modal.Description>
+										onChange={(e, data) => handleResetLog(data.checked!)}
+									/>
+								</div>
+							</GridColumn>
+						</GridRow>
+					</Grid>
+				</Form>
+
+				<div className="ModalText text-center mt-30">{text}</div>
+			</ModalContent>
+			<ModalActions>
 				<Button
+					id="ModalConfirmYesButton"
 					onClick={() => {
 						setResult(true);
 						setResetLog((prev) => false);
@@ -81,6 +103,7 @@ export default function ModalRestore({
 					Да
 				</Button>
 				<Button
+					id="ModalConfirmNoButton"
 					onClick={() => {
 						setResult(false);
 						setResetLog((prev) => false);
@@ -88,7 +111,7 @@ export default function ModalRestore({
 				>
 					Нет
 				</Button>
-			</Modal.Description>
+			</ModalActions>
 		</Modal>
 	);
 }

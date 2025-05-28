@@ -44,27 +44,22 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                     var typedItem = JsonSerializer.Deserialize<AuctionItem>(item.Data);
                     var search = await _client.Client.SearchAsync<AuctionCreatingElk>(indices: "search_index",
                         p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId))));
-                    //если не переиндексация и не создание - проверяем, что запись уже проиндексирована
-                    if (item.DataType != "ElkIndexReset")
+                    if (item.CRUD != CRUD.Create)
                     {
-                        if (item.CRUD != CRUD.Create)
-                        {
-                            if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
-                            if (!search.Documents.Any()) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
-                        }
-                        //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
-                        if (search != null)
-                        {
-                            var oldAuction = search.Documents.FirstOrDefault();
-                            var cacheDto = new CacheDTO
-                            {
-                                Record = oldAuction,
-                                CRUD = item.CRUD
-                            };
-                            await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
-                        }
+                        if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
+                        if (!search.Documents.Any()) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
                     }
-
+                    //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
+                    if (search != null)
+                    {
+                        var oldAuction = search.Documents.FirstOrDefault();
+                        var cacheDto = new CacheDTO
+                        {
+                            Record = oldAuction,
+                            CRUD = item.CRUD
+                        };
+                        await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
+                    }
                     //начинаем обновлять запись в елке
                     var elkItem = _mapper.Map<AuctionCreatingElk>(typedItem);
                     switch (item.CRUD)
@@ -76,17 +71,8 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                                 .WaitForCompletion(true).Refresh());
                             break;
                         case CRUD.Create:
-                            if (item.DataType == "ElkIndexReset")
-                            {
-                                //переиндексация, сбрасываем всю БД поиска
-                                await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
-                                    p => p.Query(q => q.QueryString(f => f.Query("*"))));
-                            }
-                            else
-                            {
-                                //добавляем запись в индекс
-                                await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
-                            }
+                            //добавляем запись в индекс
+                            await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
                             break;
                         case CRUD.Update:
                             //обновляем запись по полям - title, properties, description

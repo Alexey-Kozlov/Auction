@@ -7,12 +7,12 @@ import { RootState } from "../../store/store";
 import { useNavigate } from "react-router-dom";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import AddTokenHeader from "../../api/AddTokenHeader";
-import { createRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Sticky } from "semantic-ui-react";
 
 export default function NavBar() {
 	let user: User = useSelector((state: RootState) => state.authStore);
 	const dispatch = useDispatch();
-	const contextRef = createRef();
 	//если токен просрочен - очищаем в хранилище данные о пользователе
 	if (!AddTokenHeader() && user.id) {
 		dispatch(setAuthUser(emptyUserState));
@@ -22,11 +22,12 @@ export default function NavBar() {
 		if (localStorage.getItem("Auction")) {
 			dispatch(setAuthUser(JSON.parse(localStorage.getItem("Auction")!)));
 		}
-	}, [dispatch]);
-
+		// eslint-disable-next-line
+	}, []);
+	const stickDivNav = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 	return (
-		<>
+		<div className="NavBarContainer">
 			<div className="NavBarHeader"></div>
 			<div className="NavBar">
 				<Logo />
@@ -49,6 +50,6 @@ export default function NavBar() {
 			</div>
 			<div className="NavBarFooter1"></div>
 			<div className="NavBarFooter2"></div>
-		</>
+		</div>
 	);
 }

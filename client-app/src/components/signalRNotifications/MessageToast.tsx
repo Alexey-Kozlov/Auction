@@ -1,12 +1,12 @@
 import toast from "react-hot-toast";
-import { Message, ToastType } from "../../types";
+import { ToastType } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
 import { Button } from "semantic-ui-react";
 import { VscError } from "react-icons/vsc";
 import { ImWarning } from "react-icons/im";
 
 type Props = {
-	message: Message;
+	message: string;
 	toastId: string;
 	toastType: ToastType;
 };
@@ -15,11 +15,11 @@ export default function MessageToast({ message, toastId, toastType }: Props) {
 	const getToastType = () => {
 		switch (toastType) {
 			case ToastType.Info:
-				return 0;
+				return "info";
 			case ToastType.Error:
-				return 1;
+				return "error";
 			case ToastType.Warning:
-				return 2;
+				return "warn";
 		}
 	};
 	return (
@@ -35,16 +35,16 @@ export default function MessageToast({ message, toastId, toastType }: Props) {
 				</div>
 
 				<div className="ToastMessageContainer">
-					<div>
-						{getToastType() === 0 ? (
+					<div className="mr-10">
+						{getToastType() === "info" ? (
 							<BsInfoCircle size={36} />
-						) : getToastType() === 1 ? (
+						) : getToastType() === "error" ? (
 							<VscError size={36} />
 						) : (
 							<ImWarning size={36} />
 						)}
 					</div>
-					<span className="ToastItemText">{message.message}</span>
+					<div className="ToastItemText">{message}</div>
 				</div>
 			</>
 		</div>

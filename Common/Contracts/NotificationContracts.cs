@@ -97,3 +97,13 @@ public class NotificationReset : IFaultMessage
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
 };
+
+public class NotificationProgress
+{
+     public Guid CorrelationId { get; set; }
+     public float Percent { get; set; }
+     public int Duration { get; set; }
+     public bool Show { get; set; }
+     public string Message { get; set; }
+     public string SessionId { get; set; }
+}

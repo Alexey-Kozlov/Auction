@@ -272,6 +272,16 @@ public class ESLogProcessImages : IFaultMessage
     public int BatchCounter { get; set; }
 }
 
+public class ReIndex : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string CallBackType { get; set; }
+    public bool IsError { get; set; }
+}
+
 public class BaseServiceError
 {
     public Guid CorrelationId { get; set; }

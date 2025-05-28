@@ -132,10 +132,11 @@ export default function AuctionForm() {
 	//при получении сообщения об изменении параметра CollectionChanged -
 	//обновляем значения записи (удаляем кеширование), переходим на список аукционов
 	useEffect(() => {
-		const eventStateAuctionUpdated = procState.find(
-			(p) => p.eventName === "CollectionChanged" && p.ready
-		);
-		if (eventStateAuctionUpdated) {
+		if (
+			procState.find(
+				(p) => p.eventName === "CollectionChanged" && p.ready && isWaiting
+			)
+		) {
 			if (id && id !== "empty") {
 				auction.refetch();
 			}
@@ -217,7 +218,7 @@ export default function AuctionForm() {
 			return;
 		}
 		//обработка данных
-		setIsWaiting(true);
+		setIsWaiting(() => true);
 		const auctionUpdated: AuctionUpdated = {
 			id: auction.data?.result.id
 				? auction.data!.result.id
@@ -241,6 +242,7 @@ export default function AuctionForm() {
 			//создание аукциона
 			await createAuction(auctionUpdated);
 		}
+		//далее ждем сообщения о выполнении команды
 	};
 
 	if (auction.isLoading) return "Загрузка...";

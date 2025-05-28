@@ -66,17 +66,17 @@ export default function BidList({ user, auction }: Props) {
 	//перемотка списка завок - самые послеДние - в самом верху,
 	//и потом перемотка всей странички вверх - чтобы были видны последние изменения
 	useEffect(() => {
-		if (itemsRef && itemsRef.current) {
+		if (lastBidId && itemsRef && itemsRef.current) {
 			itemsRef.current.scrollIntoView({
-				//behavior: 'smooth',
 				behavior: "auto",
 				block: "start",
 				inline: "nearest",
 			});
+			setTimeout(() => {
+				window.scrollTo({ top: 0, behavior: "smooth" });
+			}, 1000);
 		}
-		setTimeout(() => {
-			window.scrollTo({ top: 0, behavior: "smooth" });
-		}, 1000);
+
 		// eslint-disable-next-line
 	}, [lastBidId]);
 
@@ -105,7 +105,7 @@ export default function BidList({ user, auction }: Props) {
 							key={bid?.bidId}
 							secondary
 							className="BidListItem"
-							ref={bid?.bidId === lastBidId ? itemsRef : null}
+							ref={itemsRef}
 						>
 							<BidItem bid={bid} />
 						</Segment>

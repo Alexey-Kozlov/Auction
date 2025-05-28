@@ -22,6 +22,10 @@ export default function Search() {
 
 	const Search = () => {
 		if (location.pathname !== "/") navigate("/");
+		if (params.searchTerm === search) {
+			return;
+		}
+		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
 		dispatch(setParams({ searchTerm: search, searchAdv: "" }));
 	};
 
@@ -35,8 +39,8 @@ export default function Search() {
 		if (params.searchAdv === searchAdv) {
 			return;
 		}
+		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
 		dispatch(setParams({ searchAdv: searchAdv, searchTerm: "" }));
-		dispatch(setEventFlag({ eventName: "ElkSearch", ready: true }));
 	};
 	//для сброса значений поиска при щелчке на сброс фильтров
 	useEffect(() => {
