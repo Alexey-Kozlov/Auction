@@ -261,6 +261,16 @@
 	display: flex;
 }
 
+.AuctionCardCountDownCurrentDop {
+	color: white;
+	padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+	background-color: rgb(169, 117, 6);
+	border: 2px solid white;
+	border-radius: 0.5rem;
+	justify-content: center;
+	display: flex;
+}
+
 .AuctionCardCurrentBidContainer {
 	position: absolute;
 	top: 0.5rem;
@@ -271,6 +281,16 @@
 	color: white;
 	padding: 0.25rem 0.5rem 0.25rem 0.5rem;
 	background-color: rgb(224 36 36);
+	border: 2px solid white;
+	border-radius: 0.5rem;
+	justify-content: center;
+	display: flex;
+}
+
+.AuctionCardCurrentBidDop {
+	color: white;
+	padding: 0.25rem 0.5rem 0.25rem 0.5rem;
+	background-color: rgb(5 122 85);
 	border: 2px solid white;
 	border-radius: 0.5rem;
 	justify-content: center;

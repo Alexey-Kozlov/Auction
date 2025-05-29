@@ -160,13 +160,16 @@ export default function SignalRProvider() {
 							itemId: finishedAuction.auctionId,
 						})
 					);
+					const message = finishedAuction.winner
+						? `Поздравления для победителя аукциона "${finishedAuction.winner}",
+                                итоговая стоимость лота - ${finishedAuction.amount} руб.`
+						: `Лот не был продан.`;
 					return toast(
 						(p) => (
 							<AuctionToast
 								auctionId={finishedAuction.auctionId}
 								toastId={p.id}
-								message={`Поздравления для победителя аукциона "${finishedAuction.winner}",
-                                итоговая стоимость лота - ${finishedAuction.amount} руб.`}
+								message={message}
 							/>
 						),
 						{ duration: 10000 }

@@ -29,7 +29,7 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 						<div className="text-center ToastItemText">{message.message}</div>
 					</div>
 					<div className="text-center ToastItemText">
-						{"Восстановлено " + Math.trunc(message.percent) + " %"}
+						{"Выполнено " + Math.trunc(message.percent) + " %"}
 					</div>
 					<div className="flex w-100P">
 						{message.show && (

@@ -51,7 +51,13 @@ const renderer = ({
 	completed: boolean;
 }) => {
 	return (
-		<div className="AuctionCardCountDownCurrent">
+		<div
+			className={
+				days < 1
+					? "AuctionCardCountDownCurrentDop"
+					: "AuctionCardCountDownCurrent"
+			}
+		>
 			<span suppressHydrationWarning={true}>
 				{zeroPad(days)}:{zeroPad(hours)}:{zeroPad(minutes)}:{zeroPad(seconds)}
 			</span>

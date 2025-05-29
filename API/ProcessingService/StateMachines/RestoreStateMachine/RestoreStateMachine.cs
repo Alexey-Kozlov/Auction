@@ -688,7 +688,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         CorrelationId = context.Saga.CorrelationId,
                         SessionId = context.Saga.SessionId,
-                        Percent = 98,
+                        Percent = 99,
                         Show = true,
                         Duration = 2000,
                         Message = "Запускаем сервис проверки завершеия аукционов..."

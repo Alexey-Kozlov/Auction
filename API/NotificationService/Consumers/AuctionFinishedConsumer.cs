@@ -21,8 +21,6 @@ public class AuctionFinishedConsumer : IConsumer<DataForProcessingServicesList<A
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
     {
-        var correlationId = context.Message.CorrelationId;
-        var title = !string.IsNullOrEmpty(context.Message.Props) ? context.Message.Props : "";
         foreach (var item in context.Message.DataObjects)
         {
             //уведомление о завершении аукциона

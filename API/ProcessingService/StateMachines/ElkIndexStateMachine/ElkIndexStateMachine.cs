@@ -1,3 +1,8 @@
+using System.ComponentModel;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
@@ -272,9 +277,18 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                 // по этому параметру - это значит был вызов процесса индексации из другого процесса
                 .If(context => !string.IsNullOrEmpty(context.Saga.CallBackType),
                     P => P
-                    .Publish(t => new RestoreSnapShotESCommit
+                    .Publish(t =>
                     {
-                        CorrelationId = t.Saga.CorrelationId
+                        var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                            configuration["CommonAssembly"]).CreateInstance(t.Saga.CallBackType);
+                        messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, t.Saga.CorrelationId);
+                        //для отсылки необходим явный тип сообщения, иначе будет ошибка - Messages types must not be in the System namespace
+                        switch (t.Saga.CallBackType)
+                        {
+                            case "Common.Contracts.EventSourcing.RestoreSnapShotESCommit":
+                                return (RestoreSnapShotESCommit)messageObject;
+                        }
+                        return null;
                     })))
         .Finalize(),
         //обрабатываем ошибки подтверждения/отката транзакции            

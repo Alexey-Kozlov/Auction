@@ -5,5 +5,13 @@ type Props = {
 
 export default function CurrentBid({ reservePrice, amount }: Props) {
 	const text = amount ? amount + " руб." : "Нет предложений";
-	return <div className="AuctionCardCurrentBid">{text}</div>;
+	return (
+		<div
+			className={
+				amount !== 0 ? "AuctionCardCurrentBidDop" : "AuctionCardCurrentBid"
+			}
+		>
+			{text}
+		</div>
+	);
 }

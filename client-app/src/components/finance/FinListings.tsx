@@ -108,7 +108,7 @@ export default function FinListings() {
 
 	//если вышли из пользователя - переход на начало сайта
 	useEffect(() => {
-		if (!user.login) {
+		if (!balance.isLoading && !balance.isFetching && (!user || !user.login)) {
 			navigate("/");
 		}
 		// eslint-disable-next-line
