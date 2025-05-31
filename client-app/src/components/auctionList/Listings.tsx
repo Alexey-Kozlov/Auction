@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import qs from "query-string";
 import { useGetAuctionsQuery } from "../../api/AuctionApi";
 import EmptyFilter from "./EmptyFilter";
@@ -12,7 +12,6 @@ import Filters from "./Filters";
 import { Auction, ProcessingState } from "../../types";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
-import { Sticky } from "semantic-ui-react";
 
 export default function Listings() {
 	const dispatch = useDispatch();

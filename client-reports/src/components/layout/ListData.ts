@@ -1,6 +1,6 @@
-import { ReportItem } from "../types";
+import { ReportItem } from "../../types";
 
-export default function ReportListData(): ReportItem[] {
+export default function ListData(): ReportItem[] {
 	return [
 		{
 			Name: "Аукционы",

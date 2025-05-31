@@ -12,7 +12,7 @@
 	/* фиксируем и выставляем высоту панели на максимум */
 	height: 100%;
 	position: fixed;
-	top: 100px;
+	top: 120px;
 	bottom: 0;
 	margin: 0;
 	/* сдвигаем (прячем) панель относительно правого края страницы */
@@ -24,9 +24,11 @@
 	-moz-transition: right 0.3s;
 	transition: right 0.3s;
 	/* определяем цвет фона панели */
-	background: #f6f6f6;
+	background-color: #f6f6f6;
 	/* поверх других элементов */
 	z-index: 2000;
+	/* отступ справа */
+	margin-right: 10px;
 }
 
 /**
@@ -52,7 +54,7 @@
 	/* вид курсора */
 	cursor: pointer;
 	/* размер шрифта */
-	font-size: 1.2em;
+	font-size: 1.5em;
 	line-height: 1;
 	/* всегда поверх других элементов страницы */
 	z-index: 2001;

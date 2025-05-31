@@ -1,24 +1,25 @@
-import { Breadcrumb } from "flowbite-react";
-import { HiHome } from "react-icons/hi";
-import { NavLink, useParams } from "react-router-dom";
-import ReportListData from "../../ReportListData";
+import {
+	BreadcrumbSection,
+	BreadcrumbDivider,
+	Breadcrumb,
+} from "semantic-ui-react";
+import { useNavigate, useParams } from "react-router-dom";
+import ReportListData from "../ListData";
 
 export default function BreadCrumb() {
 	const { root, id } = useParams();
+	const navigate = useNavigate();
 	return (
 		<>
-			<Breadcrumb className="mt-3">
-				<NavLink to={`/${root}`}>
-					<Breadcrumb.Item icon={HiHome}>
-						<span className="text-xl">Отчеты</span>
-					</Breadcrumb.Item>
-				</NavLink>
+			<Breadcrumb size="big" id="BreadCrumbStyle">
+				<BreadcrumbSection link onClick={() => navigate(`/${root}`)}>
+					Отчеты
+				</BreadcrumbSection>
+				<BreadcrumbDivider icon="right chevron" />
 				{id && (
-					<Breadcrumb.Item>
-						<span className="text-xl">
-							{id && ReportListData().find((p) => p.Id === id)!.Name}
-						</span>
-					</Breadcrumb.Item>
+					<BreadcrumbSection>
+						{id && ReportListData().find((p) => p.Id === id)!.Name}
+					</BreadcrumbSection>
 				)}
 			</Breadcrumb>
 		</>

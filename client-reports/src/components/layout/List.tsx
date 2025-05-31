@@ -1,12 +1,12 @@
-import ReportCard from "../ReportCard";
-import ReportListData from "../ReportListData";
+import Card from "./Card";
+import ListData from "./ListData";
 
 export default function List() {
-	const reportsList = ReportListData();
+	const reportsList = ListData();
 	return (
-		<div className="flex flex-wrap ml-2">
+		<div id="ReportList">
 			{reportsList.map((p) => {
-				return <ReportCard {...p} key={p.Id} />;
+				return <Card {...p} key={p.Id} />;
 			})}
 		</div>
 	);

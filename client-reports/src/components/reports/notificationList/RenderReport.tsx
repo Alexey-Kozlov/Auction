@@ -53,9 +53,9 @@ export default function RenderReport({ reportId }: Props) {
 
 	return (
 		<div ref={contentRef}>
-			<h2 className="text-center text-2xl m-4">Список уведомлений</h2>
+			<h2 className="text-center">Список уведомлений</h2>
 			{reportStore.reportLoading && (
-				<div className="mt-16">
+				<div>
 					<Waiter color="rgb(156 163 175)" />
 				</div>
 			)}

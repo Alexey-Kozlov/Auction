@@ -7,8 +7,7 @@ import { RootState } from "../../store/store";
 import { useNavigate } from "react-router-dom";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import AddTokenHeader from "../../api/AddTokenHeader";
-import { useEffect, useRef } from "react";
-import { Sticky } from "semantic-ui-react";
+import { useEffect } from "react";
 
 export default function NavBar() {
 	let user: User = useSelector((state: RootState) => state.authStore);
@@ -24,7 +23,7 @@ export default function NavBar() {
 		}
 		// eslint-disable-next-line
 	}, []);
-	const stickDivNav = useRef<HTMLDivElement>(null);
+
 	const navigate = useNavigate();
 	return (
 		<div className="NavBarContainer">

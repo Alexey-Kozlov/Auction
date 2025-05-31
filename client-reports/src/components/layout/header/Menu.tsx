@@ -1,4 +1,4 @@
-import { Dropdown } from "flowbite-react";
+import { Dropdown, DropdownItem, DropdownMenu } from "semantic-ui-react";
 import { TfiPrinter } from "react-icons/tfi";
 import { RiFileExcel2Line } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,6 +6,7 @@ import { setEvent } from "../../../store/EventSlice";
 import { useParams } from "react-router-dom";
 import { User } from "../../../types";
 import { RootState } from "../../../store/Store";
+import { Children } from "react";
 
 export default function Menu() {
 	const dispatch = useDispatch();
@@ -19,23 +20,38 @@ export default function Menu() {
 	const user: User = useSelector((state: RootState) => state.authStore);
 
 	return (
-		<Dropdown inline label={`${user.name}`}>
-			<Dropdown.Item
-				icon={TfiPrinter}
-				onClick={ExportPdf}
-				disabled={!id}
-				className={!id ? "text-gray-400 cursor-not-allowed" : ""}
-			>
-				Экспорт в Pdf
-			</Dropdown.Item>
-			<Dropdown.Item
-				icon={RiFileExcel2Line}
-				onClick={ExportExcel}
-				disabled={!id}
-				className={!id ? "text-gray-400 cursor-not-allowed" : ""}
-			>
-				Экспорт в Excel
-			</Dropdown.Item>
-		</Dropdown>
+		<div className="UserActionsPanel">
+			<Dropdown className="UserTitle" labeled text={user.name}>
+				<DropdownMenu label={`${user.name}`}>
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<TfiPrinter className="MenuItems" size={20} />
+									Экспорт в Pdf
+								</span>
+							</>
+						}
+						onClick={ExportPdf}
+						disabled={!id}
+						className={!id ? "MenuItemsAction" : ""}
+					/>
+					<DropdownItem
+						content={
+							<>
+								<span className="MenuItemsText">
+									<RiFileExcel2Line className="MenuItems" size={20} />
+									Экспорт в Excel
+								</span>
+							</>
+						}
+						image={<RiFileExcel2Line />}
+						onClick={ExportExcel}
+						disabled={!id}
+						className={!id ? "MenuItemsAction" : ""}
+					/>
+				</DropdownMenu>
+			</Dropdown>
+		</div>
 	);
 }

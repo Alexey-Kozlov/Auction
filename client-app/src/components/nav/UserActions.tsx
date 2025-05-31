@@ -174,7 +174,7 @@ export default function UserActions() {
 	};
 
 	const handleReportClick = () => {
-		navigate(process.env.REACT_APP_REPORT_URL!);
+		window.location.href = process.env.REACT_APP_REPORT_URL!;
 	};
 
 	const handleCreateAuctionClick = () => {

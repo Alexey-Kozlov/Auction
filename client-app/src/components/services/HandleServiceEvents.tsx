@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { ProcessingState, RestoreDb, Session } from "../../types";
 import {
@@ -10,7 +10,6 @@ import {
 } from "../../api/ServiceApi";
 
 export default function HandleServiceEvents() {
-	const dispatch = useDispatch();
 	const events: ProcessingState[] = useSelector(
 		(state: RootState) => state.processingStore
 	);

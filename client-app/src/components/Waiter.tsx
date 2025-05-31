@@ -1,4 +1,4 @@
-import { RotatingLines } from "react-loader-spinner";
+import { Loader } from "semantic-ui-react";
 type Props = {
 	color: string;
 };
@@ -6,14 +6,7 @@ type Props = {
 export default function Waiter({ color }: Props) {
 	return (
 		<div className="flex items-center justify-center">
-			<RotatingLines
-				visible={true}
-				width="50"
-				strokeWidth="5"
-				strokeColor={color}
-				animationDuration="0.75"
-				ariaLabel="rotating-lines-loading"
-			/>
+			<Loader active inline="centered" />
 		</div>
 	);
 }

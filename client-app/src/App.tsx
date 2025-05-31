@@ -1,5 +1,5 @@
 import "semantic-ui-css/semantic.min.css";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Listings from "./components/auctionList/Listings";
 import NavBar from "./components/nav/NavBar";
 import ToasterProvider from "./providers/ToasterProvider";
@@ -15,7 +15,6 @@ import HandleServiceEvents from "./components/services/HandleServiceEvents";
 function App() {
 	return (
 		<div>
-			<ToasterProvider />
 			<NavBar />
 			<div className="MainContainer">
 				<Routes>
@@ -27,7 +26,12 @@ function App() {
 					<Route path="/auctions/:id" element={<Detail />}></Route>
 					<Route path="/finance/list" element={<FinListings />}></Route>
 					<Route path="/not-found" element={<NotFound />}></Route>
+					<Route
+						path="*"
+						element={<Navigate to="/not-found" replace={true} />}
+					></Route>
 				</Routes>
+				<ToasterProvider />
 				<SignalRProvider />
 				<HandleServiceEvents />
 			</div>

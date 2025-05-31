@@ -1,6 +1,12 @@
-import React from "react";
 import { AuctionListTypes } from "../AuctionListTypes";
-import { Table } from "flowbite-react";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHeader,
+	TableHeaderCell,
+	TableRow,
+} from "semantic-ui-react";
 
 type Props = {
 	items: AuctionListTypes[];
@@ -8,34 +14,36 @@ type Props = {
 
 export default function AuctionTable({ items }: Props) {
 	return (
-		<>
-			<Table hoverable>
-				<Table.Head>
-					<Table.HeadCell className="text-left">Продавец</Table.HeadCell>
-					<Table.HeadCell className="text-left">Наименование</Table.HeadCell>
-					<Table.HeadCell className="text-center">Дата начала</Table.HeadCell>
-					<Table.HeadCell className="text-center">
-						Дата завершения
-					</Table.HeadCell>
-				</Table.Head>
-				<Table.Body className="divide-y scrollable-body">
+		<div>
+			<Table celled selectable striped>
+				<TableHeader>
+					<TableRow>
+						<TableHeaderCell textAlign="center">Продавец</TableHeaderCell>
+						<TableHeaderCell textAlign="center">Наименование</TableHeaderCell>
+						<TableHeaderCell textAlign="center">Дата начала</TableHeaderCell>
+						<TableHeaderCell textAlign="center">
+							Дата завершения
+						</TableHeaderCell>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{items!.map((item, index) => (
-						<Table.Row
+						<TableRow
 							key={index}
 							className="bg-white dark:border-gray-700 dark:bg-gray-800"
 						>
-							<Table.Cell>{item.Seller}</Table.Cell>
-							<Table.Cell>{item.Title}</Table.Cell>
-							<Table.Cell className="text-center">
+							<TableCell textAlign="center">{item.Seller}</TableCell>
+							<TableCell>{item.Title}</TableCell>
+							<TableCell className="text-center">
 								{new Date(item.StartDate).toLocaleDateString()}
-							</Table.Cell>
-							<Table.Cell className="text-center">
+							</TableCell>
+							<TableCell className="text-center">
 								{new Date(item.EndDate).toLocaleDateString()}
-							</Table.Cell>
-						</Table.Row>
+							</TableCell>
+						</TableRow>
 					))}
-				</Table.Body>
+				</TableBody>
 			</Table>
-		</>
+		</div>
 	);
 }

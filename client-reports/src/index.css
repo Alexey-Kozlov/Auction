@@ -1,3 +1,137 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+.container {
+	max-width: 1576px;
+}
+
+.NavBarContainer {
+	position: sticky;
+	top: 0;
+	background-color: white;
+	z-index: 10;
+}
+
+.NavBar {
+	padding: 0 10px 0 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: white;
+	flex-wrap: wrap;
+	height: 50px;
+}
+
+.NavBarHeader {
+	background-color: white;
+	height: 5px;
+	width: 100%;
+}
+
+.NavBarFooter1 {
+	height: 5px;
+	width: 100%;
+	background-color: white;
+}
+
+.NavBarFooter2 {
+	height: 5px;
+	width: 100%;
+	background-color: #e5e7eb;
+}
+
+#NavBarLogo {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-weight: 600;
+	font-size: 30px;
+	line-height: 36px;
+	color: rgb(240 82 82);
+}
+
+.UserActionsPanel .ui.dropdown .menu {
+	z-index: 15 !important;
+}
+
+.MenuItemsText {
+	font-size: 16px;
+}
+
+.MenuItemsAction {
+	color: gray;
+	cursor: not-allowed;
+}
+
+.MenuItems {
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+.UserTitle {
+	font-size: 16px !important;
+	font-weight: 600;
+}
+
+#BreadCrumbStyle a {
+	color: black;
+}
+
+#ReportList {
+	display: flex;
+	flex-wrap: wrap;
+	margin-left: 20px;
+}
+
+.ReportCardContainer {
+	margin: 5px !important;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	border: 2px solid transparent !important;
+	cursor: pointer;
+}
+
+.ReportCardContainer:hover {
+	border: 2px solid black !important;
+	background-color: rgb(236, 235, 235) !important;
+}
+
+.ReportCardTitle {
+	font-weight: 900;
+	font-size: x-large;
+}
+.Main {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+}
+
+.ParameterContainer {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ParameterItem {
+	margin: 6px;
+}
+
+.ParameterItem input,
+.ParameterItem select {
+	border: 1px solid gray !important;
+}
+
+.MainButton {
+	background-color: white !important;
+	color: black !important;
+	font-weight: 700 !important;
+	font-size: 14px !important;
+	border: 2px solid black !important;
+	border-radius: 10px !important;
+	padding: 10px !important;
+	margin: 4px !important;
+	width: 120px !important;
+}
+
+.MainButton:hover {
+	background-color: rgb(14 116 144) !important;
+	color: white !important;
+	cursor: pointer !important;
+}

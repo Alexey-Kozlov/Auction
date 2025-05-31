@@ -1,3 +1,7 @@
+.container {
+	max-width: 1576px;
+}
+
 .datepicker {
 	border: 1px solid rgb(156 163 175) !important;
 	width: 100%;
@@ -7,8 +11,10 @@
 	font-size: 16px;
 }
 
-.InputText input {
+.InputText input,
+.InputText textarea {
 	padding: 4px 15px 4px 15px !important;
+	border: 1px solid gray !important;
 }
 
 .MainContainer {
@@ -85,6 +91,7 @@
 	color: white !important;
 	cursor: pointer !important;
 }
+
 .NavBarContainer {
 	position: sticky;
 	top: 0;
@@ -108,6 +115,7 @@
 }
 
 #NavBarLogo {
+	text-decoration: none;
 	display: flex;
 	align-items: center;
 	gap: 5px;

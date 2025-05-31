@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ParameterItem, ParameterSelect, ParameterType } from "../../types";
-import { Button } from "flowbite-react";
+import { Button, Form } from "semantic-ui-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setParamIsOpen, setReportLoading } from "../../store/ReportSlice";
 import { RootState } from "../../store/Store";
@@ -143,26 +143,34 @@ export default function SlidePanel({ params, reportName }: Props) {
 				)}
 
 				<h2>Параметры отчета "{reportName}"</h2>
-				<div
-					className="grid grid-cols-[2fr,1fr]"
-					onClick={(e) => e.stopPropagation()}
-				>
-					{paramValue &&
-						paramValue!.length !== 0 &&
-						params.map((p, index) => {
-							return (
-								<React.Fragment key={index}>
-									<div className="reportItem">{p.Label}</div>
-									<div className="reportItem">{GetParamControl(p, index)}</div>
-								</React.Fragment>
-							);
-						})}
-				</div>
-				<div className="reportSubmit">
-					<Button type="submit" onClick={reportSubmit} color="blue">
-						Получить отчет
-					</Button>
-				</div>
+				<Form>
+					<div
+						className="ParameterContainer"
+						onClick={(e) => e.stopPropagation()}
+					>
+						{paramValue &&
+							paramValue!.length !== 0 &&
+							params.map((p, index) => {
+								return (
+									<React.Fragment key={index}>
+										<div className="ParameterItem">{p.Label}</div>
+										<div className="ParameterItem">
+											{GetParamControl(p, index)}
+										</div>
+									</React.Fragment>
+								);
+							})}
+					</div>
+					<div className="reportSubmit">
+						<Button
+							className="MainButton w-200"
+							type="submit"
+							onClick={reportSubmit}
+						>
+							Получить отчет
+						</Button>
+					</div>
+				</Form>
 			</nav>
 		</div>
 	);

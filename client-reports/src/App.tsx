@@ -32,7 +32,7 @@ function App() {
 		// eslint-disable-next-line
 	}, []);
 	return (
-		<>
+		<div>
 			{tokenData && (
 				<div className="container" onClick={handleCloseParamWindow}>
 					<Routes>
@@ -44,7 +44,7 @@ function App() {
 					</Routes>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }
 
