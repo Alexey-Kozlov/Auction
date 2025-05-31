@@ -1,3 +1,5 @@
+import { AuctionListTypes } from "./components/reports/auctionList/AuctionListTypes";
+
 export interface ReportItem {
 	Name: string;
 	Description: string;
@@ -61,3 +63,8 @@ export type User = {
 	id?: string;
 	isAdmin: boolean;
 };
+
+export enum SortDirection {
+	descending,
+	ascending,
+}

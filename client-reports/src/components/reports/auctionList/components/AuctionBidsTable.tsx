@@ -1,5 +1,9 @@
-import React from "react";
-import { AuctionListTypes } from "../AuctionListTypes";
+import React, { useEffect, useState } from "react";
+import {
+	AuctionBidSortType,
+	AuctionListSortColumn,
+	AuctionListTypes,
+} from "../AuctionListTypes";
 import {
 	Table,
 	TableBody,
@@ -8,29 +12,133 @@ import {
 	TableHeaderCell,
 	TableRow,
 } from "semantic-ui-react";
+import { SortDirection } from "../../../../types";
+import { dynamicSort } from "../../../../utils";
 
 type Props = {
 	items: AuctionListTypes[] | undefined;
 };
 
 export default function AuctionBidsTable({ items }: Props) {
+	const [repItems, setRepItems] = useState<AuctionListTypes[] | null>();
+
+	const [sortState, setSortState] = useState<AuctionBidSortType>({
+		column: AuctionListSortColumn.Title,
+		direction: SortDirection.ascending,
+	});
+
+	const getSortedValue = (val: AuctionListSortColumn) => {
+		return sortState.column === val
+			? sortState.direction === SortDirection.ascending
+				? "ascending"
+				: "descending"
+			: undefined;
+	};
+
+	const handleSetSort = (value: AuctionBidSortType) => {
+		//направление сортировки
+		setSortState((prev) => {
+			return {
+				...value,
+				direction:
+					prev.direction === SortDirection.ascending
+						? SortDirection.descending
+						: SortDirection.ascending,
+			};
+		});
+		//сортируем данные
+		setRepItems((prev) => {
+			let _temp = JSON.parse(JSON.stringify(prev)) as AuctionListTypes[];
+			return _temp?.sort(
+				dynamicSort(AuctionListSortColumn[value.column], value.direction)
+			);
+		});
+	};
+
+	useEffect(() => {
+		setRepItems(() => items);
+	}, []);
 	return (
 		<>
-			<Table celled selectable striped>
+			<Table sortable celled selectable striped>
 				<TableHeader>
 					<TableRow>
-						<TableHeaderCell textAlign="center">Продавец</TableHeaderCell>
-						<TableHeaderCell textAlign="center">Наименование</TableHeaderCell>
-						<TableHeaderCell textAlign="center">Дата начала</TableHeaderCell>
-						<TableHeaderCell textAlign="center">
+						<TableHeaderCell
+							textAlign="center"
+							sorted={getSortedValue(AuctionListSortColumn.Seller)}
+							onClick={() =>
+								handleSetSort({
+									column: AuctionListSortColumn.Seller,
+									direction: sortState.direction,
+								})
+							}
+						>
+							Продавец
+						</TableHeaderCell>
+						<TableHeaderCell
+							textAlign="center"
+							sorted={getSortedValue(AuctionListSortColumn.Title)}
+							onClick={() =>
+								handleSetSort({
+									column: AuctionListSortColumn.Title,
+									direction: sortState.direction,
+								})
+							}
+						>
+							Наименование
+						</TableHeaderCell>
+						<TableHeaderCell
+							textAlign="center"
+							sorted={getSortedValue(AuctionListSortColumn.StartDate)}
+							onClick={() =>
+								handleSetSort({
+									column: AuctionListSortColumn.StartDate,
+									direction: sortState.direction,
+								})
+							}
+						>
+							Дата начала
+						</TableHeaderCell>
+						<TableHeaderCell
+							textAlign="center"
+							sorted={getSortedValue(AuctionListSortColumn.EndDate)}
+							onClick={() =>
+								handleSetSort({
+									column: AuctionListSortColumn.EndDate,
+									direction: sortState.direction,
+								})
+							}
+						>
 							Дата завершения
 						</TableHeaderCell>
-						<TableHeaderCell textAlign="center">Автор ставки</TableHeaderCell>
-						<TableHeaderCell textAlign="center">Размер ставки</TableHeaderCell>
+						<TableHeaderCell
+							textAlign="center"
+							sorted={getSortedValue(AuctionListSortColumn.Bidder)}
+							onClick={() =>
+								handleSetSort({
+									column: AuctionListSortColumn.Bidder,
+									direction: sortState.direction,
+								})
+							}
+						>
+							Автор ставки
+						</TableHeaderCell>
+						<TableHeaderCell
+							textAlign="center"
+							sorted={getSortedValue(AuctionListSortColumn.Amount)}
+							onClick={() =>
+								handleSetSort({
+									column: AuctionListSortColumn.Amount,
+									direction: sortState.direction,
+								})
+							}
+						>
+							Размер ставки
+						</TableHeaderCell>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{items!.map((item, index) => (
+					{repItems?.map((item, index) => (
 						<TableRow
 							key={index}
 							className="bg-white dark:border-gray-700 dark:bg-gray-800"
