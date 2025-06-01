@@ -168,6 +168,7 @@ export default function Detail() {
 										<Button
 											className="MainButton w-200"
 											onClick={() => navigate(`/auctions/edit/${id}`)}
+											disabled={!!deleteAuction}
 										>
 											Редактировать аукцион
 										</Button>

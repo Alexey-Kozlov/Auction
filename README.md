@@ -16,6 +16,11 @@ OpenTelemetry
 Prometheus
 Grafana
 
+Перед билдом - обновляем кеш сборок, выполняем команды:
+cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net9.0/
+./CollectNugetPackages
+будет вывод - колько пакетов обновлены в кеше
+
 команды деплоя
 
 cmd из папки Projects
