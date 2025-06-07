@@ -102,7 +102,10 @@ public enum Command
     RestoreSnapShot,//6
     IndexELK,       //7
     EditNotification, //8
-    AuctionFinished //9
+    AuctionFinished, //9
+    CommunicationCreate, //10
+    CommunicationUpdate, //11
+    CommunicationDelete //12
 }
 
 public enum CRUD
@@ -318,4 +321,44 @@ public class NotificationServiceError
     public Guid? TraceId { get; set; }
     public bool IsError { get; set; }
     public string SessionId { get; set; }
+}
+
+public class ESLogCommunicationCreated : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+}
+
+public enum SignalRMethod
+{
+    BidPlaced,
+    CommunicationDelete,
+    CommunicationCreate,
+    CommunicationUpdate,
+    AuctionCreate,
+    AuctionDelete,
+    AuctionUpdate,
+    AuctionFinished,
+    FinanceCreate,
+    SetSnapShot,
+    RestoreSnapShot,
+    ElkIndexReset,
+    ElkSearch
+}
+
+public class EventNotificationItem
+{
+    public SignalRMethod SignalRMethod { get; set; }
+    public bool Show { get; set; }
+    public string Data { get; set; }
+    public string SessionId { get; set; }
+    public Guid? AuctionId { get; set; }
+    public string UserLogin { get; set; }
 }

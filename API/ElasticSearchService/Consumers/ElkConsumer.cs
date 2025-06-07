@@ -4,6 +4,7 @@ using AutoMapper;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using Common.Utils;
+using Common.Utils.Logging;
 using Elastic.Clients.Elasticsearch;
 using ElasticSearchService.DTO;
 using ElasticSearchService.Services;
@@ -47,13 +48,12 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                     if (item.CRUD != CRUD.Create)
                     {
                         if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
-                        if (!search.Documents.Any()) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
                     }
                     //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
                     if (search != null)
                     {
                         var oldAuction = search.Documents.FirstOrDefault();
-                        var cacheDto = new CacheDTO
+                        var cacheDto = new CacheElkDTO
                         {
                             Record = oldAuction,
                             CRUD = item.CRUD
@@ -103,7 +103,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
                 messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_ELK");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");

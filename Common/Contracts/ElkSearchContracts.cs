@@ -76,6 +76,7 @@ public class ElkCommit
 {
      public Guid CorrelationId { get; set; }
      public bool Commited { get; set; }
+     public string ElkIndex { get; set; }
      public string CallBackType { get; set; }
      public string ErrorMessage { get; set; }
      public string ErrorExceptionMessage { get; set; }

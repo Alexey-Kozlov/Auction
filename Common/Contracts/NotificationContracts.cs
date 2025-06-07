@@ -2,16 +2,6 @@ using Common.Contracts.Processing;
 
 namespace Common.Contracts.Notification;
 
-public class NotifyItem
-{
-     public Guid? Id { get; set; }
-     public Guid AuctionId { get; set; }
-     public string UserLogin { get; set; }
-     public Guid CorrelationId { get; set; }
-     public bool Commited { get; set; }
-}
-
-
 
 public enum MessageType
 {
@@ -106,4 +96,13 @@ public class NotificationProgress
      public bool Show { get; set; }
      public string Message { get; set; }
      public string SessionId { get; set; }
+}
+
+public class NotifyItem
+{
+     public Guid? Id { get; set; }
+     public Guid AuctionId { get; set; }
+     public string UserLogin { get; set; }
+     public Guid CorrelationId { get; set; }
+     public bool Commited { get; set; }
 }

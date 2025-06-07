@@ -14,7 +14,6 @@ using StackExchange.Redis;
 using GatewayService.Logging;
 using Common.Contracts;
 using Confluent.Kafka;
-using Common.Utils;
 using Common.Utils.Logging;
 using Common.Contracts.Logging;
 

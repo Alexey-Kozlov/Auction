@@ -219,6 +219,7 @@ export enum RequestType {
 	SnapShot,
 	Cache,
 	SignalR,
+	Communications,
 }
 
 export type State = {
@@ -267,3 +268,35 @@ export enum ToastType {
 	Warning,
 	Error,
 }
+
+export type ChatComment = {
+	id: string;
+	parentId: string | null;
+	message: string;
+	userLogin: string;
+	auctionId: string;
+	updateAt: Date;
+	sessionId: string;
+};
+
+export enum ActionType {
+	create,
+	read,
+	update,
+	delete,
+}
+
+export type ChatResponse = {
+	id: string;
+	parentId: string | null;
+	message: string;
+	userLogin: string;
+	auctionId: string;
+	updateAt: Date;
+	action: ActionType | null;
+};
+
+export type NotificationEvent = {
+	show: boolean;
+	data: string;
+};

@@ -8,6 +8,7 @@ using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using Common.Utils;
 using Common.Utils.Extentions;
+using Common.Utils.Logging;
 using EventSourcingService.Data;
 using EventSourcingService.Entities;
 using EventSourcingService.Services;
@@ -134,7 +135,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_SetSnapShot");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");

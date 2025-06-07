@@ -54,7 +54,7 @@ var app = builder.Build();
 app.Use(async (context, next) =>
 {
     //логируем вошедший запрос
-    Console.WriteLine($"{DateTime.Now} Вошедший запрос -> {context.Request.Path}");
+    //Console.WriteLine($"{DateTime.Now} Вошедший запрос -> {context.Request.Path}");
     await next.Invoke();
 });
 app.MapControllers();

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
+using Common.Utils.Logging;
 using MassTransit;
 using SearchService.Services;
 
@@ -40,7 +41,7 @@ public class CommitSearchConsumer : IConsumer<AuctionCommit>
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "SearchService_Commit");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");

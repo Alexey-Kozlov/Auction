@@ -7,6 +7,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Collections.Concurrent;
+using Common.Utils.Logging;
 
 namespace EventSourcingService.Services;
 
@@ -113,7 +114,7 @@ public class CheckAuctionFinished : IHostedService, IDisposable
                 var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, correlationId);
-                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
                 messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");

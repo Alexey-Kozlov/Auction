@@ -79,6 +79,7 @@ builder.Services.AddMassTransit(p =>
     p.EditNotificationMassTransitConfigurator();
     p.RestoreMassTransitConfigurator();
     p.SetSnapShotMassTransitConfigurator();
+    p.AddCommunicationCreateMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
     {

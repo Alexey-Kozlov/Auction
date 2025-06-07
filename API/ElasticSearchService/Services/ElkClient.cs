@@ -1,4 +1,5 @@
 using Common.Contracts.Auction;
+using Common.Contracts.Communication;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 
@@ -7,6 +8,7 @@ namespace ElasticSearchService.Services;
 public class ElkClient
 {
     public ElasticsearchClient Client;
+    public ElasticsearchClient CommunicationClient;
     public ElkClient(IConfiguration configuration)
     {
         var url = configuration["elk:host"];
@@ -20,6 +22,7 @@ public class ElkClient
         .PrettyJson()
         .Authentication(new BasicAuthentication(user, password));
 
+        //клиент для поиска в аукционах
         Client = new ElasticsearchClient(settings);
         Client.Indices.CreateAsync<AuctionCreatingElk>("search_index", index =>
             index.Settings(s =>
@@ -44,6 +47,30 @@ public class ElkClient
                     .Text(t => t.Title, t => t.Fields(p => p.Keyword(r => r.Suffix("keyword"))).Analyzer("rebuilt_russian"))
                     .Text(t => t.Properties, t => t.Analyzer("rebuilt_russian"))
                     .Text(t => t.Description, t => t.Analyzer("rebuilt_russian"))
+                )
+            )
+        );
+        //клиент для поиска в чатах
+        CommunicationClient = new ElasticsearchClient(settings);
+        CommunicationClient.Indices.CreateAsync<CommunicationSearch>("communication_index", index =>
+            index.Settings(s =>
+                s.Analysis(an => an
+                    .Analyzers(a =>
+                        a.Custom("rebuilt_russian", desc =>
+                            desc.Tokenizer("standard")
+                            .Filter(["lowercase", "russian_stemmer"])
+                        )
+                    )
+                    .TokenFilters(f =>
+                        f.Stemmer("russian_stemmer", desc =>
+                            desc.Language("russian")
+                        )
+                    )
+                )
+            )
+            .Mappings(m => m
+                .Properties(p => p
+                    .Text(t => t.Message, t => t.Analyzer("rebuilt_russian"))
                 )
             )
         );

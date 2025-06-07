@@ -4,6 +4,7 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
+using Common.Utils.Logging;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using ElasticSearchService.Services;
@@ -160,7 +161,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_SearchCreatingELK");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");

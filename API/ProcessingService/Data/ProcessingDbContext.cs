@@ -24,6 +24,7 @@ public class ProcessingDbContext : SagaDbContext
             yield return new EditNotificationStateMap();
             yield return new RestoreStateMap();
             yield return new SetSnapShotStateMap();
+            yield return new CreateCommunicationStateMap();
         }
     }
 }

@@ -14,38 +14,44 @@ import { financeReducer } from "./financeSlice";
 import processingApi from "../api/ProcessingApi";
 import { processingReducer } from "./processingSlice";
 import serviceApi from "../api/ServiceApi";
+import { chatMessageReducer, chatResponseReducer } from "./chatSlice";
+import communicationApi from "../api/CommunicationApi";
 
 const store = configureStore({
-  reducer: {
-    authStore: authReducer,
-    bidStore: bidReducer,
-    auctionStore: auctionReducer,
-    paramStore: paramReducer,
-    financeStore: financeReducer,
-    processingStore: processingReducer,
-    [auctionApi.reducerPath]: auctionApi.reducer,
-    [authApi.reducerPath]: authApi.reducer,
-    [bidApi.reducerPath]: bidApi.reducer,
-    [signalRApi.reducerPath]: signalRApi.reducer,
-    [imageApi.reducerPath]: imageApi.reducer,
-    [notificationApi.reducerPath]: notificationApi.reducer,
-    [financeApi.reducerPath]: financeApi.reducer,
-    [processingApi.reducerPath]: processingApi.reducer,
-    [serviceApi.reducerPath]: serviceApi.reducer
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    })
-      .concat(auctionApi.middleware)
-      .concat(authApi.middleware)
-      .concat(bidApi.middleware)
-      .concat(signalRApi.middleware)
-      .concat(imageApi.middleware)
-      .concat(notificationApi.middleware)
-      .concat(financeApi.middleware)
-      .concat(processingApi.middleware)
-      .concat(serviceApi.middleware)
+	reducer: {
+		authStore: authReducer,
+		bidStore: bidReducer,
+		auctionStore: auctionReducer,
+		paramStore: paramReducer,
+		financeStore: financeReducer,
+		processingStore: processingReducer,
+		chatMessageStore: chatMessageReducer,
+		chatResponseStore: chatResponseReducer,
+		[auctionApi.reducerPath]: auctionApi.reducer,
+		[authApi.reducerPath]: authApi.reducer,
+		[bidApi.reducerPath]: bidApi.reducer,
+		[signalRApi.reducerPath]: signalRApi.reducer,
+		[imageApi.reducerPath]: imageApi.reducer,
+		[notificationApi.reducerPath]: notificationApi.reducer,
+		[financeApi.reducerPath]: financeApi.reducer,
+		[processingApi.reducerPath]: processingApi.reducer,
+		[serviceApi.reducerPath]: serviceApi.reducer,
+		[communicationApi.reducerPath]: communicationApi.reducer,
+	},
+	middleware: (getDefaultMiddleware) =>
+		getDefaultMiddleware({
+			serializableCheck: false,
+		})
+			.concat(auctionApi.middleware)
+			.concat(authApi.middleware)
+			.concat(bidApi.middleware)
+			.concat(signalRApi.middleware)
+			.concat(imageApi.middleware)
+			.concat(notificationApi.middleware)
+			.concat(financeApi.middleware)
+			.concat(processingApi.middleware)
+			.concat(serviceApi.middleware)
+			.concat(communicationApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

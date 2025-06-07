@@ -9,6 +9,5 @@ public class MappingProfiles : Profile
     public MappingProfiles()
     {
         CreateMap<BidItem, BidDTO>();
-        //CreateMap<AuctionItem, AuctionItem>();
     }
 }

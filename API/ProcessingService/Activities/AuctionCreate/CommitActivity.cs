@@ -70,7 +70,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
             ErrorServiceName = context.Message.ErrorServiceName,
-            UserLogin = context.Saga.UserLogin
+            UserLogin = context.Saga.UserLogin,
+            ElkIndex = "search_index"
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {

@@ -10,7 +10,10 @@ public class AuctionMetrics
     private Counter<int> AuctionFinishedCounter { get; }
     private Counter<int> AuctionBidCounter { get; }
     private Counter<int> AuctionNotificationCounter { get; }
-    private Counter<int> AuctionFinanceCounter { get; }    
+    private Counter<int> AuctionFinanceCounter { get; }
+    private Counter<int> CommunicationAddCounter { get; }
+    private Counter<int> CommunicationUpdateCounter { get; }
+    private Counter<int> CommunicationDeleteCounter { get; }
 
     public AuctionMetrics(IMeterFactory meterFactory, IConfiguration configuration)
     {
@@ -21,7 +24,10 @@ public class AuctionMetrics
         AuctionFinishedCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNameFinish"], "Auction");
         AuctionBidCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNameBid"], "Auction");
         AuctionNotificationCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricNotification"], "Auction");
-        AuctionFinanceCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricFinance"], "Auction");        
+        AuctionFinanceCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricFinance"], "Auction");
+        CommunicationAddCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricCommunicationAdd"], "Auction");
+        CommunicationUpdateCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricCommunicationUpdate"], "Auction");
+        CommunicationDeleteCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricCommunicationDelete"], "Auction");
     }
 
     public void AddAuction() => AuctionAddCounter.Add(1);
@@ -30,7 +36,9 @@ public class AuctionMetrics
     public void FinishAuction() => AuctionFinishedCounter.Add(1);
     public void BidAuction() => AuctionBidCounter.Add(1);
     public void NotificationAuction() => AuctionNotificationCounter.Add(1);
-    public void FinanceAuction() => AuctionFinanceCounter.Add(1);    
-
+    public void FinanceAuction() => AuctionFinanceCounter.Add(1);
+    public void AddCommunication() => CommunicationAddCounter.Add(1);
+    public void UpdateCommunication() => CommunicationUpdateCounter.Add(1);
+    public void DeleteCommunication() => CommunicationDeleteCounter.Add(1);
 
 }

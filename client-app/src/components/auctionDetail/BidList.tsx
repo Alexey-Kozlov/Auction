@@ -103,9 +103,9 @@ export default function BidList({ user, auction }: Props) {
 					{bids?.map((bid, index) => (
 						<Segment
 							key={bid?.bidId}
+							ref={itemsRef}
 							secondary
 							className="BidListItem"
-							ref={itemsRef}
 						>
 							<BidItem bid={bid} />
 						</Segment>

@@ -61,7 +61,8 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
             ErrorServiceName = context.Message.ErrorServiceName,
-            UserLogin = "SystemService"
+            UserLogin = "SystemService",
+            ElkIndex = "search_index"
         });
         await next.Execute(context).ConfigureAwait(false);
     }

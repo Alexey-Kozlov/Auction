@@ -82,6 +82,12 @@ public class EventSourcingDbContext : DbContext
     public IQueryable<ReturnResultSql> get_auction_finished(
         Guid correlationid) =>
         FromExpression(() => get_auction_finished(correlationid));
+    public IQueryable<ReturnResultSql> communication_create(
+        Guid correlationid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => communication_create(correlationid, auctionid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -100,6 +106,7 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => restore_snap_shot_images(default, default, default));
         modelBuilder.HasDbFunction(() => reset_snap_shot(default));
         modelBuilder.HasDbFunction(() => get_auction_finished(default));
+        modelBuilder.HasDbFunction(() => communication_create(default, default, default, default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
     }
 }

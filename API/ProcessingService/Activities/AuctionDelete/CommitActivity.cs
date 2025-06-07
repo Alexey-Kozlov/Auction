@@ -91,7 +91,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             ErrorMessage = context.Message.ErrorMessage,
             ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
             ErrorServiceName = context.Message.ErrorServiceName,
-            UserLogin = context.Saga.UserLogin
+            UserLogin = context.Saga.UserLogin,
+            ElkIndex = "search_index"
         });
         await _publishEndpoint.Publish(new NotificationCommit
         {

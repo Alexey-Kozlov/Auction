@@ -230,7 +230,7 @@ export default function Detail() {
 
 					<Segment>
 						<div className="DetailSpec">
-							<DetailedSpecs auction={auctionDetail!} />
+							<DetailedSpecs auction={auctionDetail!} user={user} />
 						</div>
 					</Segment>
 					<div className="DetailBottom">

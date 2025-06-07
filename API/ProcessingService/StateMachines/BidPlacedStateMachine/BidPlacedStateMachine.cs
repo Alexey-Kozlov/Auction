@@ -308,14 +308,15 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
-                    new Uri(configuration["QueuePaths:BidEventNotificationConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p =>
-                            p.DataType == nameof(NotifyItem)).ToList(),
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{!context.Saga.IsError}"
+                        SignalRMethod = SignalRMethod.BidPlaced,
+                        AuctionId = context.Saga.AuctionId,
+                        Show = !context.Saga.IsError,
+                        SessionId = "",
+                        Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                            .DataObjects[0].Data
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            

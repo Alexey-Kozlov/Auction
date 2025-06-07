@@ -6,12 +6,14 @@ import {
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
+	ActionType,
 	Auction,
 	AuctionFinished,
-	Bid,
+	ChatComment,
 	FinanceItem,
 	FinanceTableItem,
 	Message,
+	NotificationEvent,
 	PagedResult,
 	ProgressToast,
 	ToastType,
@@ -28,9 +30,14 @@ import FinanceCreatedToast from "../components/signalRNotifications/FinanceCreat
 import ProgressMessageToast from "../components/signalRNotifications/ProgressMessageToast";
 import { setFinanceItems } from "../store/financeSlice";
 import AuctionToast from "../components/signalRNotifications/AuctionToast";
+import { setChatResponse } from "../store/chatSlice";
 
 export default function SignalRProvider() {
 	const user: User = useSelector((state: RootState) => state.authStore);
+	const messageChat: ChatComment = useSelector(
+		(state: RootState) => state.chatMessageStore
+	);
+
 	const dispatch = useDispatch();
 	const [connection, setConnection] = useState<HubConnection | null>(null);
 
@@ -66,13 +73,14 @@ export default function SignalRProvider() {
 					await connection.start();
 					console.log("Коннект установлен с хабом уведомлений");
 				}
-				connection.on("BidPlaced", (bid: Bid) => {
+				connection.on("BidPlaced", (message: NotificationEvent) => {
+					const bid = JSON.parse(message.data);
 					//устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
 					dispatch(
 						setEventFlag({
 							eventName: "BidPlaced",
 							ready: true,
-							itemId: bid.auctionId,
+							itemId: bid.AuctionId,
 						})
 					);
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
@@ -81,13 +89,13 @@ export default function SignalRProvider() {
 						setEventFlag({
 							eventName: "CollectionChanged",
 							ready: true,
-							itemId: bid.auctionId,
+							itemId: bid.AuctionId,
 						})
 					);
-					if (bid.show) {
+					if (message.show) {
 						return toast(
 							(p) => (
-								<BidCreatedToast auctionId={bid.auctionId} toastId={p.id} />
+								<BidCreatedToast auctionId={bid.AuctionId} toastId={p.id} />
 							),
 							{ duration: 5000 }
 						);
@@ -356,6 +364,54 @@ export default function SignalRProvider() {
 						dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					}
 				);
+
+				connection.on("CommunicationCreate", (message: NotificationEvent) => {
+					const data = JSON.parse(message.data);
+					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(
+						setChatResponse({
+							id: data.Id,
+							message: data.Message,
+							parentId: data.ParentId,
+							userLogin: data.UserLogin,
+							auctionId: data.AuctionId,
+							updateAt: data.UpdateAt,
+							action: ActionType.create,
+						})
+					);
+				});
+
+				connection.on("CommunicationUpdate", (message: NotificationEvent) => {
+					const data = JSON.parse(message.data);
+					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(
+						setChatResponse({
+							id: data.Id,
+							message: data.Message,
+							parentId: data.ParentId,
+							userLogin: data.UserLogin,
+							auctionId: data.AuctionId,
+							updateAt: data.UpdateAt,
+							action: ActionType.create,
+						})
+					);
+				});
+
+				connection.on("CommunicationDelete", (message: NotificationEvent) => {
+					const data = JSON.parse(message.data);
+					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(
+						setChatResponse({
+							id: data.Id,
+							message: data.Message,
+							parentId: data.ParentId,
+							userLogin: data.UserLogin,
+							auctionId: data.AuctionId,
+							updateAt: data.UpdateAt,
+							action: ActionType.create,
+						})
+					);
+				});
 			}
 		};
 		con_execute();
@@ -364,6 +420,18 @@ export default function SignalRProvider() {
 		};
 		// eslint-disable-next-line
 	}, [connection, user.login]);
+
+	useEffect(() => {
+		//посылаем новое сообщение в чате на сервер
+		if (messageChat && messageChat.message && connection) {
+			try {
+				connection.invoke("SendComment", messageChat);
+			} catch (error) {
+				console.log(error);
+			}
+		}
+		// eslint-disable-next-line
+	}, [messageChat]);
 
 	return <></>;
 }

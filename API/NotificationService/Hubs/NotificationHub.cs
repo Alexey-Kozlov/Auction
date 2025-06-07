@@ -1,13 +1,19 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Common.Contracts.Communication;
+using MassTransit;
+using Microsoft.AspNetCore.SignalR;
+using NotificationService.DTO;
 
 namespace NotificationService.Hubs;
 
 public class NotificationHub : Hub
 {
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public NotificationHub()
+    public NotificationHub(IPublishEndpoint publishEndpoint)
     {
+        _publishEndpoint = publishEndpoint;
     }
+
     public async override Task OnConnectedAsync()
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, Context.ConnectionId);
@@ -31,5 +37,19 @@ public class NotificationHub : Hub
             Groups.RemoveFromGroupAsync(Context.ConnectionId, userLogin);
         }
         return base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task SendComment(MessageChat comment)
+    {
+        //приняли от фронта создание нового комментария к аукциону. Запускаем процесс создания комментария
+        await _publishEndpoint.Publish(new RequestCommunicationCreate
+        {
+            AuctionId = Guid.Parse(comment.AuctionId),
+            CorrelationId = Guid.NewGuid(),
+            Message = comment.Message,
+            ParentId = string.IsNullOrEmpty(comment.ParentId) ? null : Guid.Parse(comment.ParentId),
+            UserLogin = comment.UserLogin,
+            SessionId = comment.SessionId
+        });
     }
 }

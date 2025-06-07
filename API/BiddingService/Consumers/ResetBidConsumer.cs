@@ -2,6 +2,7 @@
 using BiddingService.Services;
 using Common.Contracts.Bid;
 using Common.Contracts.Processing;
+using Common.Utils.Logging;
 using MassTransit;
 
 namespace BiddingService.Consumers;
@@ -36,7 +37,7 @@ public class ResetBidConsumer : IConsumer<BidReset>
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, e.Message);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "BidService_ResetBid");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
