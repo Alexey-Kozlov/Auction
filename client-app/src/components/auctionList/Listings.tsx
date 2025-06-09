@@ -1,9 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import qs from "query-string";
 import { useGetAuctionsQuery } from "../../api/AuctionApi";
 import EmptyFilter from "./EmptyFilter";
 import AuctionCard from "./AuctionCard";
-import AppPagination from "./AddPagination";
 import { useDispatch, useSelector } from "react-redux";
 import { setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
@@ -12,6 +11,7 @@ import Filters from "./Filters";
 import { Auction, ProcessingState } from "../../types";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
+import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
 
 export default function Listings() {
 	const dispatch = useDispatch();
@@ -23,6 +23,7 @@ export default function Listings() {
 	const procState: ProcessingState[] = useSelector(
 		(state: RootState) => state.processingStore
 	);
+	const [firstRecord, setFirstRecord] = useState(0);
 
 	//автоматически запускается при изменении url
 	let auctionsData = useGetAuctionsQuery(url, {
@@ -58,8 +59,9 @@ export default function Listings() {
 		// eslint-disable-next-line
 	}, [procState]);
 
-	function setPageNumber(pageNumber: number) {
-		dispatch(setParams({ pageNumber: pageNumber }));
+	function setPageNumber(e: PaginatorPageChangeEvent) {
+		setFirstRecord(e.first);
+		dispatch(setParams({ pageNumber: e.page + 1 }));
 	}
 
 	if (auctionsData.isLoading && auctionsData.isFetching)
@@ -74,7 +76,7 @@ export default function Listings() {
 			<div className="ListingContainer">
 				{procState.find((p) => p.eventName === "WaiterHide") &&
 				!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
-					<Waiter color="rgb(156 163 175)" />
+					<Waiter />
 				) : auctions.length === 0 ? (
 					<EmptyFilter showReset />
 				) : (
@@ -87,10 +89,11 @@ export default function Listings() {
 							})}
 						</div>
 						<div className="ListPagination">
-							<AppPagination
-								pageChanged={setPageNumber}
-								currentPage={params.pageNumber!}
-								totalPages={data.pageCount}
+							<Paginator
+								onPageChange={setPageNumber}
+								first={firstRecord}
+								rows={params.pageSize}
+								totalRecords={data.totalCount}
 							/>
 						</div>
 					</div>

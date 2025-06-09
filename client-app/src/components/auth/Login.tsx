@@ -9,16 +9,8 @@ import { useDispatch } from "react-redux";
 import { ApiResponse, FormErrors, LoginResponse, LoginUser } from "../../types";
 import { setAuthUser } from "../../store/authSlice";
 import ModalConfirm from "../modals/ModalConfirm";
-import {
-	Button,
-	Form,
-	FormInput,
-	Grid,
-	GridColumn,
-	GridRow,
-	Message,
-} from "semantic-ui-react";
 import Heading from "../auctionList/Heading";
+import { Button } from "primereact/button";
 
 export default function Login() {
 	const [loginUser] = useLoginUserMutation();
@@ -160,60 +152,7 @@ export default function Login() {
 				title="Вход пользователя"
 				subtitle="Введите логин и пароль для входа в систему"
 			/>
-			<Form onSubmit={handleSubmit} error={editError !== null}>
-				<Grid columns={3} className="FormLoginTable">
-					<GridRow>
-						<GridColumn width={5} verticalAlign="middle">
-							Логин<span>*</span>
-						</GridColumn>
-						<GridColumn width={8}>
-							<FormInput
-								className="InputLoginText"
-								placeholder="Логин"
-								value={loginUserModel.login}
-								onChange={(e, data) => handleLoginChanged(data.value)}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow columns={1}>
-						<GridColumn verticalAlign="middle">
-							<Message
-								size="tiny"
-								error
-								hidden={editError !== null && editError.name !== "EmptyLogin"}
-								header={editError?.topic}
-								content={editError?.detail}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow>
-						<GridColumn width={5} verticalAlign="middle">
-							Пароль<span>*</span>
-						</GridColumn>
-						<GridColumn width={8}>
-							<FormInput
-								type="password"
-								className="InputLoginText"
-								placeholder="Пароль"
-								value={loginUserModel.password}
-								onChange={(e, data) => handlePasswordChanged(data.value)}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow columns={1}>
-						<GridColumn verticalAlign="middle">
-							<Message
-								size="tiny"
-								error
-								hidden={
-									editError !== null && editError.name !== "EmptyPassword"
-								}
-								header={editError?.topic}
-								content={editError?.detail}
-							/>
-						</GridColumn>
-					</GridRow>
-				</Grid>
+			<form onSubmit={handleSubmit}>
 				<div id="LoginButton">
 					<Button
 						loading={submittingLogin}
@@ -235,7 +174,7 @@ export default function Login() {
 						Я забыл пароль. Установить новый.
 					</Button>
 				</div>
-			</Form>
+			</form>
 		</div>
 	);
 }

@@ -3,16 +3,8 @@ import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ApiResponse, CreateUser, FormErrors } from "../../types";
-import {
-	Button,
-	Form,
-	FormInput,
-	Grid,
-	GridColumn,
-	GridRow,
-	Message,
-} from "semantic-ui-react";
 import Heading from "../auctionList/Heading";
+import { Button } from "primereact/button";
 
 export default function Register() {
 	const [registerUser] = useRegisterUserMutation();
@@ -100,84 +92,7 @@ export default function Register() {
 				title="Регистрация пользователя"
 				subtitle="Введите наименование пользователя, его логин и пароль для регистрации в системе"
 			/>
-			<Form onSubmit={handleSubmit} error={editError !== null}>
-				<Grid columns={3} className="FormLoginTable">
-					<GridRow>
-						<GridColumn width={5} verticalAlign="middle">
-							Имя пользователя<span>*</span>
-						</GridColumn>
-						<GridColumn width={8}>
-							<FormInput
-								className="InputLoginText"
-								placeholder="Имя пользователя"
-								value={loginUserModel.name}
-								onChange={(e, data) => handleNameChanged(data.value)}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow columns={1}>
-						<GridColumn verticalAlign="middle">
-							<Message
-								size="tiny"
-								error
-								hidden={editError !== null && editError.name !== "EmptyName"}
-								header={editError?.topic}
-								content={editError?.detail}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow>
-						<GridColumn width={5} verticalAlign="middle">
-							Логин<span>*</span>
-						</GridColumn>
-						<GridColumn width={8}>
-							<FormInput
-								className="InputLoginText"
-								placeholder="Логин"
-								value={loginUserModel.login}
-								onChange={(e, data) => handleLoginChanged(data.value)}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow columns={1}>
-						<GridColumn verticalAlign="middle">
-							<Message
-								size="tiny"
-								error
-								hidden={editError !== null && editError.name !== "EmptyLogin"}
-								header={editError?.topic}
-								content={editError?.detail}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow>
-						<GridColumn width={5} verticalAlign="middle">
-							Пароль<span>*</span>
-						</GridColumn>
-						<GridColumn width={8}>
-							<FormInput
-								type="password"
-								className="InputLoginText"
-								placeholder="Пароль"
-								value={loginUserModel.password}
-								onChange={(e, data) => handlePasswordChanged(data.value)}
-							/>
-						</GridColumn>
-					</GridRow>
-					<GridRow columns={1}>
-						<GridColumn verticalAlign="middle">
-							<Message
-								size="tiny"
-								error
-								hidden={
-									editError !== null && editError.name !== "EmptyPassword"
-								}
-								header={editError?.topic}
-								content={editError?.detail}
-							/>
-						</GridColumn>
-					</GridRow>
-				</Grid>
+			<form onSubmit={handleSubmit}>
 				<div id="LoginButton">
 					<Button
 						type="submit"
@@ -188,7 +103,7 @@ export default function Register() {
 						Регистрация
 					</Button>
 				</div>
-			</Form>
+			</form>
 		</div>
 	);
 }

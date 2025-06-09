@@ -14,18 +14,16 @@ import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import { setParams } from "../../store/paramSlice";
 import { setEventFlag } from "../../store/processingSlice";
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
-import {
-	Dropdown,
-	DropdownDivider,
-	DropdownHeader,
-	DropdownItem,
-	DropdownMenu,
-} from "semantic-ui-react";
 import MessageToast from "../signalRNotifications/MessageToast";
 import ModalConfirm from "../modals/ModalConfirm";
 import ModalRestore from "../modals/ModalRestore";
+import { Dropdown } from "primereact/dropdown";
+import { Menu } from "primereact/menu";
+import { Menubar } from "primereact/menubar";
+import { Button } from "primereact/button";
+import { classNames } from "primereact/utils";
 
 export default function UserActions() {
 	const user: User = useSelector((state: RootState) => state.authStore);
@@ -45,6 +43,7 @@ export default function UserActions() {
 	);
 	const [resetLog, setResetLog] = useState(false);
 	const [logoutUser] = useLogoutUserMutation();
+	const menuActionsRef = useRef<any>(null);
 
 	useEffect(() => {
 		if (confirmResult) {
@@ -181,150 +180,73 @@ export default function UserActions() {
 		navigate("/auctions/create");
 	};
 
+	const menuItems = [
+		{
+			label: "Ваши действия :",
+			className: "text-center",
+			items: [
+				{
+					label: "Мои аукционы",
+					icon: <HiUser className="MenuItems" size={20} />,
+				},
+				{
+					label: "Аукционы выигранные",
+					icon: <AiFillTrophy className="MenuItems" size={20} />,
+				},
+				{
+					label: "Создать аукцион",
+					icon: <RiAuctionFill className="MenuItems" size={20} />,
+				},
+				{
+					label: "Финансы",
+					icon: <GrMoney className="MenuItems" size={20} />,
+				},
+				{
+					label: "Elk индексация",
+					icon: <GoCodescanCheckmark className="MenuItems" size={20} />,
+				},
+				{
+					label: "Создать SnapShot",
+					icon: <GoDatabase className="MenuItems" size={20} />,
+				},
+				{
+					label: "Восстановить из SnapShot",
+					icon: <FaTrashRestoreAlt className="MenuItems" size={20} />,
+				},
+				{
+					label: "Сбросить Кеш изображений",
+					icon: <RiRestartFill className="MenuItems" size={20} />,
+				},
+				{
+					label: "Отчеты",
+					icon: <HiOutlineDocumentReport className="MenuItems" size={20} />,
+				},
+				{
+					label: "Выход",
+					icon: <AiOutlineLogout className="MenuItems" size={20} />,
+				},
+			],
+		},
+	];
+
 	return (
 		<div className="UserActionsPanel">
-			<Dropdown
-				className="UserTitle"
-				labeled
-				text={`Здравствуйте ${user.name}`}
+			<Menu
+				ref={menuActionsRef}
+				model={menuItems}
+				popup
+				popupAlignment="right"
+				id="menuActions"
+				className="w-17rem p-menu-list mt-3"
+			/>
+			<div
+				aria-controls="menuActions"
+				onClick={(event) => menuActionsRef.current!.toggle(event)}
+				className="flex cursor-pointer"
 			>
-				<DropdownMenu>
-					<DropdownHeader content="Выберите действие:" />
-					<DropdownItem
-						content={
-							<>
-								<span className="MenuItemsText">
-									<HiUser className="MenuItems" size={20} />
-									Мои аукционы
-								</span>
-							</>
-						}
-						onClick={handleSetSellerClick}
-					/>
-					<DropdownItem
-						content={
-							<>
-								<span className="MenuItemsText">
-									<AiFillTrophy className="MenuItems" size={20} />
-									Аукционы выигранные
-								</span>
-							</>
-						}
-						onClick={handleSetWinnerClick}
-					/>
-					<DropdownItem
-						content={
-							<>
-								<span className="MenuItemsText">
-									<RiAuctionFill className="MenuItems" size={20} />
-									Создать аукцион
-								</span>
-							</>
-						}
-						onClick={handleCreateAuctionClick}
-					/>
-					<DropdownItem
-						content={
-							<>
-								<span className="MenuItemsText">
-									<GrMoney className="MenuItems" size={20} />
-									Финансы
-								</span>
-							</>
-						}
-						onClick={handleFinanceClick}
-					/>
-					{user.isAdmin && (
-						<>
-							<DropdownDivider />
-							<DropdownItem
-								content={
-									<>
-										<span className="MenuItemsText">
-											<GoCodescanCheckmark className="MenuItems" size={20} />
-											Elk индексация
-										</span>
-									</>
-								}
-								onClick={handlerElkReindexClick}
-							/>
-							<DropdownItem
-								content={
-									<>
-										<span className="MenuItemsText">
-											<GoDatabase className="MenuItems" size={20} />
-											Создать SnapShot
-										</span>
-									</>
-								}
-								onClick={handlerSetSnapShotClick}
-							/>
-							<DropdownItem
-								content={
-									<>
-										<span className="MenuItemsText">
-											<FaTrashRestoreAlt className="MenuItems" size={20} />
-											Восстановить из SnapShot
-										</span>
-									</>
-								}
-								onClick={handlerRestoreSnapShotClick}
-							/>
-							<DropdownItem
-								content={
-									<>
-										<span className="MenuItemsText">
-											<RiRestartFill className="MenuItems" size={20} />
-											Сбросить Кеш изображений
-										</span>
-									</>
-								}
-								onClick={handlerResetImageCacheClick}
-							/>
-						</>
-					)}
-					<DropdownDivider />
-					<DropdownItem
-						content={
-							<>
-								<span className="MenuItemsText">
-									<HiOutlineDocumentReport className="MenuItems" size={20} />
-									Отчеты
-								</span>
-							</>
-						}
-						onClick={handleReportClick}
-					/>
-					<DropdownItem
-						content={
-							<>
-								<span className="MenuItemsText">
-									<AiOutlineLogout className="MenuItems" size={20} />
-									Выход
-								</span>
-							</>
-						}
-						onClick={handleLogoutClick}
-					/>
-				</DropdownMenu>
-			</Dropdown>
-			<ModalConfirm
-				openModal={showConfirm}
-				text={confirmParam.confirmText}
-				title={confirmParam.confirmTitle}
-				setResult={setConfirmResult}
-			/>
-			<ModalRestore
-				openModal={showConfirmRestore}
-				text={confirmParam.confirmText}
-				title={confirmParam.confirmTitle}
-				setResult={setConfirmResult}
-				returnData={handleSetDate}
-				dateValue={dateValue}
-				resetLog={(rezult) => {
-					setResetLog(rezult);
-				}}
-			/>
+				<div className="font-semibold">{`Здравствуйте ${user.name}`}</div>
+				<div className="mt-1 ml-2 font-semibold pi pi-angle-double-down"></div>
+			</div>
 		</div>
 	);
 }

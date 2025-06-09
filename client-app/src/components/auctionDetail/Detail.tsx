@@ -22,15 +22,8 @@ import {
 	useSetNotifyUserMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import {
-	Button,
-	Checkbox,
-	Grid,
-	GridColumn,
-	GridRow,
-	Segment,
-} from "semantic-ui-react";
 import ModalConfirm from "../modals/ModalConfirm";
+import { Button } from "primereact/button";
 
 export default function Detail() {
 	const { id } = useParams();
@@ -159,80 +152,7 @@ export default function Detail() {
 			/>
 			{auctionDetail && (
 				<>
-					<Grid columns={2} divided>
-						<GridRow>
-							<GridColumn textAlign="center" verticalAlign="middle">
-								<Heading title={`${auctionDetail?.title}`} />
-								{user?.login === auctionDetail?.seller && (
-									<>
-										<Button
-											className="MainButton w-200"
-											onClick={() => navigate(`/auctions/edit/${id}`)}
-											disabled={!!deleteAuction}
-										>
-											Редактировать аукцион
-										</Button>
-										<Button
-											className="MainButton w-200"
-											onClick={handleDeleteAuction}
-											loading={!!deleteAuction}
-										>
-											Удалить аукцион
-										</Button>
-									</>
-								)}
-							</GridColumn>
-							<GridColumn>
-								<Segment>
-									<div>
-										<div className="DetailCountDown">
-											<h3 className="DetailCountDownItem">Осталось времени:</h3>
-											<CountdownTimer
-												auctionEnd={auctionDetail!.auctionEnd}
-												isFinished={auctionDetail.finished}
-											/>
-										</div>
-										{user.name && (
-											<div className="DetailNotify">
-												<h3 className="DetailNotifyText">
-													Получать уведомления этого аукциона:
-												</h3>
-												<Checkbox
-													toggle
-													checked={notifyUser}
-													onChange={(e, data) =>
-														handleSetNotifyUser(data.checked!)
-													}
-												/>
-											</div>
-										)}
-									</div>
-								</Segment>
-							</GridColumn>
-						</GridRow>
-						<GridRow>
-							<GridColumn>
-								<div className="DetailImage">
-									<ImageCard
-										id={auctionDetail!.auctionId}
-										zooming={true}
-										cache={false}
-									/>
-								</div>
-							</GridColumn>
-							<GridColumn>
-								<Segment className="mt-0 h-100">
-									<BidList user={user} auction={auctionDetail!} />
-								</Segment>
-							</GridColumn>
-						</GridRow>
-					</Grid>
-
-					<Segment>
-						<div className="DetailSpec">
-							<DetailedSpecs auction={auctionDetail!} user={user} />
-						</div>
-					</Segment>
+					<div></div>
 					<div className="DetailBottom">
 						<Button className="MainButton" onClick={() => navigate(-1)}>
 							Назад

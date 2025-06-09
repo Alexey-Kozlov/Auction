@@ -1,11 +1,13 @@
 import ReactDOM from "react-dom/client";
-import "./index.css";
-import "./custom.css";
-import "react-datepicker/dist/react-datepicker.css";
 import App from "./App";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import { BrowserRouter } from "react-router-dom";
+import { PrimeReactProvider } from "primereact/api";
+import "primereact/resources/themes/md-light-indigo/theme.css";
+import "/node_modules/primeflex/primeflex.css";
+import "primeicons/primeicons.css";
+import "./index.css";
 
 const root = ReactDOM.createRoot(
 	document.getElementById("root") as HTMLElement
@@ -13,7 +15,9 @@ const root = ReactDOM.createRoot(
 root.render(
 	<Provider store={store}>
 		<BrowserRouter>
-			<App />
+			<PrimeReactProvider>
+				<App />
+			</PrimeReactProvider>
 		</BrowserRouter>
 	</Provider>
 );

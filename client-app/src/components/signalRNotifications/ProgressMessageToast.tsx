@@ -1,7 +1,8 @@
 import toast from "react-hot-toast";
 import { ProgressToast } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
-import { Button, Progress } from "semantic-ui-react";
+import { Button } from "primereact/button";
+import { ProgressBar } from "primereact/progressbar";
 
 type Props = {
 	message: ProgressToast;
@@ -32,15 +33,7 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 						{"Выполнено " + Math.trunc(message.percent) + " %"}
 					</div>
 					<div className="flex w-100P">
-						{message.show && (
-							<Progress
-								className="w-100P"
-								percent={message.percent}
-								indicating
-								size="small"
-								color="blue"
-							/>
-						)}
+						{message.show && <ProgressBar className="w-100P" color="blue" />}
 					</div>
 				</div>
 			</>

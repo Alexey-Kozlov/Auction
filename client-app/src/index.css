@@ -2,94 +2,31 @@
 	max-width: 1576px;
 }
 
-.datepicker {
-	border: 1px solid rgb(156 163 175) !important;
-	width: 100%;
+.ListingFilter {
+	position: sticky;
+	top: 65px;
+	background-color: white;
+	height: 100px;
+	display: flex;
+	z-index: 1;
 }
 
-.InputText {
-	font-size: 16px;
-}
-
-.InputText input,
-.InputText textarea {
-	padding: 4px 15px 4px 15px !important;
-	border: 1px solid gray !important;
-}
-
-.MainContainer {
-	width: 100%;
+.ListingContainer {
+	padding: 1.25rem;
 	margin-left: auto;
 	margin-right: auto;
-	padding: 0 2.5rem 0 2.5rem;
+	padding-bottom: 0;
 }
 
-.SearchContainer {
+.ListItem {
 	display: flex;
-	align-items: center;
 	flex-wrap: wrap;
+	align-items: start;
 }
 
-.SearchHeader {
+.ListPagination {
 	display: flex;
-	align-items: center;
-	border: 2px solid #e5e7eb;
-	border-radius: 9999px;
-	margin: 0 5px 0 5px;
-	width: 350px;
-	height: 50px;
-}
-
-.SearchInput {
-	font-size: 1rem;
-	line-height: 1.25rem;
-	color: rgb(75 85 99);
-	background-color: initial;
-	border-color: transparent;
-	flex-grow: 1;
-	padding-left: 1.25rem;
-	outline: none;
-}
-
-.SearchButton {
-	background-color: transparent;
-	border: none;
-}
-
-.SearchIcon {
-	border-radius: 9999px;
-	padding: 0.5rem;
-	background-color: rgb(249 128 128);
-	color: white;
-	cursor: pointer;
-	vertical-align: middle;
-}
-
-.SearchIconAdv {
-	border-radius: 9999px;
-	padding: 0.5rem;
-	background-color: rgb(118 169 250);
-	color: white;
-	cursor: pointer;
-	vertical-align: middle;
-}
-
-.MainButton {
-	background-color: white !important;
-	color: black !important;
-	font-weight: 700 !important;
-	font-size: 14px !important;
-	border: 2px solid black !important;
-	border-radius: 10px !important;
-	padding: 10px !important;
-	margin: 4px !important;
-	width: 120px !important;
-}
-
-.MainButton:hover {
-	background-color: rgb(14 116 144) !important;
-	color: white !important;
-	cursor: pointer !important;
+	justify-content: center;
 }
 
 .NavBarContainer {
@@ -114,17 +51,6 @@
 	flex-wrap: wrap;
 }
 
-#NavBarLogo {
-	text-decoration: none;
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	font-weight: 600;
-	font-size: 30px;
-	line-height: 36px;
-	color: rgb(240 82 82);
-}
-
 .NavBarFooter1 {
 	height: 5px;
 	width: 100%;
@@ -137,22 +63,65 @@
 	background-color: #e5e7eb;
 }
 
-.UserActionsPanel .ui.dropdown .menu {
-	z-index: 15 !important;
-}
-
-.UserTitle {
-	font-size: 16px !important;
-	font-weight: 600;
-}
-
-.ListingFilter {
-	position: sticky;
-	top: 65px;
-	background-color: white;
-	height: 100px;
+#NavBarLogo {
+	text-decoration: none;
 	display: flex;
-	z-index: 1;
+	align-items: center;
+	gap: 5px;
+	font-weight: 600;
+	font-size: 30px;
+	line-height: 36px;
+	color: rgb(240 82 82);
+}
+
+.SearchContainer {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.SearchHeader {
+	display: flex;
+	align-items: center;
+	border: 2px solid #e5e7eb;
+	border-radius: 9999px;
+	margin: 0 5px 0 5px;
+	width: 350px;
+	height: 50px;
+}
+
+.SearchIcon {
+	border-radius: 9999px;
+	padding: 0.5rem;
+	background-color: rgb(249 128 128);
+	color: white;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.SearchIconAdv {
+	border-radius: 9999px;
+	padding: 0.5rem;
+	background-color: rgb(118 169 250);
+	color: white;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.SearchInput {
+	font-size: 1rem;
+	line-height: 1.25rem;
+	color: rgb(75 85 99);
+	background-color: initial;
+	border-color: transparent;
+	flex-grow: 1;
+	padding-left: 1.25rem;
+	outline: none;
+}
+
+.SearchButton {
+	background-color: transparent;
+	border: none;
 }
 
 .FilterContainer {
@@ -172,33 +141,6 @@
 
 .FilterIcon {
 	margin-right: 10px;
-}
-
-.ListingContainer {
-	padding: 1.25rem;
-	margin-left: auto;
-	margin-right: auto;
-	padding-bottom: 0;
-}
-
-.MenuItems {
-	vertical-align: middle;
-	margin-right: 5px;
-}
-
-.MenuItemsText {
-	font-size: 16px;
-}
-
-.ListItem {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: start;
-}
-
-.ListPagination {
-	display: flex;
-	justify-content: center;
 }
 
 .AuctionCard {
@@ -242,6 +184,8 @@
 .AuctionCardTitleText {
 	color: rgb(55 65 81);
 	font-weight: 100;
+	margin-top: 0;
+	margin-bottom: 0;
 }
 
 .AuctionCardCountDownContainer {
@@ -323,281 +267,4 @@
 
 .AuctionImageCardNoZoom:hover {
 	box-shadow: 0 35px 60px 10px #00000040;
-}
-
-.DetailCountDown {
-	display: flex;
-	justify-content: flex-end;
-	gap: 0.75rem;
-	justify-content: start;
-}
-
-.DetailCountDownItem {
-	font-weight: 600;
-	font-size: 1.5rem;
-	line-height: 2rem;
-}
-
-.DetailImage {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.DetailSpec {
-	display: grid;
-	grid-template-columns: repeat(1, minmax(0, 1fr));
-	margin-top: 0.75rem;
-}
-
-.DetailBottom {
-	display: flex;
-	justify-content: center;
-	margin-top: 1.5rem;
-}
-
-.DetailHeadingTitle {
-	font-size: 1.5rem;
-	line-height: 2rem;
-	font-weight: 700;
-}
-
-.DetailHeadingSubTitle {
-	color: rgb(115 115 115);
-	font-size: 1rem;
-	font-weight: 300;
-	margin-top: 0.5rem;
-}
-
-.DetailNotify {
-	display: flex;
-	align-items: center;
-	margin-bottom: 1.25rem;
-}
-
-.DetailNotifyText {
-	font-size: 1.5rem;
-	line-height: 2rem;
-	margin-right: 0.75rem;
-	font-weight: 600;
-	margin-bottom: 0;
-}
-
-.BidItemContainer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
-
-.BidItem {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
-.BidItemText {
-	color: rgb(55 65 81);
-	font-size: 1.25rem;
-	line-height: 2rem;
-}
-
-.BidFormInput {
-	display: flex;
-	align-items: center;
-	margin-top: 10px;
-}
-
-.BidListHeight {
-	height: 400px;
-	display: flex;
-	overflow: auto;
-	flex-direction: column-reverse;
-}
-
-.BidListItem {
-	margin-top: 5px !important;
-	margin-bottom: 5px !important;
-}
-
-.ToastCloseButton {
-	display: flex;
-	flex-direction: row-reverse;
-}
-
-.ToastMessageContainer {
-	display: flex;
-	align-items: center;
-	flex-direction: row;
-	text-align: center;
-	justify-content: center;
-}
-
-.ToastMessageContainerProgress {
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-	text-align: center;
-	justify-content: center;
-}
-
-.ToastMessageProgressText {
-	display: flex;
-	align-items: center;
-}
-.ToastMessageProgressIcon {
-	margin: 5px !important;
-}
-
-.ToastItemText {
-	color: rgb(55 65 81) !important;
-	font-size: 1.25rem;
-	line-height: 2rem;
-	font-weight: 600;
-}
-
-.ToastImage {
-	max-width: 150px;
-	max-height: 100px;
-}
-
-.FormContainer {
-	margin-top: 2rem !important;
-}
-
-.FormMainTable {
-	max-width: 800px;
-}
-
-.ImageEditPreview {
-	max-width: 300px;
-	max-height: 200px;
-}
-
-.ImageUsing {
-	z-index: 0;
-}
-
-.ModalText {
-	font-size: 18px;
-}
-
-#ModalConfirmYesButton {
-	width: 80px;
-	background-color: firebrick;
-	color: white;
-	border: 2px solid white;
-}
-
-#ModalConfirmYesButton:hover {
-	border: 2px solid black;
-}
-
-#ModalConfirmNoButton {
-	width: 80px;
-	background-color: rgb(133, 250, 133);
-	color: black;
-	border: 2px solid white;
-}
-
-#ModalConfirmNoButton:hover {
-	border: 2px solid black;
-}
-
-.FormLoginTable {
-	max-width: 700px !important;
-	margin-left: auto !important;
-	margin-right: auto !important;
-	margin-top: 50px !important;
-	font-size: 18px !important;
-}
-
-.InputLoginText {
-	font-size: 18px;
-}
-
-.InputLoginText input {
-	padding: 8px 15px 8px 15px !important;
-	background-color: rgb(232, 240, 254) !important;
-}
-
-#LoginButton {
-	margin-left: auto;
-	margin-right: auto;
-	max-width: 500px;
-	margin-top: 30px;
-	padding-bottom: 30px;
-	text-align: center;
-	border-bottom: 1px solid grey;
-}
-
-#ForgotPasswordButton {
-	margin-left: auto;
-	margin-right: auto;
-	max-width: 500px;
-	margin-top: 30px;
-	padding-bottom: 30px;
-	text-align: center;
-}
-
-.FinanceListImage {
-	max-height: 100px;
-	max-width: 150px;
-}
-
-.FinanceListText {
-	text-decoration: none;
-	font-size: 16px;
-	color: black;
-}
-
-.FinanceBalanceContainer {
-	display: flex;
-	justify-content: space-between;
-}
-
-.FinanceBalanceLabel {
-	font-weight: 500;
-	font-size: 16px;
-}
-
-.FinanceBalanceValue {
-	font-weight: 700;
-	font-size: 22px;
-	color: blue;
-	margin-left: 10px;
-}
-
-.FinanceAmountContainer {
-	display: flex;
-	width: 550px;
-	align-items: center;
-}
-
-.FinanceAmount {
-	width: 150px;
-	margin: 0 10px 0 10px !important;
-}
-
-.FinanceAmount input {
-	font-size: 16px;
-	border: 1px solid gray;
-}
-
-.FinanceAddLabel {
-	font-size: larger;
-	width: 200px;
-}
-
-/*переопределяем стили Semantic UI*/
-.ui.grey.button,
-.ui.grey.buttons .button {
-	background-color: transparent !important;
-	color: black !important;
-	border: 1px solid black !important;
-}
-
-.ui.grey.button:hover,
-.ui.grey.buttons .button:hover {
-	background-color: rgb(14 116 144) !important;
-	color: white !important;
 }

@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import Heading from "./Heading";
 import { reset } from "../../store/paramSlice";
-import { Button } from "semantic-ui-react";
+import { Button } from "primereact/button";
 
 type Props = {
 	title?: string;

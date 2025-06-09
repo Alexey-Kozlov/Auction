@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import { AuctionImage } from "../../types";
 import { NavLink } from "react-router-dom";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
-import { Button } from "semantic-ui-react";
+import { Button } from "primereact/button";
 const empty = require("../../assets/Empty.png");
 
 type Props = {

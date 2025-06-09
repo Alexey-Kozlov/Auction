@@ -55,10 +55,6 @@ export const paramSlice = createSlice({
 				state.winner = undefined;
 			}
 
-			if (!action.payload.pageNumber) {
-				state.pageNumber = 1;
-			}
-
 			if (action.payload.sessionId) {
 				state.sessionId = action.payload.sessionId;
 			}

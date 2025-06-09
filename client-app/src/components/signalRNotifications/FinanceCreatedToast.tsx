@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import { FinanceItem } from "../../types";
 import { GrMoney } from "react-icons/gr";
-import { Button } from "semantic-ui-react";
+import { Button } from "primereact/button";
 
 type Props = {
 	finance: FinanceItem;

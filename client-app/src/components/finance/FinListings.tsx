@@ -16,23 +16,14 @@ import {
 	User,
 } from "../../types";
 import { useGetBalanceQuery, useGetSortItemsQuery } from "../../api/FinanceApi";
-import AppPagination from "../auctionList/AddPagination";
 import { setEventFlag } from "../../store/processingSlice";
 import { useFinanceCreateMutation } from "../../api/ProcessingApi";
-import {
-	Button,
-	Form,
-	FormInput,
-	Message,
-	Table,
-	TableBody,
-	TableHeader,
-	TableHeaderCell,
-	TableRow,
-} from "semantic-ui-react";
 import FinRow from "./FinRow";
 import Waiter from "../Waiter";
 import { useNavigate } from "react-router-dom";
+import { InputNumber } from "primereact/inputnumber";
+import { Button } from "primereact/button";
+import { Message } from "primereact/message";
 
 export default function FinListings() {
 	const dispatch = useDispatch();
@@ -186,7 +177,7 @@ export default function FinListings() {
 		<>
 			{procState.find((p) => p.eventName === "WaiterHide" && p.ready) ? (
 				<div className="ListingContainer">
-					<Form onSubmit={handleSubmit} error={editError !== null}>
+					<form onSubmit={handleSubmit}>
 						<div className="FinanceBalanceContainer">
 							<div className="w-200"></div>
 							<div>
@@ -195,16 +186,10 @@ export default function FinListings() {
 										Сумма для зачисления<span>*</span>
 									</div>
 									<div>
-										<FormInput
+										<InputNumber
 											type="number"
 											className="FinanceAmount"
 											placeholder="Сумма"
-											value={amount}
-											onChange={(e, data) =>
-												handleSetAmount(
-													data.value === "" ? "" : parseInt(data.value)
-												)
-											}
 										/>
 									</div>
 									<div>
@@ -219,11 +204,9 @@ export default function FinListings() {
 								</div>
 								<div>
 									<Message
-										error
 										hidden={
 											editError !== null && editError.name !== "NegativeAmount"
 										}
-										header={editError?.topic}
 										content={editError?.detail}
 									/>
 								</div>
@@ -236,88 +219,11 @@ export default function FinListings() {
 								</div>
 							</div>
 						</div>
-					</Form>
-					{financeItems.length === 0 ? (
+					</form>
+					{/* {financeItems.length === 0 ? (
 						<p className="mx-center">Записи не найдены</p>
 					) : (
 						<>
-							<Table sortable celled striped>
-								<TableHeader>
-									<TableRow>
-										<TableHeaderCell textAlign="center">
-											Изображение
-										</TableHeaderCell>
-										<TableHeaderCell
-											textAlign="center"
-											onClick={() =>
-												handleSetSort({
-													column: FinanceSortColumn.title,
-													direction: sortState.direction,
-												})
-											}
-											sorted={getSortedValue(FinanceSortColumn.title)}
-										>
-											Наименование
-										</TableHeaderCell>
-										<TableHeaderCell
-											textAlign="center"
-											onClick={() =>
-												handleSetSort({
-													column: FinanceSortColumn.actionDate,
-													direction: sortState.direction,
-												})
-											}
-											sorted={getSortedValue(FinanceSortColumn.actionDate)}
-										>
-											Дата
-										</TableHeaderCell>
-										<TableHeaderCell
-											textAlign="center"
-											onClick={() =>
-												handleSetSort({
-													column: FinanceSortColumn.seller,
-													direction: sortState.direction,
-												})
-											}
-											sorted={getSortedValue(FinanceSortColumn.seller)}
-										>
-											Продавец
-										</TableHeaderCell>
-										<TableHeaderCell
-											textAlign="center"
-											onClick={() =>
-												handleSetSort({
-													column: FinanceSortColumn.status,
-													direction: sortState.direction,
-												})
-											}
-											sorted={getSortedValue(FinanceSortColumn.status)}
-										>
-											Приход / Расход
-										</TableHeaderCell>
-										<TableHeaderCell
-											textAlign="center"
-											onClick={() =>
-												handleSetSort({
-													column: FinanceSortColumn.value,
-													direction: sortState.direction,
-												})
-											}
-											sorted={getSortedValue(FinanceSortColumn.value)}
-										>
-											Финансы
-										</TableHeaderCell>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{financeItems.length > 0 &&
-										financeItems.map(
-											(item: FinanceTableItem, index: number) => (
-												<FinRow key={index} item={item} />
-											)
-										)}
-								</TableBody>
-							</Table>
 							<div className="ListPagination">
 								<AppPagination
 									pageChanged={setPageNumber}
@@ -326,10 +232,10 @@ export default function FinListings() {
 								/>
 							</div>
 						</>
-					)}
+					)} */}
 				</div>
 			) : (
-				<Waiter color="rgb(156 163 175)" />
+				<Waiter />
 			)}
 		</>
 	);

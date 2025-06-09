@@ -1,10 +1,5 @@
-import {
-	Button,
-	Header,
-	Modal,
-	ModalActions,
-	ModalContent,
-} from "semantic-ui-react";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 
 type Props = {
 	openModal: boolean;
@@ -20,38 +15,23 @@ export default function ModalConfirm({
 	text,
 }: Props) {
 	return (
-		<Modal
-			dimmer="blurring"
-			size="tiny"
-			closeOnEscape={true}
-			closeIcon
-			open={openModal}
-			onClose={() => {
-				setResult(false);
-			}}
-		>
-			<Header>{title}</Header>
-			<ModalContent>
-				<div className="ModalText">{text}</div>
-			</ModalContent>
-			<ModalActions>
-				<Button
-					id="ModalConfirmYesButton"
-					onClick={() => {
-						setResult(true);
-					}}
-				>
-					Да
-				</Button>
-				<Button
-					id="ModalConfirmNoButton"
-					onClick={() => {
-						setResult(false);
-					}}
-				>
-					Нет
-				</Button>
-			</ModalActions>
-		</Modal>
+		<div>
+			<Button
+				id="ModalConfirmYesButton"
+				onClick={() => {
+					setResult(true);
+				}}
+			>
+				Да
+			</Button>
+			<Button
+				id="ModalConfirmNoButton"
+				onClick={() => {
+					setResult(false);
+				}}
+			>
+				Нет
+			</Button>
+		</div>
 	);
 }

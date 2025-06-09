@@ -65,14 +65,19 @@ public class SearchServiceSql
             query = query.Where(p => p.Winner == searchParams.Winner);
         }
         var itemsCount = await query.CountAsync();
-        var result = await query.Skip((searchParams.PageNumber - 1) * searchParams.PageSize)
-            .Take(searchParams.PageSize)
-            .ToListAsync();
         var pageCount = 0;
         if (itemsCount > 0)
         {
             pageCount = (itemsCount + searchParams.PageSize - 1) / searchParams.PageSize;
         }
+        if (searchParams.PageNumber > pageCount)
+        {
+            searchParams.PageNumber = pageCount == 0 ? 1 : pageCount;
+        }
+        var result = await query.Skip((searchParams.PageNumber - 1) * searchParams.PageSize)
+        .Take(searchParams.PageSize)
+        .ToListAsync();
+
 
         return new ApiResponse<PagedResult<List<AuctionItem>>>
         {

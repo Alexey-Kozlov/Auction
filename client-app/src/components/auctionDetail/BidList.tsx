@@ -8,7 +8,6 @@ import BidForm from "./BidForm";
 import { useGetBidsForAuctionQuery } from "../../api/BidApi";
 import { setBids, setOpen } from "../../store/bidSlice";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
-import { Segment } from "semantic-ui-react";
 
 type Props = {
 	user: User | null;
@@ -101,14 +100,9 @@ export default function BidList({ user, auction }: Props) {
 			<div>
 				<div className="BidListHeight">
 					{bids?.map((bid, index) => (
-						<Segment
-							key={bid?.bidId}
-							ref={itemsRef}
-							secondary
-							className="BidListItem"
-						>
+						<div key={bid?.bidId} ref={itemsRef} className="BidListItem">
 							<BidItem bid={bid} />
-						</Segment>
+						</div>
 					))}
 				</div>
 			</div>

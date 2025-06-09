@@ -1,14 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import {
-	Form,
-	FormTextArea,
-	Menu,
-	Popup,
-	Table,
-	TableBody,
-	TableCell,
-	TableRow,
-} from "semantic-ui-react";
+import { useEffect, useState } from "react";
 import {
 	ActionType,
 	Auction,
@@ -24,6 +14,7 @@ import { useGetCommunicationItemsQuery } from "../../../api/CommunicationApi";
 import ChatUser from "./ChatUser";
 import { setEventFlag } from "../../../store/processingSlice";
 import Waiter from "../../Waiter";
+import { DataTable } from "primereact/datatable";
 
 type Props = {
 	auction: Auction;
@@ -53,7 +44,6 @@ export default function ChatTable({ auction, user }: Props) {
 
 	const dispatch = useDispatch();
 	const [chatPanelOpen, setChatPanelOpen] = useState(false);
-	const contextRef: any = useRef();
 	const handleMessageChanged = (value: string | number | undefined) => {
 		setNewMessage((prev) => {
 			return {
@@ -125,99 +115,7 @@ export default function ChatTable({ auction, user }: Props) {
 
 	return (
 		<>
-			<Table striped>
-				<TableBody>
-					<TableRow>
-						<TableCell colSpan="2">
-							<Form>
-								<FormTextArea
-									className="InputText"
-									placeholder="Сообщение"
-									value={newMessage.message}
-									onKeyDown={(e: KeyboardEvent) => {
-										if (e.key === "Enter" && e.shiftKey) return;
-										if (e.key === "Enter") {
-											e.preventDefault();
-											handleMessageSubmit();
-										}
-									}}
-									onChange={(e, data) => handleMessageChanged(data.value)}
-								/>
-							</Form>
-						</TableCell>
-					</TableRow>
-					<TableRow>
-						<TableCell>Пользователь</TableCell>
-						<TableCell>Сообщение</TableCell>
-					</TableRow>
-					{procState.find((p) => p.eventName === "WaiterHide") &&
-					!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
-						<TableRow>
-							<TableCell>
-								<Waiter color="rgb(156 163 175)" />
-							</TableCell>
-						</TableRow>
-					) : (
-						communicationItems &&
-						communicationItems.map((item, index) => (
-							<TableRow
-								key={index}
-								onContextMenu={(e: any) => {
-									if (
-										Boolean(user!.isAdmin) ||
-										user!.login === item.userLogin
-									) {
-										e.preventDefault();
-										contextRef.current = createContextFromEvent(e);
-										setChatPanelOpen(true);
-									}
-								}}
-							>
-								<TableCell>
-									<ChatUser key={index} userLogin={item.userLogin} />
-								</TableCell>
-								<TableCell>{item.message}</TableCell>
-							</TableRow>
-						))
-					)}
-				</TableBody>
-			</Table>
-
-			<Popup
-				basic
-				context={contextRef}
-				onClose={() => setChatPanelOpen(false)}
-				open={chatPanelOpen}
-			>
-				<Menu
-					items={[
-						{ key: "edit", content: "Редактировать", icon: "edit" },
-						{ key: "delete", content: "Удалить", icon: "delete" },
-					]}
-					onItemClick={(event, data) => {
-						setChatPanelOpen(false);
-					}}
-					secondary
-					vertical
-				/>
-			</Popup>
+			<DataTable></DataTable>
 		</>
 	);
-
-	function createContextFromEvent(e: any) {
-		const left = e.clientX;
-		const top = e.clientY;
-		const right = left + 1;
-		const bottom = top + 1;
-		return {
-			getBoundingClientRect: () => ({
-				left,
-				top,
-				right,
-				bottom,
-				height: 0,
-				width: 0,
-			}),
-		};
-	}
 }

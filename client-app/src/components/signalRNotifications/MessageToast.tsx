@@ -1,9 +1,9 @@
 import toast from "react-hot-toast";
 import { ToastType } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
-import { Button } from "semantic-ui-react";
 import { VscError } from "react-icons/vsc";
 import { ImWarning } from "react-icons/im";
+import { Button } from "primereact/button";
 
 type Props = {
 	message: string;

@@ -19,18 +19,6 @@ import {
 	useUpdateAuctionMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import {
-	Button,
-	Form,
-	FormInput,
-	FormTextArea,
-	Message,
-	Segment,
-	Table,
-	TableBody,
-	TableCell,
-	TableRow,
-} from "semantic-ui-react";
 
 export default function AuctionForm() {
 	// eslint-disable-next-line
@@ -248,134 +236,13 @@ export default function AuctionForm() {
 	if (auction.isLoading) return "Загрузка...";
 
 	return (
-		<Segment className="FormContainer">
+		<div className="FormContainer">
 			<Heading
 				title="Редактирование аукциона"
 				subtitle="Отредактируйте данные ниже"
 			/>
 
-			<Form onSubmit={handleSubmit} error={editError !== null}>
-				<Table singleLine striped className="FormMainTable mx-center">
-					<TableBody>
-						<TableRow>
-							<TableCell>
-								Наименование<span>*</span>
-							</TableCell>
-							<TableCell>
-								<FormInput
-									className="InputText"
-									placeholder="Наименование"
-									value={newAuction.title}
-									onChange={(e, data) => handleTitleChanged(data.value)}
-								/>
-								<Message
-									error
-									hidden={editError !== null && editError.name !== "EmptyTitle"}
-									header={editError?.topic}
-									content={editError?.detail}
-								/>
-							</TableCell>
-						</TableRow>
-						<TableRow>
-							<TableCell>Описание</TableCell>
-							<TableCell>
-								<FormTextArea
-									className="InputText"
-									placeholder="Описание"
-									value={newAuction.properties}
-									onChange={(e, data) => handlePropertiesChanged(data.value)}
-								/>
-							</TableCell>
-						</TableRow>
-						<TableRow>
-							<TableCell>
-								Дата окончания аукциона<span>*</span>
-							</TableCell>
-							<TableCell>
-								<DatePickerInput
-									showTimeSelect
-									showMonthDropdown
-									showYearDropdown
-									setValue={newAuction.auctionEnd}
-									getValue={(value) => handleEndDateChanged(value)}
-								/>
-								<Message
-									hidden={
-										editError !== null && editError.name !== "ErrorEndDate"
-									}
-									error
-									header={editError?.topic}
-									content={editError?.detail}
-								/>
-							</TableCell>
-						</TableRow>
-						<TableRow>
-							<TableCell>Изображение</TableCell>
-							<TableCell>
-								<ImageFileInput
-									name="image"
-									value={image}
-									onChange={(imageData: string) => {
-										handleImageChanged(imageData);
-										setImage(imageData);
-									}}
-									usingImage={(usingImg: boolean) => {
-										handleImageUsingChanged(usingImg);
-									}}
-								/>
-							</TableCell>
-						</TableRow>
-						<TableRow>
-							<TableCell>Начальная цена</TableCell>
-							<TableCell>
-								<FormInput
-									className="InputText"
-									type="number"
-									placeholder="Начальная цена"
-									value={newAuction.reservePrice}
-									onChange={(e, data) =>
-										handleReservePriceChanged(parseInt(data.value))
-									}
-								/>
-							</TableCell>
-						</TableRow>
-						<TableRow>
-							<TableCell>Примечание</TableCell>
-							<TableCell>
-								<FormTextArea
-									className="InputText"
-									placeholder="Примечание"
-									value={newAuction.description}
-									onChange={(e, data) => handleDescriptionChanged(data.value)}
-								/>
-							</TableCell>
-						</TableRow>
-						<TableRow>
-							<TableCell colSpan="2">
-								<div className="flex justify-center mt-10">
-									<Button
-										className="MainButton w-100"
-										loading={isWaiting}
-										disabled={!isFormChanged || isWaiting}
-										type="submit"
-									>
-										{id ? "Сохранить" : "Создать"}
-									</Button>
-									<Button
-										className="MainButton w-100 ml-5"
-										onClick={(e) => {
-											e.preventDefault();
-											navigate(-1);
-										}}
-									>
-										Отмена
-									</Button>
-								</div>
-							</TableCell>
-						</TableRow>
-					</TableBody>
-				</Table>
-			</Form>
-		</Segment>
+			<form onSubmit={handleSubmit}></form>
+		</div>
 	);
 }

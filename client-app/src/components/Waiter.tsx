@@ -1,12 +1,9 @@
-import { Loader } from "semantic-ui-react";
-type Props = {
-	color: string;
-};
+import { ProgressSpinner } from "primereact/progressspinner";
 
-export default function Waiter({ color }: Props) {
+export default function Waiter() {
 	return (
 		<div className="flex items-center justify-center">
-			<Loader active inline="centered" />
+			<ProgressSpinner />
 		</div>
 	);
 }

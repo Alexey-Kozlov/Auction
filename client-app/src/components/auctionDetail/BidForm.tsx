@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
-import { Form, FormInput, Message } from "semantic-ui-react";
+import { Message } from "primereact/message";
+import { InputNumber } from "primereact/inputnumber";
 
 type Props = {
 	auctionId: string;
@@ -82,36 +83,27 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 		<>
 			{procState.find((p) => p.eventName === "WaiterHide") &&
 			!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
-				<Waiter color="rgb(156 163 175)" />
+				<Waiter />
 			) : (
 				<div>
-					<Form onSubmit={handleSubmit} error={bidError !== null}>
+					<form onSubmit={handleSubmit}>
 						<div className="text-center">
 							<div className="BidFormInput">
 								<label className="DetailHeadingTitle">
 									{`Ваша ставка (мин. ${NumberWithSpaces(highBid + 1)} руб)`}
 								</label>
-								<FormInput
-									size="huge"
+								<InputNumber
 									className="ml-10 mr-10 w-100P"
-									type="number"
 									name="amount"
 									placeholder={`Ваша ставка (мин. ${highBid + 1}) руб`}
-									error={bidError !== null}
-									value={bidValue}
-									onChange={(e, { name, value }) =>
-										handleBidChanged(value === "" ? "" : parseInt(value))
-									}
 								/>
 							</div>
 							<Message
-								error
 								hidden={bidError !== null && bidError.name !== "SmallBid"}
-								header={bidError?.topic}
 								content={bidError?.detail}
 							/>
 						</div>
-					</Form>
+					</form>
 				</div>
 			)}
 		</>

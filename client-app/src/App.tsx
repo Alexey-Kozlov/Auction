@@ -1,4 +1,3 @@
-import "semantic-ui-css/semantic.min.css";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Listings from "./components/auctionList/Listings";
 import NavBar from "./components/nav/NavBar";
@@ -31,7 +30,6 @@ function App() {
 						element={<Navigate to="/not-found" replace={true} />}
 					></Route>
 				</Routes>
-				<ToasterProvider />
 				<SignalRProvider />
 				<HandleServiceEvents />
 			</div>

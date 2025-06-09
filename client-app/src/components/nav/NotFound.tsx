@@ -1,5 +1,5 @@
+import { Button } from "primereact/button";
 import { useNavigate } from "react-router-dom";
-import { Button } from "semantic-ui-react";
 
 const NotFound = () => {
 	const navigate = useNavigate();
