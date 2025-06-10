@@ -1,24 +1,28 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import {
 	useLoginUserMutation,
 	useSetNewPasswordMutation,
 } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { ApiResponse, FormErrors, LoginResponse, LoginUser } from "../../types";
 import { setAuthUser } from "../../store/authSlice";
-import ModalConfirm from "../modals/ModalConfirm";
-import Heading from "../auctionList/Heading";
 import { Button } from "primereact/button";
+import { Panel } from "primereact/panel";
+import { InputText } from "primereact/inputtext";
+import { Divider } from "primereact/divider";
+import { FloatLabel } from "primereact/floatlabel";
+import { Toast } from "primereact/toast";
+import { Message } from "primereact/message";
+import { Password } from "primereact/password";
+import { confirmDialog, ConfirmDialog } from "primereact/confirmdialog";
 
 export default function Login() {
 	const [loginUser] = useLoginUserMutation();
 	const [setPassword] = useSetNewPasswordMutation();
-	// eslint-disable-next-line
+	const toastMessage = useRef<Toast>(null);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const [showConfirm, setShowConfirm] = useState(false);
 	const [updatePassword, setUpdatePassword] = useState<boolean | null>(null);
 	const [loginUserModel, setLoginUserModel] = useState<LoginUser>({
 		login: "",
@@ -28,13 +32,15 @@ export default function Login() {
 	const editErrorList: FormErrors[] = [
 		{
 			name: "EmptyLogin",
-			topic: "Ошибка - пустое значение логина!",
-			detail: "Нужно указать логин пользователя",
+			message: "Нужно указать логин пользователя",
 		},
 		{
 			name: "EmptyPassword",
-			topic: "Ошибка - пустое значение пароля!",
-			detail: `Нужно указать пароль пользователя`,
+			message: `Нужно указать пароль пользователя`,
+		},
+		{
+			name: "ErrorLogin",
+			message: `Ошибка пользователя или пароля`,
 		},
 	];
 	const [submittingLogin, setSubmittingLogin] = useState(false);
@@ -52,18 +58,25 @@ export default function Login() {
 			setPasswordFunc()
 				.then((rez: ApiResponse<object>) => {
 					if (rez.data!.isSuccess) {
-						toast.success(
-							`Пароль успешно изменен. Можно войти в систему под новым паролем`
-						);
+						toastMessage.current!.show({
+							severity: "success",
+							summary: "Успешное действие",
+							detail: `Пароль успешно изменен. Можно войти в систему под новым паролем`,
+							life: 4000,
+						});
 					}
 					setSubmittingPassword(false);
 				})
 				.catch((e) => {
-					toast.error(`Ошибка установки пароля - ${e.message}`);
+					toastMessage.current!.show({
+						severity: "error",
+						summary: "Ошибка действия",
+						detail: `Ошибка установки пароля - ${e.message}`,
+						life: 4000,
+					});
 				});
 		}
 		setUpdatePassword(null);
-		setShowConfirm(false);
 		// eslint-disable-next-line
 	}, [updatePassword]);
 
@@ -73,6 +86,7 @@ export default function Login() {
 			return { ...prev, login: value };
 		});
 	};
+
 	const handlePasswordChanged = (value: string) => {
 		setEditError(() => null);
 		setLoginUserModel((prev) => {
@@ -91,11 +105,38 @@ export default function Login() {
 			);
 			return;
 		}
-		setShowConfirm(true);
+
+		confirmDialog({
+			group: "templating",
+			header: (
+				<div className="text-center font-bold">Подтверждение действия</div>
+			),
+			message: (
+				<div className="flex flex-column align-items-center text-lg">
+					<div>
+						{`Подтверждение обновления пароля для пользователя 
+				"${loginUserModel.login}".`}
+					</div>
+					<div>Обновить пароль?</div>
+				</div>
+			),
+			icon: "pi pi-exclamation-circle",
+			rejectLabel: "Нет",
+			acceptLabel: "Да",
+			acceptClassName: "p-button-danger",
+			defaultFocus: "reject",
+			accept,
+			reject,
+		});
 		return;
 	};
 
-	const handleSubmit = async () => {
+	const accept = () => setUpdatePassword(true);
+
+	const reject = () => setUpdatePassword(false);
+
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
 		if (!loginUserModel.login) {
 			setEditError(() => editErrorList.find((p) => p.name === "EmptyLogin")!);
 			return;
@@ -126,55 +167,141 @@ export default function Login() {
 					id: response.data.result.id,
 				})
 			);
-			toast.success(
-				`Успешный вход в систему пользователя ${response.data.result.name}`
-			);
+			toastMessage.current!.show({
+				severity: "success",
+				summary: "Успешный вход",
+				detail: `Успешный вход в систему пользователя ${response.data.result.name}!`,
+				life: 2000,
+			});
 			//возврат на предыдущую страничку
 			navigate(-1);
 		}
+		//ошибка входа
+		setEditError(() => editErrorList.find((p) => p.name === "ErrorLogin")!);
+		toastMessage.current!.show({
+			severity: "error",
+			summary: "Ошибка входа",
+			detail: "Ошибка логина или пароля",
+			life: 2000,
+		});
 		setSubmittingLogin(false);
 	};
 
 	return (
-		<div className="mt-50">
-			<ModalConfirm
-				openModal={showConfirm}
-				text={
-					"Подтверждение обновления пароля для пользователя '" +
-					loginUserModel.login +
-					"'. Обновить пароль?"
-				}
-				title="Обновление пароля"
-				setResult={setUpdatePassword}
-			/>
+		<div className="w-full mt-8">
+			<form onSubmit={(e) => handleSubmit(e)}>
+				<Panel className="LoginPanel">
+					<div className="LoginPanelTitle">Вход пользователя</div>
+					<div className="LoginPanelDescription">
+						Введите логин и пароль для входа в систему
+					</div>
+					<div className="mt-4">
+						<div className="field grid">
+							<label className="col-fixed w-6rem">
+								Логин<span>*</span>
+							</label>
+							<div className="col">
+								<FloatLabel>
+									<InputText
+										id="InputLogin"
+										type="text"
+										className="w-full InputControl"
+										value={loginUserModel.login}
+										invalid={
+											editError !== null &&
+											(editError.name === "ErrorLogin" ||
+												editError.name === "EmptyLogin")
+										}
+										onChange={(e) => handleLoginChanged(e.target.value)}
+									/>
+									<label htmlFor="InputLogin">Логин</label>
+									<Message
+										className="mt-2"
+										severity="error"
+										text={editError?.message}
+										pt={{
+											root: {
+												className:
+													editError !== null && editError.name === "EmptyLogin"
+														? ""
+														: "hidden",
+											},
+										}}
+									/>
+								</FloatLabel>
+							</div>
+						</div>
+						<div className="field grid">
+							<label className="col-fixed w-6rem">
+								Пароль<span>*</span>
+							</label>
+							<div className="col">
+								<FloatLabel>
+									<Password
+										id="InputPassword"
+										toggleMask
+										feedback={false}
+										className="w-full InputControl"
+										value={loginUserModel.password}
+										onChange={(e) => handlePasswordChanged(e.target.value)}
+										invalid={
+											editError !== null &&
+											(editError.name === "ErrorLogin" ||
+												editError.name === "EmptyPassword")
+										}
+									/>
+									<label htmlFor="InputPassword">Пароль</label>
+									<Message
+										className="mt-3"
+										severity="error"
+										text={editError?.message}
+										pt={{
+											root: {
+												className:
+													editError !== null &&
+													editError.name === "EmptyPassword"
+														? ""
+														: "hidden",
+											},
+										}}
+									/>
+								</FloatLabel>
+							</div>
+						</div>
+					</div>
 
-			<Heading
-				title="Вход пользователя"
-				subtitle="Введите логин и пароль для входа в систему"
-			/>
-			<form onSubmit={handleSubmit}>
-				<div id="LoginButton">
-					<Button
-						loading={submittingLogin}
-						disabled={submittingLogin}
-						type="submit"
-						className="MainButton w-100"
-					>
-						Вход
-					</Button>
-				</div>
-				<div id="ForgotPasswordButton">
-					<Button
-						type="button"
-						loading={submittingPassword}
-						disabled={submittingPassword}
-						onClick={handleSetNewPassword}
-						className="MainButton w-200"
-					>
-						Я забыл пароль. Установить новый.
-					</Button>
-				</div>
+					<div className="LoginButtons">
+						<Button
+							text
+							raised
+							rounded
+							loading={submittingLogin}
+							disabled={submittingLogin}
+							type="submit"
+							className="PrimaryButton w-9rem justify-content-center"
+						>
+							Вход
+						</Button>
+						<Divider />
+						<Button
+							text
+							raised
+							rounded
+							severity="danger"
+							type="button"
+							loading={submittingPassword}
+							disabled={submittingPassword}
+							onClick={handleSetNewPassword}
+							className="PrimaryButton"
+						>
+							Я забыл пароль. Установить новый.
+						</Button>
+					</div>
+				</Panel>
 			</form>
+			<Toast ref={toastMessage} position="bottom-right" />
+
+			<ConfirmDialog group="templating" />
 		</div>
 	);
 }

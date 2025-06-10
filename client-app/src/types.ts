@@ -237,8 +237,7 @@ export type State = {
 
 export type FormErrors = {
 	name: string;
-	topic: string;
-	detail: string;
+	message: string;
 };
 
 export enum SortDirection {

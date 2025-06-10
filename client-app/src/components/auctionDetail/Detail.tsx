@@ -22,7 +22,6 @@ import {
 	useSetNotifyUserMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import ModalConfirm from "../modals/ModalConfirm";
 import { Button } from "primereact/button";
 
 export default function Detail() {
@@ -144,12 +143,6 @@ export default function Detail() {
 
 	return (
 		<div className="mt-10 ">
-			<ModalConfirm
-				openModal={showConfirm}
-				text={"Действительно удалить аукцион '" + auctionDetail?.title + "' ?"}
-				title={"Подтверждение удаления аукциона"}
-				setResult={setConfirmResult}
-			/>
 			{auctionDetail && (
 				<>
 					<div></div>

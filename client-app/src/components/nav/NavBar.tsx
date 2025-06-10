@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import AddTokenHeader from "../../api/AddTokenHeader";
 import { useEffect } from "react";
+import { Button } from "primereact/button";
 
 export default function NavBar() {
 	let user: User = useSelector((state: RootState) => state.authStore);
@@ -35,15 +36,25 @@ export default function NavBar() {
 					<UserActions />
 				) : (
 					<div>
-						<button
-							className="MainButton"
+						<Button
+							text
+							raised
+							rounded
+							severity="contrast"
+							className="mr-2"
 							onClick={() => navigate("/register")}
 						>
 							Регистрация
-						</button>
-						<button className="MainButton" onClick={() => navigate("/login")}>
+						</Button>
+						<Button
+							text
+							raised
+							rounded
+							severity="contrast"
+							onClick={() => navigate("/login")}
+						>
 							Логин
-						</button>
+						</Button>
 					</div>
 				)}
 			</div>

@@ -74,9 +74,8 @@ export default function Filters() {
 	const handleMenuClick = (e: SelectButtonChangeEvent, paramName: string) => {
 		let param: State = {
 			filterBy: paramName === "filterBy" ? e.value : "",
-			pageSize: paramName === "pageSize" ? e.value : "",
 		};
-		if (paramName !== "filterBy" && paramName !== "pageSize") {
+		if (paramName !== "filterBy") {
 			if (!paramName) {
 				paramName = orderBy!;
 			}
@@ -161,18 +160,6 @@ export default function Filters() {
 					onChange={(e) => handleMenuClick(e, e.value)}
 					itemTemplate={filterTemplate}
 					value={orderBy}
-				/>
-			</div>
-
-			<div>
-				<div className="FilterItem">
-					<span>Размер страницы</span>
-				</div>
-				<SelectButton
-					options={pageSizeButtons}
-					onChange={(e) => handleMenuClick(e, "pageSize")}
-					itemTemplate={filterTemplate}
-					value={pageSize}
 				/>
 			</div>
 		</div>

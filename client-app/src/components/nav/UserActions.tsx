@@ -224,6 +224,7 @@ export default function UserActions() {
 				{
 					label: "Выход",
 					icon: <AiOutlineLogout className="MenuItems" size={20} />,
+					command: () => handleLogoutClick(),
 				},
 			],
 		},

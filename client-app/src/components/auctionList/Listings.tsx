@@ -8,7 +8,7 @@ import { setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
 import { setData } from "../../store/auctionSlice";
 import Filters from "./Filters";
-import { Auction, ProcessingState } from "../../types";
+import { Auction, ProcessingState, State } from "../../types";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
@@ -61,7 +61,7 @@ export default function Listings() {
 
 	function setPageNumber(e: PaginatorPageChangeEvent) {
 		setFirstRecord(e.first);
-		dispatch(setParams({ pageNumber: e.page + 1 }));
+		dispatch(setParams({ pageNumber: e.page + 1, pageSize: e.rows }));
 	}
 
 	if (auctionsData.isLoading && auctionsData.isFetching)
@@ -94,6 +94,7 @@ export default function Listings() {
 								first={firstRecord}
 								rows={params.pageSize}
 								totalRecords={data.totalCount}
+								rowsPerPageOptions={[4, 8, 16]}
 							/>
 						</div>
 					</div>

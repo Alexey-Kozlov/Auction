@@ -1,15 +1,19 @@
-import { useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import { ApiResponse, CreateUser, FormErrors } from "../../types";
-import Heading from "../auctionList/Heading";
 import { Button } from "primereact/button";
+import { Toast } from "primereact/toast";
+import { Panel } from "primereact/panel";
+import { FloatLabel } from "primereact/floatlabel";
+import { InputText } from "primereact/inputtext";
+import { Message } from "primereact/message";
+import { Password } from "primereact/password";
 
 export default function Register() {
 	const [registerUser] = useRegisterUserMutation();
-	// eslint-disable-next-line
 	const navigate = useNavigate();
+	const toastMessage = useRef<Toast>(null);
 	const [loginUserModel, setLoginUserModel] = useState<CreateUser>({
 		name: "",
 		login: "",
@@ -20,18 +24,19 @@ export default function Register() {
 	const editErrorList: FormErrors[] = [
 		{
 			name: "EmptyName",
-			topic: "Ошибка - пустое наименование пользователя!",
-			detail: "Нужно указать наименование пользователя",
+			message: "Нужно указать наименование пользователя",
 		},
 		{
 			name: "EmptyLogin",
-			topic: "Ошибка - пустое значение логина!",
-			detail: "Нужно указать логин пользователя",
+			message: "Нужно указать логин пользователя",
 		},
 		{
 			name: "EmptyPassword",
-			topic: "Ошибка - пустое значение пароля!",
-			detail: `Нужно указать пароль пользователя`,
+			message: `Нужно указать пароль пользователя`,
+		},
+		{
+			name: "ErrorCreate",
+			message: `Ошибка создания нового пользователя`,
 		},
 	];
 
@@ -56,7 +61,8 @@ export default function Register() {
 		});
 	};
 
-	const handleSubmit = async () => {
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
 		if (!loginUserModel.name) {
 			setEditError(() => editErrorList.find((p) => p.name === "EmptyName")!);
 			return;
@@ -78,32 +84,157 @@ export default function Register() {
 			password: loginUserModel.password,
 		});
 		if (response.data && response.data.isSuccess) {
-			toast.success(
-				`Пользователь ${loginUserModel.name} успешно зарегистрирован! Войдите в систему для продолжения.`
-			);
+			toastMessage.current!.show({
+				severity: "success",
+				summary: "Успешное действие",
+				detail: `Пользователь ${loginUserModel.name} успешно зарегистрирован! 
+					Войдите в систему для продолжения.`,
+				life: 4000,
+			});
 			navigate("/");
 		}
+		//ошибка создания
+		setEditError(() => editErrorList.find((p) => p.name === "ErrorCreate")!);
+		toastMessage.current!.show({
+			severity: "error",
+			summary: "Ошибка действия",
+			detail: `Ошибка создания нового пользователя - ${response.data?.errorMessages[0]}`,
+			life: 4000,
+		});
 		setSubmittingCreate(false);
 	};
 
 	return (
-		<div className="mt-50">
-			<Heading
-				title="Регистрация пользователя"
-				subtitle="Введите наименование пользователя, его логин и пароль для регистрации в системе"
-			/>
-			<form onSubmit={handleSubmit}>
-				<div id="LoginButton">
-					<Button
-						type="submit"
-						loading={submittingCreate}
-						disabled={submittingCreate}
-						className="MainButton w-120"
-					>
-						Регистрация
-					</Button>
-				</div>
+		<div className="w-full mt-8">
+			<form onSubmit={(e) => handleSubmit(e)}>
+				<Panel className="LoginPanel">
+					<div className="LoginPanelTitle">Регистрация пользователя</div>
+					<div className="LoginPanelDescription">
+						Введите наименование пользователя, его логин и пароль для
+						регистрации в системе
+					</div>
+					<div className="mt-4">
+						<div className="field grid">
+							<label className="col-fixed w-10rem">
+								Имя пользователя<span>*</span>
+							</label>
+							<div className="col">
+								<FloatLabel>
+									<InputText
+										id="InputName"
+										type="text"
+										className="w-full InputControl"
+										value={loginUserModel.name}
+										onChange={(e) => handleNameChanged(e.target.value)}
+										invalid={
+											editError !== null && editError.name === "EmptyName"
+										}
+									/>
+									<label htmlFor="InputName">Имя пользователя</label>
+									<Message
+										className="mt-2"
+										severity="error"
+										text={editError?.message}
+										pt={{
+											root: {
+												className:
+													editError !== null && editError.name === "EmptyName"
+														? ""
+														: "hidden",
+											},
+										}}
+									/>
+								</FloatLabel>
+							</div>
+						</div>
+						<div className="field grid">
+							<label className="col-fixed w-10rem">
+								Логин<span>*</span>
+							</label>
+							<div className="col">
+								<FloatLabel>
+									<InputText
+										id="InputLogin"
+										type="text"
+										className="w-full InputControl"
+										value={loginUserModel.login}
+										invalid={
+											editError !== null &&
+											(editError.name === "EmptyLogin" ||
+												editError.name === "ErrorCreate")
+										}
+										onChange={(e) => handleLoginChanged(e.target.value)}
+									/>
+									<label htmlFor="InputLogin">Логин</label>
+									<Message
+										className="mt-2"
+										severity="error"
+										text={editError?.message}
+										pt={{
+											root: {
+												className:
+													editError !== null && editError.name === "EmptyLogin"
+														? ""
+														: "hidden",
+											},
+										}}
+									/>
+								</FloatLabel>
+							</div>
+						</div>
+						<div className="field grid">
+							<label className="col-fixed w-10rem">
+								Пароль<span>*</span>
+							</label>
+							<div className="col">
+								<FloatLabel>
+									<Password
+										id="InputPassword"
+										toggleMask
+										feedback={false}
+										className="w-full InputControl"
+										value={loginUserModel.password}
+										onChange={(e) => handlePasswordChanged(e.target.value)}
+										invalid={
+											editError !== null && editError.name === "EmptyPassword"
+										}
+									/>
+									<label htmlFor="InputPassword">Пароль</label>
+									<Message
+										className="mt-3"
+										severity="error"
+										text={editError?.message}
+										pt={{
+											root: {
+												className:
+													editError !== null &&
+													editError.name === "EmptyPassword"
+														? ""
+														: "hidden",
+											},
+										}}
+									/>
+								</FloatLabel>
+							</div>
+						</div>
+					</div>
+
+					<div className="LoginButtons">
+						<Button
+							text
+							raised
+							rounded
+							loading={submittingCreate}
+							disabled={submittingCreate}
+							type="submit"
+							className="PrimaryButton w-10rem justify-content-center"
+						>
+							Регистрация
+						</Button>
+					</div>
+				</Panel>
 			</form>
+			<Toast ref={toastMessage} position="bottom-right" />
 		</div>
 	);
 }
