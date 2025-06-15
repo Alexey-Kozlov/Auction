@@ -10,6 +10,7 @@ public class ESContract
     public Guid CorrelationId { get; set; }
     public string UserLogin { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public Command Command { get; set; }
     public string Image { get; set; }
     public bool IsError { get; set; }

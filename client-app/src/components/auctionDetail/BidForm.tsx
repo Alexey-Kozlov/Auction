@@ -4,7 +4,7 @@ import uuid from "react-native-uuid";
 import { FormErrors, ProcessingState, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
@@ -39,28 +39,28 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 		}
 		// eslint-disable-next-line
 	}, [procState, user]);
-	const [bidValue, setBidValue] = useState<number | string>(0);
+	const [bidValue, setBidValue] = useState<number>(0);
 	const [bidError, setBidError] = useState<FormErrors | null>(null);
 	const bidErrorList: FormErrors[] = [
 		{
 			name: "SmallBid",
-			topic: "Ошибка - малый размер ставки!",
-			detail: `Размер новой ставки должен быть больше ${highBid}.`,
+			message: `Размер новой ставки должен быть больше ${highBid}.`,
 		},
 	];
 
-	const handleBidChanged = (bid: number | "") => {
-		if (bid !== "" && bid !== null && bid <= 0) {
+	const handleBidChanged = (bid: number | null) => {
+		if ((bid !== null && bid <= 0) || !Number.isInteger(bid)) {
 			setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
 			return;
 		}
 		//сбрасываем ошибки валидации ставки
 		setBidError(() => null);
-		setBidValue(bid);
+		setBidValue(bid!);
 	};
 
-	const handleSubmit = async () => {
-		if (Number.isInteger(bidValue) && (bidValue as number) <= highBid) {
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (bidValue <= highBid) {
 			setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
 			return;
 		}
@@ -75,8 +75,6 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 			auctionId: auctionId,
 			correlationId: uuid.v4() as string,
 		});
-
-		setBidValue("");
 	};
 
 	return (
@@ -86,21 +84,36 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 				<Waiter />
 			) : (
 				<div>
-					<form onSubmit={handleSubmit}>
+					<form onSubmit={(e) => handleSubmit(e)}>
 						<div className="text-center">
-							<div className="BidFormInput">
-								<label className="DetailHeadingTitle">
-									{`Ваша ставка (мин. ${NumberWithSpaces(highBid + 1)} руб)`}
+							<div className="flex align-items-center mt-4">
+								<label className="BidInputLabel">
+									{`Ваша ставка (мин. ${NumberWithSpaces(highBid + 1)} руб):`}
 								</label>
 								<InputNumber
-									className="ml-10 mr-10 w-100P"
 									name="amount"
+									step={5}
+									variant="filled"
+									className="BidInputControl"
 									placeholder={`Ваша ставка (мин. ${highBid + 1}) руб`}
+									tooltip="Стрелки вверх/вниз - шаг 5 руб."
+									tooltipOptions={{ position: "bottom" }}
+									onChange={(e) => handleBidChanged(e.value)}
+									value={bidValue}
 								/>
 							</div>
 							<Message
-								hidden={bidError !== null && bidError.name !== "SmallBid"}
-								content={bidError?.detail}
+								className="mt-2"
+								severity="error"
+								text={bidError?.message}
+								pt={{
+									root: {
+										className:
+											bidError !== null && bidError.name === "SmallBid"
+												? ""
+												: "hidden",
+									},
+								}}
 							/>
 						</div>
 					</form>

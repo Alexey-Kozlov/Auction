@@ -37,7 +37,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
                     {
                         case CRUD.Create:
                             //добавляем новое поступление денег на счет или списание денег на новую ставку
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.FinanceItems.AddAsync(typedItem);
                             break;
@@ -50,7 +50,7 @@ public class FinanceConsumer : IConsumer<DataForProcessingServicesList<FinanceIt
                                 finItem.CorrelationId = correlationId;
                                 _dbContext.FinanceItems.Update(finItem);
                             }
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.FinanceItems.AddAsync(typedItem);
                             break;

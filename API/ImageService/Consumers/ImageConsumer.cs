@@ -85,7 +85,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                             }
                             break;
                         case CRUD.Create:
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
                             break;
@@ -97,7 +97,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                                 item2.CorrelationId = correlationId;
                                 _context.Images.Update(item2);
                             }
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
                             break;

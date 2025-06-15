@@ -34,6 +34,7 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
             Command.EditNotification,
             "",
             null,
+            context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,

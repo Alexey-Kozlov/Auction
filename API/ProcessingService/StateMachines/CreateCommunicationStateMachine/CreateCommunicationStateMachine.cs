@@ -67,6 +67,7 @@ public class CreateCommunicationStateMachine : MassTransitStateMachine<CreateCom
             When(RequestEvent)
             .Then(context =>
             {
+                context.Saga.ItemId = context.Message.ItemId.Value;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Message = context.Message.Message;
@@ -89,7 +90,6 @@ public class CreateCommunicationStateMachine : MassTransitStateMachine<CreateCom
             .Then(context =>
             {
                 context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
-                context.Saga.Id = context.Message.DataItems.DataObjects[0].Id;
             })
         //отправляем сообщение на добавление нового чата в CommunicationService
             .Send(

@@ -33,7 +33,7 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<NotifyItem>>
                 {
                     await _dbContext.NotifyItems.AddAsync(new NotifyItem
                     {
-                        Id = Guid.NewGuid(),
+                        ItemId = Guid.NewGuid(),
                         Commited = false,
                         AuctionId = typedItem.AuctionId,
                         UserLogin = typedItem.UserLogin,

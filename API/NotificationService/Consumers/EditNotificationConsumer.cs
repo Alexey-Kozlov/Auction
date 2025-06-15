@@ -32,7 +32,7 @@ public class EditNotificationConsumer : IConsumer<DataForProcessingServicesList<
             switch (item.CRUD)
             {
                 case CRUD.Create:
-                    typedItem.Id = Guid.NewGuid();
+                    typedItem.ItemId = Guid.NewGuid();
                     typedItem.Commited = false;
                     await _dbContext.NotifyItems.AddAsync(typedItem);
                     break;

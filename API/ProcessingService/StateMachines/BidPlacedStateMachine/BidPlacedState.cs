@@ -9,7 +9,7 @@ public class BidPlacedState : SagaStateMachineInstance
     public string Bidder { get; set; }
     public Guid AuctionId { get; set; }
     public int Amount { get; set; }
-    public Guid BidId { get; set; }
+    public Guid ItemId { get; set; }
     public int OldHighBid { get; set; }
     public string DataForProcessingServicesList { get; set; }
     public bool IsError { get; set; }

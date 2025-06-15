@@ -97,7 +97,7 @@ public class FinanceController : ControllerBase
                 ActionDate = p.ActionDate,
                 AuctionId = p.AuctionId,
                 FinanceId = p.FinanceId,
-                Id = p.Id,
+                ItemId = p.ItemId,
                 Status = p.Status,
                 UserLogin = p.UserLogin,
                 Value = p.Value

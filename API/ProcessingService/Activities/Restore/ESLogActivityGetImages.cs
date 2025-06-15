@@ -39,6 +39,7 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLogR
             Command.RestoreSnapShot,
             "",
             null,
+            null,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,

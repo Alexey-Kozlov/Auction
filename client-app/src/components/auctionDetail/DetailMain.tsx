@@ -13,7 +13,6 @@ import { RootState } from "../../store/store";
 import { useNavigate, useParams } from "react-router-dom";
 import ImageCard from "../auctionList/ImageCard";
 import BidList from "./BidList";
-import DetailedSpecs from "./DetailedSpec";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
 import { setEventFlag } from "../../store/processingSlice";
@@ -23,8 +22,12 @@ import {
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
 import { Button } from "primereact/button";
+import { InputSwitch } from "primereact/inputswitch";
+import { Panel } from "primereact/panel";
+import DetailedSpec from "./DetailedSpec";
+import { useGetUserNameQuery } from "../../api/AuthApi";
 
-export default function Detail() {
+export default function DetailMain() {
 	const { id } = useParams();
 	const user: User = useSelector((state: RootState) => state.authStore);
 	const procState: ProcessingState[] = useSelector(
@@ -34,10 +37,16 @@ export default function Detail() {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const [confirmResult, setConfirmResult] = useState<boolean | null>(null);
 	const [deleteAuction, setDeleteAuction] = useState(false);
-	const [auctionDetail, setAuctionDetail] = useState<Auction>();
+	const [auctionDetail, setAuctionDetail] = useState<Auction | null>(null);
 	const data = useGetDetailedViewDataQuery(id!, {
 		skip: auctionDetail?.title === "",
 	});
+	const userSeller = useGetUserNameQuery(
+		auctionDetail ? auctionDetail.seller : "",
+		{
+			skip: auctionDetail?.seller === "",
+		}
+	);
 	const isNotifyUser = useIsNotifyUserQuery(id!, {
 		skip: user.login === "" || user.login === undefined,
 	});
@@ -51,16 +60,26 @@ export default function Detail() {
 
 	//инициализация данных
 	useEffect(() => {
-		if (
-			!data.isLoading &&
-			!data.isFetching &&
-			data.data?.result &&
-			data.data?.result.title
-		) {
+		if (!data.isLoading && !data.isFetching && data.data!.result) {
 			setAuctionDetail(data.data!.result);
 		}
 		// eslint-disable-next-line
 	}, [data]);
+
+	useEffect(() => {
+		if (
+			!userSeller.isLoading &&
+			!userSeller.isFetching &&
+			userSeller.data?.result &&
+			auctionDetail &&
+			!auctionDetail.sellerName
+		) {
+			setAuctionDetail((prev) => {
+				return { ...prev, sellerName: userSeller.data?.result } as Auction;
+			});
+		}
+		// eslint-disable-next-line
+	}, [userSeller, auctionDetail]);
 
 	//для управления переключателем по уведомлениям пользователя - при получении сообщения из БД об изменении
 	//переключателя - устанавливаем новое состояние у переключателя и он меняет отображение
@@ -128,7 +147,6 @@ export default function Detail() {
 			setDeleteAuction(true);
 			dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
 			const auctionDeleted: AuctionDeleted = {
-				id: uuid.v4() as string,
 				auctionId: id!,
 				correlationId: uuid.v4() as string,
 			};
@@ -142,12 +160,89 @@ export default function Detail() {
 	if (data.isLoading) return "Загрузка...";
 
 	return (
-		<div className="mt-10 ">
-			{auctionDetail && (
+		<div className="mt-2 ">
+			{auctionDetail && auctionDetail!.sellerName && (
 				<>
-					<div></div>
-					<div className="DetailBottom">
-						<Button className="MainButton" onClick={() => navigate(-1)}>
+					<div className="grid">
+						<div className="col-6 CenterItem">
+							<div className="CenterItem flex-column w-full">
+								<Heading title={`${auctionDetail!.title}`} />
+								{user?.login === auctionDetail!.seller && (
+									<div className="flex w-auto">
+										<Button
+											text
+											raised
+											rounded
+											onClick={() => navigate(`/auctions/edit/${id}`)}
+											disabled={!!deleteAuction}
+											className="CustomButton mr-2 w-16rem"
+										>
+											Редактировать аукцион
+										</Button>
+										<Button
+											text
+											raised
+											rounded
+											className="CustomButton w-16rem"
+											onClick={handleDeleteAuction}
+											loading={!!deleteAuction}
+										>
+											Удалить аукцион
+										</Button>
+									</div>
+								)}
+							</div>
+						</div>
+						<div className="col-6">
+							<Panel>
+								<div className="CenterItem">
+									<h3 className="DetailCountDownText">Осталось времени:</h3>
+									<div className="DetailCountDownItem">
+										<CountdownTimer
+											auctionEnd={auctionDetail!.auctionEnd}
+											isFinished={auctionDetail.finished}
+										/>
+									</div>
+								</div>
+
+								{user.name && (
+									<div className="CenterItem">
+										<h3 className="DetailNotifyText">
+											Получать уведомления этого аукциона:
+										</h3>
+										<InputSwitch
+											checked={notifyUser}
+											onChange={(e) => handleSetNotifyUser(e.checked!)}
+										/>
+									</div>
+								)}
+							</Panel>
+						</div>
+						<div className="col-6 CenterItem">
+							<ImageCard
+								id={auctionDetail!.auctionId}
+								detail={true}
+								cache={false}
+							/>
+						</div>
+						<div className="col-6">
+							<Panel className="BidPanel">
+								<BidList user={user} auction={auctionDetail!} />
+							</Panel>
+						</div>
+						<div className="col-12">
+							<Panel>
+								<DetailedSpec auction={auctionDetail!} user={user} />
+							</Panel>
+						</div>
+
+						<Button
+							text
+							raised
+							rounded
+							className="CustomButton"
+							onClick={() => navigate(-1)}
+						>
 							Назад
 						</Button>
 					</div>

@@ -81,7 +81,7 @@ public class DataForProcessingServicesList
 
 public class DataForProcessingService
 {
-    public Guid Id { get; set; }
+    public Guid ItemId { get; set; }
     public string DataType { get; set; }
     public string Data { get; set; }
     public CRUD CRUD { get; set; }
@@ -294,6 +294,7 @@ public class BaseServiceError
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -306,6 +307,7 @@ public class LoggingServiceError
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
     public Guid? TraceId { get; set; }
 }
@@ -318,6 +320,7 @@ public class NotificationServiceError
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public Guid? TraceId { get; set; }
     public bool IsError { get; set; }
     public string SessionId { get; set; }
@@ -332,6 +335,32 @@ public class ESLogCommunicationCreated : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+}
+
+public class ESLogCommunicationDeleted : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid ItemId { get; set; }
+    public bool IsError { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+}
+
+public class ESLogCommunicationUpdated : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid ItemId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
@@ -361,4 +390,5 @@ public class EventNotificationItem
     public string SessionId { get; set; }
     public Guid? AuctionId { get; set; }
     public string UserLogin { get; set; }
+    public Guid? ItemId { get; set; }
 }

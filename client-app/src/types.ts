@@ -1,8 +1,10 @@
 export type Auction = {
-	id: string;
+	auctionId: string;
 	reservePrice: number;
 	seller: string;
+	sellerName?: string;
 	winner?: string;
+	winnerName: string;
 	soldAmount: number;
 	currentHighBid: number;
 	createAt: Date;
@@ -12,7 +14,6 @@ export type Auction = {
 	properties: string;
 	description?: string;
 	image?: string;
-	auctionId: string;
 	error?: string;
 	usingImage?: boolean;
 	show?: boolean;
@@ -20,8 +21,7 @@ export type Auction = {
 };
 
 export type Bid = {
-	id: string;
-	bidId: string;
+	itemId: string;
 	auctionId: string;
 	bidder: string;
 	bidTime: string;
@@ -33,7 +33,7 @@ export type LoginResponse = {
 	name: string;
 	login: string;
 	token: string;
-	id: string;
+	itemId: string;
 };
 
 export type CreateUser = {
@@ -54,7 +54,6 @@ export type LogoutUser = {
 export type User = {
 	name: string;
 	login: string;
-	id?: string;
 	isAdmin: boolean;
 };
 
@@ -88,7 +87,7 @@ export type PlaceBidParams = {
 };
 
 export type AuctionImage = {
-	id: string;
+	itemId: string;
 	auctionId: string;
 	image: string;
 };
@@ -106,7 +105,6 @@ export type FinanceStore = {
 };
 
 export type FinanceItem = {
-	id: string;
 	auctionId: string;
 	itemId: string;
 	value: number;
@@ -116,7 +114,6 @@ export type FinanceItem = {
 };
 
 export type FinanceTableItem = {
-	id: string;
 	auctionId: string;
 	itemId: string;
 	value: number;
@@ -142,7 +139,6 @@ export type ProcessingState = {
 };
 
 export type AuctionUpdated = {
-	id: string;
 	auctionId: string;
 	title: string;
 	properties: string;
@@ -155,7 +151,6 @@ export type AuctionUpdated = {
 };
 
 export type AuctionFinished = {
-	id: string;
 	auctionId: string;
 	title: string;
 	winner?: string;
@@ -163,7 +158,6 @@ export type AuctionFinished = {
 };
 
 export type AuctionDeleted = {
-	id: string;
 	auctionId: string;
 	correlationId: string;
 };
@@ -269,13 +263,14 @@ export enum ToastType {
 }
 
 export type ChatComment = {
-	id: string;
+	itemId: string;
 	parentId: string | null;
 	message: string;
 	userLogin: string;
 	auctionId: string;
 	updateAt: Date;
-	sessionId: string;
+	sessionId: SessionType | string;
+	actionType: ActionType;
 };
 
 export enum ActionType {
@@ -286,16 +281,31 @@ export enum ActionType {
 }
 
 export type ChatResponse = {
-	id: string;
+	itemId: string;
 	parentId: string | null;
 	message: string;
 	userLogin: string;
 	auctionId: string;
 	updateAt: Date;
-	action: ActionType | null;
+	actionType: ActionType | null;
 };
 
 export type NotificationEvent = {
 	show: boolean;
 	data: string;
 };
+
+export type DataRow = {
+	field: string;
+	value: {};
+};
+
+export enum SessionType {
+	all,
+	auctionGroup,
+}
+
+export enum ModalTypes {
+	warning,
+	info,
+}

@@ -34,6 +34,7 @@ public class CommitActivity : IStateMachineActivity<FinanceState, FinanceCreateE
             Command.FinanceCreate,
             "",
             null,
+            context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,

@@ -16,7 +16,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     private readonly BidPlaceProcessing _bidPlaceProcessing;
     private readonly EditNotificationProcessing _editNotificationProcessing;
     private readonly RestoreSnapShotProcessing _restoreSnapShotProcessing;
-    private readonly CommunicationCreateProcessing _communicationCreateProcessing1;
+    private readonly CommunicationCreateProcessing _communicationCreateProcessing;
+    private readonly CommunicationDeleteProcessing _communicationDeleteProcessing;
+    private readonly CommunicationUpdateProcessing _communicationUpdateProcessing;
 
     public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing,
         ESLogCommitProcessing eSLogCommitProcessing,
@@ -27,7 +29,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         BidPlaceProcessing bidPlaceProcessing,
         EditNotificationProcessing editNotificationProcessing,
         RestoreSnapShotProcessing restoreSnapShotProcessing,
-        CommunicationCreateProcessing communicationCreateProcessing)
+        CommunicationCreateProcessing communicationCreateProcessing,
+        CommunicationDeleteProcessing communicationDeleteProcessing,
+        CommunicationUpdateProcessing communicationUpdateProcessing)
     {
         _auctionDeleteProcessing = auctionDeleteProcessing;
         _eSLogCommitProcessing = eSLogCommitProcessing;
@@ -38,7 +42,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         _bidPlaceProcessing = bidPlaceProcessing;
         _editNotificationProcessing = editNotificationProcessing;
         _restoreSnapShotProcessing = restoreSnapShotProcessing;
-        _communicationCreateProcessing1 = communicationCreateProcessing;
+        _communicationCreateProcessing = communicationCreateProcessing;
+        _communicationDeleteProcessing = communicationDeleteProcessing;
+        _communicationUpdateProcessing = communicationUpdateProcessing;
     }
 
     public async Task Consume(ConsumeContext<ESContract> context)
@@ -78,7 +84,13 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
                     await _restoreSnapShotProcessing.ProcessESLog(context);
                     break;
                 case Command.CommunicationCreate:
-                    await _communicationCreateProcessing1.ProcessESLog(context);
+                    await _communicationCreateProcessing.ProcessESLog(context);
+                    break;
+                case Command.CommunicationDelete:
+                    await _communicationDeleteProcessing.ProcessESLog(context);
+                    break;
+                case Command.CommunicationUpdate:
+                    await _communicationUpdateProcessing.ProcessESLog(context);
                     break;
                 default:
                     break;

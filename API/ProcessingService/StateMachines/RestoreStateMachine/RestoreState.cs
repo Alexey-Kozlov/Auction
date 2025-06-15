@@ -5,6 +5,7 @@ namespace ProcessingService.StateMachines.RestoreStateMachine;
 public class RestoreState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
+    public Guid? ItemId { get; set; }
     public string CurrentState { get; set; }
     public DateTime RestoreDate { get; set; }
     public string UserLogin { get; set; }

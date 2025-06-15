@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Image;
 using Common.Contracts.Processing;
@@ -137,12 +136,12 @@ public class RestoreSnapShotProcessing
                     (
                         new DataForProcessingService
                         {
-                            Id = item.id ?? Guid.NewGuid(),
+                            ItemId = item.ItemId.Value,
                             DataType = nameof(ImageItem),
                             Data = JsonSerializer.Serialize(new ImageDTO
                             {
-                                Id = item.id,
-                                AuctionId = item.auctionid ?? Guid.NewGuid(),
+                                ItemId = item.ItemId,
+                                AuctionId = item.auctionid.Value,
                                 Image = ImageBase64
                             }),
                             CRUD = CRUD.Create,
@@ -176,12 +175,12 @@ public class RestoreSnapShotProcessing
                         (
                             new DataForProcessingService
                             {
-                                Id = item.id ?? Guid.NewGuid(),
+                                ItemId = item.ItemId.Value,
                                 DataType = nameof(ImageItem),
                                 Data = JsonSerializer.Serialize(new ImageDTO
                                 {
-                                    Id = item.id,
-                                    AuctionId = item.auctionid ?? Guid.NewGuid(),
+                                    ItemId = item.ItemId,
+                                    AuctionId = item.auctionid.Value,
                                     Image = ImageBase64.Substring(splitPointer,
                                     imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
                                 }),

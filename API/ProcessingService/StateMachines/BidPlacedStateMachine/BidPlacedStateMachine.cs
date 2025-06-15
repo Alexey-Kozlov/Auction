@@ -86,7 +86,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.Bidder = context.Message.Bidder;
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Amount = context.Message.Amount;
-                context.Saga.BidId = Guid.NewGuid();
+                context.Saga.ItemId = Guid.NewGuid();
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 5;
             })

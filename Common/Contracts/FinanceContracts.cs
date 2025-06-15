@@ -78,7 +78,7 @@ public class FinanceCommit
 
 public class FinanceItem
 {
-     public Guid? Id { get; set; }
+     public Guid? ItemId { get; set; }
      public Guid FinanceId { get; set; }
      public Guid? AuctionId { get; set; }
      public string UserLogin { get; set; }
@@ -91,7 +91,7 @@ public class FinanceItem
 
 public class FinanceHistoryItem
 {
-     public Guid? Id { get; set; }
+     public Guid? ItemId { get; set; }
      public Guid FinanceId { get; set; }
      public Guid? AuctionId { get; set; }
      public string UserLogin { get; set; }

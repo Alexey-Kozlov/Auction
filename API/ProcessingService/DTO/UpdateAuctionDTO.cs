@@ -1,7 +1,8 @@
 namespace ProcessingService.DTO;
+
 public class UpdateAuctionDTO
 {
-    public Guid Id { get; set; }
+    public Guid ItemId { get; set; }
     public Guid AuctionId { get; set; }
     public string Title { get; set; }
     public string Properties { get; set; }

@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import { FinanceItem } from "../../types";
 import { GrMoney } from "react-icons/gr";
 import { Button } from "primereact/button";
@@ -14,7 +13,7 @@ export default function FinanceCreatedToast({ finance, toastId }: Props) {
 			<div className="ToastCloseButton">
 				<Button
 					className="MainButton w-40"
-					onClick={() => toast.dismiss(toastId)}
+					//onClick={() => toast.dismiss(toastId)}
 				>
 					X
 				</Button>

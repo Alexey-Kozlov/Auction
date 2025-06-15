@@ -16,6 +16,7 @@ import { processingReducer } from "./processingSlice";
 import serviceApi from "../api/ServiceApi";
 import { chatMessageReducer, chatResponseReducer } from "./chatSlice";
 import communicationApi from "../api/CommunicationApi";
+import { serviceReducer } from "./serviceSlice";
 
 const store = configureStore({
 	reducer: {
@@ -27,6 +28,7 @@ const store = configureStore({
 		processingStore: processingReducer,
 		chatMessageStore: chatMessageReducer,
 		chatResponseStore: chatResponseReducer,
+		serviceStore: serviceReducer,
 		[auctionApi.reducerPath]: auctionApi.reducer,
 		[authApi.reducerPath]: authApi.reducer,
 		[bidApi.reducerPath]: bidApi.reducer,

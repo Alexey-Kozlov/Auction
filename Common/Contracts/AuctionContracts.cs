@@ -12,7 +12,7 @@ public interface IAuctionImageSplit
 
 public class AuctionItem
 {
-      public Guid? Id { get; set; }
+      public Guid? ItemId { get; set; }
       public Guid AuctionId { get; set; }
       public int ReservePrice { get; set; }
       public string Seller { get; set; }
@@ -271,7 +271,7 @@ public class AuctionDeleteESCommit : IFaultMessage
 #region AuctionUpdate
 public class RequestAuctionUpdate : IAuctionImageSplit
 {
-      public Guid Id { get; set; }
+      public Guid ItemId { get; set; }
       public Guid AuctionId { get; set; }
       public string Title { get; set; }
       public string Properties { get; set; }

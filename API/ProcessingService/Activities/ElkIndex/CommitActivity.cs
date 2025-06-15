@@ -1,4 +1,3 @@
-using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
@@ -32,6 +31,7 @@ public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCom
             context.Saga.UserLogin,
             Command.IndexELK,
             "",
+            null,
             null,
             context.Saga.IsError,
             context.Message.ErrorMessage,

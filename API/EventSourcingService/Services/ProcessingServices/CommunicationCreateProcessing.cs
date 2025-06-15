@@ -31,7 +31,8 @@ public class CommunicationCreateProcessing
         {
             var result = await _dbContext.communication_create(
                 context.Message.CorrelationId,
-                context.Message.AuctionId ?? Guid.NewGuid(),
+                context.Message.ItemId.Value,
+                context.Message.AuctionId.Value,
                 context.Message.EventData,
                 context.Message.UserLogin
                 ).ToListAsync();

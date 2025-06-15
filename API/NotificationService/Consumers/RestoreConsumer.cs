@@ -31,7 +31,7 @@ public class RestoreConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
                 var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
                 typedItem.Commited = false;
                 typedItem.CorrelationId = correlationId;
-                typedItem.Id = Guid.NewGuid();
+                typedItem.ItemId = Guid.NewGuid();
                 await _dbContext.NotifyItems.AddAsync(typedItem);
             }
             if (context.Message.DataObjects.Any())

@@ -43,7 +43,7 @@ export default function BidList({ user, auction }: Props) {
 			const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
 				return Date.parse(b.bidTime) - Date.parse(a.bidTime);
 			})[0];
-			setLastBidId(maxBidId.bidId);
+			setLastBidId(maxBidId.itemId);
 		}
 		// eslint-disable-next-line
 	}, [bidList, bids]);
@@ -83,7 +83,7 @@ export default function BidList({ user, auction }: Props) {
 
 	return (
 		<div>
-			<div className="mb-30">
+			<div className="">
 				{bids?.length === 0 ? (
 					<Heading
 						title="Нет предложений для этого аукциона"
@@ -100,7 +100,7 @@ export default function BidList({ user, auction }: Props) {
 			<div>
 				<div className="BidListHeight">
 					{bids?.map((bid, index) => (
-						<div key={bid?.bidId} ref={itemsRef} className="BidListItem">
+						<div key={bid?.itemId} ref={itemsRef} className="BidListItem">
 							<BidItem bid={bid} />
 						</div>
 					))}
@@ -109,7 +109,7 @@ export default function BidList({ user, auction }: Props) {
 			<div className="DetailNotifyText text-center">
 				{!open ? (
 					<div>Аукцион завершен</div>
-				) : !user?.id ? (
+				) : !user?.itemId ? (
 					<div>Войдите в систему чтобы делать заявки</div>
 				) : user && user.login === auction?.seller ? (
 					<div>Невозможно сделать заявку для собственного аукциона</div>

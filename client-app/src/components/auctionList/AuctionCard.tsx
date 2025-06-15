@@ -3,7 +3,6 @@ import { Auction } from "../../types";
 import ImageCard from "./ImageCard";
 import CountdownTimer from "./CountDownTimer";
 import CurrentBid from "./CurrentBid";
-import { classNames } from "primereact/utils";
 
 type Props = {
 	auction: Auction;
@@ -15,7 +14,7 @@ export default function AuctionCard({ auction }: Props) {
 			<div className="AuctionCardItem">
 				<NavLink to={`/auctions/${auction.auctionId}`} className="no-underline">
 					<div className="text-center">
-						<ImageCard id={auction.auctionId} zooming={false} cache={true} />
+						<ImageCard id={auction.auctionId} detail={false} cache={true} />
 					</div>
 					<div className="AuctionCardTitleContainer">
 						<div className="AuctionCardTitle">

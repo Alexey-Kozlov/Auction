@@ -1,24 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { ChatComment, ChatResponse } from "../types";
+import { ActionType, ChatComment, ChatResponse } from "../types";
 
 const initialChatMessage: ChatComment = {
-	id: "",
+	itemId: "",
 	message: "",
 	parentId: "",
 	userLogin: "",
 	auctionId: "",
 	updateAt: new Date(),
 	sessionId: "",
+	actionType: ActionType.read,
 };
 
 const initialResponse: ChatResponse = {
-	id: "",
+	itemId: "",
 	message: "",
 	parentId: "",
 	userLogin: "",
 	auctionId: "",
 	updateAt: new Date(),
-	action: null,
+	actionType: null,
 };
 
 export const chatMessage = createSlice({
@@ -26,13 +27,15 @@ export const chatMessage = createSlice({
 	initialState: initialChatMessage,
 	reducers: {
 		setChatMessage: (state, action) => {
-			if (action.payload?.id) state.id = action.payload.id;
+			if (action.payload?.itemId) state.itemId = action.payload.itemId;
 			if (action.payload?.message) state.message = action.payload.message;
 			if (action.payload?.parentId) state.parentId = action.payload.parentId;
 			if (action.payload?.userLogin) state.userLogin = action.payload.userLogin;
 			if (action.payload?.auctionId) state.auctionId = action.payload.auctionId;
 			if (action.payload?.updateAt) state.updateAt = action.payload.updateAt;
 			if (action.payload?.sessionId) state.sessionId = action.payload.sessionId;
+			if (action.payload?.actionType !== null)
+				state.actionType = action.payload.actionType;
 		},
 	},
 });
@@ -42,13 +45,14 @@ export const chatResponse = createSlice({
 	initialState: initialResponse,
 	reducers: {
 		setChatResponse: (state, action) => {
-			if (action.payload?.id) state.id = action.payload.id;
+			if (action.payload?.itemId) state.itemId = action.payload.itemId;
 			if (action.payload?.message) state.message = action.payload.message;
 			if (action.payload?.parentId) state.parentId = action.payload.parentId;
 			if (action.payload?.userLogin) state.userLogin = action.payload.userLogin;
 			if (action.payload?.auctionId) state.auctionId = action.payload.auctionId;
 			if (action.payload?.updateAt) state.updateAt = action.payload.updateAt;
-			if (action.payload?.action !== null) state.action = action.payload.action;
+			if (action.payload?.actionType !== null)
+				state.actionType = action.payload.actionType;
 		},
 	},
 });

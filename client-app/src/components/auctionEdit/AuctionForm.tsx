@@ -7,7 +7,6 @@ import {
 	FormErrors,
 	ProcessingState,
 } from "../../types";
-import DatePickerInput from "../inputComponents/DatePickerInput";
 import ImageFileInput from "../inputComponents/ImageFileInput";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
@@ -41,7 +40,7 @@ export default function AuctionForm() {
 	//дата нового аукциона - на сутки вперед от текущей
 	auctionEndDate.setDate(auctionEndDate.getDate() + 1);
 	const [newAuction, setNewAuction] = useState<Auction>({
-		id: id,
+		auctionId: id,
 		title: "",
 		properties: "",
 		auctionEnd: auctionEndDate,
@@ -59,13 +58,11 @@ export default function AuctionForm() {
 	const editErrorList: FormErrors[] = [
 		{
 			name: "EmptyTitle",
-			topic: "Ошибка - пустое наименование аукциона!",
-			detail: "Нужно указать наименование аукциона",
+			message: "Нужно указать наименование аукциона",
 		},
 		{
 			name: "ErrorEndDate",
-			topic: "Ошибка - дата окончания аукциона!",
-			detail: `Нужно указать дату окончания аукциона не ранее чем за 1 минуту до текущей даты`,
+			message: `Нужно указать дату окончания аукциона не ранее чем за 1 минуту до текущей даты`,
 		},
 	];
 
@@ -208,9 +205,6 @@ export default function AuctionForm() {
 		//обработка данных
 		setIsWaiting(() => true);
 		const auctionUpdated: AuctionUpdated = {
-			id: auction.data?.result.id
-				? auction.data!.result.id
-				: (uuid.v4() as string),
 			auctionId: id,
 			title: newAuction.title,
 			description: newAuction.description ? newAuction.description : "",

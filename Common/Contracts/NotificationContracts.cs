@@ -100,7 +100,7 @@ public class NotificationProgress
 
 public class NotifyItem
 {
-     public Guid? Id { get; set; }
+     public Guid? ItemId { get; set; }
      public Guid AuctionId { get; set; }
      public string UserLogin { get; set; }
      public Guid CorrelationId { get; set; }

@@ -6,6 +6,7 @@ using Common.Contracts.Processing;
 using MassTransit;
 
 namespace ProcessingService.StateMachines.ElkSearchStateMachine;
+
 public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
 {
     public State ElkSearchState { get; }
@@ -37,7 +38,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
             When(RequestElkSearchEvent)
             .Then(context =>
             {
-                context.Saga.AuctionId = context.Message.Id;
+                context.Saga.AuctionId = context.Message.ItemId;
                 context.Saga.Term = context.Message.SearchTerm;
                 context.Saga.PageSize = context.Message.PageSize;
                 context.Saga.PageNumber = context.Message.PageNumber;
@@ -55,7 +56,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                             CRUD = CRUD.Create,
                             DataType = "ElkSearchCreating",
                             Data = JsonSerializer.Serialize(new ElkSearchCreating(
-                                context.Message.Id,
+                                context.Message.ItemId,
                                 context.Saga.CorrelationId,
                                 context.Message.SearchTerm,
                                 context.Message.PageNumber,

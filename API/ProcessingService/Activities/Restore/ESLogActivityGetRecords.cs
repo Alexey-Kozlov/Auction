@@ -36,6 +36,7 @@ public class ESLogActivityGetRecords : IStateMachineActivity<RestoreState, Reset
             Command.RestoreSnapShot,
             "",
             null,
+            null,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,

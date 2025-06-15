@@ -36,7 +36,7 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
                     switch (item.CRUD)
                     {
                         case CRUD.Create:
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.Bids.AddAsync(typedItem);
                             break;

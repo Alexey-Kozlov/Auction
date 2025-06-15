@@ -1,32 +1,12 @@
-import {
-	AiOutlineSortAscending,
-	AiOutlineSortDescending,
-} from "react-icons/ai";
-import { ImSortAmountDesc, ImSortAmountAsc } from "react-icons/im";
 import { BsStopwatchFill } from "react-icons/bs";
 import { GiFinishLine, GiFlame } from "react-icons/gi";
 import { useDispatch, useSelector } from "react-redux";
 import { setParams } from "../../store/paramSlice";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
 import { State } from "../../types";
 import { SelectItem } from "primereact/selectitem";
 import { RootState } from "../../store/store";
-
-const pageSizeButtons = [
-	{
-		label: "4",
-		value: 4,
-	},
-	{
-		label: "8",
-		value: 8,
-	},
-	{
-		label: "16",
-		value: 16,
-	},
-];
 
 const filterButtons = [
 	{
@@ -51,14 +31,21 @@ export default function Filters() {
 	const [orderItem, setOrderItem] = useState<SelectItem[]>([
 		{
 			label: "Наименование",
-			icon: <AiOutlineSortAscending />,
+			icon: <i className="pi pi-sort-alpha-down" />,
 			value: "titleAsc",
 		},
-		{ label: "Окончание", icon: <ImSortAmountAsc />, value: "endAsc" },
-		{ label: "Недавние", icon: <ImSortAmountAsc />, value: "newDesc" },
+		{
+			label: "Окончание",
+			icon: <i className="pi pi-sort-amount-down" />,
+			value: "endAsc",
+		},
+		{
+			label: "Недавние",
+			icon: <i className="pi pi-sort-amount-up" />,
+			value: "newDesc",
+		},
 	]);
 	const [lastOrder, setLastOrder] = useState("newDesc");
-	const pageSize = useSelector((state: RootState) => state.paramStore).pageSize;
 	const orderBy = useSelector((state: RootState) => state.paramStore).orderBy;
 	const filterBy = useSelector((state: RootState) => state.paramStore).filterBy;
 
@@ -88,10 +75,10 @@ export default function Filters() {
 					) {
 						if (item.value === "titleAsc") {
 							prev[0].value = "titleDesc";
-							prev[0].icon = <AiOutlineSortDescending />;
+							prev[0].icon = <i className="pi pi-sort-alpha-up" />;
 						} else {
 							prev[0].value = "titleAsc";
-							prev[0].icon = <AiOutlineSortAscending />;
+							prev[0].icon = <i className="pi pi-sort-alpha-down" />;
 						}
 					}
 
@@ -102,10 +89,10 @@ export default function Filters() {
 					) {
 						if (item.value === "endAsc") {
 							prev[1].value = "endDesc";
-							prev[1].icon = <ImSortAmountDesc />;
+							prev[1].icon = <i className="pi pi-sort-amount-up" />;
 						} else {
 							prev[1].value = "endAsc";
-							prev[1].icon = <ImSortAmountAsc />;
+							prev[1].icon = <i className="pi pi-sort-amount-down" />;
 						}
 					}
 
@@ -116,10 +103,10 @@ export default function Filters() {
 					) {
 						if (item.value === "newAsc") {
 							prev[2].value = "newDesc";
-							prev[2].icon = <ImSortAmountDesc />;
+							prev[2].icon = <i className="pi pi-sort-amount-up" />;
 						} else {
 							prev[2].value = "newAsc";
-							prev[2].icon = <ImSortAmountAsc />;
+							prev[2].icon = <i className="pi pi-sort-amount-down" />;
 						}
 					}
 				});

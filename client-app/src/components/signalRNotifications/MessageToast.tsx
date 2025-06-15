@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import { ToastType } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
 import { VscError } from "react-icons/vsc";
@@ -28,7 +27,7 @@ export default function MessageToast({ message, toastId, toastType }: Props) {
 				<div className="ToastCloseButton">
 					<Button
 						className="MainButton w-40"
-						onClick={() => toast.dismiss(toastId)}
+						//onClick={() => toast.dismiss(toastId)}
 					>
 						X
 					</Button>

@@ -133,6 +133,8 @@ internal class Program
         builder.Services.AddScoped<EditNotificationProcessing>();
         builder.Services.AddScoped<RestoreSnapShotProcessing>();
         builder.Services.AddScoped<CommunicationCreateProcessing>();
+        builder.Services.AddScoped<CommunicationDeleteProcessing>();
+        builder.Services.AddScoped<CommunicationUpdateProcessing>();
         builder.Services.AddSingleton<RestoreImageService>();
 
         var app = builder.Build();

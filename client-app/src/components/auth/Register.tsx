@@ -1,19 +1,23 @@
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRegisterUserMutation } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import { ApiResponse, CreateUser, FormErrors } from "../../types";
 import { Button } from "primereact/button";
-import { Toast } from "primereact/toast";
 import { Panel } from "primereact/panel";
 import { FloatLabel } from "primereact/floatlabel";
 import { InputText } from "primereact/inputtext";
 import { Message } from "primereact/message";
 import { Password } from "primereact/password";
+import { Toast } from "primereact/toast";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
 export default function Register() {
 	const [registerUser] = useRegisterUserMutation();
 	const navigate = useNavigate();
-	const toastMessage = useRef<Toast>(null);
+	const toastMessage: Toast | null = useSelector(
+		(state: RootState) => state.serviceStore
+	).toast;
 	const [loginUserModel, setLoginUserModel] = useState<CreateUser>({
 		name: "",
 		login: "",
@@ -84,7 +88,7 @@ export default function Register() {
 			password: loginUserModel.password,
 		});
 		if (response.data && response.data.isSuccess) {
-			toastMessage.current!.show({
+			toastMessage!.show({
 				severity: "success",
 				summary: "Успешное действие",
 				detail: `Пользователь ${loginUserModel.name} успешно зарегистрирован! 
@@ -92,16 +96,17 @@ export default function Register() {
 				life: 4000,
 			});
 			navigate("/");
+		} else {
+			//ошибка создания
+			setEditError(() => editErrorList.find((p) => p.name === "ErrorCreate")!);
+			toastMessage!.show({
+				severity: "error",
+				summary: "Ошибка действия",
+				detail: `Ошибка создания нового пользователя - ${response.data?.errorMessages[0]}`,
+				life: 4000,
+			});
+			setSubmittingCreate(false);
 		}
-		//ошибка создания
-		setEditError(() => editErrorList.find((p) => p.name === "ErrorCreate")!);
-		toastMessage.current!.show({
-			severity: "error",
-			summary: "Ошибка действия",
-			detail: `Ошибка создания нового пользователя - ${response.data?.errorMessages[0]}`,
-			life: 4000,
-		});
-		setSubmittingCreate(false);
 	};
 
 	return (
@@ -234,7 +239,6 @@ export default function Register() {
 					</div>
 				</Panel>
 			</form>
-			<Toast ref={toastMessage} position="bottom-right" />
 		</div>
 	);
 }

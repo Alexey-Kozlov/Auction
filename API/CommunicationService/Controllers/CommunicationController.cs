@@ -24,8 +24,9 @@ public class CommunicationController : ControllerBase
     [HttpGet("{auctionId}")]
     public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems(string auctionId)
     {
+        //сортируем записи потом, на клиенте
         var items = await _context.Communications.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
-            .OrderByDescending(p => p.UpdateAt).ToListAsync();
+            .ToListAsync();
 
         return new ApiResponse<List<CommunicationDTO>>()
         {

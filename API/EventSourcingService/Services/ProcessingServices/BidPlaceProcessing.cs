@@ -44,7 +44,7 @@ public class BidPlaceProcessing
             //- запись о списании денег на новую ставку для текущего пользователя - для сервиса FinanceService
             var result = await _dbContext.place_bid(
                 context.Message.CorrelationId,
-                context.Message.AuctionId ?? Guid.NewGuid(),
+                context.Message.AuctionId.Value,
                 context.Message.EventData,
                 context.Message.UserLogin).ToListAsync();
             //возвращаем список записей для изменения соответствующих БД в нужных сервисах

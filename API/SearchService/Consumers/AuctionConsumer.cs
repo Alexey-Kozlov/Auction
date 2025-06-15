@@ -46,7 +46,7 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                             _dbContext.AuctionItems.Update(item);
                             break;
                         case CRUD.Create:
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.AuctionItems.AddAsync(typedItem);
                             break;
@@ -59,7 +59,7 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                             }
                             item2.CorrelationId = correlationId;
                             _dbContext.AuctionItems.Update(item2);
-                            typedItem.Id = Guid.NewGuid();
+                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.AuctionItems.AddAsync(typedItem);
                             break;

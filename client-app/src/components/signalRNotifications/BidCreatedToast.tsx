@@ -1,10 +1,9 @@
-import toast from "react-hot-toast";
 import { AuctionImage } from "../../types";
 import { NavLink } from "react-router-dom";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { Button } from "primereact/button";
-const empty = require("../../assets/Empty.png");
+//const empty = require("../../assets/Empty.png");
 
 type Props = {
 	auctionId: string;
@@ -27,14 +26,14 @@ export default function BidCreatedToast({ auctionId, toastId }: Props) {
 					<div className="ToastCloseButton">
 						<Button
 							className="MainButton w-40"
-							onClick={() => toast.dismiss(toastId)}
+							//onClick={() => toast.dismiss(toastId)}
 						>
 							X
 						</Button>
 					</div>
 					<NavLink to={`/auctions/${auctionId}`}>
 						<div className="ToastMessageContainer">
-							<img
+							{/* <img
 								className="ToastImage"
 								src={
 									!isLoading && (data?.result as AuctionImage)!.image
@@ -42,7 +41,7 @@ export default function BidCreatedToast({ auctionId, toastId }: Props) {
 										: empty
 								}
 								alt=""
-							/>
+							/> */}
 							<span className="ToastItemText">
 								{`Сделана новая ставка для аукциона "${bidAuction.data?.result.title}" - ${bidAuction.data?.result.currentHighBid} руб.`}
 							</span>

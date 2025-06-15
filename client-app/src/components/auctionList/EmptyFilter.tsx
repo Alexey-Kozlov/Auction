@@ -20,10 +20,10 @@ export default function EmptyFilter({
 	};
 	return (
 		<div>
-			<Heading title={title} subtitle={subtitle} center />
+			<Heading title={title} subtitle={subtitle} />
 			<div className="AuctionCardTitleContainer">
 				{showReset && (
-					<Button className="MainButton w-200" onClick={clearFilters}>
+					<Button text raised rounded className="w-200" onClick={clearFilters}>
 						Удалить фильтры
 					</Button>
 				)}

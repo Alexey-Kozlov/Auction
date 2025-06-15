@@ -25,7 +25,7 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
         await _sendEventToES.SendItemToEventSourcing(
             new AuctionItem
             {
-                Id = context.Message.Id,
+                ItemId = context.Message.ItemId,
                 UpdatedAt = DateTime.UtcNow,
                 Title = context.Message.Title,
                 AuctionId = context.Message.AuctionId,
@@ -42,6 +42,7 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
             Command.AuctionUpdate,
             JsonSerializer.Serialize(context.Message),
             context.Saga.AuctionId,
+            context.Saga.ItemId,
             false,
             "", "", "");
         await next.Execute(context).ConfigureAwait(false);

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Common.Contracts.Auction;
 using Common.Contracts.Communication;
 using Common.Contracts.Processing;
 using Common.Utils;
@@ -26,6 +25,8 @@ public class ESLogActivity : IStateMachineActivity<CreateCommunicationState, Req
         await _sendEventToES.SendItemToEventSourcing(
             new CommunicationItem
             {
+                CorrelationId = context.Saga.CorrelationId,
+                ItemId = context.Saga.ItemId,
                 AuctionId = context.Saga.AuctionId,
                 Message = context.Saga.Message,
                 UserLogin = context.Saga.UserLogin,
@@ -35,11 +36,12 @@ public class ESLogActivity : IStateMachineActivity<CreateCommunicationState, Req
             },
             nameof(CommunicationItem),
             "Common.Contracts.Processing.ESLogCommunicationCreated",
-            context.Message.CorrelationId,
+            context.Saga.CorrelationId,
             context.Saga.UserLogin,
             Command.CommunicationCreate,
-            JsonSerializer.Serialize(context.Message),
+            "",
             context.Saga.AuctionId,
+            context.Saga.ItemId,
             false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
@@ -51,6 +53,6 @@ public class ESLogActivity : IStateMachineActivity<CreateCommunicationState, Req
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-create");
+        context.CreateScope("request-communication-create");
     }
 }

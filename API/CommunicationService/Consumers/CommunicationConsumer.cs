@@ -39,24 +39,24 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
                     case CRUD.Delete:
                         //удаляем запись
                         var delItem = await _dbContext.Communications.FirstOrDefaultAsync(p =>
-                            p.Id == typedItem.Id && p.Commited);
+                            p.ItemId == typedItem.ItemId && p.Commited);
                         if (delItem == null)
                         {
-                            throw new Exception($"Запись для удаления не найдена, Id - {typedItem.Id}");
+                            throw new Exception($"Запись для удаления не найдена, ItemId - {typedItem.ItemId}");
                         }
                         delItem.CorrelationId = correlationId;
                         _dbContext.Communications.Update(delItem);
                         break;
                     case CRUD.Update:
                         var item2 = await _dbContext.Communications.FirstOrDefaultAsync(p =>
-                            p.Id == typedItem.Id && p.Commited);
+                            p.ItemId == typedItem.ItemId && p.Commited);
                         if (item2 == null)
                         {
-                            throw new Exception($"Запись для обновления не найдена, Id - {typedItem.Id}");
+                            throw new Exception($"Запись для обновления не найдена, Id - {typedItem.ItemId}");
                         }
                         item2.CorrelationId = correlationId;
                         _dbContext.Communications.Update(item2);
-                        typedItem.Id = Guid.NewGuid();
+                        typedItem.ItemId = item2.ItemId;
                         typedItem.Commited = false;
                         await _dbContext.Communications.AddAsync(typedItem);
                         break;

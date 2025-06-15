@@ -12,4 +12,5 @@ public class ElkIndexState : SagaStateMachineInstance
     public bool IsError { get; set; }
     public string CallBackType { get; set; }
     public bool ShowMessages { get; set; }
+    public Guid? ItemId { get; set; }
 }

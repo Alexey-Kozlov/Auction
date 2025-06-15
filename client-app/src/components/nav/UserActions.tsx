@@ -13,13 +13,9 @@ import { RootState } from "../../store/store";
 import { emptyUserState, setAuthUser } from "../../store/authSlice";
 import { setParams } from "../../store/paramSlice";
 import { setEventFlag } from "../../store/processingSlice";
-import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 import { useLogoutUserMutation } from "../../api/AuthApi";
 import MessageToast from "../signalRNotifications/MessageToast";
-import ModalConfirm from "../modals/ModalConfirm";
-import ModalRestore from "../modals/ModalRestore";
-import { Dropdown } from "primereact/dropdown";
 import { Menu } from "primereact/menu";
 import { Menubar } from "primereact/menubar";
 import { Button } from "primereact/button";
@@ -57,34 +53,34 @@ export default function UserActions() {
 						param: { dateValue: dateValue, resetLog: resetLog },
 					})
 				);
-				toast(
-					(p) => (
-						<MessageToast
-							message={"Старт восстановления БД из ES..."}
-							toastId={p.id}
-							toastType={ToastType.Info}
-						/>
-					),
-					{
-						duration: 5000,
-					}
-				);
+				// toast(
+				// 	(p) => (
+				// 		<MessageToast
+				// 			message={"Старт восстановления БД из ES..."}
+				// 			toastId={p.id}
+				// 			toastType={ToastType.Info}
+				// 		/>
+				// 	),
+				// 	{
+				// 		duration: 5000,
+				// 	}
+				// );
 			}
 			//нажали "Ок" в окне создания SnapShot
 			if (confirmParam.handler === "SetSnapShot") {
 				dispatch(setEventFlag({ eventName: "SetSnapShot", ready: false }));
-				toast(
-					(p) => (
-						<MessageToast
-							message={"Старт создания снимка БД в ES..."}
-							toastId={p.id}
-							toastType={ToastType.Info}
-						/>
-					),
-					{
-						duration: 5000,
-					}
-				);
+				// toast(
+				// 	(p) => (
+				// 		<MessageToast
+				// 			message={"Старт создания снимка БД в ES..."}
+				// 			toastId={p.id}
+				// 			toastType={ToastType.Info}
+				// 		/>
+				// 	),
+				// 	{
+				// 		duration: 5000,
+				// 	}
+				// );
 			}
 		}
 		setShowConfirm(false);
@@ -117,18 +113,18 @@ export default function UserActions() {
 
 	const handlerElkReindexClick = () => {
 		dispatch(setEventFlag({ eventName: "ElkIndex", ready: false }));
-		return toast(
-			(p) => (
-				<MessageToast
-					message={"Старт переиндексации ELK..."}
-					toastId={p.id}
-					toastType={ToastType.Info}
-				/>
-			),
-			{
-				duration: 5000,
-			}
-		);
+		// return toast(
+		// 	(p) => (
+		// 		<MessageToast
+		// 			message={"Старт переиндексации ELK..."}
+		// 			toastId={p.id}
+		// 			toastType={ToastType.Info}
+		// 		/>
+		// 	),
+		// 	{
+		// 		duration: 5000,
+		// 	}
+		// );
 	};
 
 	const handlerSetSnapShotClick = () => {
@@ -154,27 +150,27 @@ export default function UserActions() {
 
 	const handlerResetImageCacheClick = () => {
 		dispatch(setEventFlag({ eventName: "ResetImageCache", ready: false }));
-		toast(
-			(p) => (
-				<MessageToast
-					message={"Сброс кеша изобюражений Redis..."}
-					toastId={p.id}
-					toastType={ToastType.Info}
-				/>
-			),
-			{
-				duration: 2000,
-			}
-		);
+		// toast(
+		// 	(p) => (
+		// 		<MessageToast
+		// 			message={"Сброс кеша изобюражений Redis..."}
+		// 			toastId={p.id}
+		// 			toastType={ToastType.Info}
+		// 		/>
+		// 	),
+		// 	{
+		// 		duration: 2000,
+		// 	}
+		// );
 	};
 
 	const handleFinanceClick = () => {
 		navigate("/finance/list");
 	};
 
-	const handleReportClick = () => {
-		window.location.href = process.env.REACT_APP_REPORT_URL!;
-	};
+	// const handleReportClick = () => {
+	// 	window.location.href = process.env.REACT_APP_REPORT_URL!;
+	// };
 
 	const handleCreateAuctionClick = () => {
 		navigate("/auctions/create");

@@ -84,10 +84,25 @@ public class EventSourcingDbContext : DbContext
         FromExpression(() => get_auction_finished(correlationid));
     public IQueryable<ReturnResultSql> communication_create(
         Guid correlationid,
+        Guid itemid,
         Guid auctionid,
         string eventdata,
         string userLogin) =>
-        FromExpression(() => communication_create(correlationid, auctionid, eventdata, userLogin));
+        FromExpression(() => communication_create(correlationid, itemid, auctionid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> communication_delete(
+        Guid correlationid,
+        Guid itemid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => communication_delete(correlationid, itemid, auctionid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> communication_update(
+        Guid correlationid,
+        Guid itemid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => communication_update(correlationid, itemid, auctionid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -106,8 +121,11 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => restore_snap_shot_images(default, default, default));
         modelBuilder.HasDbFunction(() => reset_snap_shot(default));
         modelBuilder.HasDbFunction(() => get_auction_finished(default));
-        modelBuilder.HasDbFunction(() => communication_create(default, default, default, default));
+        modelBuilder.HasDbFunction(() => communication_create(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => communication_delete(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => communication_update(default, default, default, default, default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
+        modelBuilder.Entity<ImageReturnTypeSql>().HasNoKey();
     }
 }
 

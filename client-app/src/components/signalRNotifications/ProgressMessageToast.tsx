@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import { ProgressToast } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
 import { Button } from "primereact/button";
@@ -16,7 +15,7 @@ export default function ProgressMessageToast({ message, toastId }: Props) {
 				<div className="ToastCloseButton">
 					<Button
 						className="MainButton w-40"
-						onClick={() => toast.dismiss(toastId)}
+						//onClick={() => toast.dismiss(toastId)}
 					>
 						X
 					</Button>

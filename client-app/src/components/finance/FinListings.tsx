@@ -34,8 +34,7 @@ export default function FinListings() {
 	const editErrorList: FormErrors[] = [
 		{
 			name: "NegativeAmount",
-			topic: "Ошибка ввода платежа!",
-			detail: "Нужно указать платеж больше 0",
+			message: "Нужно указать платеж больше 0",
 		},
 	];
 	const [sortState, setSortState] = useState<FinanceSortType>({
@@ -207,7 +206,6 @@ export default function FinListings() {
 										hidden={
 											editError !== null && editError.name !== "NegativeAmount"
 										}
-										content={editError?.detail}
 									/>
 								</div>
 							</div>

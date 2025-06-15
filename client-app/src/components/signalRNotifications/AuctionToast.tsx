@@ -1,9 +1,8 @@
-import toast from "react-hot-toast";
 import { AuctionImage } from "../../types";
 import { NavLink } from "react-router-dom";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { Button } from "primereact/button";
-const empty = require("../../assets/Empty.png");
+//const empty = require("../../assets/Empty.png");
 
 type Props = {
 	auctionId: string;
@@ -24,14 +23,14 @@ export default function AuctionToast({ auctionId, toastId, message }: Props) {
 			<div className="ToastCloseButton">
 				<Button
 					className="MainButton w-40"
-					onClick={() => toast.dismiss(toastId)}
+					//onClick={() => toast.dismiss(toastId)}
 				>
 					X
 				</Button>
 			</div>
 			<NavLink to={`/auctions/${auctionId}`}>
 				<div className="ToastMessageContainer">
-					<img
+					{/* <img
 						src={
 							!isLoading && (data?.result as AuctionImage)!.image
 								? `data:image/png;base64 , ${data?.result["image"]}`
@@ -39,7 +38,7 @@ export default function AuctionToast({ auctionId, toastId, message }: Props) {
 						}
 						alt=""
 						className="ToastImage"
-					/>
+					/> */}
 					<span className="ToastItemText">{`${message}`}</span>
 				</div>
 			</NavLink>

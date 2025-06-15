@@ -23,7 +23,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
     }
     public async Task Consume(ConsumeContext<NotificationServiceError> context)
     {
-        context.Message.TraceId = context.Message.TraceId ?? Guid.NewGuid();
+        context.Message.TraceId = context.Message.TraceId.Value;
         var group = string.IsNullOrEmpty(context.Message.UserLogin) ?
             context.Message.SessionId :
             context.Message.UserLogin;
@@ -83,6 +83,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         loggingServiceErrorItem.UserLogin = "SystemService";
         loggingServiceErrorItem.IsError = errorItem.IsError;
         loggingServiceErrorItem.TraceId = errorItem.TraceId;
+        loggingServiceErrorItem.ItemId = errorItem.ItemId;
         //посылаем сообщение об ошибке через RabbitMq в LoggingService -> Consumers -> LoggingServiceErrorConsumer
         await _publishEndpoint.Publish(loggingServiceErrorItem);
     }

@@ -36,6 +36,7 @@ public class CommitActivity : IStateMachineActivity<CreateCommunicationState, Co
             Command.CommunicationCreate,
             "",
             context.Saga.AuctionId,
+            context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,
@@ -76,6 +77,6 @@ public class CommitActivity : IStateMachineActivity<CreateCommunicationState, Co
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("request-communication-create");
     }
 }

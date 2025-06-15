@@ -94,7 +94,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             item.Data = JsonSerializer.Serialize(new
                             {
                                 AuctionId = auctionId,
-                                item.Id,
+                                item.ItemId,
                                 Commited = true,
                                 context.Message.CorrelationId
                             });

@@ -38,6 +38,7 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             Command.PlaceBid,
             "",
             context.Saga.AuctionId,
+            context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,

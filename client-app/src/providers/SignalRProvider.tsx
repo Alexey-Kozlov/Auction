@@ -4,7 +4,6 @@ import {
 	HubConnectionState,
 } from "@microsoft/signalr";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import {
 	ActionType,
 	Auction,
@@ -93,12 +92,12 @@ export default function SignalRProvider() {
 						})
 					);
 					if (message.show) {
-						return toast(
-							(p) => (
-								<BidCreatedToast auctionId={bid.AuctionId} toastId={p.id} />
-							),
-							{ duration: 5000 }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<BidCreatedToast auctionId={bid.AuctionId} toastId={p.id} />
+						// 	),
+						// 	{ duration: 5000 }
+						// );
 					}
 				});
 
@@ -118,16 +117,16 @@ export default function SignalRProvider() {
 						})
 					);
 					if (user?.login !== auction.seller && auction.show) {
-						return toast(
-							(p) => (
-								<AuctionToast
-									auctionId={auction.auctionId}
-									toastId={p.id}
-									message={`Создан новый аукцион - "${auction.title}"`}
-								/>
-							),
-							{ duration: 5000 }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<AuctionToast
+						// 			auctionId={auction.auctionId}
+						// 			toastId={p.id}
+						// 			message={`Создан новый аукцион - "${auction.title}"`}
+						// 		/>
+						// 	),
+						// 	{ duration: 5000 }
+						// );
 					}
 				});
 
@@ -147,16 +146,16 @@ export default function SignalRProvider() {
 						})
 					);
 					if (auction.show) {
-						return toast(
-							(p) => (
-								<AuctionToast
-									auctionId={auction.auctionId}
-									toastId={p.id}
-									message={`Обновлен аукцион - "${auction.title}"`}
-								/>
-							),
-							{ duration: 5000 }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<AuctionToast
+						// 			auctionId={auction.auctionId}
+						// 			toastId={p.id}
+						// 			message={`Обновлен аукцион - "${auction.title}"`}
+						// 		/>
+						// 	),
+						// 	{ duration: 5000 }
+						//);
 					}
 				});
 
@@ -172,16 +171,16 @@ export default function SignalRProvider() {
 						? `Поздравления для победителя аукциона "${finishedAuction.winner}",
                                 итоговая стоимость лота - ${finishedAuction.amount} руб.`
 						: `Лот не был продан.`;
-					return toast(
-						(p) => (
-							<AuctionToast
-								auctionId={finishedAuction.auctionId}
-								toastId={p.id}
-								message={message}
-							/>
-						),
-						{ duration: 10000 }
-					);
+					// return toast(
+					// 	(p) => (
+					// 		<AuctionToast
+					// 			auctionId={finishedAuction.auctionId}
+					// 			toastId={p.id}
+					// 			message={message}
+					// 		/>
+					// 	),
+					// 	{ duration: 10000 }
+					// );
 				});
 
 				connection.on("AuctionDeleted", (auction: any) => {
@@ -193,16 +192,16 @@ export default function SignalRProvider() {
 						})
 					);
 					if (auction.show) {
-						return toast(
-							(p) => (
-								<AuctionToast
-									auctionId={auction.auctionId}
-									toastId={p.id}
-									message={`Аукцион - "${auction.title}" удален`}
-								/>
-							),
-							{ duration: 5000 }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<AuctionToast
+						// 			auctionId={auction.auctionId}
+						// 			toastId={p.id}
+						// 			message={`Аукцион - "${auction.title}" удален`}
+						// 		/>
+						// 	),
+						// 	{ duration: 5000 }
+						// );
 					}
 				});
 
@@ -210,10 +209,10 @@ export default function SignalRProvider() {
 					dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					if (finance.show) {
-						return toast(
-							(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
-							{ duration: 5000 }
-						);
+						// return toast(
+						// 	(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
+						// 	{ duration: 5000 }
+						// );
 					}
 				});
 
@@ -230,45 +229,45 @@ export default function SignalRProvider() {
 				connection.on("ElkIndex", (result: ProgressToast) => {
 					dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
 					if (result.show) {
-						return toast(
-							(p) => (
-								<MessageToast
-									message={result.message}
-									toastId={p.id}
-									toastType={ToastType.Info}
-								/>
-							),
-							{ duration: result.duration }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<MessageToast
+						// 			message={result.message}
+						// 			toastId={p.id}
+						// 			toastType={ToastType.Info}
+						// 		/>
+						// 	),
+						// 	{ duration: result.duration }
+						// );
 					}
 				});
 
 				connection.on("SetSnapShot", (result: string) => {
 					dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
-					return toast(
-						(p) => (
-							<MessageToast
-								message={result}
-								toastId={p.id}
-								toastType={ToastType.Info}
-							/>
-						),
-						{ duration: 5000 }
-					);
+					// return toast(
+					// 	(p) => (
+					// 		<MessageToast
+					// 			message={result}
+					// 			toastId={p.id}
+					// 			toastType={ToastType.Info}
+					// 		/>
+					// 	),
+					// 	{ duration: 5000 }
+					// );
 				});
 
 				connection.on("RestoreSnapShot", (result: string) => {
 					dispatch(setEventFlag({ eventName: "RestoreSnapShot", ready: true }));
-					return toast(
-						(p) => (
-							<MessageToast
-								message={result}
-								toastId={p.id}
-								toastType={ToastType.Info}
-							/>
-						),
-						{ duration: 5000 }
-					);
+					// return toast(
+					// 	(p) => (
+					// 		<MessageToast
+					// 			message={result}
+					// 			toastId={p.id}
+					// 			toastType={ToastType.Info}
+					// 		/>
+					// 	),
+					// 	{ duration: 5000 }
+					// );
 				});
 
 				connection.on("ErrorMessage", (message: Message) => {
@@ -287,16 +286,16 @@ export default function SignalRProvider() {
 					};
 					//убираем иконку ожидания
 					dispatch(setEventFlag({ eventName: "ElkSearch", ready: true }));
-					return toast(
-						(p) => (
-							<MessageToast
-								message={message.message}
-								toastId={p.id}
-								toastType={getMessageType()}
-							/>
-						),
-						{ duration: 5000 }
-					);
+					// return toast(
+					// 	(p) => (
+					// 		<MessageToast
+					// 			message={message.message}
+					// 			toastId={p.id}
+					// 			toastType={getMessageType()}
+					// 		/>
+					// 	),
+					// 	{ duration: 5000 }
+					// );
 				});
 
 				connection.on("EditNotification", (result: any) => {
@@ -304,57 +303,57 @@ export default function SignalRProvider() {
 						setEventFlag({ eventName: "EditNotification", ready: true })
 					);
 					if (result.show) {
-						return toast(
-							(p) => (
-								<MessageToast
-									message={result.message}
-									toastId={p.id}
-									toastType={ToastType.Info}
-								/>
-							),
-							{ duration: 5000 }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<MessageToast
+						// 			message={result.message}
+						// 			toastId={p.id}
+						// 			toastType={ToastType.Info}
+						// 		/>
+						// 	),
+						// 	{ duration: 5000 }
+						// );
 					}
 				});
 
 				connection.on("RestoreProgress", (result: ProgressToast) => {
 					if (result.show) {
-						return toast(
-							(p) => (
-								<ProgressMessageToast
-									message={result}
-									toastId={progressToastId}
-								/>
-							),
-							{ duration: result.duration, id: progressToastId }
-						);
+						// return toast(
+						// 	(p) => (
+						// 		<ProgressMessageToast
+						// 			message={result}
+						// 			toastId={progressToastId}
+						// 		/>
+						// 	),
+						// 	{ duration: result.duration, id: progressToastId }
+						// );
 					}
 				});
 
 				connection.on("SetSnapShotProgress", (result: ProgressToast) => {
-					return toast(
-						(p) => (
-							<ProgressMessageToast
-								message={result}
-								toastId={progressToastId}
-							/>
-						),
-						{ duration: result.duration, id: progressToastId }
-					);
+					// return toast(
+					// 	(p) => (
+					// 		<ProgressMessageToast
+					// 			message={result}
+					// 			toastId={progressToastId}
+					// 		/>
+					// 	),
+					// 	{ duration: result.duration, id: progressToastId }
+					// );
 				});
 
 				connection.on("ResetImageCache", (result: string) => {
 					dispatch(setEventFlag({ eventName: "ResetImageCache", ready: true }));
-					return toast(
-						(p) => (
-							<MessageToast
-								message={result}
-								toastId={p.id}
-								toastType={ToastType.Info}
-							/>
-						),
-						{ duration: 2000 }
-					);
+					// return toast(
+					// 	(p) => (
+					// 		<MessageToast
+					// 			message={result}
+					// 			toastId={p.id}
+					// 			toastType={ToastType.Info}
+					// 		/>
+					// 	),
+					// 	{ duration: 2000 }
+					// );
 				});
 
 				connection.on(
@@ -370,13 +369,13 @@ export default function SignalRProvider() {
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					dispatch(
 						setChatResponse({
-							id: data.Id,
+							itemId: data.ItemId,
 							message: data.Message,
 							parentId: data.ParentId,
 							userLogin: data.UserLogin,
 							auctionId: data.AuctionId,
 							updateAt: data.UpdateAt,
-							action: ActionType.create,
+							actionType: ActionType.create,
 						})
 					);
 				});
@@ -386,13 +385,13 @@ export default function SignalRProvider() {
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					dispatch(
 						setChatResponse({
-							id: data.Id,
+							itemId: data.ItemId,
 							message: data.Message,
 							parentId: data.ParentId,
 							userLogin: data.UserLogin,
 							auctionId: data.AuctionId,
 							updateAt: data.UpdateAt,
-							action: ActionType.create,
+							actionType: ActionType.update,
 						})
 					);
 				});
@@ -402,13 +401,13 @@ export default function SignalRProvider() {
 					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
 					dispatch(
 						setChatResponse({
-							id: data.Id,
+							itemId: data.ItemId,
 							message: data.Message,
 							parentId: data.ParentId,
 							userLogin: data.UserLogin,
 							auctionId: data.AuctionId,
 							updateAt: data.UpdateAt,
-							action: ActionType.create,
+							actionType: ActionType.delete,
 						})
 					);
 				});

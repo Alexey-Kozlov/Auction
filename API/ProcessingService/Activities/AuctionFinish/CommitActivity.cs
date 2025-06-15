@@ -37,6 +37,7 @@ public class CommitActivity : IStateMachineActivity<FinishAuctionState, AuctionF
             Command.AuctionFinished,
             "",
             null,
+            null,
             context.Saga.IsError,
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,

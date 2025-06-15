@@ -7,9 +7,9 @@ using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.AuctionDelete;
-using ProcessingService.StateMachines.DeleteAuctionStateMachine;
 
-namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
+namespace ProcessingService.StateMachines.DeleteAuctionStateMachine;
+
 public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionState>
 {
     public State FinanceState { get; }

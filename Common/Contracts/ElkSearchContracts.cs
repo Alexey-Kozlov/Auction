@@ -4,7 +4,7 @@ using Common.Contracts.Processing;
 namespace Common.Contracts.ELKSearch;
 
 public record ElkSearchRequest(
-     Guid Id,
+     Guid ItemId,
      Guid CorrelationId,
      string SearchTerm,
      int PageNumber,
@@ -13,7 +13,7 @@ public record ElkSearchRequest(
 );
 
 public record ElkSearchCreating(
-     Guid Id,
+     Guid ItemId,
      Guid CorrelationId,
      string SearchTerm,
      int PageNumber,

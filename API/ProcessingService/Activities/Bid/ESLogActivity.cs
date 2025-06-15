@@ -37,6 +37,7 @@ public class ESLogActivity : IStateMachineActivity<BidPlacedState, RequestBidPla
             Command.PlaceBid,
             "",
             context.Saga.AuctionId,
+            context.Saga.ItemId,
             false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }

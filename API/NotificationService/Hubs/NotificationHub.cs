@@ -41,15 +41,45 @@ public class NotificationHub : Hub
 
     public async Task SendComment(MessageChat comment)
     {
-        //приняли от фронта создание нового комментария к аукциону. Запускаем процесс создания комментария
-        await _publishEndpoint.Publish(new RequestCommunicationCreate
+        switch (comment.ActionType)
         {
-            AuctionId = Guid.Parse(comment.AuctionId),
-            CorrelationId = Guid.NewGuid(),
-            Message = comment.Message,
-            ParentId = string.IsNullOrEmpty(comment.ParentId) ? null : Guid.Parse(comment.ParentId),
-            UserLogin = comment.UserLogin,
-            SessionId = comment.SessionId
-        });
+            case ActionType.create:
+                //приняли от фронта создание нового комментария к аукциону. Запускаем процесс создания комментария
+                await _publishEndpoint.Publish(new RequestCommunicationCreate
+                {
+                    ItemId = Guid.Parse(comment.ItemId),
+                    AuctionId = Guid.Parse(comment.AuctionId),
+                    CorrelationId = Guid.NewGuid(),
+                    Message = comment.Message,
+                    ParentId = string.IsNullOrEmpty(comment.ParentId) ? null : Guid.Parse(comment.ParentId),
+                    UserLogin = comment.UserLogin,
+                    SessionId = comment.SessionId
+                });
+                break;
+            case ActionType.delete:
+                //удаление комментария к аукциону. Запускаем процесс удаления
+                await _publishEndpoint.Publish(new RequestCommunicationDelete
+                {
+                    ItemId = Guid.Parse(comment.ItemId),
+                    AuctionId = Guid.Parse(comment.AuctionId),
+                    CorrelationId = Guid.NewGuid(),
+                    UserLogin = comment.UserLogin,
+                    SessionId = comment.SessionId
+                });
+                break;
+            case ActionType.update:
+                //редактирование комментария к аукциону. Запускаем процесс редактирования
+                await _publishEndpoint.Publish(new RequestCommunicationUpdate
+                {
+                    ItemId = Guid.Parse(comment.ItemId),
+                    AuctionId = Guid.Parse(comment.AuctionId),
+                    Message = comment.Message,
+                    CorrelationId = Guid.NewGuid(),
+                    UserLogin = comment.UserLogin,
+                    SessionId = comment.SessionId
+                });
+                break;
+        }
+
     }
 }

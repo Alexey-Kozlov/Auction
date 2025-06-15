@@ -66,7 +66,7 @@ public class AuctionUpdateProcessing
             //в любом случае продолжаем обработку
             var result = await _dbContext.auction_update(
                                 context.Message.CorrelationId,
-                                context.Message.AuctionId ?? Guid.NewGuid(),
+                                context.Message.AuctionId.Value,
                                 context.Message.EventData,
                                 context.Message.UserLogin,
                                 Convert.FromBase64String(

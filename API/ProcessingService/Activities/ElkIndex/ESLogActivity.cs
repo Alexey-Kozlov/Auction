@@ -34,6 +34,7 @@ public class ESLogActivity : IStateMachineActivity<ElkIndexState, ElkIndexReset>
             Command.IndexELK,
             "",
             null,
+            null,
             false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }

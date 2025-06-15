@@ -42,7 +42,7 @@ public class AuctionDeleteProcessing
             //- если были - запись обновления денежного баланса - для обновления баланса в сервисе FinanceService у соответствующего пользователя
             //- если были - записи удаленных ставок - для удаления из сервиса BiddingService
             //- если были - записи удаленных уведомлений - для удаления из сервиса NotificationService
-            var auctionId = context.Message.AuctionId ?? Guid.NewGuid();
+            var auctionId = context.Message.AuctionId.Value;
             var result = await _dbContext.auction_delete(
                 context.Message.CorrelationId,
                 auctionId,

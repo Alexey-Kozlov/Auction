@@ -5,6 +5,7 @@ namespace ProcessingService.StateMachines.SetSnapShotStateMachine;
 public class SetSnapShotState : SagaStateMachineInstance
 {
     public Guid CorrelationId { get; set; }
+    public Guid? ItemId { get; set; }
     public string CurrentState { get; set; }
     public string UserLogin { get; set; }
     public string NotifyMessage { get; set; }

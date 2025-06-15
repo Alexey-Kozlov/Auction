@@ -1,12 +1,11 @@
 type Props = {
 	title: string;
 	subtitle?: string;
-	center?: boolean;
 };
 
-export default function Heading({ center, subtitle, title }: Props) {
+export default function Heading({ subtitle, title }: Props) {
 	return (
-		<div className="BidItem">
+		<div className="HeadingContainer">
 			<div className="DetailHeadingTitle">{title}</div>
 			<div className="DetailHeadingSubTitle">{subtitle}</div>
 		</div>

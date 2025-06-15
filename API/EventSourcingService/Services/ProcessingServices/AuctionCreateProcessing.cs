@@ -70,7 +70,7 @@ public class AuctionCreateProcessing
             //в любом случае продолжаем обработку
             var result = await _dbContext.auction_create(
                 context.Message.CorrelationId,
-                context.Message.AuctionId ?? Guid.NewGuid(),
+                context.Message.AuctionId.Value,
                 context.Message.EventData,
                 context.Message.UserLogin,
                 Convert.FromBase64String(

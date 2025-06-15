@@ -34,7 +34,7 @@ public class FinanceHistoryConsumer : IConsumer<FinanceSortRequest>
                 AuctionSeller = auction?.Seller,
                 AuctionTitle = auction?.Title,
                 FinanceId = fin.FinanceId,
-                Id = fin.Id,
+                ItemId = fin.ItemId,
                 Status = fin.Status,
                 UserLogin = fin.UserLogin,
                 Value = fin.Value
@@ -43,17 +43,17 @@ public class FinanceHistoryConsumer : IConsumer<FinanceSortRequest>
         //сортируем по заданному полю
         rezult = context.Message.OrderBy switch
         {
-            "titleAsc" => rezult.OrderBy(p => p.AuctionTitle).ThenBy(p => p.Id),
-            "titleDesc" => rezult.OrderByDescending(p => p.AuctionTitle).ThenBy(p => p.Id),
-            "actionDateAsc" => rezult.OrderBy(p => p.ActionDate).ThenBy(p => p.Id),
-            "actionDateDesc" => rezult.OrderByDescending(p => p.ActionDate).ThenBy(p => p.Id),
-            "sellerAsc" => rezult.OrderBy(p => p.AuctionSeller).ThenBy(p => p.Id),
-            "sellerDesc" => rezult.OrderByDescending(p => p.AuctionSeller).ThenBy(p => p.Id),
-            "statusAsc" => rezult.OrderBy(p => p.Status).ThenBy(p => p.Id),
-            "statusDesc" => rezult.OrderByDescending(p => p.Status).ThenBy(p => p.Id),
-            "valueAsc" => rezult.OrderBy(p => p.Value).ThenBy(p => p.Id),
-            "valueDesc" => rezult.OrderByDescending(p => p.Value).ThenBy(p => p.Id),
-            _ => rezult.OrderBy(p => p.Id)
+            "titleAsc" => rezult.OrderBy(p => p.AuctionTitle).ThenBy(p => p.ItemId),
+            "titleDesc" => rezult.OrderByDescending(p => p.AuctionTitle).ThenBy(p => p.ItemId),
+            "actionDateAsc" => rezult.OrderBy(p => p.ActionDate).ThenBy(p => p.ItemId),
+            "actionDateDesc" => rezult.OrderByDescending(p => p.ActionDate).ThenBy(p => p.ItemId),
+            "sellerAsc" => rezult.OrderBy(p => p.AuctionSeller).ThenBy(p => p.ItemId),
+            "sellerDesc" => rezult.OrderByDescending(p => p.AuctionSeller).ThenBy(p => p.ItemId),
+            "statusAsc" => rezult.OrderBy(p => p.Status).ThenBy(p => p.ItemId),
+            "statusDesc" => rezult.OrderByDescending(p => p.Status).ThenBy(p => p.ItemId),
+            "valueAsc" => rezult.OrderBy(p => p.Value).ThenBy(p => p.ItemId),
+            "valueDesc" => rezult.OrderByDescending(p => p.Value).ThenBy(p => p.ItemId),
+            _ => rezult.OrderBy(p => p.ItemId)
         };
         var pageCount = (rezult.Count() + context.Message.PageSize - 1) / context.Message.PageSize;
         var totalCount = rezult.Count();

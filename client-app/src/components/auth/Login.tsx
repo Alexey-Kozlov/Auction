@@ -1,10 +1,10 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
 	useLoginUserMutation,
 	useSetNewPasswordMutation,
 } from "../../api/AuthApi";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { ApiResponse, FormErrors, LoginResponse, LoginUser } from "../../types";
 import { setAuthUser } from "../../store/authSlice";
 import { Button } from "primereact/button";
@@ -12,15 +12,18 @@ import { Panel } from "primereact/panel";
 import { InputText } from "primereact/inputtext";
 import { Divider } from "primereact/divider";
 import { FloatLabel } from "primereact/floatlabel";
-import { Toast } from "primereact/toast";
 import { Message } from "primereact/message";
 import { Password } from "primereact/password";
 import { confirmDialog, ConfirmDialog } from "primereact/confirmdialog";
+import { RootState } from "../../store/store";
+import { Toast } from "primereact/toast";
 
 export default function Login() {
 	const [loginUser] = useLoginUserMutation();
 	const [setPassword] = useSetNewPasswordMutation();
-	const toastMessage = useRef<Toast>(null);
+	const toastMessage: Toast | null = useSelector(
+		(state: RootState) => state.serviceStore
+	).toast;
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [updatePassword, setUpdatePassword] = useState<boolean | null>(null);
@@ -58,7 +61,7 @@ export default function Login() {
 			setPasswordFunc()
 				.then((rez: ApiResponse<object>) => {
 					if (rez.data!.isSuccess) {
-						toastMessage.current!.show({
+						toastMessage!.show({
 							severity: "success",
 							summary: "Успешное действие",
 							detail: `Пароль успешно изменен. Можно войти в систему под новым паролем`,
@@ -68,7 +71,7 @@ export default function Login() {
 					setSubmittingPassword(false);
 				})
 				.catch((e) => {
-					toastMessage.current!.show({
+					toastMessage!.show({
 						severity: "error",
 						summary: "Ошибка действия",
 						detail: `Ошибка установки пароля - ${e.message}`,
@@ -155,7 +158,7 @@ export default function Login() {
 		if (response.data && response.data.isSuccess) {
 			const userData: LoginResponse = {
 				token: response.data.result.token,
-				id: response.data.result.id,
+				itemId: response.data.result.itemId,
 				login: response.data.result.login,
 				name: response.data.result.name,
 			};
@@ -164,27 +167,28 @@ export default function Login() {
 				setAuthUser({
 					name: response.data.result.name,
 					login: response.data.result.login,
-					id: response.data.result.id,
+					itemId: response.data.result.itemId,
 				})
 			);
-			toastMessage.current!.show({
+			toastMessage!.show({
 				severity: "success",
 				summary: "Успешный вход",
 				detail: `Успешный вход в систему пользователя ${response.data.result.name}!`,
-				life: 2000,
+				life: 4000,
 			});
 			//возврат на предыдущую страничку
 			navigate(-1);
+		} else {
+			//ошибка входа
+			setEditError(() => editErrorList.find((p) => p.name === "ErrorLogin")!);
+			toastMessage!.show({
+				severity: "error",
+				summary: "Ошибка входа",
+				detail: "Ошибка логина или пароля",
+				life: 4000,
+			});
+			setSubmittingLogin(false);
 		}
-		//ошибка входа
-		setEditError(() => editErrorList.find((p) => p.name === "ErrorLogin")!);
-		toastMessage.current!.show({
-			severity: "error",
-			summary: "Ошибка входа",
-			detail: "Ошибка логина или пароля",
-			life: 2000,
-		});
-		setSubmittingLogin(false);
 	};
 
 	return (
@@ -278,7 +282,7 @@ export default function Login() {
 							loading={submittingLogin}
 							disabled={submittingLogin}
 							type="submit"
-							className="PrimaryButton w-9rem justify-content-center"
+							className="CustomButton w-9rem"
 						>
 							Вход
 						</Button>
@@ -292,15 +296,13 @@ export default function Login() {
 							loading={submittingPassword}
 							disabled={submittingPassword}
 							onClick={handleSetNewPassword}
-							className="PrimaryButton"
+							className="CustomButton"
 						>
 							Я забыл пароль. Установить новый.
 						</Button>
 					</div>
 				</Panel>
 			</form>
-			<Toast ref={toastMessage} position="bottom-right" />
-
 			<ConfirmDialog group="templating" />
 		</div>
 	);

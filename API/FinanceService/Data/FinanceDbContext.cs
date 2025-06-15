@@ -29,8 +29,8 @@ public class ItemConfiguration : IEntityTypeConfiguration<FinanceItem>
 {
     public void Configure(EntityTypeBuilder<FinanceItem> builder)
     {
-        builder.ToTable("FinanceItems").HasKey(p => p.Id).HasName("PK_FinanceItems");
-        builder.Property(p => p.Id).HasColumnType("uuid").HasColumnName("Id").IsRequired(true);
+        builder.ToTable("FinanceItems").HasKey(p => p.ItemId).HasName("PK_FinanceItems");
+        builder.Property(p => p.ItemId).HasColumnType("uuid").HasColumnName("ItemId").IsRequired(true);
         builder.Property(p => p.FinanceId).HasColumnType("uuid").HasColumnName("FinanceId").IsRequired(true);
         builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(false);
         builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(true);
@@ -39,7 +39,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<FinanceItem>
         builder.Property(p => p.Status).HasColumnType("smallint").HasColumnName("Status").IsRequired(true);
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CorrelationId).HasColumnType("uuid").HasColumnName("CorrelationId").IsRequired(true);
-        builder.HasIndex(p => p.Id).IsUnique(true).HasDatabaseName("PX_FinanceItems");
+        builder.HasIndex(p => p.ItemId).IsUnique(true).HasDatabaseName("PX_FinanceItems");
         builder.HasIndex(p => p.UserLogin).HasDatabaseName("IX_Finance_UserLogin");
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_Finance_AuctionId");
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_Finance_CorrelationId");

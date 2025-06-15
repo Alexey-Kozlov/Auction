@@ -32,7 +32,7 @@ public class MappingProfiles : Profile
                 }
                 return dest?.Image;
             }))
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()));
+            .ForMember(dest => dest.ItemId, opt => opt.MapFrom(src => Guid.NewGuid()));
 
 
         CreateMap<ImageItem, ImageItem>();

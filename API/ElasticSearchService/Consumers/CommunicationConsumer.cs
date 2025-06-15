@@ -41,15 +41,15 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
                     var _typedItem = JsonSerializer.Deserialize<CommunicationItem>(item.Data);
                     var typedItem = new CommunicationSearch
                     {
-                        AuctionId = _typedItem.AuctionId,
-                        Id = _typedItem.Id,
+                        AuctionId = _typedItem.AuctionId.Value,
+                        ItemId = _typedItem.ItemId,
                         Message = _typedItem.Message
                     };
                     var search = await _client.CommunicationClient.SearchAsync<CommunicationSearch>(indices: "communication_index",
-                        p => p.Query(q => q.Match(m => m.Field(f => f.Id).Query(typedItem.Id))));
+                        p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId))));
                     if (item.CRUD != CRUD.Create)
                     {
-                        if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден чат с Id - {typedItem.Id}");
+                        if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден чат с Id - {typedItem.ItemId}");
                     }
                     //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
                     if (search != null)
@@ -68,7 +68,7 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
                         case CRUD.Delete:
                             //удаляем из индекса заданную запись
                             var response = await _client.CommunicationClient.DeleteByQueryAsync<CommunicationSearch>(indices: "communication_index",
-                                p => p.Query(q => q.Match(m => m.Field(f => f.Id).Query(typedItem.Id)))
+                                p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
                                 .WaitForCompletion(true).Refresh());
                             break;
                         case CRUD.Create:
@@ -78,7 +78,7 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
                         case CRUD.Update:
                             //обновляем запись по полю - message
                             await _client.CommunicationClient.UpdateByQueryAsync<CommunicationSearch>(indices: "communication_index",
-                                p => p.Query(q => q.Match(m => m.Field(f => f.Id).Query(typedItem.Id)))
+                                p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
                                 .Script(s => s.Source("ctx._source.message = params.message;")
                                 .Params(p => p
                                 .Add("message", typedItem.Message)))

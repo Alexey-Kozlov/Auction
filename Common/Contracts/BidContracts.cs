@@ -77,7 +77,7 @@ public class BidCreateESCommit : IFaultMessage
 
 public class BidItem
 {
-     public Guid? Id { get; set; }
+     public Guid? ItemId { get; set; }
      public Guid BidId { get; set; }
      public Guid AuctionId { get; set; }
      public string Bidder { get; set; }

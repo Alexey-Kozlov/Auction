@@ -4,18 +4,18 @@ import { ProcessingState } from "../../types";
 import { RootState } from "../../store/store";
 import { useEffect } from "react";
 import { setEventFlag } from "../../store/processingSlice";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { Image } from "primereact/image";
 
 const empty = require("../../assets/Empty.png");
 
 type Props = {
 	id?: string;
 	dopStyle?: string;
-	zooming: boolean;
+	detail: boolean;
 	cache: boolean;
 };
 
-export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
+export default function ImageCard({ id, dopStyle, detail, cache }: Props) {
 	const imageQuery = useGetImageForAuctionQuery(
 		{ id: id ? id : "", cache: cache },
 		{
@@ -41,20 +41,16 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 	if (imageQuery.isLoading) return;
 	return (
 		<>
-			{zooming ? (
-				<TransformWrapper centerOnInit={true} doubleClick={{ mode: "reset" }}>
-					<TransformComponent>
-						<img
-							src={
-								imageQuery.data?.result?.image
-									? `data:image/jpeg;base64 , ${imageQuery.data.result.image}`
-									: empty
-							}
-							alt=""
-							className="AuctionImageCardZoom"
-						/>
-					</TransformComponent>
-				</TransformWrapper>
+			{detail ? (
+				<Image
+					src={
+						imageQuery.data?.result?.image
+							? `data:image/jpeg;base64 , ${imageQuery.data.result.image}`
+							: empty
+					}
+					imageClassName="AuctionImageCardDetail"
+					preview
+				/>
 			) : (
 				<img
 					src={
@@ -63,7 +59,7 @@ export default function ImageCard({ id, dopStyle, zooming, cache }: Props) {
 							: empty
 					}
 					alt=""
-					className={"AuctionImageCardNoZoom " + dopStyle}
+					className={"AuctionImageCardList " + dopStyle}
 				/>
 			)}
 		</>

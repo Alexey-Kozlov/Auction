@@ -80,12 +80,12 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                             (
                                 new DataForProcessingService
                                 {
-                                    Id = item.id ?? Guid.NewGuid(),
+                                    ItemId = item.ItemId.Value,
                                     DataType = nameof(ImageItem),
                                     Data = JsonSerializer.Serialize(new ImageDTO
                                     {
-                                        Id = item.id,
-                                        AuctionId = item.auctionid ?? Guid.NewGuid(),
+                                        ItemId = item.ItemId,
+                                        AuctionId = item.auctionid.Value,
                                         Image = ImageBase64
                                     }),
                                     CRUD = CRUD.Create,
@@ -118,12 +118,12 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
                                 (
                                     new DataForProcessingService
                                     {
-                                        Id = item.id ?? Guid.NewGuid(),
+                                        ItemId = item.ItemId.Value,
                                         DataType = nameof(ImageItem),
                                         Data = JsonSerializer.Serialize(new ImageDTO
                                         {
-                                            Id = item.id,
-                                            AuctionId = item.auctionid ?? Guid.NewGuid(),
+                                            ItemId = item.ItemId,
+                                            AuctionId = item.auctionid.Value,
                                             Image = ImageBase64.Substring(splitPointer,
                                                 imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
                                         }),

@@ -16,7 +16,7 @@ public class SendEventToES
 
     public async Task SendItemToEventSourcing<T>(T context, string typeName,
         string callBackType, Guid correlationId, string userLogin, Command command, string image,
-        Guid? auctionId, bool isError, string errorMessage, string errorExceptionMessage, string errorServiceName)
+        Guid? auctionId, Guid? ItemId, bool isError, string errorMessage, string errorExceptionMessage, string errorServiceName)
     {
         JsonSerializerOptions options = new()
         {
@@ -30,6 +30,7 @@ public class SendEventToES
         message.CallBackType = callBackType;
         message.CorrelationId = correlationId;
         message.AuctionId = auctionId;
+        message.ItemId = ItemId;
         message.UserLogin = userLogin;
         message.Command = command;
         message.Image = image;
