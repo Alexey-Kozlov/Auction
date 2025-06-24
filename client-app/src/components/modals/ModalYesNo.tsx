@@ -25,7 +25,6 @@ export default function ModalYesNo({
 }: Props) {
 	if (visible) {
 		confirmDialog({
-			defaultFocus: "accept",
 			accept,
 			reject,
 			onHide: () => reject(),
@@ -61,8 +60,8 @@ export default function ModalYesNo({
 			content={({ hide }) => (
 				<div className="flex flex-column align-items-center p-5 border-round-lg bg-white w-full">
 					<div className="align-self-start">{getIcon()}</div>
-					<span className="font-bold text-2xl block mb-2 mt-2">{header}</span>
-					<p className="mb-1rem">{label}</p>
+					<span className="font-bold text-4xl block mb-2 mt-2">{header}</span>
+					<p className="mb-2rem text-4xl">{label}</p>
 
 					<div className="flex align-items-center gap-2 mt-2">
 						<Button
@@ -74,7 +73,7 @@ export default function ModalYesNo({
 								hide(event);
 								reject();
 							}}
-							className="w-8rem CustomButton"
+							className="w-16rem CustomButton mr-2"
 						></Button>
 						<Button
 							label="Ок"
@@ -85,7 +84,8 @@ export default function ModalYesNo({
 								hide(event);
 								accept();
 							}}
-							className={"w-8rem CustomButton" + getStyle()}
+							className={"w-16rem CustomButton" + getStyle()}
+							autoFocus
 						></Button>
 					</div>
 				</div>

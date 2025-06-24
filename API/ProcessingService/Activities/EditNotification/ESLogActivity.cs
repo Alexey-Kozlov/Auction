@@ -24,7 +24,7 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
         await _sendEventToES.SendItemToEventSourcing(
             new RequestEditNotification
             {
-                AuctionId = context.Saga.AuctionId,
+                ItemId = context.Saga.ItemId.Value,
                 Enable = context.Saga.Enable,
                 CorrelationId = context.Saga.CorrelationId,
                 SessionId = context.Saga.SessionId,
@@ -36,7 +36,7 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
             context.Saga.UserLogin,
             Command.EditNotification,
             "",
-            context.Saga.AuctionId,
+            context.Saga.ItemId,
             context.Saga.ItemId,
             false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);

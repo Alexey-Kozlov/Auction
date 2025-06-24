@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Listings from "./components/auctionList/Listings";
-import NavBar from "./components/nav/NavBar";
+import NavBar from "./components/layout/nav/NavBar";
 import Register from "./components/auth/Register";
 import Login from "./components/auth/Login";
 import AuctionForm from "./components/auctionEdit/AuctionForm";
 import SignalRProvider from "./providers/SignalRProvider";
-import NotFound from "./components/nav/NotFound";
+import NotFound from "./components/layout/nav/NotFound";
 import FinListings from "./components/finance/FinListings";
 import HandleServiceEvents from "./components/services/HandleServiceEvents";
 import { Toast } from "primereact/toast";

@@ -36,7 +36,8 @@ public class ProcessingController : ControllerBase
     [HttpPost("placebid")]
     public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
-        var bid = new RequestBidPlace(par.AuctionId, User.Identity.Name, par.Amount, Guid.NewGuid());
+        var bid = new RequestBidPlace(par.AuctionId, User.Identity.Name, par.Amount,
+            par.SessionId, Guid.NewGuid());
 
         await _publishEndpoint.Publish(bid);
 
@@ -187,7 +188,7 @@ public class ProcessingController : ControllerBase
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new RequestEditNotification
         {
-            AuctionId = notifyUserDTO.AuctionId,
+            ItemId = notifyUserDTO.ItemId,
             UserLogin = userLogin,
             Enable = notifyUserDTO.Enable,
             SessionId = notifyUserDTO.SessionId,

@@ -12,7 +12,7 @@ public enum MessageType
 
 public class RequestEditNotification
 {
-     public Guid AuctionId { get; set; }
+     public Guid ItemId { get; set; }
      public string UserLogin { get; set; }
      public bool Enable { get; set; }
      public string SessionId { get; set; }
@@ -28,7 +28,7 @@ public class EditNotificationESCommit : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public Guid? AuctionId { get; set; }
+     public Guid ItemId { get; set; }
      public bool IsError { get; set; }
 }
 
@@ -41,7 +41,8 @@ public class EditNotificationComplete : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public Guid? AuctionId { get; set; }
+     public Guid ItemId { get; set; }
+
      public bool IsError { get; set; }
 }
 
@@ -72,7 +73,7 @@ public class EditNotificationEvent : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public Guid? AuctionId { get; set; }
+     public Guid? ItemId { get; set; }
      public bool IsError { get; set; }
 };
 
@@ -84,7 +85,7 @@ public class NotificationReset : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public Guid? AuctionId { get; set; }
+     public Guid? ItemId { get; set; }
      public bool IsError { get; set; }
 };
 
@@ -100,8 +101,7 @@ public class NotificationProgress
 
 public class NotifyItem
 {
-     public Guid? ItemId { get; set; }
-     public Guid AuctionId { get; set; }
+     public Guid ItemId { get; set; }
      public string UserLogin { get; set; }
      public Guid CorrelationId { get; set; }
      public bool Commited { get; set; }

@@ -5,6 +5,7 @@ using MassTransit;
 using ProcessingService.Activities.EditNotification;
 
 namespace ProcessingService.StateMachines.EditNotificationStateMachine;
+
 public class EditNotificationStateMachine : MassTransitStateMachine<EditNotificationState>
 {
     public State NotificationState { get; }
@@ -56,7 +57,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
             When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.AuctionId = context.Message.AuctionId;
+                context.Saga.ItemId = context.Message.ItemId;
                 context.Saga.Enable = context.Message.Enable;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
@@ -87,7 +88,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                     DataObjects = context.Message.DataItems.DataObjects,
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Notification.EditNotificationESCommit",
-                    Props = context.Saga.UserLogin
+                    Props = ""
                 })
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса EventSourcingService            
@@ -104,14 +105,6 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
             .TransitionTo(PreCommitState)
         );
     }
-
-    /*промежуточный этап перед подтверждением/откатом транзакции
-   на входе события:
-   - BaseServiceError - событие ошибок от предыдущих этапов
-   - Fault<BidCreateESCommit> - событие ошибки предыдущего этапа
-   - BidCreateESCommit - событие правильного выполнения предыдущего этапа
-   на выходе - событие для подтверждения/отката транзакции - BidCreateESCommit
-   */
 
     private void ConfigurePreCommitState()
     {
@@ -188,13 +181,17 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
-                    new Uri(configuration["QueuePaths:EditNotificationEventConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{context.Saga.UserLogin}"
+                        SignalRMethod = SignalRMethod.EditNotification,
+                        AuctionId = context.Saga.ItemId,
+                        ItemId = context.Saga.ItemId,
+                        Show = !context.Saga.IsError,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                            .DataObjects[0].Data,
+                        UserLogin = context.Saga.UserLogin
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            
@@ -209,7 +206,7 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                AuctionId = context.Saga.AuctionId,
+                AuctionId = context.Saga.ItemId,
                 IsError = context.Saga.IsError
             })
             .Finalize()

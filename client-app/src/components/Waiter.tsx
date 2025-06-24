@@ -2,8 +2,8 @@ import { ProgressSpinner } from "primereact/progressspinner";
 
 export default function Waiter() {
 	return (
-		<div className="flex items-center justify-center">
-			<ProgressSpinner />
+		<div className="Absolute-Center">
+			<ProgressSpinner style={{ width: "50px", height: "50px" }} />
 		</div>
 	);
 }

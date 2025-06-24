@@ -7,15 +7,15 @@ import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
 import { GrMoney } from "react-icons/gr";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ModalParams, ToastType, User } from "../../types";
+import { ModalParams, ToastType, User } from "../../../types";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/store";
-import { emptyUserState, setAuthUser } from "../../store/authSlice";
-import { setParams } from "../../store/paramSlice";
-import { setEventFlag } from "../../store/processingSlice";
+import { RootState } from "../../../store/store";
+import { emptyUserState, setAuthUser } from "../../../store/authSlice";
+import { setParams } from "../../../store/paramSlice";
+import { setEventFlag } from "../../../store/processingSlice";
 import { useEffect, useRef, useState } from "react";
-import { useLogoutUserMutation } from "../../api/AuthApi";
-import MessageToast from "../signalRNotifications/MessageToast";
+import { useLogoutUserMutation } from "../../../api/AuthApi";
+import MessageToast from "../../signalRNotifications/MessageToast";
 import { Menu } from "primereact/menu";
 import { Menubar } from "primereact/menubar";
 import { Button } from "primereact/button";
@@ -179,47 +179,49 @@ export default function UserActions() {
 	const menuItems = [
 		{
 			label: "Ваши действия :",
-			className: "text-center",
+			className: "text-center text-4xl",
 			items: [
 				{
 					label: "Мои аукционы",
-					icon: <HiUser className="MenuItems" size={20} />,
+					icon: <HiUser className="MenuItems" size={30} />,
 				},
 				{
 					label: "Аукционы выигранные",
-					icon: <AiFillTrophy className="MenuItems" size={20} />,
+					icon: <AiFillTrophy className="MenuItems" size={30} />,
 				},
 				{
 					label: "Создать аукцион",
-					icon: <RiAuctionFill className="MenuItems" size={20} />,
+					icon: <RiAuctionFill className="MenuItems" size={30} />,
+					command: () => handleCreateAuctionClick(),
 				},
 				{
 					label: "Финансы",
-					icon: <GrMoney className="MenuItems" size={20} />,
+					icon: <GrMoney className="MenuItems" size={30} />,
+					command: () => handleFinanceClick(),
 				},
 				{
 					label: "Elk индексация",
-					icon: <GoCodescanCheckmark className="MenuItems" size={20} />,
+					icon: <GoCodescanCheckmark className="MenuItems" size={30} />,
 				},
 				{
 					label: "Создать SnapShot",
-					icon: <GoDatabase className="MenuItems" size={20} />,
+					icon: <GoDatabase className="MenuItems" size={30} />,
 				},
 				{
 					label: "Восстановить из SnapShot",
-					icon: <FaTrashRestoreAlt className="MenuItems" size={20} />,
+					icon: <FaTrashRestoreAlt className="MenuItems" size={30} />,
 				},
 				{
 					label: "Сбросить Кеш изображений",
-					icon: <RiRestartFill className="MenuItems" size={20} />,
+					icon: <RiRestartFill className="MenuItems" size={30} />,
 				},
 				{
 					label: "Отчеты",
-					icon: <HiOutlineDocumentReport className="MenuItems" size={20} />,
+					icon: <HiOutlineDocumentReport className="MenuItems" size={30} />,
 				},
 				{
 					label: "Выход",
-					icon: <AiOutlineLogout className="MenuItems" size={20} />,
+					icon: <AiOutlineLogout className="MenuItems" size={30} />,
 					command: () => handleLogoutClick(),
 				},
 			],
@@ -234,14 +236,14 @@ export default function UserActions() {
 				popup
 				popupAlignment="right"
 				id="menuActions"
-				className="w-17rem p-menu-list mt-3"
+				className="w-30rem p-menu-list mt-3"
 			/>
 			<div
 				aria-controls="menuActions"
 				onClick={(event) => menuActionsRef.current!.toggle(event)}
-				className="flex cursor-pointer"
+				className="flex cursor-pointer align-items-center"
 			>
-				<div className="font-semibold">{`Здравствуйте ${user.name}`}</div>
+				<div className="font-semibold text-4xl">{`Здравствуйте ${user.name}`}</div>
 				<div className="mt-1 ml-2 font-semibold pi pi-angle-double-down"></div>
 			</div>
 		</div>

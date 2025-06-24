@@ -25,7 +25,7 @@ public class AuctionFinishedConsumer : IConsumer<DataForProcessingServicesList<A
         {
             //уведомление о завершении аукциона
             var typedItem = JsonSerializer.Deserialize<AuctionItem>(item.Data);
-            var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == typedItem.AuctionId).ToListAsync();
+            var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.ItemId == typedItem.AuctionId).ToListAsync();
             await _hubContext.Clients.Groups(auctionNotifyList.Select(p => p.UserLogin)).SendAsync("AuctionFinished",
             new
             {

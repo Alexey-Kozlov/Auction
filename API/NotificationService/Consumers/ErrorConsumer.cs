@@ -36,7 +36,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         }
         else if (group == "SystemService" && context.Message.AuctionId.HasValue)
         {
-            var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.AuctionId == context.Message.AuctionId.Value).ToListAsync();
+            var auctionNotifyList = await _dbContext.NotifyItems.Where(p => p.ItemId == context.Message.ItemId.Value).ToListAsync();
             _groups.AddRange(auctionNotifyList.Select(p => p.UserLogin).ToArray());
         }
         else

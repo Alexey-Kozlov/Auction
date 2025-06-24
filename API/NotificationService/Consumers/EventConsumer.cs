@@ -36,15 +36,26 @@ public class EventConsumer : IConsumer<EventNotificationItem>
                 break;
             //рассылка по подписчикам на данный аукцион
             case "auctionGroup":
+                var _users = await _dbContext.NotifyItems.Where(p =>
+                        p.ItemId == context.Message.AuctionId && p.Commited)
+                        .Select(p => p.UserLogin).ToListAsync();
+                //проверка на дубли пользователей
+                var doubles = _users.GroupBy(p => p).SelectMany(grp => grp.Skip(1));
+                if (doubles.Any())
+                {
+                    throw new Exception("Ошибка рассылки для группы пользователей - есть дибликаты рассылки" +
+                    "'" + doubles.FirstOrDefault() + "'");
+                }
+
                 await _hubContext.Clients.Groups(await _dbContext.NotifyItems.Where(p =>
-                    p.AuctionId == context.Message.AuctionId && p.Commited)
-                    .Select(p => p.UserLogin).ToListAsync())
-                    .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
-                    new
-                    {
-                        show = context.Message.Show,
-                        data = context.Message.Data
-                    });
+                        p.ItemId == context.Message.AuctionId && p.Commited)
+                        .Select(p => p.UserLogin).ToListAsync())
+                        .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
+                        new
+                        {
+                            show = context.Message.Show,
+                            data = context.Message.Data
+                        });
                 break;
             //здесь указано значение SessionId пользователя, рассылка только этому пользователю            
             default:
@@ -57,28 +68,5 @@ public class EventConsumer : IConsumer<EventNotificationItem>
                     });
                 break;
         }
-
-        if (context.Message.AuctionId.HasValue)
-        {
-            notifyList.AddRange(await _dbContext.NotifyItems.Where(p =>
-                p.AuctionId == context.Message.AuctionId && p.Commited)
-                .Select(p => p.UserLogin).ToListAsync()
-            );
-        }
-        // если указан SessionId и нет этого пользователя в выборке извещений - 
-        // добавляем SessionId для передачи уведомления текущему пользователю
-        // if (!string.IsNullOrEmpty(context.Message.SessionId) &&
-        //     !notifyList.Any(p => p == context.Message.UserLogin))
-        // {
-        //     notifyList.Add(context.Message.SessionId);
-        // }
-
-        await _hubContext.Clients.Groups(notifyList.Select(p => p))
-            .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
-            new
-            {
-                show = context.Message.Show,
-                data = context.Message.Data
-            });
     }
 }

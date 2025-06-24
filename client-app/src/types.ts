@@ -83,7 +83,7 @@ export type ObjectResponse<T> = {
 export type PlaceBidParams = {
 	amount: number;
 	auctionId: string;
-	correlationId: string;
+	sessionId: string;
 };
 
 export type AuctionImage = {
@@ -308,4 +308,9 @@ export enum SessionType {
 export enum ModalTypes {
 	warning,
 	info,
+}
+
+export enum SignalREvents {
+	BidPlaced,
+	FinanceCreate,
 }

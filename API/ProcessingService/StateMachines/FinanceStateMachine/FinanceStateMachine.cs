@@ -6,6 +6,7 @@ using MassTransit;
 using ProcessingService.Activities.Finance;
 
 namespace ProcessingService.StateMachines.FinanceStateMachine;
+
 public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
 {
     public State FinanceState { get; }
@@ -192,7 +193,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                                 DataType = nameof(FinanceItem),
                                 Data = JsonSerializer.Serialize(new NotifyItem
                                 {
-                                    AuctionId = Guid.NewGuid(),
+                                    ItemId = Guid.NewGuid(),
                                     UserLogin = context.Saga.UserLogin
                                 })
                             }

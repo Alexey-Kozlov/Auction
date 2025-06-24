@@ -3,7 +3,7 @@
 public class BidDTO
 {
      public Guid AuctionId { get; set; }
-     public Guid BidId { get; set; }
+     public Guid ItemId { get; set; }
      public string Bidder { get; set; }
      public DateTime BidTime { get; set; }
      public int Amount { get; set; }

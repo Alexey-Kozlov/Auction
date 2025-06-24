@@ -26,10 +26,10 @@ public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAu
             new FinanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                AuctionId = context.Message.AuctionId, //важно
-                FinanceId = Guid.NewGuid(), //не важно
-                Status = FinanceRecordStatus.Приход, //не важно
-                UserLogin = context.Saga.UserLogin //важно
+                AuctionId = context.Message.AuctionId,
+                ItemId = context.Saga.ItemId,
+                Status = FinanceRecordStatus.Приход,
+                UserLogin = context.Saga.UserLogin
             },
             nameof(FinanceItem),
             "Common.Contracts.Processing.ESLogAuctionDeleted",

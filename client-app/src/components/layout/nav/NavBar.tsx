@@ -1,9 +1,9 @@
 import Logo from "./Logo";
 import Search from "./Search";
 import UserActions from "./UserActions";
-import { User } from "../../types";
+import { User } from "../../../types";
 import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { RootState } from "../../../store/store";
 import { useNavigate } from "react-router-dom";
 import { Button } from "primereact/button";
 

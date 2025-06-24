@@ -379,7 +379,8 @@ public enum SignalRMethod
     SetSnapShot,
     RestoreSnapShot,
     ElkIndexReset,
-    ElkSearch
+    ElkSearch,
+    EditNotification
 }
 
 public class EventNotificationItem

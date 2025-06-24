@@ -41,11 +41,11 @@ public class AuctionEditConsumer : IConsumer<DataForProcessingServicesList<Notif
                         break;
                     case CRUD.Delete:
                         var delItem = await _dbContext.NotifyItems.Where(p =>
-                            p.AuctionId == typedItem.AuctionId && p.Commited &&
+                            p.ItemId == typedItem.ItemId && p.Commited &&
                             p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
                         if (delItem == null)
                         {
-                            var errorString = $"Запись для удаления - {typedItem.AuctionId}";
+                            var errorString = $"Запись для удаления - {typedItem.ItemId}";
                             errorString += $" для пользователя {typedItem.UserLogin} не найдена";
                             throw new Exception(errorString);
                         }

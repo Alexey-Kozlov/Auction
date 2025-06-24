@@ -4,6 +4,7 @@ import CountdownTimer from "../auctionList/CountDownTimer";
 import {
 	Auction,
 	AuctionDeleted,
+	ModalTypes,
 	NotifyUser,
 	ProcessingState,
 	User,
@@ -26,6 +27,9 @@ import { InputSwitch } from "primereact/inputswitch";
 import { Panel } from "primereact/panel";
 import DetailedSpec from "./DetailedSpec";
 import { useGetUserNameQuery } from "../../api/AuthApi";
+import Waiter from "../Waiter";
+import Footer from "../layout/Footer";
+import ModalYesNo from "../modals/ModalYesNo";
 
 export default function DetailMain() {
 	const { id } = useParams();
@@ -34,9 +38,7 @@ export default function DetailMain() {
 		(state: RootState) => state.processingStore
 	);
 	const [notifyUser, setNotifyUser] = useState(false);
-	const [showConfirm, setShowConfirm] = useState(false);
-	const [confirmResult, setConfirmResult] = useState<boolean | null>(null);
-	const [deleteAuction, setDeleteAuction] = useState(false);
+	const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 	const [auctionDetail, setAuctionDetail] = useState<Auction | null>(null);
 	const data = useGetDetailedViewDataQuery(id!, {
 		skip: auctionDetail?.title === "",
@@ -66,6 +68,7 @@ export default function DetailMain() {
 		// eslint-disable-next-line
 	}, [data]);
 
+	//добавляем наименование автора аукциона для отображения
 	useEffect(() => {
 		if (
 			!userSeller.isLoading &&
@@ -81,8 +84,9 @@ export default function DetailMain() {
 		// eslint-disable-next-line
 	}, [userSeller, auctionDetail]);
 
-	//для управления переключателем по уведомлениям пользователя - при получении сообщения из БД об изменении
-	//переключателя - устанавливаем новое состояние у переключателя и он меняет отображение
+	// для управления переключателем по уведомлениям пользователя - при получении сообщения из
+	// БД об изменении переключателя - устанавливаем новое состояние у переключателя и
+	// он меняет отображение
 	useEffect(() => {
 		if (
 			!isNotifyUser.isLoading &&
@@ -94,21 +98,23 @@ export default function DetailMain() {
 		// eslint-disable-next-line
 	}, [isNotifyUser]);
 
+	//отслеживаем сообщения от бекенда
 	useEffect(() => {
 		//обновление переключателя рассылки уведомлений
 		const eventState = procState.find(
-			(p) => p.eventName === "EditNotification" && p.ready && p.lastChanged
+			(p) => p.eventName === "EditNotification" && p.ready
 		);
 		if (eventState) {
 			//обновление переключателя
 			isNotifyUser.refetch();
 			dispatch(setEventFlag({ eventName: "EditNotification", ready: false }));
 		}
+
 		//переход на список аукционов при удалении текущего аукциона
 		const eventState2 = procState.find(
-			(p) => p.eventName === "CollectionChanged" && p.ready && p.lastChanged
+			(p) => p.eventName === "AuctionDeleted" && p.ready
 		);
-		if (eventState2 && deleteAuction) {
+		if (eventState2) {
 			navigate("/");
 		}
 		// eslint-disable-next-line
@@ -116,7 +122,7 @@ export default function DetailMain() {
 
 	//если не нашли данных по указанному id - переход на страницу "Не найдено"
 	useEffect(() => {
-		if (!deleteAuction && !data.isLoading && (!data || !data.data!.result)) {
+		if (!data.isLoading && (!data || !data.data!.result)) {
 			navigate("/not-found");
 		}
 		// eslint-disable-next-line
@@ -125,11 +131,12 @@ export default function DetailMain() {
 	//удаляем аукцион
 	const handleDeleteAuction = () => {
 		//подтверждение удаления
-		setShowConfirm(true);
+		setShowConfirmDelete(true);
 	};
 
-	//обработчик переключения переключателя по уведомлениям пользователя по событиям данного аукциона
+	//обработчик переключения переключателя уведомлений пользователя по событиям данного аукциона
 	const handleSetNotifyUser = async (checked: boolean) => {
+		dispatch(setEventFlag({ eventName: "WaiterHideNotify", ready: false }));
 		dispatch(setEventFlag({ eventName: "EditNotification", ready: false }));
 		var notifyUser: NotifyUser = {
 			auctionid: id!,
@@ -139,30 +146,33 @@ export default function DetailMain() {
 		await setNotifyUserApi(notifyUser);
 	};
 
-	useEffect(() => {
-		const deleteAction = async (val: AuctionDeleted) => {
-			await deleteAuctionProc(val);
+	const acceptDeleteDialog = () => {
+		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+		const auctionDeleted: AuctionDeleted = {
+			auctionId: id!,
+			correlationId: uuid.v4() as string,
 		};
-		if (confirmResult) {
-			setDeleteAuction(true);
-			dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
-			const auctionDeleted: AuctionDeleted = {
-				auctionId: id!,
-				correlationId: uuid.v4() as string,
-			};
-			deleteAction(auctionDeleted);
-		}
-		setShowConfirm(false);
-		setConfirmResult(null);
-		// eslint-disable-next-line
-	}, [confirmResult]);
+		deleteAuctionProc(auctionDeleted);
+		dispatch(setEventFlag({ eventName: "AuctionDeleted", ready: false }));
+	};
+
+	const rejectDeleteDialog = () => {
+		//отмена удаления сообщения
+		setShowConfirmDelete(false);
+	};
 
 	if (data.isLoading) return "Загрузка...";
 
 	return (
-		<div className="mt-2 ">
+		<div>
+			{procState.find((p) => p.eventName === "WaiterHide") &&
+			!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
+				<Waiter />
+			) : (
+				<></>
+			)}
 			{auctionDetail && auctionDetail!.sellerName && (
-				<>
+				<div className="overflow-hidden">
 					<div className="grid">
 						<div className="col-6 CenterItem">
 							<div className="CenterItem flex-column w-full">
@@ -174,8 +184,7 @@ export default function DetailMain() {
 											raised
 											rounded
 											onClick={() => navigate(`/auctions/edit/${id}`)}
-											disabled={!!deleteAuction}
-											className="CustomButton mr-2 w-16rem"
+											className="CustomButton mr-4 w-30rem"
 										>
 											Редактировать аукцион
 										</Button>
@@ -183,9 +192,8 @@ export default function DetailMain() {
 											text
 											raised
 											rounded
-											className="CustomButton w-16rem"
+											className="CustomButton w-30rem"
 											onClick={handleDeleteAuction}
-											loading={!!deleteAuction}
 										>
 											Удалить аукцион
 										</Button>
@@ -207,12 +215,21 @@ export default function DetailMain() {
 
 								{user.name && (
 									<div className="CenterItem">
+										{procState.find(
+											(p) => p.eventName === "WaiterHideNotify"
+										) &&
+										!procState.find((p) => p.eventName === "WaiterHideNotify")!
+											.ready ? (
+											<Waiter />
+										) : (
+											<></>
+										)}
 										<h3 className="DetailNotifyText">
 											Получать уведомления этого аукциона:
 										</h3>
 										<InputSwitch
 											checked={notifyUser}
-											onChange={(e) => handleSetNotifyUser(e.checked!)}
+											onChange={(e) => handleSetNotifyUser(e.value)}
 										/>
 									</div>
 								)}
@@ -226,7 +243,7 @@ export default function DetailMain() {
 							/>
 						</div>
 						<div className="col-6">
-							<Panel className="BidPanel">
+							<Panel>
 								<BidList user={user} auction={auctionDetail!} />
 							</Panel>
 						</div>
@@ -235,19 +252,21 @@ export default function DetailMain() {
 								<DetailedSpec auction={auctionDetail!} user={user} />
 							</Panel>
 						</div>
-
-						<Button
-							text
-							raised
-							rounded
-							className="CustomButton"
-							onClick={() => navigate(-1)}
-						>
-							Назад
-						</Button>
 					</div>
-				</>
+				</div>
 			)}
+			<ModalYesNo
+				accept={acceptDeleteDialog}
+				reject={rejectDeleteDialog}
+				header="Подтверждение удаления аукциона"
+				label={
+					"Действительно удалить аукцион - ' " + auctionDetail?.title + "'?"
+				}
+				visible={showConfirmDelete}
+				group="deleteAuction"
+				modalType={ModalTypes.warning}
+			/>
+			<Footer />
 		</div>
 	);
 }

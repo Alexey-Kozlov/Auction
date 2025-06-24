@@ -7,7 +7,7 @@ import {
 	FormErrors,
 	ProcessingState,
 } from "../../types";
-import ImageFileInput from "../inputComponents/ImageFileInput";
+
 import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,9 +18,20 @@ import {
 	useUpdateAuctionMutation,
 } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
+import DateInput from "../inputComponents/DateInput";
+import { Panel } from "primereact/panel";
+import ImageFileInput from "../inputComponents/ImageFileInput";
+import {
+	InputNumber,
+	InputNumberValueChangeEvent,
+} from "primereact/inputnumber";
+import { Button } from "primereact/button";
+import { Message } from "primereact/message";
+import Waiter from "../Waiter";
 
 export default function AuctionForm() {
-	// eslint-disable-next-line
 	let { id } = useParams();
 	if (!id) id = "empty";
 
@@ -179,12 +190,12 @@ export default function AuctionForm() {
 		});
 	};
 
-	const handleReservePriceChanged = (value: number) => {
-		if (value < 0) return;
+	const handleReservePriceChanged = (e: InputNumberValueChangeEvent) => {
+		if (!e || !e.value || e.value < 0) return;
 		setEditError(() => null);
 		setIsFormChanged(true);
 		setNewAuction((prev) => {
-			return { ...prev, reservePrice: value };
+			return { ...prev, reservePrice: e.value } as Auction;
 		});
 	};
 
@@ -215,7 +226,7 @@ export default function AuctionForm() {
 			correlationId: uuid.v4() as string,
 			usingImage: newAuction.usingImage!,
 		};
-
+		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
 		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
 		if (id && id !== "empty") {
 			//обновление аукциона
@@ -230,13 +241,149 @@ export default function AuctionForm() {
 	if (auction.isLoading) return "Загрузка...";
 
 	return (
-		<div className="FormContainer">
-			<Heading
-				title="Редактирование аукциона"
-				subtitle="Отредактируйте данные ниже"
-			/>
+		<div className="CenterItem">
+			{procState.find((p) => p.eventName === "WaiterHide") &&
+			!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
+				<Waiter />
+			) : (
+				<></>
+			)}
+			<Panel className="EditForm">
+				<Heading
+					title="Редактирование аукциона"
+					subtitle="Отредактируйте данные ниже"
+				/>
 
-			<form onSubmit={handleSubmit}></form>
+				<div className="grid mt-2 text-3xl">
+					<div className="col-3">
+						Наименование<span>*</span>
+					</div>
+					<div className="col-9">
+						<InputText
+							placeholder="Наименование"
+							id="Title"
+							className="InputControl w-full"
+							value={newAuction.title}
+							onChange={(e) => handleTitleChanged(e.target.value)}
+						/>
+						<Message
+							className="mt-2"
+							severity="error"
+							text={editError?.message}
+							pt={{
+								root: {
+									className:
+										editError !== null && editError.name === "EmptyTitle"
+											? ""
+											: "hidden",
+								},
+							}}
+						/>
+					</div>
+					<div className="col-3">Описание</div>
+					<div className="col-9">
+						<InputTextarea
+							id="Description"
+							placeholder="Описание"
+							rows={5}
+							autoResize
+							className="w-full text-2xl"
+							value={newAuction.properties}
+							onChange={(e) => handlePropertiesChanged(e.target.value)}
+						/>
+					</div>
+					<div className="col-3">
+						Дата окончания аукциона<span>*</span>
+					</div>
+					<div className="col-9">
+						<DateInput
+							value={newAuction.auctionEnd}
+							onChange={(e) => handleEndDateChanged(e!)}
+						/>
+						<Message
+							className="mt-2"
+							severity="error"
+							text={editError?.message}
+							pt={{
+								root: {
+									className:
+										editError !== null && editError.name === "ErrorEndDate"
+											? ""
+											: "hidden",
+								},
+							}}
+						/>
+					</div>
+					<div className="col-3">Изображение</div>
+					<div className="col-9">
+						<ImageFileInput
+							name="image"
+							value={image}
+							onChange={(imageData: string) => {
+								handleImageChanged(imageData);
+								setImage(imageData);
+							}}
+							usingImage={(usingImg: boolean) => {
+								handleImageUsingChanged(usingImg);
+							}}
+						/>
+					</div>
+					<div className="col-3">Начальная цена</div>
+					<div className="col-9">
+						<InputNumber
+							id="Title"
+							placeholder="Начальная цена"
+							className="InputControl w-full"
+							value={newAuction.reservePrice}
+							suffix=" руб"
+							onValueChange={(e: InputNumberValueChangeEvent) =>
+								handleReservePriceChanged(e)
+							}
+						/>
+					</div>
+					<div className="col-3">Примечание</div>
+					<div className="col-9">
+						<InputTextarea
+							id="Description"
+							rows={3}
+							autoResize
+							className="w-full"
+							placeholder="Примечание"
+							value={newAuction.description}
+							onChange={(e) => handleDescriptionChanged(e.target.value)}
+						/>
+					</div>
+					<div className="col-12">
+						<div className="CenterItem mt-10">
+							<Button
+								text
+								raised
+								rounded
+								className="CustomButton w-16rem"
+								disabled={!isFormChanged || isWaiting}
+								onClick={(e) => {
+									e.preventDefault();
+									handleSubmit();
+								}}
+							>
+								{id ? "Сохранить" : "Создать"}
+							</Button>
+							<Button
+								text
+								raised
+								rounded
+								className="CustomButton w-16rem ml-5"
+								onClick={(e) => {
+									e.preventDefault();
+									navigate(-1);
+								}}
+							>
+								Отмена
+							</Button>
+						</div>
+					</div>
+				</div>
+			</Panel>
 		</div>
 	);
 }

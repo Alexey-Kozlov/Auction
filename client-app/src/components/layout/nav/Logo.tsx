@@ -1,7 +1,7 @@
 import { RiAuctionLine } from "react-icons/ri";
 import { useDispatch } from "react-redux";
 import { NavLink } from "react-router-dom";
-import { setParams } from "../../store/paramSlice";
+import { setParams } from "../../../store/paramSlice";
 
 export default function Logo() {
 	const dispatch = useDispatch();

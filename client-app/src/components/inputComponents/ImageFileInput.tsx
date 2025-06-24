@@ -1,5 +1,6 @@
+import { InputSwitch } from "primereact/inputswitch";
 import React, { useEffect, useState } from "react";
-import { Checkbox, Input } from "semantic-ui-react";
+import NumberWithSpaces from "../../utils/NumberWithSpaces";
 
 type Props = {
 	value?: string;
@@ -22,6 +23,7 @@ export default function ImageFileInput({
 }: Props) {
 	const [imageDisplay, setImageDisplay] = useState("");
 	const [usingImg, setUsingImg] = useState(false);
+	const [imageSize, setImageSize] = useState<number>(0);
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files && e.target.files[0];
@@ -31,6 +33,7 @@ export default function ImageFileInput({
 
 			reader.onload = (e) => {
 				setImageDisplay(e.target?.result as string);
+				setImageSize(Math.round(e.loaded / 1000));
 				onChange(e.target?.result as string);
 			};
 		}
@@ -39,6 +42,17 @@ export default function ImageFileInput({
 	useEffect(() => {
 		if (value) {
 			setImageDisplay(`${value}`);
+			setImageSize(
+				Math.round(
+					atob(
+						value
+							.replace("data:image/png;base64,", "")
+							.replace("data:image/jpg;base64,", "")
+							.replace("data:image/jpeg;base64,", "")
+							.replace("data:image/bmp;base64,", "")
+					).length / 1000
+				)
+			);
 			setUsingImg((prev) => true);
 		} else {
 			setUsingImg((prev) => false);
@@ -58,19 +72,19 @@ export default function ImageFileInput({
 			<div className="flex-column">
 				<div className="flex-column">
 					<div>
-						<Input className="w-100P" type="file" onChange={handleFileChange} />
+						<input type="file" onChange={handleFileChange} />
+						<span className="ml-6">Размер :</span>
+						<span className="ml-2">{NumberWithSpaces(imageSize) + " Kb."}</span>
 					</div>
-					<div className="flex mt-10">
+					<div className="flex mt-10 align-items-center">
 						<p className="mr-2 mr-10">Требуется изображение</p>
-						<Checkbox
+						<InputSwitch
 							className="ImageUsing"
-							toggle
 							checked={usingImg}
-							onChange={(e, data) => handleImageUsing(data.checked!)}
+							onChange={(e) => handleImageUsing(e.value)}
 						/>
 					</div>
 				</div>
-
 				<div>
 					{usingImg && (
 						<img alt="" className="ImageEditPreview" src={imageDisplay} />

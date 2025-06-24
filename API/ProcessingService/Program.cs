@@ -43,6 +43,7 @@ builder.Services.AddDbContext<ProcessingDbContext>(options =>
     conStrBuilder.Username = builder.Configuration["pg:username"];
     conStrBuilder.Database = builder.Configuration["pg:database"];
     conStrBuilder.Host = builder.Configuration["pg:host"];
+    conStrBuilder.IncludeErrorDetail = true;
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
 });

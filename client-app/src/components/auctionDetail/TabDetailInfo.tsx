@@ -57,11 +57,11 @@ export default function TabDetailInfo({ auction }: Props) {
 				value={rows}
 				stripedRows
 				showGridlines
-				tableStyle={{ minWidth: "40rem" }}
+				tableStyle={{ fontSize: "1.6rem" }}
 			>
 				<Column
 					field="field"
-					className="w-20rem"
+					className="w-30rem"
 					headerClassName="hidden"
 				></Column>
 				<Column headerClassName="hidden" field="value"></Column>

@@ -43,7 +43,7 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
                         case CRUD.Delete:
                             //удаляем запись
                             var delItem = await _dbContext.Bids.FirstOrDefaultAsync(p =>
-                                p.BidId == typedItem.BidId && p.Commited);
+                                p.ItemId == typedItem.ItemId && p.Commited);
                             if (delItem == null)
                             {
                                 throw new Exception($"Запись для удаления не найдена");

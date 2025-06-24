@@ -18,7 +18,7 @@ import ChatUser from "./ChatUser";
 import { setEventFlag } from "../../../store/processingSlice";
 import Waiter from "../../Waiter";
 import { InputTextarea } from "primereact/inputtextarea";
-import { DynamicSort } from "../../../utils/DynamicSort";
+import { DynamicDateSort, DynamicSort } from "../../../utils/DynamicSort";
 import { ScrollPanel } from "primereact/scrollpanel";
 import { ContextMenu } from "primereact/contextmenu";
 import { MenuItem } from "primereact/menuitem";
@@ -70,13 +70,12 @@ export default function TabChatTable({ auction, user }: Props) {
 	};
 
 	const handleMessageSubmit = () => {
-		// обновляем новое сообщение в хранилище для инициации посылки на сервер через SignalR
 		// начало процесса создания нового сообщения - в UseEffect свойства "messageChat" в SignalRProvider
 		if (!newMessage.message) return;
 		let createMessage = newMessage;
 		createMessage.actionType = ActionType.create;
 		dispatch(setChatMessage(createMessage));
-		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+		dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: false }));
 	};
 
 	//отслеживаем обновления данных чата и обновляем отображение при изменениях
@@ -95,6 +94,14 @@ export default function TabChatTable({ auction, user }: Props) {
 		}
 	}, [communication]);
 
+	useEffect(() => {
+		if (!user.login) {
+			setCommunicationItems(() => []);
+		} else {
+			communication.refetch();
+		}
+	}, [user]);
+
 	//изменилось хранилище ответов чата - обновляем состояние набора записей чата
 	useEffect(() => {
 		switch (chatResponse.actionType) {
@@ -112,7 +119,9 @@ export default function TabChatTable({ auction, user }: Props) {
 				setCommunicationItems((prev) => [...prev, newChatMessage]);
 				setCommunicationItems((prev) => {
 					let _temp = JSON.parse(JSON.stringify(prev)) as ChatComment[];
-					return _temp?.sort(DynamicSort("updateAt", SortDirection.descending));
+					return _temp?.sort(
+						DynamicDateSort("updateAt", SortDirection.descending)
+					);
 				});
 				break;
 			case ActionType.delete:
@@ -151,24 +160,37 @@ export default function TabChatTable({ auction, user }: Props) {
 	const contextItems: MenuItem[] = [
 		{
 			label: "Редактировать",
-			icon: "pi pi-file-edit",
+			icon: (
+				<i
+					className="pi pi-file-edit"
+					style={{ fontSize: "2rem", marginRight: "1rem" }}
+				/>
+			),
+			className: "text-4xl",
 			command: () => setShowConfirmEditDialog(true),
 		},
 		{
 			label: "Удалить",
-			icon: "pi pi-trash",
+			icon: (
+				<i
+					className="pi pi-trash"
+					style={{ fontSize: "2rem", marginRight: "1rem" }}
+				/>
+			),
+			className: "text-4xl",
 			command: () => setShowConfirmDeleteDialog(true),
 		},
 	];
 
 	const acceptEditDialog = () => {
-		//подтвердили редактирование сообщения
+		//подтвердили редактирование сообщения чата
+		// начало процесса редактирования сообщения чата - в UseEffect свойства "messageChat" в SignalRProvider
 		let updateMessage = chatSelected!;
 		updateMessage.actionType = ActionType.update;
 		updateMessage.sessionId = SessionType[SessionType.all];
 		setShowConfirmEditDialog(false);
 		dispatch(setChatMessage(updateMessage));
-		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+		dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: false }));
 	};
 
 	const rejectEditDialog = () => {
@@ -178,13 +200,13 @@ export default function TabChatTable({ auction, user }: Props) {
 
 	const acceptDeleteDialog = () => {
 		// удаляем сообщение через SignalR
-		// начало процесса создания нового сообщения - в UseEffect свойства "messageChat" в SignalRProvider
+		// начало процесса удаления сообщения чата - в UseEffect свойства "messageChat" в SignalRProvider
 		let deleteMessage = chatSelected!;
 		deleteMessage.sessionId = SessionType[SessionType.all];
 		deleteMessage.actionType = ActionType.delete;
 		setShowConfirmDeleteDialog(false);
 		dispatch(setChatMessage(deleteMessage));
-		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+		dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: false }));
 	};
 
 	const rejectDeleteDialog = () => {
@@ -209,6 +231,7 @@ export default function TabChatTable({ auction, user }: Props) {
 				<div className="col-12 MessageInputItem">
 					<InputTextarea
 						variant="filled"
+						disabled={!user.login}
 						autoResize
 						placeholder="Новое сообщение (для перевода строки нажмите Shift-Enter)"
 						value={newMessage.message}
@@ -220,52 +243,53 @@ export default function TabChatTable({ auction, user }: Props) {
 							}
 						}}
 						onChange={(e) => handleMessageChanged(e.currentTarget.value)}
-						rows={3}
-						className="w-full"
+						rows={5}
+						className="w-full text-4xl"
 					/>
 				</div>
-				{procState.find((p) => p.eventName === "WaiterHide") &&
-				!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
-					<div className="col-12 CenterItem">
+				{procState.find((p) => p.eventName === "WaiterHideChat") &&
+				!procState.find((p) => p.eventName === "WaiterHideChat")!.ready ? (
+					<div className="CenterItem">
 						<Waiter />
 					</div>
 				) : (
-					<ScrollPanel
-						style={{ width: "100%", height: "275px" }}
-						className="custombar1"
-					>
-						{communicationItems &&
-							communicationItems.map((item, index) => (
-								<div
-									key={index}
-									className="col-12 MessageItem"
-									onContextMenu={(event) => onRightClick(event, item)}
-								>
-									<div className="w-15rem border-right-2 px-1 py-1 CenterItem">
-										<ChatUser userLogin={item.userLogin} />
+					<></>
+				)}
+				<ScrollPanel
+					style={{ width: "100%", height: "27rem" }}
+					className="custombar1"
+				>
+					{communicationItems &&
+						communicationItems.map((item, index) => (
+							<div
+								key={index}
+								className="col-12 MessageItem"
+								onContextMenu={(event) => onRightClick(event, item)}
+							>
+								<div className="w-30rem border-right-2 px-2 py-2 CenterItem">
+									<ChatUser userLogin={item.userLogin} />
+								</div>
+								<div className="flex flex-column text-4xl">
+									<div className="px-6 ">
+										{new Date(item.updateAt).toLocaleDateString() +
+											" " +
+											new Date(item.updateAt).toLocaleTimeString()}
 									</div>
-									<div className="flex flex-column">
-										<div className="px-3 ">
-											{new Date(item.updateAt).toLocaleDateString() +
-												" " +
-												new Date(item.updateAt).toLocaleTimeString()}
-										</div>
-										<div className="px-3 py-2">
-											{item.message.split("\n").map((line, index) => {
-												return (
-													<p key={index} className="p-0 m-0">
-														{line}
-													</p>
-												);
-											})}
-										</div>
+									<div className="px-6 py-4">
+										{item.message.split("\n").map((line, index) => {
+											return (
+												<p key={index} className="p-0 m-0">
+													{line}
+												</p>
+											);
+										})}
 									</div>
 								</div>
-							))}
-					</ScrollPanel>
-				)}
+							</div>
+						))}
+				</ScrollPanel>
 			</div>
-			<ContextMenu ref={cm} model={contextItems} />
+			<ContextMenu ref={cm} model={contextItems} className="w-18rem" />
 
 			<ModalEditText
 				accept={acceptEditDialog}
@@ -279,7 +303,7 @@ export default function TabChatTable({ auction, user }: Props) {
 					})
 				}
 				visible={showConfirmEditDialog}
-				group="edit"
+				group="editChat"
 			/>
 
 			<ModalYesNo
@@ -290,7 +314,7 @@ export default function TabChatTable({ auction, user }: Props) {
 					"Действительно удалить сообщение - ' " + chatSelected?.message! + "'?"
 				}
 				visible={showConfirmDeleteDialog}
-				group="delete"
+				group="deleteChat"
 				modalType={ModalTypes.warning}
 			/>
 		</>

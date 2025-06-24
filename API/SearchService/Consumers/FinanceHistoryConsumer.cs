@@ -33,7 +33,6 @@ public class FinanceHistoryConsumer : IConsumer<FinanceSortRequest>
                 AuctionId = fin.AuctionId,
                 AuctionSeller = auction?.Seller,
                 AuctionTitle = auction?.Title,
-                FinanceId = fin.FinanceId,
                 ItemId = fin.ItemId,
                 Status = fin.Status,
                 UserLogin = fin.UserLogin,

@@ -2,6 +2,7 @@ import {
 	HubConnection,
 	HubConnectionBuilder,
 	HubConnectionState,
+	LogLevel,
 } from "@microsoft/signalr";
 import { useEffect, useState } from "react";
 import {
@@ -15,12 +16,13 @@ import {
 	NotificationEvent,
 	PagedResult,
 	ProgressToast,
+	SignalREvents,
 	ToastType,
 	User,
 } from "../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
-import BidCreatedToast from "../components/signalRNotifications/BidCreatedToast";
+import BidCreatedToast from "../components/signalRNotifications/ImageToast";
 import { setEventFlag } from "../store/processingSlice";
 import MessageToast from "../components/signalRNotifications/MessageToast";
 import { setData } from "../store/auctionSlice";
@@ -28,24 +30,32 @@ import { setParams } from "../store/paramSlice";
 import FinanceCreatedToast from "../components/signalRNotifications/FinanceCreatedToast";
 import ProgressMessageToast from "../components/signalRNotifications/ProgressMessageToast";
 import { setFinanceItems } from "../store/financeSlice";
-import AuctionToast from "../components/signalRNotifications/AuctionToast";
 import { setChatResponse } from "../store/chatSlice";
+import { Toast } from "primereact/toast";
+import { Avatar } from "primereact/avatar";
+import { Button } from "primereact/button";
+import ImageToast from "../components/signalRNotifications/ImageToast";
 
 export default function SignalRProvider() {
 	const user: User = useSelector((state: RootState) => state.authStore);
 	const messageChat: ChatComment = useSelector(
 		(state: RootState) => state.chatMessageStore
 	);
-
+	const toastMessage: Toast | null = useSelector(
+		(state: RootState) => state.serviceStore
+	).toast;
 	const dispatch = useDispatch();
 	const [connection, setConnection] = useState<HubConnection | null>(null);
 
 	const apiUrl = process.env.REACT_APP_NOTIFY_URL;
 
 	const tokenData = localStorage.getItem("Auction");
-	const progressToastId = "RestoreToastId";
 
 	useEffect(() => {
+		if (connection && connection.state === HubConnectionState.Connected) {
+			connection.stop();
+			setConnection(() => null);
+		}
 		if (tokenData) {
 			const token = JSON.parse(tokenData!).token;
 			const newConnection = new HubConnectionBuilder()
@@ -53,12 +63,14 @@ export default function SignalRProvider() {
 					accessTokenFactory: () => token,
 				})
 				.withAutomaticReconnect()
+				.configureLogging(LogLevel.Information)
 				.build();
 			setConnection(newConnection);
 		} else {
 			const newConnection = new HubConnectionBuilder()
 				.withUrl(apiUrl!)
 				.withAutomaticReconnect()
+				.configureLogging(LogLevel.Information)
 				.build();
 			setConnection(newConnection);
 		}
@@ -69,37 +81,38 @@ export default function SignalRProvider() {
 		const con_execute = async () => {
 			if (connection) {
 				if (connection.state === HubConnectionState.Disconnected) {
-					await connection.start();
-					console.log("Коннект установлен с хабом уведомлений");
-				}
-				connection.on("BidPlaced", (message: NotificationEvent) => {
-					const bid = JSON.parse(message.data);
-					//устанавливаем флаг что данные для данного пользователя готовы и нужно обновить запрос
-					dispatch(
-						setEventFlag({
-							eventName: "BidPlaced",
-							ready: true,
-							itemId: bid.AuctionId,
-						})
-					);
-					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-					//для обновления плашки ставки на страничке аукциона в списке аукционов
-					dispatch(
-						setEventFlag({
-							eventName: "CollectionChanged",
-							ready: true,
-							itemId: bid.AuctionId,
-						})
-					);
-					if (message.show) {
-						// return toast(
-						// 	(p) => (
-						// 		<BidCreatedToast auctionId={bid.AuctionId} toastId={p.id} />
-						// 	),
-						// 	{ duration: 5000 }
-						// );
+					try {
+						await connection.start();
+						console.log("Коннект установлен с хабом уведомлений");
+					} catch (e) {
+						console.log("Ошибка Коннекта с хабом - " + e);
 					}
-				});
+				}
+				connection.on(
+					SignalREvents[SignalREvents.BidPlaced],
+					(message: NotificationEvent) => {
+						const bid = JSON.parse(message.data);
+						dispatch(
+							setEventFlag({
+								eventName: SignalREvents[SignalREvents.BidPlaced],
+								ready: true,
+								itemId: bid.ItemId,
+							})
+						);
+						dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+						toastMessage!.show({
+							severity: "success",
+							life: 4000,
+							className: "bg-white",
+							content: (props) => (
+								<ImageToast
+									auctionId={bid.AuctionId}
+									messageType={SignalREvents.BidPlaced}
+								/>
+							),
+						});
+					}
+				);
 
 				connection.on("AuctionCreated", (auction: Auction) => {
 					dispatch(
@@ -186,7 +199,7 @@ export default function SignalRProvider() {
 				connection.on("AuctionDeleted", (auction: any) => {
 					dispatch(
 						setEventFlag({
-							eventName: "CollectionChanged",
+							eventName: "AuctionDeleted",
 							ready: true,
 							itemId: auction.auctionId,
 						})
@@ -205,16 +218,24 @@ export default function SignalRProvider() {
 					}
 				});
 
-				connection.on("FinanceCreate", (finance: FinanceItem) => {
-					dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
-					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-					if (finance.show) {
-						// return toast(
-						// 	(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
-						// 	{ duration: 5000 }
-						// );
+				connection.on(
+					SignalREvents[SignalREvents.FinanceCreate],
+					(finance: FinanceItem) => {
+						dispatch(
+							setEventFlag({
+								eventName: SignalREvents[SignalREvents.FinanceCreate],
+								ready: true,
+							})
+						);
+						dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+						if (finance.show) {
+							// return toast(
+							// 	(p) => <FinanceCreatedToast finance={finance} toastId={p.id} />,
+							// 	{ duration: 5000 }
+							// );
+						}
 					}
-				});
+				);
 
 				connection.on("SessionId", (id: any) => {
 					dispatch(setParams({ sessionId: id }));
@@ -285,34 +306,45 @@ export default function SignalRProvider() {
 						}
 					};
 					//убираем иконку ожидания
-					dispatch(setEventFlag({ eventName: "ElkSearch", ready: true }));
-					// return toast(
-					// 	(p) => (
-					// 		<MessageToast
-					// 			message={message.message}
-					// 			toastId={p.id}
-					// 			toastType={getMessageType()}
-					// 		/>
-					// 	),
-					// 	{ duration: 5000 }
-					// );
+					dispatch(
+						setEventFlag({ eventName: "WaiterHideNotify", ready: true })
+					);
+					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
+					toastMessage!.show({
+						severity: "error",
+						life: 6000,
+						className: "bg-white",
+						content: (props) => (
+							<MessageToast
+								toastType={ToastType.Error}
+								message={message.message}
+							/>
+						),
+					});
 				});
 
-				connection.on("EditNotification", (result: any) => {
+				connection.on("EditNotification", (message: NotificationEvent) => {
+					const event = JSON.parse(message.data);
+					dispatch(
+						setEventFlag({ eventName: "WaiterHideNotify", ready: true })
+					);
 					dispatch(
 						setEventFlag({ eventName: "EditNotification", ready: true })
 					);
-					if (result.show) {
-						// return toast(
-						// 	(p) => (
-						// 		<MessageToast
-						// 			message={result.message}
-						// 			toastId={p.id}
-						// 			toastType={ToastType.Info}
-						// 		/>
-						// 	),
-						// 	{ duration: 5000 }
-						// );
+
+					const text = event.Enable
+						? "Уведомление для пользователя " + event.UserLogin + " создано!"
+						: "Уведомление для пользователя " + event.UserLogin + " удалено!";
+					if (message.show) {
+						toastMessage!.show({
+							severity: "info",
+							life: 3000,
+							className: "bg-white",
+							content: (props) => (
+								<MessageToast toastType={ToastType.Info} message={text} />
+							),
+						});
 					}
 				});
 
@@ -366,7 +398,7 @@ export default function SignalRProvider() {
 
 				connection.on("CommunicationCreate", (message: NotificationEvent) => {
 					const data = JSON.parse(message.data);
-					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
 					dispatch(
 						setChatResponse({
 							itemId: data.ItemId,
@@ -382,7 +414,7 @@ export default function SignalRProvider() {
 
 				connection.on("CommunicationUpdate", (message: NotificationEvent) => {
 					const data = JSON.parse(message.data);
-					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
 					dispatch(
 						setChatResponse({
 							itemId: data.ItemId,
@@ -398,7 +430,7 @@ export default function SignalRProvider() {
 
 				connection.on("CommunicationDelete", (message: NotificationEvent) => {
 					const data = JSON.parse(message.data);
-					dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+					dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
 					dispatch(
 						setChatResponse({
 							itemId: data.ItemId,
@@ -414,9 +446,6 @@ export default function SignalRProvider() {
 			}
 		};
 		con_execute();
-		return () => {
-			connection?.stop();
-		};
 		// eslint-disable-next-line
 	}, [connection, user.login]);
 

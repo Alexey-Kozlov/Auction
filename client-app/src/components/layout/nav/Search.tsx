@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { setParams } from "../../store/paramSlice";
+import { setParams } from "../../../store/paramSlice";
 import { useLocation, useNavigate } from "react-router-dom";
-import { setEventFlag } from "../../store/processingSlice";
-import { RootState } from "../../store/store";
+import { setEventFlag } from "../../../store/processingSlice";
+import { RootState } from "../../../store/store";
 
 export default function Search() {
 	const [search, setSearch] = useState("");
@@ -62,7 +62,7 @@ export default function Search() {
 					}}
 				/>
 				<button className="SearchButton" onClick={() => Search()}>
-					<FaSearch size={34} className="SearchIcon" />
+					<FaSearch size={40} className="SearchIcon" />
 				</button>
 			</div>
 			<div className="SearchHeader">
@@ -77,7 +77,7 @@ export default function Search() {
 					}}
 				/>
 				<button className="SearchButton" onClick={() => AdvSearch()}>
-					<FaSearch size={34} className="SearchIconAdv" />
+					<FaSearch size={40} className="SearchIconAdv" />
 				</button>
 			</div>
 		</div>

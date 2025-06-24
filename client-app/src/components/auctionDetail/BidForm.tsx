@@ -1,7 +1,7 @@
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { usePlaceBidForAuctionMutation } from "../../api/ProcessingApi";
 import uuid from "react-native-uuid";
-import { FormErrors, ProcessingState, User } from "../../types";
+import { FormErrors, ProcessingState, SessionType, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { FormEvent, useEffect, useState } from "react";
@@ -68,12 +68,11 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 
 		dispatch(setEventFlag({ eventName: "BidPlaced", ready: false }));
 		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
-		dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
 
 		await placeBid({
 			amount: bidValue as number,
 			auctionId: auctionId,
-			correlationId: uuid.v4() as string,
+			sessionId: SessionType[SessionType.auctionGroup],
 		});
 	};
 
@@ -83,42 +82,43 @@ export default function BidForm({ auctionId, highBid, bidList }: Props) {
 			!procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
 				<Waiter />
 			) : (
-				<div>
-					<form onSubmit={(e) => handleSubmit(e)}>
-						<div className="text-center">
-							<div className="flex align-items-center mt-4">
-								<label className="BidInputLabel">
-									{`Ваша ставка (мин. ${NumberWithSpaces(highBid + 1)} руб):`}
-								</label>
-								<InputNumber
-									name="amount"
-									step={5}
-									variant="filled"
-									className="BidInputControl"
-									placeholder={`Ваша ставка (мин. ${highBid + 1}) руб`}
-									tooltip="Стрелки вверх/вниз - шаг 5 руб."
-									tooltipOptions={{ position: "bottom" }}
-									onChange={(e) => handleBidChanged(e.value)}
-									value={bidValue}
-								/>
-							</div>
-							<Message
-								className="mt-2"
-								severity="error"
-								text={bidError?.message}
-								pt={{
-									root: {
-										className:
-											bidError !== null && bidError.name === "SmallBid"
-												? ""
-												: "hidden",
-									},
-								}}
+				<></>
+			)}
+			<div>
+				<form onSubmit={(e) => handleSubmit(e)}>
+					<div className="text-center">
+						<div className="flex align-items-center mt-4">
+							<label className="BidInputLabel">
+								{`Ваша ставка (мин. ${NumberWithSpaces(highBid + 1)} руб):`}
+							</label>
+							<InputNumber
+								name="amount"
+								step={5}
+								variant="filled"
+								className="BidInputControl"
+								placeholder={`Ваша ставка (мин. ${highBid + 1}) руб`}
+								tooltip="Стрелки вверх/вниз - шаг 5 руб."
+								tooltipOptions={{ position: "bottom" }}
+								onChange={(e) => handleBidChanged(e.value)}
+								value={bidValue}
 							/>
 						</div>
-					</form>
-				</div>
-			)}
+						<Message
+							className="mt-2"
+							severity="error"
+							text={bidError?.message}
+							pt={{
+								root: {
+									className:
+										bidError !== null && bidError.name === "SmallBid"
+											? ""
+											: "hidden",
+								},
+							}}
+						/>
+					</div>
+				</form>
+			</div>
 		</>
 	);
 }

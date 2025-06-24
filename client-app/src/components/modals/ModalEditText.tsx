@@ -40,8 +40,8 @@ export default function ModalEditText({
 			className="w-6 "
 			content={({ hide }) => (
 				<div className="flex flex-column align-items-center p-5 border-round-lg bg-white w-full">
-					<span className="font-bold text-2xl block mb-2 mt-4">{header}</span>
-					<p className="mb-1rem">{label}</p>
+					<span className="font-bold text-4xl block mb-2 mt-4">{header}</span>
+					<p className="mb-1rem text-4xl">{label}</p>
 					<InputTextarea
 						name="EditMessage"
 						variant="filled"
@@ -57,7 +57,7 @@ export default function ModalEditText({
 							}
 						}}
 						rows={3}
-						className="w-full"
+						className="w-full text-4xl"
 					/>
 					<div className="flex align-items-center gap-2 mt-4">
 						<Button
@@ -69,7 +69,7 @@ export default function ModalEditText({
 								hide(event);
 								reject();
 							}}
-							className="w-8rem CustomButton"
+							className="w-16rem CustomButton mr-2"
 						></Button>
 						<Button
 							label="Ок"
@@ -80,7 +80,7 @@ export default function ModalEditText({
 								hide(event);
 								accept();
 							}}
-							className="w-8rem CustomButton"
+							className="w-16rem CustomButton"
 						></Button>
 					</div>
 				</div>

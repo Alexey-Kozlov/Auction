@@ -8,6 +8,7 @@ import BidForm from "./BidForm";
 import { useGetBidsForAuctionQuery } from "../../api/BidApi";
 import { setBids, setOpen } from "../../store/bidSlice";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
+import { Panel } from "primereact/panel";
 
 type Props = {
 	user: User | null;
@@ -82,8 +83,8 @@ export default function BidList({ user, auction }: Props) {
 	if (bidList.isLoading) return <span>Загрузка предложений...</span>;
 
 	return (
-		<div>
-			<div className="">
+		<div className="BidPanel">
+			<div>
 				{bids?.length === 0 ? (
 					<Heading
 						title="Нет предложений для этого аукциона"
@@ -100,8 +101,10 @@ export default function BidList({ user, auction }: Props) {
 			<div>
 				<div className="BidListHeight">
 					{bids?.map((bid, index) => (
-						<div key={bid?.itemId} ref={itemsRef} className="BidListItem">
-							<BidItem bid={bid} />
+						<div key={index} ref={itemsRef} className="BidListItem">
+							<Panel className="mt-2 PanelItem">
+								<BidItem bid={bid} />
+							</Panel>
 						</div>
 					))}
 				</div>
@@ -109,7 +112,7 @@ export default function BidList({ user, auction }: Props) {
 			<div className="DetailNotifyText text-center">
 				{!open ? (
 					<div>Аукцион завершен</div>
-				) : !user?.itemId ? (
+				) : !user?.login ? (
 					<div>Войдите в систему чтобы делать заявки</div>
 				) : user && user.login === auction?.seller ? (
 					<div>Невозможно сделать заявку для собственного аукциона</div>

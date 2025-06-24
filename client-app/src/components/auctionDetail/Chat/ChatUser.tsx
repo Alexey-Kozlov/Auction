@@ -5,5 +5,5 @@ type Props = {
 };
 export default function ChatUser({ userLogin }: Props) {
 	const userName = useGetUserNameQuery(userLogin, { skip: !userLogin });
-	return <div>{userName.data?.result}</div>;
+	return <div className="text-4xl">{userName.data?.result}</div>;
 }

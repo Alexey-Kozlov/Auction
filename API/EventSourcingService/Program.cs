@@ -43,6 +43,8 @@ internal class Program
             conStrBuilder.Host = builder.Configuration["pg:host"];
             conStrBuilder.Timeout = 300;
             conStrBuilder.CommandTimeout = 300;
+            conStrBuilder.IncludeErrorDetail = true;
+
             options.UseNpgsql(conStrBuilder.ConnectionString);
         }, ServiceLifetime.Transient, ServiceLifetime.Transient);
 

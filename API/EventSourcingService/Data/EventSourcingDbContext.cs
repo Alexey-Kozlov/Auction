@@ -53,16 +53,18 @@ public class EventSourcingDbContext : DbContext
         FromExpression(() => finance_create(correlationid, eventdata, userLogin));
     public IQueryable<ReturnResultSql> place_bid(
         Guid correlationid,
+        Guid itemid,
         Guid auctionid,
         string eventdata,
         string userLogin) =>
-        FromExpression(() => place_bid(correlationid, auctionid, eventdata, userLogin));
+        FromExpression(() => place_bid(correlationid, itemid, auctionid, eventdata, userLogin));
     public IQueryable<ReturnResultSql> edit_notification(
         Guid correlationid,
+        Guid itemid,
         Guid auctionid,
         string eventdata,
         string userLogin) =>
-        FromExpression(() => edit_notification(correlationid, auctionid, eventdata, userLogin));
+        FromExpression(() => edit_notification(correlationid, itemid, auctionid, eventdata, userLogin));
     public IQueryable<ReturnResultSql> restore_snap_shot_items(
         Guid correlationid,
         string eventdata) =>
@@ -114,8 +116,8 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => finance_create(default, default, default));
         modelBuilder.HasDbFunction(() => commit_operation(default, default));
         modelBuilder.HasDbFunction(() => index_elk(default, default, default, default));
-        modelBuilder.HasDbFunction(() => place_bid(default, default, default, default));
-        modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default));
+        modelBuilder.HasDbFunction(() => place_bid(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => edit_notification(default, default, default, default, default));
         modelBuilder.HasDbFunction(() => set_auction_finished(default, default));
         modelBuilder.HasDbFunction(() => restore_snap_shot_items(default, default));
         modelBuilder.HasDbFunction(() => restore_snap_shot_images(default, default, default));

@@ -27,7 +27,7 @@ public class NotificationController : ControllerBase
     public async Task<ApiResponse<bool>> IsNotifyUser(Guid id)
     {
         var userLogin = User.FindFirst("Login").Value;
-        var userNotify = await _context.NotifyItems.Where(p => p.Commited && p.AuctionId == id &&
+        var userNotify = await _context.NotifyItems.Where(p => p.Commited && p.ItemId == id &&
             p.UserLogin == userLogin).FirstOrDefaultAsync();
         var rezult = new ApiResponse<bool>()
         {

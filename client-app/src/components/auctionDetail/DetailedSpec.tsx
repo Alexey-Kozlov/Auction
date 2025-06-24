@@ -11,10 +11,22 @@ export default function DetailedSpec({ auction, user }: Props) {
 	return (
 		<div>
 			<TabView>
-				<TabPanel header="Описание аукциона" leftIcon="pi pi-book mr-2">
+				<TabPanel
+					header="Описание аукциона"
+					leftIcon={
+						<i className="pi pi-book mr-2" style={{ fontSize: "2rem" }} />
+					}
+					className="text-4xl"
+				>
 					<TabDetailInfo auction={auction} />
 				</TabPanel>
-				<TabPanel header="Обсуждение" leftIcon="pi pi-send mr-2">
+				<TabPanel
+					header="Обсуждение"
+					leftIcon={
+						<i className="pi pi-send mr-2" style={{ fontSize: "2rem" }} />
+					}
+					className="text-4xl"
+				>
 					<TabChatTable auction={auction} user={user} />
 				</TabPanel>
 			</TabView>

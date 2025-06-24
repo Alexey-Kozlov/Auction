@@ -2,15 +2,13 @@ import { ToastType } from "../../types";
 import { BsInfoCircle } from "react-icons/bs";
 import { VscError } from "react-icons/vsc";
 import { ImWarning } from "react-icons/im";
-import { Button } from "primereact/button";
 
 type Props = {
 	message: string;
-	toastId: string;
 	toastType: ToastType;
 };
 
-export default function MessageToast({ message, toastId, toastType }: Props) {
+export default function MessageToast({ message, toastType }: Props) {
 	const getToastType = () => {
 		switch (toastType) {
 			case ToastType.Info:
@@ -24,17 +22,8 @@ export default function MessageToast({ message, toastId, toastType }: Props) {
 	return (
 		<div>
 			<>
-				<div className="ToastCloseButton">
-					<Button
-						className="MainButton w-40"
-						//onClick={() => toast.dismiss(toastId)}
-					>
-						X
-					</Button>
-				</div>
-
 				<div className="ToastMessageContainer">
-					<div className="mr-10">
+					<div className="align-self-start">
 						{getToastType() === "info" ? (
 							<BsInfoCircle size={36} />
 						) : getToastType() === "error" ? (

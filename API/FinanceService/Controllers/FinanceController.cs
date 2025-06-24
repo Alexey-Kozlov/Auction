@@ -64,7 +64,7 @@ public class FinanceController : ControllerBase
             resultDTO.Add(new BalanceItemDTO
             {
                 AuctionId = item.AuctionId.HasValue ? item.AuctionId.Value : null,
-                ItemId = item.FinanceId,
+                ItemId = item.ItemId.Value,
                 UserLogin = item.UserLogin,
                 Status = item.Status,
                 ActionDate = item.ActionDate,
@@ -96,7 +96,6 @@ public class FinanceController : ControllerBase
             {
                 ActionDate = p.ActionDate,
                 AuctionId = p.AuctionId,
-                FinanceId = p.FinanceId,
                 ItemId = p.ItemId,
                 Status = p.Status,
                 UserLogin = p.UserLogin,

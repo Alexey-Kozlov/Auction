@@ -35,6 +35,7 @@ public class EditNotificationProcessing
             //- запись о создании / удалении уведомления в сервисе NotificationService
             var result = await _dbContext.edit_notification(
                 context.Message.CorrelationId,
+                context.Message.ItemId.Value,
                 context.Message.AuctionId.Value,
                 context.Message.EventData,
                 context.Message.UserLogin).ToListAsync();

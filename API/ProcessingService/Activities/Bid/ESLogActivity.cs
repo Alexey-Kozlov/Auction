@@ -24,11 +24,12 @@ public class ESLogActivity : IStateMachineActivity<BidPlacedState, RequestBidPla
         await _sendEventToES.SendItemToEventSourcing(
             new BidItem
             {
-                BidId = Guid.NewGuid(),
+                ItemId = context.Saga.ItemId,
                 AuctionId = context.Saga.AuctionId,
                 Bidder = context.Saga.Bidder,
                 BidTime = DateTime.UtcNow,
-                Amount = context.Saga.Amount
+                Amount = context.Saga.Amount,
+                CorrelationId = context.Saga.CorrelationId
             },
             nameof(BidItem),
             "Common.Contracts.Processing.ESLogPlaceBid",

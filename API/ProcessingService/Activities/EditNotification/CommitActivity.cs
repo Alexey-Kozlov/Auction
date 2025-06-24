@@ -39,6 +39,7 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
             context.Message.ErrorMessage,
             context.Message.ErrorExceptionMessage,
             context.Message.ErrorServiceName);
+
         await _publishEndpoint.Publish(new NotificationCommit
         {
             Commited = !context.Saga.IsError,

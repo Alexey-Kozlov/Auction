@@ -6,6 +6,7 @@ public record RequestBidPlace(
      Guid AuctionId,
      string Bidder,
      int Amount,
+     string SessionId,
      Guid CorrelationId
 );
 
@@ -78,7 +79,6 @@ public class BidCreateESCommit : IFaultMessage
 public class BidItem
 {
      public Guid? ItemId { get; set; }
-     public Guid BidId { get; set; }
      public Guid AuctionId { get; set; }
      public string Bidder { get; set; }
      public DateTime BidTime { get; set; } = DateTime.UtcNow;

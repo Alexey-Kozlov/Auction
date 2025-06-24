@@ -11,17 +11,17 @@ import { RootState } from "../../store/store";
 const filterButtons = [
 	{
 		label: "Текущие",
-		icon: <GiFlame />,
+		icon: <GiFlame size={20} />,
 		value: "live",
 	},
 	{
 		label: "Заканчивающиеся",
-		icon: <GiFinishLine />,
+		icon: <GiFinishLine size={20} />,
 		value: "endingSoon",
 	},
 	{
 		label: "Завершенные",
-		icon: <BsStopwatchFill />,
+		icon: <BsStopwatchFill size={20} />,
 		value: "finished",
 	},
 ];
@@ -31,17 +31,21 @@ export default function Filters() {
 	const [orderItem, setOrderItem] = useState<SelectItem[]>([
 		{
 			label: "Наименование",
-			icon: <i className="pi pi-sort-alpha-down" />,
+			icon: (
+				<i className="pi pi-sort-alpha-down" style={{ fontSize: "2rem" }} />
+			),
 			value: "titleAsc",
 		},
 		{
 			label: "Окончание",
-			icon: <i className="pi pi-sort-amount-down" />,
+			icon: (
+				<i className="pi pi-sort-amount-down" style={{ fontSize: "2rem" }} />
+			),
 			value: "endAsc",
 		},
 		{
 			label: "Недавние",
-			icon: <i className="pi pi-sort-amount-up" />,
+			icon: <i className="pi pi-sort-amount-up" style={{ fontSize: "2rem" }} />,
 			value: "newDesc",
 		},
 	]);
@@ -53,7 +57,7 @@ export default function Filters() {
 		return (
 			<>
 				{option.icon}
-				<label className="ml-2 cursor-pointer">{option.label}</label>
+				<label className="ml-2 cursor-pointer text-4xl">{option.label}</label>
 			</>
 		);
 	};
@@ -75,10 +79,20 @@ export default function Filters() {
 					) {
 						if (item.value === "titleAsc") {
 							prev[0].value = "titleDesc";
-							prev[0].icon = <i className="pi pi-sort-alpha-up" />;
+							prev[0].icon = (
+								<i
+									className="pi pi-sort-alpha-up"
+									style={{ fontSize: "2rem" }}
+								/>
+							);
 						} else {
 							prev[0].value = "titleAsc";
-							prev[0].icon = <i className="pi pi-sort-alpha-down" />;
+							prev[0].icon = (
+								<i
+									className="pi pi-sort-alpha-down"
+									style={{ fontSize: "2rem" }}
+								/>
+							);
 						}
 					}
 
@@ -89,10 +103,20 @@ export default function Filters() {
 					) {
 						if (item.value === "endAsc") {
 							prev[1].value = "endDesc";
-							prev[1].icon = <i className="pi pi-sort-amount-up" />;
+							prev[1].icon = (
+								<i
+									className="pi pi-sort-amount-up"
+									style={{ fontSize: "2rem" }}
+								/>
+							);
 						} else {
 							prev[1].value = "endAsc";
-							prev[1].icon = <i className="pi pi-sort-amount-down" />;
+							prev[1].icon = (
+								<i
+									className="pi pi-sort-amount-down"
+									style={{ fontSize: "2rem" }}
+								/>
+							);
 						}
 					}
 
@@ -103,10 +127,20 @@ export default function Filters() {
 					) {
 						if (item.value === "newAsc") {
 							prev[2].value = "newDesc";
-							prev[2].icon = <i className="pi pi-sort-amount-up" />;
+							prev[2].icon = (
+								<i
+									className="pi pi-sort-amount-up"
+									style={{ fontSize: "2rem" }}
+								/>
+							);
 						} else {
 							prev[2].value = "newAsc";
-							prev[2].icon = <i className="pi pi-sort-amount-down" />;
+							prev[2].icon = (
+								<i
+									className="pi pi-sort-amount-down"
+									style={{ fontSize: "2rem" }}
+								/>
+							);
 						}
 					}
 				});
@@ -126,7 +160,7 @@ export default function Filters() {
 
 	return (
 		<div className="FilterContainer">
-			<div>
+			<div className="m-0">
 				<div className="FilterItem">
 					<span>Отбор по : </span>
 				</div>
