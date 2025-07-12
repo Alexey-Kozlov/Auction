@@ -100,6 +100,7 @@ export default function TabChatTable({ auction, user }: Props) {
 		} else {
 			communication.refetch();
 		}
+	// eslint-disable-next-line		
 	}, [user]);
 
 	//изменилось хранилище ответов чата - обновляем состояние набора записей чата
@@ -126,7 +127,6 @@ export default function TabChatTable({ auction, user }: Props) {
 				break;
 			case ActionType.delete:
 				setCommunicationItems((prev) => {
-					const dd = prev;
 					return prev.filter((p) => p.itemId !== chatResponse.itemId);
 				});
 				break;

@@ -1,6 +1,5 @@
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { usePlaceBidForAuctionMutation } from "../../api/ProcessingApi";
-import uuid from "react-native-uuid";
 import { FormErrors, ProcessingState, SessionType, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";

@@ -33,6 +33,7 @@ builder.Services.AddDbContext<SearchDbContext>(options =>
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
 });
+builder.Services.AddGrpc();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>
@@ -76,6 +77,6 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+app.MapGrpcService<GrpcFinanceService>();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

@@ -154,6 +154,4 @@ app.UseAuthorization();
 app.UseLoggingMiddleware();
 app.ImageMiddleware();
 //запускаем веб-сервер и пишем в консоль хост и порт
-
 ConsoleLogging.RunApp(app);
-//app.Run();

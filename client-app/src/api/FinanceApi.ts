@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
 	ApiResponseNet,
 	FinanceItem,
+	FinanceTableItem,
 	PagedResult,
 	RequestType,
 } from "../types";
@@ -29,7 +30,7 @@ const financeApi = createApi({
 	tagTypes: ["finance"],
 	endpoints: (builder) => ({
 		getFinanceItem: builder.query<
-			ApiResponseNet<PagedResult<FinanceItem>>,
+			ApiResponseNet<PagedResult<FinanceTableItem>>,
 			string
 		>({
 			query: (url) => ({
@@ -39,7 +40,7 @@ const financeApi = createApi({
 				},
 			}),
 			transformResponse: (
-				response: ApiResponseNet<PagedResult<FinanceItem>>,
+				response: ApiResponseNet<PagedResult<FinanceTableItem>>,
 				meta: any
 			) => {
 				PostApiProcess(response);
@@ -66,21 +67,11 @@ const financeApi = createApi({
 			},
 			providesTags: ["finance"],
 		}),
-		getSortItems: builder.query<void, string>({
-			query: (url) => ({
-				url: "/sortByColumn" + url,
-			}),
-			transformErrorResponse: (response: any, meta: any) => {
-				PostErrorApiProcess(response);
-			},
-			providesTags: ["finance"],
-		}),
 	}),
 });
 
 export const {
 	useGetFinanceItemQuery,
-	useGetBalanceQuery,
-	useGetSortItemsQuery,
+	useGetBalanceQuery
 } = financeApi;
 export default financeApi;

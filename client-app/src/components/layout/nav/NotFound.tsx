@@ -2,19 +2,27 @@ import { Button } from "primereact/button";
 import { useNavigate } from "react-router-dom";
 
 const NotFound = () => {
-	const navigate = useNavigate();
-	return (
-		<div className="mt-10">
-			<div className="flex justify-center mt-5">
-				<h2>Страница не найдена</h2>
-			</div>
-			<div className="flex justify-center mt-10">
-				<Button className="MainButton w-100" onClick={() => navigate("/")}>
-					Домой
-				</Button>
-			</div>
-		</div>
-	);
+  const navigate = useNavigate();
+  return (
+    <div className="CenterItem mt-10">
+      <div className="flex-column">
+        <div className="mt-5 text-4xl">
+          <h2>Страница не найдена</h2>
+        </div>
+        <div className="mt-10 text-center">
+          <Button
+            text
+            raised
+            rounded
+            className="CustomButton w-20rem"
+            onClick={() => navigate("/")}
+          >
+            Домой
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default NotFound;

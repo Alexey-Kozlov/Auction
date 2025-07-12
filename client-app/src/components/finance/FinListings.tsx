@@ -1,324 +1,505 @@
-import { FormEvent, FormEventHandler, useEffect, useState } from "react";
-import qs from "query-string";
+import { FormEvent, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { reset } from "../../store/paramSlice";
+import { reset, setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
-import uuid from "react-native-uuid";
 import {
-	FinanceSortColumn,
-	FinanceSortType,
-	FinanceStore,
-	FinanceTableItem,
-	FormErrors,
-	ProcessingState,
-	SortDirection,
-	State,
-	User,
+  FinanceSortColumn,
+  FinanceSortType,
+  FinanceTableItem,
+  FormErrors,
+  PagedResult,
+  ProcessingState,
+  SortDirection,
+  State,
+  User,
 } from "../../types";
-import { useGetBalanceQuery, useGetSortItemsQuery } from "../../api/FinanceApi";
+import {
+  useGetBalanceQuery,
+  useGetFinanceItemQuery,
+} from "../../api/FinanceApi";
 import { setEventFlag } from "../../store/processingSlice";
 import { useFinanceCreateMutation } from "../../api/ProcessingApi";
-import FinRow from "./FinRow";
-import Waiter from "../Waiter";
+
 import { NavLink, useNavigate } from "react-router-dom";
 import { InputNumber } from "primereact/inputnumber";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
-import { DataTable } from "primereact/datatable";
-import { Column, ColumnSortEvent, ColumnSortMetaData } from "primereact/column";
-import ImageCard from "../auctionList/ImageCard";
-import { GrMoney } from "react-icons/gr";
-import NumberWithSpaces from "../../utils/NumberWithSpaces";
+import FinRow from "./FinRow";
+import qs from "query-string";
+import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
+import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
+import { SelectItem } from "primereact/selectitem";
+import Waiter from "../Waiter";
 
 export default function FinListings() {
-	const dispatch = useDispatch();
-	const navigate = useNavigate();
-	const [amount, setAmount] = useState<number | null>();
-	const [editError, setEditError] = useState<FormErrors | null>(null);
-	const editErrorList: FormErrors[] = [
-		{
-			name: "NegativeAmount",
-			message: "Нужно указать платеж больше 0",
-		},
-	];
-	const [sortState, setSortState] = useState<ColumnSortMetaData>({
-		field: FinanceSortColumn[FinanceSortColumn.actionDate],
-		order: 1,
-	});
-	const [sortParam, setSortParam] = useState<State>({
-		pageSize: 5,
-		pageNumber: 1,
-		orderBy: "",
-	});
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [amount, setAmount] = useState<number | null>();
+  const [editError, setEditError] = useState<FormErrors | null>(null);
+  const editErrorList: FormErrors[] = [
+    {
+      name: "NegativeAmount",
+      message: "Нужно указать платеж больше 0",
+    },
+  ];
+  const [firstRecord, setFirstRecord] = useState(0);
+  const [sortParam, setSortParam] = useState<State>({
+    pageSize: 5,
+    pageNumber: 1,
+    orderBy: "actionDateDesc",
+  });
 
-	const [addCredit] = useFinanceCreateMutation();
-	//const params = useSelector((state: RootState) => state.paramStore);
-	const finance: FinanceStore = useSelector(
-		(state: RootState) => state.financeStore
-	);
-	const financeItems: FinanceTableItem[] = finance.results;
-	const sortUrl = qs.stringifyUrl({
-		url: "",
-		query: { ...sortParam },
-	});
-	useGetSortItemsQuery(sortUrl, { skip: !sortParam.sessionId });
-	const balance = useGetBalanceQuery(null);
-	const procState: ProcessingState[] = useSelector(
-		(state: RootState) => state.processingStore
-	);
-	const sessionId = useSelector(
-		(state: RootState) => state.paramStore
-	).sessionId;
-	const user: User = useSelector((state: RootState) => state.authStore);
+  const [addCredit] = useFinanceCreateMutation();
+  const sortUrl = qs.stringifyUrl({
+    url: "",
+    query: { ...sortParam },
+  });
+  const financeQuery = useGetFinanceItemQuery(sortUrl);
+  const balance = useGetBalanceQuery(null);
+  const user: User = useSelector((state: RootState) => state.authStore);
+  const [financeItems, setFinanceItems] =
+    useState<PagedResult<FinanceTableItem>>();
+  const sessionId = useSelector(
+    (state: RootState) => state.paramStore
+  ).sessionId;
+  const procState: ProcessingState[] = useSelector(
+    (state: RootState) => state.processingStore
+  );
 
-	// инициируем получение всех записей по финансам данного пользователя
-	useEffect(() => {
-		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
-		setSortParam((prev) => {
-			return {
-				...prev,
-				orderBy: "actionDateDesc",
-				sessionId: sessionId,
-			};
-		});
-		// eslint-disable-next-line
-	}, [sessionId]);
+  // первоначальное получение всех записей по финансам данного пользователя
+  useEffect(() => {
+    //dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+    if (
+      !financeQuery.isFetching &&
+      !financeQuery.isLoading &&
+      financeQuery.data
+    ) {
+      setFinanceItems(financeQuery.data.result);
+    }
+    // eslint-disable-next-line
+  }, [financeQuery]);
 
-	useEffect(() => {
-		if (procState.find((p) => p.eventName === "FinanceCreate" && p.ready)) {
-			dispatch(setEventFlag({ eventName: "FinanceCreate", ready: false }));
-			//инициируем обновление таблицы финансов - обновляем состояние случайным значением
-			setSortParam((prev) => {
-				return {
-					...prev,
-					filterBy: uuid.v4().toString(),
-				};
-			});
-			balance.refetch();
-		}
-		// eslint-disable-next-line
-	}, [procState]);
+  //при добавлении нового значения - обновляем таблицу
+  useEffect(() => {
+    if (procState.find((p) => p.eventName === "FinanceCreate" && p.ready)) {
+      dispatch(setEventFlag({ eventName: "FinanceCreate", ready: false }));
+      financeQuery.refetch();
+      balance.refetch();
+    }
+    // eslint-disable-next-line
+  }, [procState]);
 
-	//если вышли из пользователя - переход на начало сайта
-	useEffect(() => {
-		if (!balance.isLoading && !balance.isFetching && (!user || !user.login)) {
-			navigate("/");
-		}
-		// eslint-disable-next-line
-	}, [user]);
+  //если вышли из пользователя - переход на начало сайта
+  useEffect(() => {
+    if (!balance.isLoading && !balance.isFetching && (!user || !user.login)) {
+      navigate("/");
+    }
+    // eslint-disable-next-line
+  }, [user]);
 
-	function setPageNumber(pageNumber: number) {
-		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
-		setSortParam((prev) => {
-			return {
-				...prev,
-				sessionId: sessionId,
-				pageNumber: pageNumber,
-			};
-		});
-	}
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    dispatch(reset(null));
+    dispatch(setEventFlag({ eventName: "FinanceCreate", ready: false }));
+    dispatch(setEventFlag({ eventName: "Waiter", ready: false }));
+    await addCredit({
+      amount: amount as number,
+      sessionid: sessionId,
+      userlogin: user.login,
+    });
+    setAmount(0);
+  };
 
-	const handleSetSort = (e: ColumnSortEvent) => {
-		//dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
+  const handleAmountChanged = (amount: number | null) => {
+    if ((amount !== null && amount <= 0) || !Number.isInteger(amount)) {
+      setEditError(
+        () => editErrorList.find((p) => p.name === "NegativeAmount")!
+      );
+      return;
+    }
+    //сбрасываем ошибки валидации ставки
+    setEditError(() => null);
+    setAmount(amount!);
+  };
 
-		//направление сортировки
-		setSortState((prev) => {
-			return {
-				field: e.field,
-				order: e.order,
-			};
-		});
-		return 1;
-		// //посылаем запрос на возврат отсортированных данных
-		// setSortParam((prev) => {
-		// 	return {
-		// 		...prev,
-		// 		orderBy:
-		// 			FinanceSortColumn[value.column] +
-		// 			(sortState.direction === SortDirection.ascending ? "Asc" : "Desc"),
-		// 		sessionId: sessionId,
-		// 	};
-		// });
-	};
+  function setPageNumber(e: PaginatorPageChangeEvent) {
+    setSortParam((prev) => {
+      return {
+        ...prev,
+        pageNumber: e.page + 1,
+        pageSize: e.rows,
+      };
+    });
+    setFirstRecord(e.first);
+  }
+  // #region OrderItems
+  const [orderItem, setOrderItem] = useState<SelectItem[]>([
+    {
+      label: "Наименование",
+      icon: (
+        <i
+          className="pi pi-sort"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "title",
+    },
+    {
+      label: "Наименование",
+      icon: (
+        <i
+          className="pi pi-sort-alpha-down"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "titleAsc",
+    },
+    {
+      label: "Наименование",
+      icon: (
+        <i
+          className="pi pi-sort-alpha-up"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "titleDesc",
+    },
+    {
+      label: "Автор аукциона",
+      icon: (
+        <i
+          className="pi pi-sort"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "seller",
+    },
+    {
+      label: "Автор аукциона",
+      icon: (
+        <i
+          className="pi pi-sort-alpha-down"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "sellerAsc",
+    },
+    {
+      label: "Автор аукциона",
+      icon: (
+        <i
+          className="pi pi-sort-alpha-up"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "sellerDesc",
+    },
+    {
+      label: "Дата операции",
+      icon: (
+        <i
+          className="pi pi-sort"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "actionDate",
+    },
+    {
+      label: "Дата операции",
+      icon: (
+        <i
+          className="pi pi-sort-amount-down"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "actionDateAsc",
+    },
+    {
+      label: "Дата операции",
+      icon: (
+        <i
+          className="pi pi-sort-amount-up"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "actionDateDesc",
+    },
+    {
+      label: "Тип операции",
+      icon: (
+        <i
+          className="pi pi-sort"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "status",
+    },
+    {
+      label: "Тип операции",
+      icon: (
+        <i
+          className="pi pi-sort-amount-down"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "statusAsc",
+    },
+    {
+      label: "Тип операции",
+      icon: (
+        <i
+          className="pi pi-sort-amount-up"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "statusDesc",
+    },
+    {
+      label: "Значение",
+      icon: (
+        <i
+          className="pi pi-sort"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "value",
+    },
+    {
+      label: "Значение",
+      icon: (
+        <i
+          className="pi pi-sort-amount-down"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "valueAsc",
+    },
+    {
+      label: "Значение",
+      icon: (
+        <i
+          className="pi pi-sort-amount-up"
+          style={{ fontSize: "2rem" }}
+        />
+      ),
+      value: "valueDesc",
+    },
+  ]);
+  // #endregion
 
-	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		dispatch(reset(null));
-		dispatch(setEventFlag({ eventName: "FinanceCreate", ready: false }));
-		dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
-		await addCredit({
-			amount: amount as number,
-			sessionid: sessionId,
-			userlogin: user.login,
-		});
-		setAmount(0);
-	};
+  const handleMenuClick = (e: SelectButtonChangeEvent) => {
+    //если этот столбец был ранее выбран - меняем направление сортировки на противоположное
+    let order = "";
+    const previousColumn = sortParam.orderBy
+      ?.replace("Asc", "")
+      .replace("Desc", "");
+    if (!e.value) {
+      if (sortParam.orderBy!.indexOf("Asc") === -1) {
+        order = previousColumn + "Asc";
+      } else {
+        order = previousColumn + "Desc";
+      }
+    } else {
+      //если это другой столбец сортировки
+      const columnValue = e.value.toString();
+      const currentColumn = columnValue.replace("Asc", "").replace("Desc", "");
+      order = currentColumn + "Asc";
+    }
 
-	// const getSortedValue = (val: FinanceSortColumn) => {
-	// 	return sortState.column === val
-	// 		? sortState.direction === SortDirection.ascending
-	// 			? "ascending"
-	// 			: "descending"
-	// 		: undefined;
-	// };
+    setSortParam((prev) => {
+      return {
+        ...prev,
+        orderBy: order,
+      };
+    });
+  };
 
-	const handleAmountChanged = (amount: number | null) => {
-		if ((amount !== null && amount <= 0) || !Number.isInteger(amount)) {
-			setEditError(
-				() => editErrorList.find((p) => p.name === "NegativeAmount")!
-			);
-			return;
-		}
-		//сбрасываем ошибки валидации ставки
-		setEditError(() => null);
-		setAmount(amount!);
-	};
+  const filterTemplate = (option: any) => {
+    return (
+      <>
+        {option.icon}
+        <label className="ml-2 cursor-pointer text-4xl">{option.label}</label>
+      </>
+    );
+  };
 
-	const ImageRowTemplate = (item: FinanceTableItem) => {
-		return item.auctionId ? (
-			<NavLink to={`/auctions/${item.auctionId}`}>
-				<ImageCard
-					id={item.auctionId}
-					dopStyle="FinanceListImage"
-					detail={false}
-					cache={true}
-				/>
-			</NavLink>
-		) : (
-			<GrMoney size={30} />
-		);
-	};
+  return (
+    <>
+      <div className="ListingContainer">
+        <form onSubmit={handleSubmit}>
+          <div className="FinanceBalanceContainer">
+            <div className="w-10rem"></div>
+            <div>
+              <div className="CenterItem">
+                <div className="FinanceAddLabel">
+                  Сумма для зачисления<span>*</span>
+                </div>
+                <div className="CenterItem">
+                  <InputNumber
+                    name="amount"
+                    step={5}
+                    variant="filled"
+                    className="AmountInput"
+                    placeholder={`Укажите сумму`}
+                    tooltip="Стрелки вверх/вниз - шаг 5 руб."
+                    tooltipOptions={{ position: "bottom" }}
+                    onChange={(e) => handleAmountChanged(e.value)}
+                    value={amount}
+                  />
+                </div>
+                <div>
+                  {procState.find((p) => p.eventName === "Waiter") &&
+                  !procState.find((p) => p.eventName === "Waiter")!.ready ? (
+                    <Waiter />
+                  ) : (
+                    <Button
+                      text
+                      raised
+                      rounded
+                      className="CustomButton w-20rem"
+                    >
+                      Добавить сумму
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="text-center">
+                <Message
+                  className="mt-2"
+                  severity="error"
+                  text={editError?.message}
+                  pt={{
+                    root: {
+                      className:
+                        editError !== null &&
+                        editError.name === "NegativeAmount"
+                          ? ""
+                          : "hidden",
+                    },
+                  }}
+                />
+              </div>
+            </div>
 
-	const TitleRowTemplate = (item: FinanceTableItem) => {
-		return item.auctionTitle ? (
-			<NavLink to={`/auctions/${item.auctionId}`} className="FinanceListText">
-				{item.auctionTitle}
-			</NavLink>
-		) : (
-			""
-		);
-	};
-
-	const DateRowTemplate = (item: FinanceTableItem) => {
-		return (
-			<div className="FinanceListText">
-				{`${new Date(item.actionDate).toLocaleDateString("ru-RU")} 
-				${new Date(item?.actionDate).toLocaleTimeString("ru-RU")}`}
-			</div>
-		);
-	};
-
-	const SellerRowTemplate = (item: FinanceTableItem) => {
-		return <div className="FinanceListText">{item.auctionSeller}</div>;
-	};
-
-	const TypeRowTemplate = (item: FinanceTableItem) => {
-		return (
-			<div className="FinanceListText">
-				{item.status === 0 ? "Приход" : "Расход"}
-			</div>
-		);
-	};
-
-	const AmountRowTemplate = (item: FinanceTableItem) => {
-		return (
-			<div className="FinanceListText">
-				{item.value === 0 ? "0" : NumberWithSpaces(item.value)}
-			</div>
-		);
-	};
-
-	return (
-		<>
-			<div className="ListingContainer">
-				<form onSubmit={handleSubmit}>
-					<div className="FinanceBalanceContainer">
-						<div className="w-10rem"></div>
-						<div>
-							<div className="CenterItem">
-								<div className="FinanceAddLabel">
-									Сумма для зачисления<span>*</span>
-								</div>
-								<div className="CenterItem">
-									<InputNumber
-										name="amount"
-										step={5}
-										variant="filled"
-										className="AmountInput"
-										placeholder={`Укажите сумму`}
-										tooltip="Стрелки вверх/вниз - шаг 5 руб."
-										tooltipOptions={{ position: "bottom" }}
-										onChange={(e) => handleAmountChanged(e.value)}
-										value={amount}
-									/>
-								</div>
-								<div>
-									<Button text raised rounded className="CustomButton w-20rem">
-										Добавить сумму
-									</Button>
-								</div>
-							</div>
-							<div></div>
-						</div>
-
-						<div className="FinanceBalance CenterItem">
-							<div className="mr-4">Баланс :</div>
-							<div className="FinanceBalanceValue">
-								{balance.data?.result ?? 0} р.
-							</div>
-						</div>
-					</div>
-				</form>
-				{financeItems.length === 0 ? (
-					<p className="CenterItem text-4xl">Записи не найдены</p>
-				) : (
-					<>
-						<div className="w-full">
-							<DataTable
-								value={financeItems}
-								tableStyle={{ minWidth: "50rem" }}
-								size={"large"}
-								className="mt-6"
-							>
-								<Column body={ImageRowTemplate} header="Изображение"></Column>
-								<Column
-									sortable
-									body={TitleRowTemplate}
-									header="Наименование"
-									sortField="title"
-								></Column>
-								<Column
-									sortable
-									sortField="actionDate"
-									body={DateRowTemplate}
-									header="Дата"
-								></Column>
-								<Column
-									sortable
-									body={SellerRowTemplate}
-									header="Продавец"
-									sortField="seller"
-								></Column>
-								<Column
-									sortable
-									body={TypeRowTemplate}
-									header="Приход / Расход"
-									sortField="status"
-								></Column>
-								<Column
-									sortable
-									body={AmountRowTemplate}
-									header="Сумма"
-									sortField="value"
-									sortFunction={(e) => {
-										e.order;
-									}}
-								></Column>
-							</DataTable>
-						</div>
-					</>
-				)}
-			</div>
-		</>
-	);
+            <div className="FinanceBalance CenterItem">
+              <div className="mr-4">Баланс :</div>
+              <div className="FinanceBalanceValue">
+                {balance.data?.result ?? 0} р.
+              </div>
+            </div>
+          </div>
+        </form>
+        {financeItems &&
+        financeItems.results &&
+        financeItems.results.length === 0 ? (
+          <p className="CenterItem text-4xl">Записи не найдены</p>
+        ) : (
+          <div>
+            <div>
+              <div className="grid FinanceListText FinanceTableHeader">
+                <div className="col-2 CenterItem FinanceTableCell">
+                  Изображение
+                </div>
+                <div className="col-4 CenterItem FinanceTableCell">
+                  <SelectButton
+                    className="BackgroundTransparent"
+                    options={orderItem.filter(
+                      (p) =>
+                        p.value ===
+                        (sortParam.orderBy!.indexOf("title") === -1
+                          ? "title"
+                          : sortParam.orderBy)
+                    )}
+                    onChange={(e) => handleMenuClick(e)}
+                    itemTemplate={filterTemplate}
+                    value={sortParam.orderBy}
+                  />
+                </div>
+                <div className="col-2 CenterItem FinanceTableCell">
+                  <SelectButton
+                    className="BackgroundTransparent"
+                    options={orderItem.filter(
+                      (p) =>
+                        p.value ===
+                        (sortParam?.orderBy!.indexOf("seller") === -1
+                          ? "seller"
+                          : sortParam.orderBy)
+                    )}
+                    onChange={(e) => handleMenuClick(e)}
+                    itemTemplate={filterTemplate}
+                    value={sortParam.orderBy}
+                  />
+                </div>
+                <div className="col-2 CenterItem FinanceTableCell">
+                  <SelectButton
+                    className="BackgroundTransparent"
+                    options={orderItem.filter(
+                      (p) =>
+                        p.value ===
+                        (sortParam?.orderBy!.indexOf("actionDate") === -1
+                          ? "actionDate"
+                          : sortParam.orderBy)
+                    )}
+                    onChange={(e) => handleMenuClick(e)}
+                    itemTemplate={filterTemplate}
+                    value={sortParam.orderBy}
+                  />
+                </div>
+                <div className="col-1 CenterItem FinanceTableCell">
+                  <SelectButton
+                    className="BackgroundTransparent"
+                    options={orderItem.filter(
+                      (p) =>
+                        p.value ===
+                        (sortParam?.orderBy!.indexOf("status") === -1
+                          ? "status"
+                          : sortParam.orderBy)
+                    )}
+                    onChange={(e) => handleMenuClick(e)}
+                    itemTemplate={filterTemplate}
+                    value={sortParam.orderBy}
+                  />
+                </div>
+                <div className="col-1 CenterItem FinanceTableCell">
+                  <SelectButton
+                    className="BackgroundTransparent"
+                    options={orderItem.filter(
+                      (p) =>
+                        p.value ===
+                        (sortParam?.orderBy!.indexOf("value") === -1
+                          ? "value"
+                          : sortParam.orderBy)
+                    )}
+                    onChange={(e) => handleMenuClick(e)}
+                    itemTemplate={filterTemplate}
+                    value={sortParam.orderBy}
+                  />
+                </div>
+              </div>
+              {financeItems &&
+                financeItems.results &&
+                financeItems.results.map(
+                  (item: FinanceTableItem, index: number) => (
+                    <FinRow
+                      key={index}
+                      item={item}
+                    />
+                  )
+                )}
+            </div>
+            <div className="ListPagination">
+              <Paginator
+                onPageChange={setPageNumber}
+                first={firstRecord}
+                rows={sortParam.pageSize}
+                totalRecords={financeItems?.totalCount}
+                rowsPerPageOptions={[5, 10, 50]}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
 }

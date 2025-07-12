@@ -5,7 +5,6 @@ import { jwtDecode } from "jwt-decode";
 export const emptyUserState: User = {
 	name: "",
 	login: "",
-	itemId: undefined,
 	isAdmin: false,
 };
 
@@ -15,7 +14,6 @@ export const authSlice = createSlice({
 	reducers: {
 		setAuthUser: (state, action) => {
 			state.name = action.payload.name;
-			state.itemId = action.payload.itemId;
 			state.login = action.payload.login;
 			state.isAdmin = getIsAdmin();
 		},

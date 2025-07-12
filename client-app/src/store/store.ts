@@ -10,7 +10,6 @@ import signalRApi from "../api/SignalRApi";
 import imageApi from "../api/ImageApi";
 import notificationApi from "../api/NotificationApi";
 import financeApi from "../api/FinanceApi";
-import { financeReducer } from "./financeSlice";
 import processingApi from "../api/ProcessingApi";
 import { processingReducer } from "./processingSlice";
 import serviceApi from "../api/ServiceApi";
@@ -24,7 +23,6 @@ const store = configureStore({
 		bidStore: bidReducer,
 		auctionStore: auctionReducer,
 		paramStore: paramReducer,
-		financeStore: financeReducer,
 		processingStore: processingReducer,
 		chatMessageStore: chatMessageReducer,
 		chatResponseStore: chatResponseReducer,

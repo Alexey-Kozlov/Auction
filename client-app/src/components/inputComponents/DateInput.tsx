@@ -1,7 +1,5 @@
 import { addLocale } from "primereact/api";
 import { Calendar } from "primereact/calendar";
-import { FloatLabel } from "primereact/floatlabel";
-import { classNames } from "primereact/utils";
 
 type Props = {
 	value: Date;

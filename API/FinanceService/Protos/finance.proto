@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "FinanceService";
+
+service GrpcFinance {
+    rpc GetFinance (GetFinanceRequest) returns (GrpcFinanceResponse);
+}
+
+message GetFinanceRequest {
+    string FinanceSortRequest = 1;
+}
+
+message FinanceHistoryModel {
+    string FinancePagedRezult = 1;
+}
+
+message GrpcFinanceResponse {
+    FinanceHistoryModel financePagedRezult = 1;
+}

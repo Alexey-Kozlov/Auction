@@ -80,6 +80,7 @@ builder.Services.AddOpenTelemetry()
         })
 );
 builder.Services.AddScoped<FinanceProceduresService>();
+builder.Services.AddScoped<GrpcFinanceClient>();
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

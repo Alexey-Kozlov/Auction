@@ -13,7 +13,7 @@ public class SearchProceduresService
         _dbContext = dbContext;
     }
 
-    //вызов процедур обсклуживания записей аукционов
+    //вызов процедур обслуживания записей аукционов
 
     //ResetItems - при восстановлении из SnapShot - удаление всех записей из таблицы SearchItems
     public async Task ResetItems(Guid correlationId)
