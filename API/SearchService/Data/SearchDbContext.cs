@@ -23,9 +23,8 @@ public class ItemConfiguration : IEntityTypeConfiguration<AuctionItem>
 {
     public void Configure(EntityTypeBuilder<AuctionItem> builder)
     {
-        builder.ToTable("SearchItems").HasKey(p => p.ItemId).HasName("PK_SearchItems");
+        builder.ToTable("SearchItems").HasKey(p => new { p.ItemId, p.Commited }).HasName("PK_SearchItems");
         builder.Property(p => p.ItemId).HasColumnType("uuid").HasColumnName("ItemId").IsRequired(true);
-        builder.Property(p => p.AuctionId).HasColumnType("uuid").HasColumnName("AuctionId").IsRequired(true);
         builder.Property(p => p.ReservePrice).HasColumnType("integer").HasColumnName("ReservePrice").IsRequired(true);
         builder.Property(p => p.Seller).HasColumnType("varchar(256)").HasColumnName("Seller").IsRequired(false);
         builder.Property(p => p.Winner).HasColumnType("varchar(256)").HasColumnName("Winner").IsRequired(false);
@@ -40,8 +39,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<AuctionItem>
         builder.Property(p => p.Finished).HasColumnType("boolean").HasColumnName("Finished").IsRequired(true);
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CorrelationId).HasColumnType("uuid").HasColumnName("CorrelationId").IsRequired(true);
-        builder.HasIndex(p => p.ItemId).IsUnique(true).HasDatabaseName("PX_SearchItems");
-        builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_Search_AuctionId");
+        builder.HasIndex(p => new { p.ItemId, p.Commited }).HasDatabaseName("PX_SearchItems");
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_Search_CorrelationId");
 
     }

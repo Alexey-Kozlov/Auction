@@ -1,3 +1,4 @@
+using Common.Contracts.Image;
 using Grpc.Core;
 using ImageService.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,13 +16,19 @@ public class GrpcImageServer : GrpcImage.GrpcImageBase
 
     public override async Task<GrpcImageResponse> GetImage(GetImageRequest request, ServerCallContext context)
     {
-        var image = await _dbContext.Images.FirstOrDefaultAsync(p => p.AuctionId == Guid.Parse(request.AuctionId) && p.Commited);
-
+        var itemId = Guid.NewGuid();
+        ImageItem image = null;
+        if (Guid.TryParse(request.ItemId, out itemId))
+        {
+            image = await _dbContext.Images.FirstOrDefaultAsync(p =>
+                p.ItemId == Guid.Parse(request.ItemId) && p.Commited);
+        }
+        
         var response = new GrpcImageResponse
         {
             Image = new GrpcImageModel
             {
-                AuctionId = image == null ? "" : image.AuctionId.ToString(),
+                ItemId = image == null ? "" : image.ItemId.ToString(),
                 Image = image == null ? "" : Convert.ToBase64String(image.Image)
             }
         };

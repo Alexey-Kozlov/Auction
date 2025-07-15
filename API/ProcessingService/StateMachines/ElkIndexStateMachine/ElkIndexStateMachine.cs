@@ -1,8 +1,5 @@
-using System.ComponentModel;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
@@ -91,7 +88,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             .TransitionTo(ResetIndexState)
         );
 
-        //ВАЖНО! Этот оператор для подавления ошибки - что сообщение не было принято и обработано
+        //Далее - оператор для подавления ошибки - что сообщение не было принято и обработано
         //без этого оператора будут ошибки, т.к. у нас генерируется много сообщений в сервис ElasticSearchService
         //и принимаются оттуда же без передачи в конкретное состояние.
 
@@ -261,17 +258,15 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                         IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
-                //Создаем событие в сервис NotificationService для обновления интерфейса
-               .Send(
-                    new Uri(configuration["QueuePaths:ElkIndexNotificationConsumer"]),
-                    context => new NotificationProgress
+               //Создаем событие в сервис NotificationService для обновления интерфейса
+                .Send(
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
+                        SignalRMethod = SignalRMethod.ElkIndexReset,
+                        Show = true,
                         SessionId = context.Saga.SessionId,
-                        Percent = 100,
-                        Show = !context.Saga.IsError && context.Saga.ShowMessages,
-                        Duration = 5000,
-                        Message = $"Проиндексировано - {context.Saga.ItemNumber} записей"
+                        Data =  $"Проиндексировано - {context.Saga.ItemNumber} записей"
                     })
                 // если в начальном сообщении был указан параметр CallBackType - посылаем сообщение
                 // по этому параметру - это значит был вызов процесса индексации из другого процесса

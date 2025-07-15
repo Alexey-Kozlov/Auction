@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
@@ -5,6 +6,7 @@ using MassTransit;
 using ProcessingService.Activities.SetSnapShot;
 
 namespace ProcessingService.StateMachines.SetSnapShotStateMachine;
+
 public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
 {
     public State ImagesState { get; }
@@ -12,6 +14,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public State FinanceState { get; }
     public State SearchState { get; }
     public State NotifyState { get; }
+    public State CommunicationState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
@@ -23,6 +26,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public Event<FinanceSetSnapShot> FinanceEvent { get; }
     public Event<SearchSetSnapShot> SearchEvent { get; }
     public Event<NotifySetSnapShot> NotifyEvent { get; }
+    public Event<CommunicationSetSnapShot> CommunicationEvent { get; }
     public Event<SetSnapShotESCommit> CommitEvent { get; }
     public Event<NotifyUISetSnapShot> NotifyUIEvent { get; }
     public Event<BaseServiceError> FaultEvent { get; }
@@ -31,6 +35,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public Event<Fault<FinanceSetSnapShot>> FaultFinanceEvent { get; }
     public Event<Fault<SearchSetSnapShot>> FaultSearchEvent { get; }
     public Event<Fault<NotifySetSnapShot>> FaultNotifyEvent { get; }
+    public Event<Fault<CommunicationSetSnapShot>> FaultCommunicationEvent { get; }
     public Event<Fault<SetSnapShotESCommit>> FaultCommitEvent { get; }
     public Event<Fault<NotifyUISetSnapShot>> FaultNotifyUIEvent { get; }
 
@@ -48,6 +53,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         ConfigureFinanceState();
         ConfigureSearchState();
         ConfigureNotifyState();
+        ConfigureCommunicationState();
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompletedState();
@@ -60,6 +66,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         Event(() => FinanceEvent);
         Event(() => SearchEvent);
         Event(() => NotifyEvent);
+        Event(() => CommunicationEvent);
         Event(() => CommitEvent);
         Event(() => FaultEvent);
         Event(() => NotifyUIEvent);
@@ -68,6 +75,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         Event(() => FaultFinanceEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommunicationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
@@ -78,7 +86,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .Then(context =>
             {
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.NotifyMessage = "Создание SnapShot - ";
+                context.Saga.NotifyMessage = "";
                 context.Saga.BatchCounter = -1;
                 context.Saga.AllItemsCount = 0;
                 context.Saga.ProgressCurrent = 0; //Текущей прогресс в процентах
@@ -86,15 +94,21 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context.Saga.ActionDate = DateTime.UtcNow;
                 context.Saga.IsError = false;
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 5).ToString() + ";false"
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            title = "Создание снимка БД:",
+                            message = "Начало восстановления...",
+                            percent = context.Saga.ProgressCurrent = 5
+                        })
+                    })
         //запрос батчей изображений
             .Send(
                 new Uri(configuration["QueuePaths:ImageSetSnapShotConsumer"]),
@@ -105,7 +119,6 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 })
             .TransitionTo(ImagesState)
         );
-        //OnUnhandledEvent(async e => await e.Ignore());
         SetCompletedWhenFinalized();
     }
 
@@ -157,15 +170,19 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         context.Saga.ProgressCurrent += float.Parse("0.1");
                     }
                 })
-                //обновляем показатель прогресса
-                .Send(
-                    new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+            //прогресс выполнения операции
+            .Send(
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        DataObjects = new List<DataForProcessingService>(),
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = context.Saga.SessionId,
-                        Props = context.Saga.ProgressCurrent.ToString() + ";false"
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление изображений...",
+                            percent = context.Saga.ProgressCurrent
+                        })
                     })
             )
 
@@ -215,15 +232,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     {
         During(BidState,
         When(BidEvent)
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent += 2).ToString() + ";false"
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление ставок...",
+                            percent = context.Saga.ProgressCurrent += 2
+                        })
+                    })
             //получение ставок (если есть) из сервиса BiddingService
             .Send(
                 new Uri(configuration["QueuePaths:BidSetSnapShotConsumer"]),
@@ -257,15 +279,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             {
                 context.Saga.NotifyMessage += $", Ставок - {context.Message.DataItems.DataObjects.Count()}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent += 2).ToString() + ";false"
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление платежей...",
+                            percent = context.Saga.ProgressCurrent += 2
+                        })
+                    })
             //получение записей финансов (если есть) из сервиса FinanceService
             .Send(
                 new Uri(configuration["QueuePaths:FinanceSetSnapShotConsumer"]),
@@ -299,15 +326,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             {
                 context.Saga.NotifyMessage += $", Платежей - {context.Message.DataItems.DataObjects.Count()}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent += 2).ToString() + ";false"
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление записей аукционов...",
+                            percent = context.Saga.ProgressCurrent += 2
+                        })
+                    })
             //получение записей аукционов из сервиса SearchService
             .Send(
                 new Uri(configuration["QueuePaths:SearchSetSnapShotConsumer"]),
@@ -318,7 +350,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(NotifyState),
-        //обрабатываем ошибки из сервиса EventSourcingService - сохранение финансов в EsLog
+        //обрабатываем ошибки из сервиса EventSourcingService 
         When(FaultSearchEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
@@ -341,18 +373,70 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             {
                 context.Saga.NotifyMessage += $", Аукционов - {context.Message.DataItems.DataObjects.Count()}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotProgressNotificationConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = new List<DataForProcessingService>(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = context.Saga.SessionId,
-                    Props = (context.Saga.ProgressCurrent = 100).ToString() + ";true"
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление уведомлений...",
+                            percent = context.Saga.ProgressCurrent += 2
+                        })
+                    })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(
                 new Uri(configuration["QueuePaths:NotifySetSnapShotConsumer"]),
+                context => new ESContract
+                {
+                    CallBackType = "Common.Contracts.EventSourcing.CommunicationSetSnapShot",
+                    EventData = context.Saga.ActionDate.ToString(),
+                    CorrelationId = context.Saga.CorrelationId
+                })
+            .TransitionTo(CommunicationState),
+        //обрабатываем ошибки из сервиса NotificationService
+        When(FaultNotifyEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    private void ConfigureCommunicationState()
+    {
+        During(CommunicationState,
+        When(CommunicationEvent)
+            .Then(context =>
+            {
+                context.Saga.NotifyMessage += $", Уведомлений - {context.Message.DataItems.DataObjects.Count()}";
+            })
+            //прогресс выполнения операции
+            .Send(
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление сообщений пользователей...",
+                            percent = context.Saga.ProgressCurrent += 2
+                        })
+                    })
+            //Обновление записей уведомлений (если есть) в сервисе CommunicationService
+            .Send(
+                new Uri(configuration["QueuePaths:CommunicationsSetSnapShotConsumer"]),
                 context => new ESContract
                 {
                     CallBackType = "Common.Contracts.EventSourcing.SetSnapShotESCommit",
@@ -360,7 +444,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(PreCommitState),
-        //обрабатываем ошибки из сервиса EventSourcingService - сохранение записей аукционов в EsLog
+        //обрабатываем ошибки из сервиса CommunicationService 
         When(FaultNotifyEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
@@ -387,10 +471,14 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     {
         During(PreCommitState,
         When(CommitEvent)
-            .Publish(context => new SetSnapShotESCommit
-            {
-                CorrelationId = context.Saga.CorrelationId
-            })
+        .Then(context =>
+        {
+            context.Saga.NotifyMessage += $", Сообщений пользователей - {context.Message.DataItems.DataObjects.Count()}";
+        })
+        .Publish(context => new SetSnapShotESCommit
+        {
+            CorrelationId = context.Saga.CorrelationId
+        })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
@@ -449,13 +537,14 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
-                new Uri(configuration["QueuePaths:SetSnapShotEventConsumer"]),
-                context => new ESContract
-                {
-                    CallBackType = "",
-                    EventData = context.Saga.NotifyMessage,
-                    UserLogin = context.Saga.SessionId
-                }).Finalize()
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.SetSnapShot,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = context.Saga.NotifyMessage
+                    }).Finalize()
         ),
         When(FaultNotifyUIEvent)
         .Send(

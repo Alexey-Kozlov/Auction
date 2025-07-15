@@ -44,10 +44,10 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 {
                     var typedItem = JsonSerializer.Deserialize<AuctionItem>(item.Data);
                     var search = await _client.Client.SearchAsync<AuctionCreatingElk>(indices: "search_index",
-                        p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId))));
+                        p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId))));
                     if (item.CRUD != CRUD.Create)
                     {
-                        if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.AuctionId}");
+                        if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.ItemId}");
                     }
                     //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
                     if (search != null)
@@ -67,7 +67,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                         case CRUD.Delete:
                             //удаляем из индекса заданную запись
                             var response = await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
-                                p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId)))
+                                p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
                                 .WaitForCompletion(true).Refresh());
                             break;
                         case CRUD.Create:
@@ -77,7 +77,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                         case CRUD.Update:
                             //обновляем запись по полям - title, properties, description
                             await _client.Client.UpdateByQueryAsync<AuctionCreatingElk>(indices: "search_index",
-                                p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.AuctionId)))
+                                p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
                                 .Script(s => s.Source(
                                     "ctx._source.title = params.title;" +
                                     "ctx._source.properties = params.properties;" +

@@ -136,12 +136,11 @@ public class RestoreSnapShotProcessing
                     (
                         new DataForProcessingService
                         {
-                            ItemId = item.ItemId.Value,
+                            ItemId = item.itemid.Value,
                             DataType = nameof(ImageItem),
                             Data = JsonSerializer.Serialize(new ImageDTO
                             {
-                                ItemId = item.ItemId,
-                                AuctionId = item.auctionid.Value,
+                                ItemId = item.itemid.Value,
                                 Image = ImageBase64
                             }),
                             CRUD = CRUD.Create,
@@ -175,12 +174,11 @@ public class RestoreSnapShotProcessing
                         (
                             new DataForProcessingService
                             {
-                                ItemId = item.ItemId.Value,
+                                ItemId = item.itemid.Value,
                                 DataType = nameof(ImageItem),
                                 Data = JsonSerializer.Serialize(new ImageDTO
                                 {
-                                    ItemId = item.ItemId,
-                                    AuctionId = item.auctionid.Value,
+                                    ItemId = item.itemid.Value,
                                     Image = ImageBase64.Substring(splitPointer,
                                     imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
                                 }),

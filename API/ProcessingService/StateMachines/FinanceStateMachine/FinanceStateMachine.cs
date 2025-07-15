@@ -181,27 +181,15 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
-                    .Send(
-                    new Uri(configuration["QueuePaths:FinanceNotificationConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                .Send(
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        DataObjects = new List<DataForProcessingService>
-                        {
-                            new DataForProcessingService
-                            {
-                                CRUD = CRUD.Create,
-                                DataType = nameof(FinanceItem),
-                                Data = JsonSerializer.Serialize(new NotifyItem
-                                {
-                                    ItemId = Guid.NewGuid(),
-                                    UserLogin = context.Saga.UserLogin
-                                })
-                            }
-                        },
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "Common.Contracts.Finance.FinanceCreateComplete",
-                        Props = $"{context.Saga.Amount.ToString()},{!context.Saga.IsError}"
-                    })).Finalize()
+                        SignalRMethod = SignalRMethod.FinanceCreate,
+                        Show = true,
+                        SessionId = context.Saga.UserLogin,
+                        Data = JsonSerializer.Serialize(new { value = context.Saga.Amount })
+                    })).Finalize()                    
             ),
         //обрабатываем ошибки подтверждения/отката транзакции - шлем уведомление пользователю
         When(FaultNotificationEvent)

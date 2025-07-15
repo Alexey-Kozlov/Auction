@@ -22,23 +22,16 @@ public class ESLogActivity : IStateMachineActivity<DeleteAuctionState, RequestAu
 
     public async Task Execute(BehaviorContext<DeleteAuctionState, RequestAuctionDelete> context, IBehavior<DeleteAuctionState, RequestAuctionDelete> next)
     {
-        await _sendEventToES.SendItemToEventSourcing(
-            new FinanceItem
-            {
-                ActionDate = DateTime.UtcNow,
-                AuctionId = context.Message.AuctionId,
-                ItemId = context.Saga.ItemId,
-                Status = FinanceRecordStatus.Приход,
-                UserLogin = context.Saga.UserLogin
-            },
-            nameof(FinanceItem),
+        await _sendEventToES.SendItemToEventSourcing<object>(
+            new object(),
+            nameof(AuctionDelete),
             "Common.Contracts.Processing.ESLogAuctionDeleted",
             context.Message.CorrelationId,
             context.Saga.UserLogin,
             Command.AuctionDelete,
             "",
-            context.Saga.AuctionId,
             context.Saga.ItemId,
+            null,
             false, "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }

@@ -46,11 +46,15 @@ public class EventConsumer : IConsumer<EventNotificationItem>
                     throw new Exception("Ошибка рассылки для группы пользователей - есть дибликаты рассылки" +
                     "'" + doubles.FirstOrDefault() + "'");
                 }
+                //если был указан UserLogin - добавить в рассылку (если нет)
+                if (!string.IsNullOrEmpty(context.Message.UserLogin) &&
+                    _users.FirstOrDefault(p => p.ToLower() == context.Message.UserLogin.ToLower()) == null)
+                {
+                    _users.Add(context.Message.UserLogin);
+                }
 
-                await _hubContext.Clients.Groups(await _dbContext.NotifyItems.Where(p =>
-                        p.ItemId == context.Message.AuctionId && p.Commited)
-                        .Select(p => p.UserLogin).ToListAsync())
-                        .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
+                await _hubContext.Clients.Groups(_users)
+                    .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
                         new
                         {
                             show = context.Message.Show,

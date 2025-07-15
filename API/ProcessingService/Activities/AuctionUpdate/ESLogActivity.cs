@@ -28,7 +28,6 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
                 ItemId = context.Message.ItemId,
                 UpdatedAt = DateTime.UtcNow,
                 Title = context.Message.Title,
-                AuctionId = context.Message.AuctionId,
                 Description = context.Message.Description,
                 Properties = context.Message.Properties,
                 Seller = context.Message.UserLogin,

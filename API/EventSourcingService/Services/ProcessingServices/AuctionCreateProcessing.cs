@@ -99,7 +99,7 @@ public class AuctionCreateProcessing
                 if (item.entitytype == "AuctionItem")
                 {
                     var auction = JsonSerializer.Deserialize<AuctionItem>(item.eventdata);
-                    await _checkAuctionFinished.UpdateFinishTasks(auction.AuctionId,
+                    await _checkAuctionFinished.UpdateFinishTasks(auction.ItemId,
                         auction.AuctionEnd, CRUD.Create);
                 }
             }

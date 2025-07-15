@@ -38,7 +38,7 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             context.Saga.UserLogin,
             Command.AuctionDelete,
             "",
-            context.Saga.AuctionId,
+            context.Saga.ItemId,
             context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,

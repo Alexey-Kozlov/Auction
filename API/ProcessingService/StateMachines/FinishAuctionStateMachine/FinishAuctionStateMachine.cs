@@ -65,6 +65,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                     context.Saga.DataForProcessingServicesList = JsonSerializer.Serialize(context.Message.DataItems);
                     context.Saga.IsError = false;
                     context.Saga.CommitCounter = 3;
+                    context.Saga.ItemId = context.Message.ItemId;
                 })
                 //Обновление аукциона в сервисе SearchService
                 .Send(
@@ -223,14 +224,18 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                             TraceId = context.Saga.CorrelationId.ToString(),
                             UserLogin = "SystemService"
                         })
-                    .Send(
-                        new Uri(configuration["QueuePaths:AuctionFinishedNotificationConsumer"]),
-                        context => new DataForProcessingServicesList<AuctionItem>
-                        {
-                            DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects,
-                            CorrelationId = context.Saga.CorrelationId,
-                            CallBackType = ""
-                        })).Finalize()
+                //Создаем событие в сервис NotificationService для обновления интерфейса
+                .Send(
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.AuctionFinished,
+                        Show = true,
+                        SessionId = "auctionGroup",
+                        AuctionId = context.Saga.ItemId,
+                        Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                            .DataObjects[0].Data
+                    })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationEvent)

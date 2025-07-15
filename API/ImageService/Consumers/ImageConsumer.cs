@@ -69,7 +69,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                     }
                     var typedItem = new ImageDTO
                     {
-                        AuctionId = crudItem.MessagePartId,
+                        ItemId = crudItem.MessagePartId,
                         Image = imageItem.Data
                     };
                     typedItem.CorrelationId = correlationId;
@@ -77,7 +77,7 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                     {
                         case CRUD.Delete:
                             var item = await _context.Images.FirstOrDefaultAsync(p =>
-                                p.AuctionId == crudItem.MessagePartId && p.Commited);
+                                p.ItemId == crudItem.MessagePartId && p.Commited);
                             if (item != null)
                             {
                                 item.CorrelationId = correlationId;
@@ -85,19 +85,17 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                             }
                             break;
                         case CRUD.Create:
-                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
                             break;
                         case CRUD.Update:
                             var item2 = await _context.Images.FirstOrDefaultAsync(p =>
-                                p.AuctionId == crudItem.MessagePartId && p.Commited);
+                                p.ItemId == crudItem.MessagePartId && p.Commited);
                             if (item2 != null)
                             {
                                 item2.CorrelationId = correlationId;
                                 _context.Images.Update(item2);
                             }
-                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _context.AddAsync(_mapper.Map<ImageItem>(typedItem));
                             break;

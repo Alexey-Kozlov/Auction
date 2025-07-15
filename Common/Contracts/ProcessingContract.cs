@@ -256,7 +256,7 @@ public class ESLogAuctionFinish : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid ItemId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
 }
@@ -380,7 +380,9 @@ public enum SignalRMethod
     RestoreSnapShot,
     ElkIndexReset,
     ElkSearch,
-    EditNotification
+    EditNotification,
+    ResetImageCache,
+    OperationProgress
 }
 
 public class EventNotificationItem

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Collections.Concurrent;
 using Common.Utils.Logging;
+using Common.Contracts.Auction;
 
 namespace EventSourcingService.Services;
 
@@ -102,10 +103,12 @@ public class CheckAuctionFinished : IHostedService, IDisposable
                     );
                 }
                 _auctionMetrics.FinishAuction();
+                var itemId = JsonSerializer.Deserialize<AuctionItem>(finishedItem.eventdata).ItemId;
                 var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
                 sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
                 sendObject.GetType().GetProperty("DataItems").SetValue(sendObject, listItems);
+                sendObject.GetType().GetProperty("ItemId").SetValue(sendObject, itemId);
                 await _publishEndpoint.Publish(sendObject);
             }
             catch (Exception e)

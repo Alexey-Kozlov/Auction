@@ -1,15 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { reset, setParams } from "../../store/paramSlice";
+import { reset } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
 import {
-  FinanceSortColumn,
-  FinanceSortType,
   FinanceTableItem,
   FormErrors,
   PagedResult,
   ProcessingState,
-  SortDirection,
   State,
   User,
 } from "../../types";
@@ -20,7 +17,7 @@ import {
 import { setEventFlag } from "../../store/processingSlice";
 import { useFinanceCreateMutation } from "../../api/ProcessingApi";
 
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { InputNumber } from "primereact/inputnumber";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
@@ -30,6 +27,7 @@ import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
 import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
 import { SelectItem } from "primereact/selectitem";
 import Waiter from "../Waiter";
+import Footer from "../layout/Footer";
 
 export default function FinListings() {
   const dispatch = useDispatch();
@@ -326,179 +324,183 @@ export default function FinListings() {
 
   return (
     <>
-      <div className="ListingContainer">
-        <form onSubmit={handleSubmit}>
-          <div className="FinanceBalanceContainer">
-            <div className="w-10rem"></div>
-            <div>
-              <div className="CenterItem">
-                <div className="FinanceAddLabel">
-                  Сумма для зачисления<span>*</span>
-                </div>
+      <div>
+        <div>
+          <form onSubmit={handleSubmit}>
+            <div className="FinanceBalanceContainer">
+              <div className="w-10rem"></div>
+              <div>
                 <div className="CenterItem">
-                  <InputNumber
-                    name="amount"
-                    step={5}
-                    variant="filled"
-                    className="AmountInput"
-                    placeholder={`Укажите сумму`}
-                    tooltip="Стрелки вверх/вниз - шаг 5 руб."
-                    tooltipOptions={{ position: "bottom" }}
-                    onChange={(e) => handleAmountChanged(e.value)}
-                    value={amount}
+                  <div className="FinanceAddLabel">
+                    Сумма для зачисления<span>*</span>
+                  </div>
+                  <div className="CenterItem">
+                    <InputNumber
+                      name="amount"
+                      step={5}
+                      variant="filled"
+                      className="AmountInput"
+                      placeholder={`Укажите сумму`}
+                      tooltip="Стрелки вверх/вниз - шаг 5 руб."
+                      tooltipOptions={{ position: "bottom" }}
+                      onChange={(e) => handleAmountChanged(e.value)}
+                      value={amount}
+                    />
+                  </div>
+                  <div>
+                    {procState.find((p) => p.eventName === "Waiter") &&
+                    !procState.find((p) => p.eventName === "Waiter")!.ready ? (
+                      <Waiter />
+                    ) : (
+                      <Button
+                        text
+                        raised
+                        rounded
+                        className="CustomButton w-20rem"
+                      >
+                        Добавить сумму
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <Message
+                    className="mt-2"
+                    severity="error"
+                    text={editError?.message}
+                    pt={{
+                      root: {
+                        className:
+                          editError !== null &&
+                          editError.name === "NegativeAmount"
+                            ? ""
+                            : "hidden",
+                      },
+                    }}
                   />
                 </div>
-                <div>
-                  {procState.find((p) => p.eventName === "Waiter") &&
-                  !procState.find((p) => p.eventName === "Waiter")!.ready ? (
-                    <Waiter />
-                  ) : (
-                    <Button
-                      text
-                      raised
-                      rounded
-                      className="CustomButton w-20rem"
-                    >
-                      Добавить сумму
-                    </Button>
-                  )}
+              </div>
+
+              <div className="FinanceBalance CenterItem">
+                <div className="mr-4">Баланс :</div>
+                <div className="FinanceBalanceValue">
+                  {balance.data?.result ?? 0} р.
                 </div>
               </div>
-              <div className="text-center">
-                <Message
-                  className="mt-2"
-                  severity="error"
-                  text={editError?.message}
-                  pt={{
-                    root: {
-                      className:
-                        editError !== null &&
-                        editError.name === "NegativeAmount"
-                          ? ""
-                          : "hidden",
-                    },
-                  }}
+            </div>
+          </form>
+          {financeItems &&
+          financeItems.results &&
+          financeItems.results.length === 0 ? (
+            <p className="CenterItem text-4xl">Записи не найдены</p>
+          ) : (
+            <div>
+              <div>
+                <div className="grid FinanceListText FinanceTableHeader">
+                  <div className="col-2 CenterItem FinanceTableCell">
+                    Изображение
+                  </div>
+                  <div className="col-4 CenterItem FinanceTableCell">
+                    <SelectButton
+                      className="BackgroundTransparent"
+                      options={orderItem.filter(
+                        (p) =>
+                          p.value ===
+                          (sortParam.orderBy!.indexOf("title") === -1
+                            ? "title"
+                            : sortParam.orderBy)
+                      )}
+                      onChange={(e) => handleMenuClick(e)}
+                      itemTemplate={filterTemplate}
+                      value={sortParam.orderBy}
+                    />
+                  </div>
+                  <div className="col-2 CenterItem FinanceTableCell">
+                    <SelectButton
+                      className="BackgroundTransparent"
+                      options={orderItem.filter(
+                        (p) =>
+                          p.value ===
+                          (sortParam?.orderBy!.indexOf("seller") === -1
+                            ? "seller"
+                            : sortParam.orderBy)
+                      )}
+                      onChange={(e) => handleMenuClick(e)}
+                      itemTemplate={filterTemplate}
+                      value={sortParam.orderBy}
+                    />
+                  </div>
+                  <div className="col-2 CenterItem FinanceTableCell">
+                    <SelectButton
+                      className="BackgroundTransparent"
+                      options={orderItem.filter(
+                        (p) =>
+                          p.value ===
+                          (sortParam?.orderBy!.indexOf("actionDate") === -1
+                            ? "actionDate"
+                            : sortParam.orderBy)
+                      )}
+                      onChange={(e) => handleMenuClick(e)}
+                      itemTemplate={filterTemplate}
+                      value={sortParam.orderBy}
+                    />
+                  </div>
+                  <div className="col-1 CenterItem FinanceTableCell">
+                    <SelectButton
+                      className="BackgroundTransparent"
+                      options={orderItem.filter(
+                        (p) =>
+                          p.value ===
+                          (sortParam?.orderBy!.indexOf("status") === -1
+                            ? "status"
+                            : sortParam.orderBy)
+                      )}
+                      onChange={(e) => handleMenuClick(e)}
+                      itemTemplate={filterTemplate}
+                      value={sortParam.orderBy}
+                    />
+                  </div>
+                  <div className="col-1 CenterItem FinanceTableCell">
+                    <SelectButton
+                      className="BackgroundTransparent"
+                      options={orderItem.filter(
+                        (p) =>
+                          p.value ===
+                          (sortParam?.orderBy!.indexOf("value") === -1
+                            ? "value"
+                            : sortParam.orderBy)
+                      )}
+                      onChange={(e) => handleMenuClick(e)}
+                      itemTemplate={filterTemplate}
+                      value={sortParam.orderBy}
+                    />
+                  </div>
+                </div>
+                {financeItems &&
+                  financeItems.results &&
+                  financeItems.results.map(
+                    (item: FinanceTableItem, index: number) => (
+                      <FinRow
+                        key={index}
+                        item={item}
+                      />
+                    )
+                  )}
+              </div>
+              <div className="ListPagination">
+                <Paginator
+                  onPageChange={setPageNumber}
+                  first={firstRecord}
+                  rows={sortParam.pageSize}
+                  totalRecords={financeItems?.totalCount}
+                  rowsPerPageOptions={[5, 10, 50]}
                 />
               </div>
             </div>
+          )}
+        </div>
 
-            <div className="FinanceBalance CenterItem">
-              <div className="mr-4">Баланс :</div>
-              <div className="FinanceBalanceValue">
-                {balance.data?.result ?? 0} р.
-              </div>
-            </div>
-          </div>
-        </form>
-        {financeItems &&
-        financeItems.results &&
-        financeItems.results.length === 0 ? (
-          <p className="CenterItem text-4xl">Записи не найдены</p>
-        ) : (
-          <div>
-            <div>
-              <div className="grid FinanceListText FinanceTableHeader">
-                <div className="col-2 CenterItem FinanceTableCell">
-                  Изображение
-                </div>
-                <div className="col-4 CenterItem FinanceTableCell">
-                  <SelectButton
-                    className="BackgroundTransparent"
-                    options={orderItem.filter(
-                      (p) =>
-                        p.value ===
-                        (sortParam.orderBy!.indexOf("title") === -1
-                          ? "title"
-                          : sortParam.orderBy)
-                    )}
-                    onChange={(e) => handleMenuClick(e)}
-                    itemTemplate={filterTemplate}
-                    value={sortParam.orderBy}
-                  />
-                </div>
-                <div className="col-2 CenterItem FinanceTableCell">
-                  <SelectButton
-                    className="BackgroundTransparent"
-                    options={orderItem.filter(
-                      (p) =>
-                        p.value ===
-                        (sortParam?.orderBy!.indexOf("seller") === -1
-                          ? "seller"
-                          : sortParam.orderBy)
-                    )}
-                    onChange={(e) => handleMenuClick(e)}
-                    itemTemplate={filterTemplate}
-                    value={sortParam.orderBy}
-                  />
-                </div>
-                <div className="col-2 CenterItem FinanceTableCell">
-                  <SelectButton
-                    className="BackgroundTransparent"
-                    options={orderItem.filter(
-                      (p) =>
-                        p.value ===
-                        (sortParam?.orderBy!.indexOf("actionDate") === -1
-                          ? "actionDate"
-                          : sortParam.orderBy)
-                    )}
-                    onChange={(e) => handleMenuClick(e)}
-                    itemTemplate={filterTemplate}
-                    value={sortParam.orderBy}
-                  />
-                </div>
-                <div className="col-1 CenterItem FinanceTableCell">
-                  <SelectButton
-                    className="BackgroundTransparent"
-                    options={orderItem.filter(
-                      (p) =>
-                        p.value ===
-                        (sortParam?.orderBy!.indexOf("status") === -1
-                          ? "status"
-                          : sortParam.orderBy)
-                    )}
-                    onChange={(e) => handleMenuClick(e)}
-                    itemTemplate={filterTemplate}
-                    value={sortParam.orderBy}
-                  />
-                </div>
-                <div className="col-1 CenterItem FinanceTableCell">
-                  <SelectButton
-                    className="BackgroundTransparent"
-                    options={orderItem.filter(
-                      (p) =>
-                        p.value ===
-                        (sortParam?.orderBy!.indexOf("value") === -1
-                          ? "value"
-                          : sortParam.orderBy)
-                    )}
-                    onChange={(e) => handleMenuClick(e)}
-                    itemTemplate={filterTemplate}
-                    value={sortParam.orderBy}
-                  />
-                </div>
-              </div>
-              {financeItems &&
-                financeItems.results &&
-                financeItems.results.map(
-                  (item: FinanceTableItem, index: number) => (
-                    <FinRow
-                      key={index}
-                      item={item}
-                    />
-                  )
-                )}
-            </div>
-            <div className="ListPagination">
-              <Paginator
-                onPageChange={setPageNumber}
-                first={firstRecord}
-                rows={sortParam.pageSize}
-                totalRecords={financeItems?.totalCount}
-                rowsPerPageOptions={[5, 10, 50]}
-              />
-            </div>
-          </div>
-        )}
+        <Footer />
       </div>
     </>
   );

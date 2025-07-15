@@ -96,8 +96,9 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.AuctionId = context.Message.AuctionId;
+                context.Saga.ItemId = context.Message.ItemId;
                 context.Saga.UserLogin = context.Message.UserLogin;
+                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 7;
             })
@@ -219,7 +220,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                         {
                             CRUD = CRUD.Delete,
                             Data = "CRUD",
-                            MessagePartId = context.Saga.AuctionId
+                            MessagePartId = context.Saga.ItemId
                         }
                     },
                     CorrelationId = context.Saga.CorrelationId,
@@ -417,14 +418,15 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
-                    new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
-                            .DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{!context.Saga.IsError}"
+                        SignalRMethod = SignalRMethod.AuctionDelete,
+                        AuctionId = context.Saga.ItemId,
+                        Show = !context.Saga.IsError,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                        .DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            
@@ -439,7 +441,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                AuctionId = context.Saga.AuctionId,
+                AuctionId = context.Saga.ItemId,
                 IsError = context.Saga.IsError
             })
             .Finalize()

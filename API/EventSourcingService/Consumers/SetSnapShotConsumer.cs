@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
@@ -59,7 +60,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             CRUD = CRUD.Create
                         }
                     );
-                    //получаем Id аукциона
+                    //получаем Id аукциона (если это записи Bids,Communications, Finance)
                     if (document.RootElement.TryGetProperty("AuctionId", out jsonElement))
                     {
                         var _tmpGuid = "";
@@ -69,10 +70,22 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             {
                                 auctionId = Guid.Parse(_tmpGuid);
                             }
-
                         }
                     }
-                    //обрабатываем сообщения по их типу
+                    //получаем Id аукциона (если это записи Images, Notifications, Search)                        
+                    else if (document.RootElement.TryGetProperty("ItemId", out jsonElement))
+                    {
+                        var _tmpGuid = "";
+                        if (jsonElement.TryGetsString(out _tmpGuid))
+                        {
+                            if (!string.IsNullOrEmpty(_tmpGuid) && _tmpGuid.ToLower() != "null")
+                            {
+                                auctionId = Guid.Parse(_tmpGuid);
+                            }
+                        }
+
+                    }
+                    //получаем автора сообщения (по типу записи)
                     switch (item.DataType)
                     {
                         case nameof(BidItem):
@@ -87,6 +100,9 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                         case nameof(NotifyItem):
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
                             break;
+                        case nameof(CommunicationItem):
+                            document.RootElement.TryGetProperty("UserLogin", out jsonElement);
+                            break;                            
                         case nameof(ImageItem):
                             imageFull = await RestoreImages(item, context.Message);
                             //выходим если была обработана часть изображения

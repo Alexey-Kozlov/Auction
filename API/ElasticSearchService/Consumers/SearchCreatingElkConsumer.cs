@@ -113,7 +113,7 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
                 //Suffix - смотрим определение индекса - mappings в формате json, значение Suffix - keyword -
                 //наименование свойства после "fields"
                 ).Sort(p => p.Field(f => f.Title.Suffix("keyword"), fs => fs.Order(SortOrder.Asc)),
-                p => p.Field(f => f.AuctionId.Suffix("keyword"), fs => fs.Order(SortOrder.Asc)))
+                p => p.Field(f => f.ItemId.Suffix("keyword"), fs => fs.Order(SortOrder.Asc)))
             );
             if (!elkResponse.IsValidResponse)
             {

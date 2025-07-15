@@ -12,8 +12,7 @@ public interface IAuctionImageSplit
 
 public class AuctionItem
 {
-      public Guid? ItemId { get; set; }
-      public Guid AuctionId { get; set; }
+      public Guid ItemId { get; set; }
       public int ReservePrice { get; set; }
       public string Seller { get; set; }
       public string Winner { get; set; }
@@ -34,7 +33,7 @@ public class AuctionItem
 
 public class RequestAuctionCreate : IAuctionImageSplit
 {
-      public Guid AuctionId { get; set; }
+      public Guid ItemId { get; set; }
       public int ReservePrice { get; set; }
       public DateTime AuctionEnd { get; set; }
       public string Properties { get; set; }
@@ -56,13 +55,13 @@ public class AuctionCreatedSearch : IFaultMessage
       public string ErrorExceptionMessage { get; set; }
       public string ErrorServiceName { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 }
 
 public class AuctionNotification
 {
-      public Guid AuctionId { get; set; }
+      public Guid ItemId { get; set; }
       public string UserLogin { get; set; }
       public string Title { get; set; }
       public Guid CorrelationId { get; set; }
@@ -77,7 +76,7 @@ public class AuctionCreatedNotification : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 public class AuctionCreatedNotificationEvent : IFaultMessage
@@ -88,14 +87,14 @@ public class AuctionCreatedNotificationEvent : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
 
 public class AuctionCreatingElk
 {
-      public Guid AuctionId { get; set; }
+      public Guid ItemId { get; set; }
       public string Title { get; set; }
       public string Properties { get; set; }
       public string Description { get; set; }
@@ -117,7 +116,7 @@ public class AuctionCreatedElk : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -129,7 +128,7 @@ public class AuctionCreateESCommit : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -141,7 +140,7 @@ public class AuctionReset : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -156,9 +155,10 @@ public class AuctionCreateFinalize
 #region AuctionDelete
 
 public record RequestAuctionDelete(
-      Guid CorrelationId,
+      string SessionId,
       string UserLogin,
-      Guid AuctionId
+      Guid ItemId,
+      Guid CorrelationId
 );
 
 
@@ -171,7 +171,7 @@ public class AuctionDeletedBid : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -184,7 +184,7 @@ public class AuctionDeletedGateway : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -197,7 +197,7 @@ public class AuctionDeletedImage : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -210,7 +210,7 @@ public class AuctionDeletedSearch : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -223,7 +223,7 @@ public class AuctionDeletedNotification : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -235,7 +235,7 @@ public class AuctionDeletedNotificationEvent : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -248,7 +248,7 @@ public class AuctionDeletedElk : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -261,7 +261,7 @@ public class AuctionDeleteESCommit : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -272,7 +272,6 @@ public class AuctionDeleteESCommit : IFaultMessage
 public class RequestAuctionUpdate : IAuctionImageSplit
 {
       public Guid ItemId { get; set; }
-      public Guid AuctionId { get; set; }
       public string Title { get; set; }
       public string Properties { get; set; }
       public string Image { get; set; }
@@ -295,7 +294,7 @@ public class AuctionUpdatedGateWay : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -308,7 +307,7 @@ public class AuctionUpdatedSearch : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -321,7 +320,7 @@ public class AuctionUpdatedNotification : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -333,7 +332,7 @@ public class AuctionUpdatedNotificationEvent : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -346,7 +345,7 @@ public class AuctionUpdatedElk : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -359,7 +358,7 @@ public class AuctionUpdateESCommit : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -389,7 +388,7 @@ public class AuctionFinishedCommit : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -402,7 +401,7 @@ public class AuctionFinishedElk : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 
@@ -415,7 +414,7 @@ public class AuctionFinishedNotification : IFaultMessage
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
-      public Guid? AuctionId { get; set; }
+      public Guid? ItemId { get; set; }
       public bool IsError { get; set; }
 };
 

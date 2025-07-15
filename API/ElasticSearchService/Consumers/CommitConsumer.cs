@@ -48,7 +48,7 @@ public class CommitConsumer : IConsumer<ElkCommit>
                     if (typedItem.CRUD != CRUD.Create)
                     {
                         await _client.Client.UpdateByQueryAsync<AuctionCreatingElk>(indices: context.Message.ElkIndex,
-                            p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.Record.AuctionId)))
+                            p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.Record.ItemId)))
                             .Script(s => s.Source(
                             "ctx._source.title = params.title;" +
                             "ctx._source.properties = params.properties;" +
@@ -64,7 +64,7 @@ public class CommitConsumer : IConsumer<ElkCommit>
                     {
                         //если было создание - удаляем созданную запись из елки
                         var response = await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: context.Message.ElkIndex,
-                            p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.Record.AuctionId)))
+                            p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.Record.ItemId)))
                             .WaitForCompletion(true).Refresh());
                     }
 

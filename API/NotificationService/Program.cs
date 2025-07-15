@@ -1,5 +1,4 @@
 using MassTransit;
-using NotificationService.Consumers;
 using NotificationService.Hubs;
 using NotificationService.Data;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +12,7 @@ using Common.Utils.Vault;
 using Common.Utils;
 using NotificationService.Services;
 using Common.Utils.Logging;
+using NotificationService.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -68,7 +68,7 @@ builder.Services.AddAuthentication(p =>
                 });
 builder.Services.AddMassTransit(p =>
 {
-    p.AddConsumersFromNamespaceContaining<FinanceConsumer>();
+    p.AddConsumersFromNamespaceContaining<BidConsumer>();
     p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("notification", false));
     p.UsingRabbitMq((context, config) =>
     {

@@ -37,29 +37,27 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                     {
                         case CRUD.Delete:
                             var item = await _dbContext.AuctionItems.FirstOrDefaultAsync(p =>
-                                p.AuctionId == typedItem.AuctionId && p.Commited);
+                                p.ItemId == typedItem.ItemId && p.Commited);
                             if (item == null)
                             {
-                                throw new Exception($"Запись для удаления не найдена, AuctionId - {typedItem.AuctionId}");
+                                throw new Exception($"Запись для удаления не найдена, AuctionId - {typedItem.ItemId}");
                             }
                             item.CorrelationId = correlationId;
                             _dbContext.AuctionItems.Update(item);
                             break;
                         case CRUD.Create:
-                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.AuctionItems.AddAsync(typedItem);
                             break;
                         case CRUD.Update:
                             var item2 = await _dbContext.AuctionItems.FirstOrDefaultAsync(p =>
-                                p.AuctionId == typedItem.AuctionId && p.Commited);
+                                p.ItemId == typedItem.ItemId && p.Commited);
                             if (item2 == null)
                             {
-                                throw new Exception($"Запись для обновления не найдена, AuctionId - {typedItem.AuctionId}");
+                                throw new Exception($"Запись для обновления не найдена, AuctionId - {typedItem.ItemId}");
                             }
                             item2.CorrelationId = correlationId;
                             _dbContext.AuctionItems.Update(item2);
-                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.AuctionItems.AddAsync(typedItem);
                             break;

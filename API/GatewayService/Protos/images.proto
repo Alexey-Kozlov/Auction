@@ -7,11 +7,11 @@ service GrpcImage {
 }
 
 message GetImageRequest {
-    string AuctionId = 1;
+    string ItemId = 1;
 }
 
 message GrpcImageModel {
-    string AuctionId = 1;
+    string ItemId = 1;
     string image = 2;
 }
 

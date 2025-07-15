@@ -31,8 +31,7 @@ public class MappingProfiles : Profile
                         .Replace("data:image/jpg;base64,", ""));
                 }
                 return dest?.Image;
-            }))
-            .ForMember(dest => dest.ItemId, opt => opt.MapFrom(src => Guid.NewGuid()));
+            }));
 
 
         CreateMap<ImageItem, ImageItem>();

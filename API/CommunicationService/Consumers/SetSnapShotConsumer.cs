@@ -1,38 +1,57 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using Common.Contracts.Auction;
+using Common.Contracts.Communication;
+using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
 using Common.Utils.Logging;
-using GatewayService.Cache;
+using CommunicationService.Data;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
-namespace GatewayService.Consumers;
+namespace CommunicationService.Consumers;
 
-public class GatewayConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
+public class SetSnapShotConsumer : IConsumer<ESContract>
 {
-    private readonly ImageCache _cacheService;
+    private readonly CommunicationDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
-    public GatewayConsumer(ImageCache cacheService, IPublishEndpoint publishEndpoint, IConfiguration configuration)
+
+    public SetSnapShotConsumer(CommunicationDbContext context, IPublishEndpoint publishEndpoint,
+        IConfiguration configuration)
     {
-        _cacheService = cacheService;
+        _context = context;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<DataForProcessingServicesList<AuctionItem>> context)
+    public async Task Consume(ConsumeContext<ESContract> context)
     {
         try
         {
-            if (context.Message.DataObjects == null || context.Message.DataObjects.Count == 0)
+            var listItems = new DataForProcessingServicesList
             {
-                throw new Exception("Не передано значение AuctionId для обновления кеша");
+                DataObjects = new List<DataForProcessingService>()
+            };
+
+            foreach (var item in await _context.Communications.ToArrayAsync())
+            {
+                listItems.DataObjects.Add
+                (
+                    new DataForProcessingService
+                    {
+                        DataType = nameof(CommunicationItem),
+                        Data = JsonSerializer.Serialize(item, item.GetType()),
+                        CRUD = CRUD.Create
+                    }
+                );
             }
-            var typedItem = JsonSerializer.Deserialize<AuctionItem>(context.Message.DataObjects[0].Data);
-            var correlationId = context.Message.CorrelationId;
-            await _cacheService.DeleteCacheItem(typedItem.ItemId.ToString());
-            var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
-            sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+            var sendObject = new DataForProcessingServicesList<string>
+            {
+                CallBackType = context.Message.CallBackType,
+                DataObjects = listItems.DataObjects,
+                CorrelationId = context.Message.CorrelationId,
+                Props = context.Message.EventData
+            };
+
             await _publishEndpoint.Publish(sendObject);
         }
         catch (Exception e)
@@ -43,7 +62,7 @@ public class GatewayConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
             messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "GatewayService");
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "CommunicationService_SetSnapShot");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);

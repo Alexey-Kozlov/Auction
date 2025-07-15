@@ -24,13 +24,13 @@ public class GrpcFinanceService: GrpcFinance.GrpcFinanceBase
         var financeSortRequest = JsonSerializer.Deserialize<FinanceSortRequest>(request.FinanceSortRequest);
         var ids = financeSortRequest.FinanceItems.Where(p => p.AuctionId.HasValue)
             .Select(p => p.AuctionId).ToArray();
-        var auctionList = await _dbContext.AuctionItems.Where(p => ids.Contains(p.AuctionId))
-        .Select(p => new { p.AuctionId, p.Title, p.Seller }).ToListAsync();
+        var auctionList = await _dbContext.AuctionItems.Where(p => ids.Contains(p.ItemId))
+        .Select(p => new { p.ItemId, p.Title, p.Seller }).ToListAsync();
         //объединяем результаты - исходные записи финансов и дополняем записями аукционов (поля Seller и Title)
         var rezult = financeSortRequest.FinanceItems.LeftOuterJoin(
             auctionList,
             leftKey => leftKey.AuctionId,
-            rightKey => rightKey.AuctionId,
+            rightKey => rightKey.ItemId,
             (fin, auction) => new FinanceHistoryItem
             {
                 ActionDate = fin.ActionDate,

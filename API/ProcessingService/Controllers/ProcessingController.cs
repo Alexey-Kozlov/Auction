@@ -55,7 +55,7 @@ public class ProcessingController : ControllerBase
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         var auction = new RequestAuctionCreate
         {
-            AuctionId = Guid.NewGuid(),
+            ItemId = Guid.NewGuid(),
             ReservePrice = par.ReservePrice,
             AuctionEnd = par.AuctionEnd,
             Properties = par.Properties,
@@ -84,7 +84,6 @@ public class ProcessingController : ControllerBase
         var auction = new RequestAuctionUpdate
         {
             ItemId = par.ItemId,
-            AuctionId = par.AuctionId,
             Title = par.Title,
             Properties = par.Properties,
             Image = par.Image,
@@ -109,7 +108,7 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> DeleteAuction([FromBody] DeleteAuctionDTO par)
     {
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var reqAuctionDelete = new RequestAuctionDelete(Guid.NewGuid(), auctionAuthor, par.AuctionId);
+        var reqAuctionDelete = new RequestAuctionDelete(par.SessionId, auctionAuthor, par.ItemId, Guid.NewGuid());
 
         await _publishEndpoint.Publish(reqAuctionDelete);
 

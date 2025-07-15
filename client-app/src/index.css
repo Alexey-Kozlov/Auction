@@ -53,7 +53,6 @@ a.p-menuitem-link > svg {
 	padding: 2rem;
 	margin-left: auto;
 	margin-right: auto;
-	padding-bottom: 0;
 }
 
 .ListItem {
@@ -277,6 +276,7 @@ a.p-menuitem-link > svg {
 	border-radius: 1rem;
 	justify-content: center;
 	display: flex;
+	font-size: 1.75rem;
 }
 
 .AuctionCardCurrentBidContainer {
@@ -472,7 +472,7 @@ a.p-menuitem-link > svg {
 
 .DetailCountDownText {
 	font-weight: 600;
-	font-size: 3rem;
+	font-size: 2rem;
 	margin-right: 2rem;
 	margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
@@ -485,7 +485,7 @@ a.p-menuitem-link > svg {
 }
 
 .DetailNotifyText {
-	font-size: 3rem;
+	font-size: 2rem;
 	line-height: 4rem;
 	margin-right: 2rem;
 	font-weight: 600;
@@ -495,7 +495,7 @@ a.p-menuitem-link > svg {
 
 .DetailCountDownItem {
 	font-weight: 600;
-	font-size: 3rem;
+	font-size: 2rem;
 }
 
 .MessageInputItem {
@@ -549,6 +549,32 @@ a.p-menuitem-link > svg {
 .ToastImage {
 	max-width: 15rem;
 	max-height: 10rem;
+}
+
+.ToastProgressContainer {
+	background-color: white;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	border: black 0.2rem solid;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+.CloseToastButtonContainer {
+	display: flex;
+	justify-content: flex-end;
+
+}
+
+.CloseToastButton {
+	border: 0.1rem transparent solid;
+	border-radius: 50%;
+}
+
+.CloseToastButton:hover {
+	border: 0.1rem black solid;
+	border-radius: 50%;
 }
 
 .p-icon {
@@ -698,3 +724,4 @@ a.p-menuitem-link > svg {
 	background-color: transparent;
 	border: none;
 }
+

@@ -75,7 +75,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
             When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.AuctionId = context.Message.AuctionId;
+                context.Saga.AuctionId = context.Message.ItemId;
                 context.Saga.Title = context.Message.Title;
                 context.Saga.Description = context.Message.Description;
                 context.Saga.Properties = context.Message.Properties;
@@ -330,15 +330,17 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
-                new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
-                context => new DataForProcessingServicesList<NotifyItem>
-                {
-                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
-                        .DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = $"{!context.Saga.IsError}"
-                })).Finalize()
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.AuctionUpdate,
+                        AuctionId = context.Saga.AuctionId,
+                        Show = !context.Saga.IsError,
+                        SessionId = "auctionGroup",
+                        UserLogin = context.Saga.UserLogin,
+                        Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                        .DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data
+                    })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            
         When(FaultNotificationUIEvent)

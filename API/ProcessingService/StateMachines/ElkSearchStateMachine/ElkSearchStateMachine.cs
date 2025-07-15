@@ -1,6 +1,4 @@
 using System.Text.Json;
-using Common.Contracts;
-using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
 using MassTransit;
@@ -77,22 +75,14 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
         During(NotificationState,
         When(ElkSearchEvent)
             .Send(
-                new Uri(configuration["QueuePaths:ElkSearchNotificationConsumer"]),
-                context => new DataForProcessingServicesList<ApiResponse<PagedResult<List<AuctionCreatingElk>>>>
-                {
-                    DataObjects = new List<DataForProcessingService>
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        new DataForProcessingService
-                        {
-                            CRUD = CRUD.Create,
-                            DataType = "ElkSearch",
-                            Data = JsonSerializer.Serialize(context.Message.Result)
-                        }
-                    },
-                    CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "",
-                    Props = context.Saga.SessionId
-                }).Finalize(),
+                        SignalRMethod = SignalRMethod.ElkSearch,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(context.Message.Result)
+                    }).Finalize(),
         //обрабатываем ошибки из сервиса ElasticSearchService            
         When(FaultElkSearchEvent)
             .Send(

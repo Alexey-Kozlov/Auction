@@ -1,5 +1,5 @@
 export type Auction = {
-	auctionId: string;
+	itemId: string;
 	reservePrice: number;
 	seller: string;
 	sellerName?: string;
@@ -88,12 +88,11 @@ export type PlaceBidParams = {
 
 export type AuctionImage = {
 	itemId: string;
-	auctionId: string;
 	image: string;
 };
 
 export type NotifyUser = {
-	auctionid: string;
+	itemId: string;
 	enable: boolean;
 	sessionid?: string;
 };
@@ -139,7 +138,7 @@ export type ProcessingState = {
 };
 
 export type AuctionUpdated = {
-	auctionId: string;
+	itemId: string;
 	title: string;
 	properties: string;
 	description: string;
@@ -151,15 +150,15 @@ export type AuctionUpdated = {
 };
 
 export type AuctionFinished = {
-	auctionId: string;
+	itemId: string;
 	title: string;
 	winner?: string;
-	amount?: number;
+	soldAmount?: number;
 };
 
 export type AuctionDeleted = {
-	auctionId: string;
-	correlationId: string;
+	itemId: string;
+	sessionId?: string;
 };
 
 export type Message = {
@@ -185,12 +184,6 @@ export type ModalParams = {
 	handler?: string;
 };
 
-export type ProgressToast = {
-	percent: number;
-	duration: number;
-	show: boolean;
-	message: string;
-};
 
 export enum RequestType {
 	ReadDetail,
@@ -252,10 +245,6 @@ export type FinanceSortType = {
 	direction: SortDirection;
 };
 
-export type RequestAuctionsArray = {
-	auctionIds: string[];
-};
-
 export enum ToastType {
 	Info,
 	Warning,
@@ -310,7 +299,27 @@ export enum ModalTypes {
 	info,
 }
 
+export type Progress = {
+	message: string;
+	percent: number;
+	title?: string;
+}
+
 export enum SignalREvents {
 	BidPlaced,
 	FinanceCreate,
+	AuctionCreate,
+	AuctionUpdate,
+	AuctionDelete,	
+	ResetImageCache,
+	ElkIndexReset,
+	ElkSearch,
+	SetSnapShot,
+	OperationProgress,
+	AuctionFinished,
+	ErrorMessage,
+	EditNotification,
+	CommunicationCreate,
+	CommunicationUpdate,
+	CommunicationDelete
 }

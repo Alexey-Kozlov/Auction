@@ -11,119 +11,123 @@ import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { Panel } from "primereact/panel";
 
 type Props = {
-	user: User | null;
-	auction: Auction;
+  user: User | null;
+  auction: Auction;
 };
 
 export default function BidList({ user, auction }: Props) {
-	const dispatch = useDispatch();
-	const [lastBidId, setLastBidId] = useState("");
-	const bidList = useGetBidsForAuctionQuery(auction?.auctionId);
-	const bidStore = useSelector((state: RootState) => state.bidStore);
-	const bids = bidStore.bids;
-	const open = bidStore.open;
-	const openForBids = new Date(auction?.auctionEnd) > new Date();
+  const dispatch = useDispatch();
+  const [lastBidId, setLastBidId] = useState("");
+  const bidList = useGetBidsForAuctionQuery(auction?.itemId);
+  const bidStore = useSelector((state: RootState) => state.bidStore);
+  const bids = bidStore.bids;
+  const open = bidStore.open;
+  const openForBids = new Date(auction?.auctionEnd) > new Date();
 
-	//вычисляем самую большую ставку. Делать ставку меньше нельзя
-	const bidRestriction = () => {
-		let result = bids?.reduce((prev, current) => {
-			return prev > current?.amount ? prev : current?.amount;
-		}, 0);
-		if (auction.reservePrice && auction.reservePrice > result) {
-			result = auction.reservePrice;
-		}
-		return result;
-	};
+  //вычисляем самую большую ставку. Делать ставку меньше нельзя
+  const bidRestriction = () => {
+    let result = bids?.reduce((prev, current) => {
+      return prev > current?.amount ? prev : current?.amount;
+    }, 0);
+    if (auction.reservePrice && auction.reservePrice > result) {
+      result = auction.reservePrice;
+    }
+    return result;
+  };
 
-	const itemsRef = useRef<null | HTMLDivElement>(null);
+  const itemsRef = useRef<null | HTMLDivElement>(null);
 
-	//при каждом обновлении заявок - вычисление последней заявки для прокрутки
-	//списка заявок вверх (если заявок много)
-	useEffect(() => {
-		if (!bidList.isLoading && !bidList.isFetching && bids && bids.length > 0) {
-			const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
-				return Date.parse(b.bidTime) - Date.parse(a.bidTime);
-			})[0];
-			setLastBidId(maxBidId.itemId);
-		}
-		// eslint-disable-next-line
-	}, [bidList, bids]);
+  //при каждом обновлении заявок - вычисление последней заявки для прокрутки
+  //списка заявок вверх (если заявок много)
+  useEffect(() => {
+    if (!bidList.isLoading && !bidList.isFetching && bids && bids.length > 0) {
+      const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
+        return Date.parse(b.bidTime) - Date.parse(a.bidTime);
+      })[0];
+      setLastBidId(maxBidId.itemId);
+    }
+    // eslint-disable-next-line
+  }, [bidList, bids]);
 
-	//первоначальное заполнение списка заявок
-	useEffect(() => {
-		if (!bidList.isLoading && !bidList.isFetching) {
-			dispatch(setBids(bidList.data?.result));
-		}
-		// eslint-disable-next-line
-	}, [bidList]);
+  //первоначальное заполнение списка заявок
+  useEffect(() => {
+    if (!bidList.isLoading && !bidList.isFetching) {
+      dispatch(setBids(bidList.data?.result));
+    }
+    // eslint-disable-next-line
+  }, [bidList]);
 
-	//закрытие аукциона
-	useEffect(() => {
-		dispatch(setOpen(openForBids));
-		// eslint-disable-next-line
-	}, [openForBids]);
+  //закрытие аукциона
+  useEffect(() => {
+    dispatch(setOpen(openForBids));
+    // eslint-disable-next-line
+  }, [openForBids]);
 
-	//перемотка списка завок - самые послеДние - в самом верху,
-	//и потом перемотка всей странички вверх - чтобы были видны последние изменения
-	useEffect(() => {
-		if (lastBidId && itemsRef && itemsRef.current) {
-			itemsRef.current.scrollIntoView({
-				behavior: "auto",
-				block: "start",
-				inline: "nearest",
-			});
-			setTimeout(() => {
-				window.scrollTo({ top: 0, behavior: "smooth" });
-			}, 1000);
-		}
+  //перемотка списка завок - самые послеДние - в самом верху,
+  //и потом перемотка всей странички вверх - чтобы были видны последние изменения
+  useEffect(() => {
+    if (lastBidId && itemsRef && itemsRef.current) {
+      itemsRef.current.scrollIntoView({
+        behavior: "auto",
+        block: "start",
+        inline: "nearest",
+      });
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 1000);
+    }
 
-		// eslint-disable-next-line
-	}, [lastBidId]);
+    // eslint-disable-next-line
+  }, [lastBidId]);
 
-	if (bidList.isLoading) return <span>Загрузка предложений...</span>;
+  if (bidList.isLoading) return <span>Загрузка предложений...</span>;
 
-	return (
-		<div className="BidPanel">
-			<div>
-				{bids?.length === 0 ? (
-					<Heading
-						title="Нет предложений для этого аукциона"
-						subtitle="Сделайте предложение"
-					/>
-				) : (
-					<Heading
-						title={`Текущее лучшее предложение - ${NumberWithSpaces(
-							bidRestriction()
-						)} руб`}
-					/>
-				)}
-			</div>
-			<div>
-				<div className="BidListHeight">
-					{bids?.map((bid, index) => (
-						<div key={index} ref={itemsRef} className="BidListItem">
-							<Panel className="mt-2 PanelItem">
-								<BidItem bid={bid} />
-							</Panel>
-						</div>
-					))}
-				</div>
-			</div>
-			<div className="DetailNotifyText text-center">
-				{!open ? (
-					<div>Аукцион завершен</div>
-				) : !user?.login ? (
-					<div>Войдите в систему чтобы делать заявки</div>
-				) : user && user.login === auction?.seller ? (
-					<div>Невозможно сделать заявку для собственного аукциона</div>
-				) : (
-					<BidForm
-						auctionId={auction?.auctionId}
-						highBid={bidRestriction()}
-						bidList={bidList}
-					/>
-				)}
-			</div>
-		</div>
-	);
+  return (
+    <div className="BidPanel">
+      <div>
+        {bids?.length === 0 ? (
+          <Heading
+            title="Нет предложений для этого аукциона"
+            subtitle="Сделайте предложение"
+          />
+        ) : (
+          <Heading
+            title={`Текущее лучшее предложение - ${NumberWithSpaces(
+              bidRestriction()
+            )} руб`}
+          />
+        )}
+      </div>
+      <div>
+        <div className="BidListHeight">
+          {bids?.map((bid, index) => (
+            <div
+              key={index}
+              ref={itemsRef}
+              className="BidListItem"
+            >
+              <Panel className="mt-2 PanelItem">
+                <BidItem bid={bid} />
+              </Panel>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="DetailNotifyText text-center">
+        {!open ? (
+          <div>Аукцион завершен</div>
+        ) : !user?.login ? (
+          <div>Войдите в систему чтобы делать заявки</div>
+        ) : user && user.login === auction?.seller ? (
+          <div>Невозможно сделать заявку для собственного аукциона</div>
+        ) : (
+          <BidForm
+            auctionId={auction?.itemId}
+            highBid={bidRestriction()}
+            bidList={bidList}
+          />
+        )}
+      </div>
+    </div>
+  );
 }

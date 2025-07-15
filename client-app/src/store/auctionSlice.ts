@@ -24,8 +24,8 @@ export const auctionSlice = createSlice({
 				state.totalCount = action.payload.totalCount;
 		},
 		setCurrentPrice: (state, action) => {
-			state.auctions = state.auctions.map((auction) =>
-				auction.auctionId === action.payload.auctionid
+			state.auctions = state.auctions.map((auction: Auction) =>
+				auction.itemId === action.payload.auctionid
 					? { ...auction, currentHighBid: action.payload.amount }
 					: auction
 			);

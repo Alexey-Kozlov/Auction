@@ -35,7 +35,6 @@ public class AuctionEditConsumer : IConsumer<DataForProcessingServicesList<Notif
                 switch (item.CRUD)
                 {
                     case CRUD.Create:
-                        typedItem.ItemId = Guid.NewGuid();
                         typedItem.Commited = false;
                         await _dbContext.NotifyItems.AddAsync(typedItem);
                         break;

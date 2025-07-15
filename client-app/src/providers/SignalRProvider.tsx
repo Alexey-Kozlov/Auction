@@ -4,7 +4,7 @@ import {
   HubConnectionState,
   LogLevel,
 } from "@microsoft/signalr";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActionType,
   Auction,
@@ -15,7 +15,7 @@ import {
   Message,
   NotificationEvent,
   PagedResult,
-  ProgressToast,
+  Progress,
   SignalREvents,
   ToastType,
   User,
@@ -27,12 +27,11 @@ import { setEventFlag } from "../store/processingSlice";
 import MessageToast from "../components/signalRNotifications/MessageToast";
 import { setData } from "../store/auctionSlice";
 import { setParams } from "../store/paramSlice";
-import ProgressMessageToast from "../components/signalRNotifications/ProgressMessageToast";
 import { setChatResponse } from "../store/chatSlice";
 import { Toast } from "primereact/toast";
-import { Avatar } from "primereact/avatar";
-import { Button } from "primereact/button";
 import ImageToast from "../components/signalRNotifications/ImageToast";
+import CamelToSnake from "../utils/CamelToSnake";
+import ProgressToast from "../components/signalRNotifications/ProgressToast";
 
 export default function SignalRProvider() {
   const user: User = useSelector((state: RootState) => state.authStore);
@@ -44,9 +43,9 @@ export default function SignalRProvider() {
   ).toast;
   const dispatch = useDispatch();
   const [connection, setConnection] = useState<HubConnection | null>(null);
-
+  const progressToast = useRef<null | Toast>(null);
+  const [progressData, setProgressData] = useState<Progress>();
   const apiUrl = process.env.REACT_APP_NOTIFY_URL;
-
   const tokenData = localStorage.getItem("Auction");
 
   useEffect(() => {
@@ -78,6 +77,7 @@ export default function SignalRProvider() {
   useEffect(() => {
     const con_execute = async () => {
       if (connection) {
+        let progressShow = false;
         if (connection.state === HubConnectionState.Disconnected) {
           try {
             await connection.start();
@@ -112,113 +112,136 @@ export default function SignalRProvider() {
           }
         );
 
-        connection.on("AuctionCreated", (auction: Auction) => {
-          dispatch(
-            setEventFlag({
-              eventName: "CollectionChanged",
-              ready: true,
-              itemId: auction.auctionId,
-            })
-          );
-          dispatch(
-            setEventFlag({
-              eventName: "ImageChanged",
-              ready: true,
-              itemId: auction.auctionId,
-            })
-          );
-          if (user?.login !== auction.seller && auction.show) {
-            // return toast(
-            // 	(p) => (
-            // 		<AuctionToast
-            // 			auctionId={auction.auctionId}
-            // 			toastId={p.id}
-            // 			message={`Создан новый аукцион - "${auction.title}"`}
-            // 		/>
-            // 	),
-            // 	{ duration: 5000 }
-            // );
+        connection.on(
+          SignalREvents[SignalREvents.AuctionCreate],
+          (message: NotificationEvent) => {
+            const auction = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({
+                eventName: "CollectionChanged",
+                ready: true,
+                itemId: auction.ItemId,
+              })
+            );
+            dispatch(
+              setEventFlag({
+                eventName: "ImageChanged",
+                ready: true,
+                itemId: auction.ItemId,
+              })
+            );
+            if (message.show) {
+              toastMessage!.show({
+                severity: "success",
+                life: 4000,
+                className: "bg-white",
+                content: (props) => (
+                  <ImageToast
+                    auctionId={auction.ItemId}
+                    messageType={SignalREvents.AuctionCreate}
+                  />
+                ),
+              });
+            }
           }
-        });
+        );
 
-        connection.on("AuctionUpdated", (auction: Auction) => {
-          dispatch(
-            setEventFlag({
-              eventName: "CollectionChanged",
-              ready: true,
-              itemId: auction.auctionId,
-            })
-          );
-          dispatch(
-            setEventFlag({
-              eventName: "ImageChanged",
-              ready: true,
-              itemId: auction.auctionId,
-            })
-          );
-          if (auction.show) {
-            // return toast(
-            // 	(p) => (
-            // 		<AuctionToast
-            // 			auctionId={auction.auctionId}
-            // 			toastId={p.id}
-            // 			message={`Обновлен аукцион - "${auction.title}"`}
-            // 		/>
-            // 	),
-            // 	{ duration: 5000 }
-            //);
+        connection.on(
+          SignalREvents[SignalREvents.AuctionUpdate],
+          (message: NotificationEvent) => {
+            const auction = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({
+                eventName: "CollectionChanged",
+                ready: true,
+                itemId: auction.ItemId,
+              })
+            );
+            dispatch(
+              setEventFlag({
+                eventName: "ImageChanged",
+                ready: true,
+                itemId: auction.ItemId,
+              })
+            );
+            if (message.show) {
+              toastMessage!.show({
+                severity: "success",
+                life: 4000,
+                className: "bg-white",
+                content: (props) => (
+                  <ImageToast
+                    auctionId={auction.ItemId}
+                    messageType={SignalREvents.AuctionUpdate}
+                  />
+                ),
+              });
+            }
           }
-        });
+        );
 
-        connection.on("AuctionFinished", (finishedAuction: AuctionFinished) => {
-          dispatch(
-            setEventFlag({
-              eventName: "CollectionChanged",
-              ready: true,
-              itemId: finishedAuction.auctionId,
-            })
-          );
-          const message = finishedAuction.winner
-            ? `Поздравления для победителя аукциона "${finishedAuction.winner}",
-                                итоговая стоимость лота - ${finishedAuction.amount} руб.`
-            : `Лот не был продан.`;
-          // return toast(
-          // 	(p) => (
-          // 		<AuctionToast
-          // 			auctionId={finishedAuction.auctionId}
-          // 			toastId={p.id}
-          // 			message={message}
-          // 		/>
-          // 	),
-          // 	{ duration: 10000 }
-          // );
-        });
-
-        connection.on("AuctionDeleted", (auction: any) => {
-          dispatch(
-            setEventFlag({
-              eventName: "AuctionDeleted",
-              ready: true,
-              itemId: auction.auctionId,
-            })
-          );
-          if (auction.show) {
-            // return toast(
-            // 	(p) => (
-            // 		<AuctionToast
-            // 			auctionId={auction.auctionId}
-            // 			toastId={p.id}
-            // 			message={`Аукцион - "${auction.title}" удален`}
-            // 		/>
-            // 	),
-            // 	{ duration: 5000 }
-            // );
+        connection.on(
+          SignalREvents[SignalREvents.AuctionFinished],
+          (message: NotificationEvent) => {
+            const auction = CamelToSnake(
+              JSON.parse(message.data)
+            ) as AuctionFinished;
+            dispatch(
+              setEventFlag({
+                eventName: "CollectionChanged",
+                ready: true,
+                itemId: auction.itemId,
+              })
+            );
+            const mess = auction.winner
+              ? `Поздравления для победителя аукциона "${auction.winner}!" Итоговая стоимость лота - ${auction.soldAmount} руб.`
+              : `Аукцион закончен, лот не был продан.`;
+            toastMessage!.show({
+              severity: "success",
+              life: 6000,
+              className: "bg-white",
+              content: (props) => (
+                <ImageToast
+                  auctionId={auction.itemId}
+                  messageType={SignalREvents.AuctionFinished}
+                  messageText={mess}
+                />
+              ),
+            });
           }
-        });
+        );
+
+        connection.on(
+          SignalREvents[SignalREvents.AuctionDelete],
+          (message: NotificationEvent) => {
+            const auction = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({
+                eventName: "AuctionDeleted",
+                ready: true,
+                itemId: auction.ItemId,
+              })
+            );
+            if (message.show) {
+              toastMessage!.show({
+                severity: "success",
+                life: 4000,
+                className: "bg-white",
+                content: (props) => (
+                  <MessageToast
+                    message={`Аукцион - "${auction.Title}" удален`}
+                    toastType={ToastType.Info}
+                  />
+                ),
+              });
+            }
+          }
+        );
 
         connection.on(
           SignalREvents[SignalREvents.FinanceCreate],
-          (finance: FinanceItem) => {
+          (message: NotificationEvent) => {
+            const data = JSON.parse(message.data);
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.FinanceCreate],
@@ -226,7 +249,7 @@ export default function SignalRProvider() {
               })
             );
             dispatch(setEventFlag({ eventName: "Waiter", ready: true }));
-            if (finance.show) {
+            if (message.show) {
               toastMessage!.show({
                 severity: "success",
                 life: 4000,
@@ -234,7 +257,7 @@ export default function SignalRProvider() {
                 content: (props) => (
                   <MessageToast
                     toastType={ToastType.Info}
-                    message={`Пополнен баланс на  "${finance.value}" руб.`}
+                    message={`Пополнен баланс на  "${data.value}" руб.`}
                   />
                 ),
               });
@@ -246,41 +269,74 @@ export default function SignalRProvider() {
           dispatch(setParams({ sessionId: id }));
         });
 
-        connection.on("ElkSearch", (elk: any) => {
-          const elkData = elk as PagedResult<Auction>;
-          dispatch(setData(elkData));
-          dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-        });
-
-        connection.on("ElkIndex", (result: ProgressToast) => {
-          dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
-          if (result.show) {
-            // return toast(
-            // 	(p) => (
-            // 		<MessageToast
-            // 			message={result.message}
-            // 			toastId={p.id}
-            // 			toastType={ToastType.Info}
-            // 		/>
-            // 	),
-            // 	{ duration: result.duration }
-            // );
+        connection.on(
+          SignalREvents[SignalREvents.ElkSearch],
+          (elk: NotificationEvent) => {
+            let elkData = JSON.parse(elk.data).Result as any;
+            elkData = CamelToSnake(elkData);
+            dispatch(setData(elkData));
+            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
           }
-        });
+        );
 
-        connection.on("SetSnapShot", (result: string) => {
-          dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
-          // return toast(
-          // 	(p) => (
-          // 		<MessageToast
-          // 			message={result}
-          // 			toastId={p.id}
-          // 			toastType={ToastType.Info}
-          // 		/>
-          // 	),
-          // 	{ duration: 5000 }
-          // );
-        });
+        connection.on(
+          SignalREvents[SignalREvents.ElkIndexReset],
+          (result: NotificationEvent) => {
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.ElkIndexReset],
+                ready: true,
+              })
+            );
+            if (result.show) {
+              toastMessage!.show({
+                severity: "info",
+                life: 2000,
+                className: "bg-white",
+                content: (props) => (
+                  <MessageToast
+                    toastType={ToastType.Info}
+                    message={result.data}
+                  />
+                ),
+              });
+            }
+          }
+        );
+
+        connection.on(
+          SignalREvents[SignalREvents.OperationProgress],
+          (result: NotificationEvent) => {
+            const data = JSON.parse(result.data);
+            setProgressData((prev) => {
+              return {
+                ...prev,
+                title: data.title && !prev?.title ? data.title : prev!.title,
+                message: data.message,
+                percent: parseInt(data.percent),
+              };
+            });
+            if (!progressShow) {
+              progressShow = true;
+              progressToast.current!.show({});
+            }
+          }
+        );
+
+        connection.on(
+          SignalREvents[SignalREvents.SetSnapShot],
+          (result: NotificationEvent) => {
+            setProgressData((prev) => {
+              return {
+                ...prev,
+                message: result.data,
+                percent: 100,
+              };
+            });
+            progressShow = false;
+            dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
+          }
+        );
 
         connection.on("RestoreSnapShot", (result: string) => {
           dispatch(setEventFlag({ eventName: "RestoreSnapShot", ready: true }));
@@ -296,153 +352,147 @@ export default function SignalRProvider() {
           // );
         });
 
-        connection.on("ErrorMessage", (message: Message) => {
-          dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-          const getMessageType = (): ToastType => {
-            switch (message.messageType) {
-              case 0:
-                return ToastType.Error;
-              case 1:
-                return ToastType.Warning;
-              case 2:
-                return ToastType.Info;
-              default:
-                return ToastType.Info;
-            }
-          };
-          //убираем иконку ожидания
-          dispatch(
-            setEventFlag({ eventName: "WaiterHideNotify", ready: true })
-          );
-          dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-          dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
-          toastMessage!.show({
-            severity: "error",
-            life: 6000,
-            className: "bg-white",
-            content: (props) => (
-              <MessageToast
-                toastType={ToastType.Error}
-                message={message.message}
-              />
-            ),
-          });
-        });
-
-        connection.on("EditNotification", (message: NotificationEvent) => {
-          const event = JSON.parse(message.data);
-          dispatch(
-            setEventFlag({ eventName: "WaiterHideNotify", ready: true })
-          );
-          dispatch(
-            setEventFlag({ eventName: "EditNotification", ready: true })
-          );
-
-          const text = event.Enable
-            ? "Уведомление для пользователя " + event.UserLogin + " создано!"
-            : "Уведомление для пользователя " + event.UserLogin + " удалено!";
-          if (message.show) {
+        connection.on(
+          SignalREvents[SignalREvents.ErrorMessage],
+          (message: Message) => {
+            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+            //убираем иконку ожидания
+            dispatch(
+              setEventFlag({ eventName: "WaiterHideNotify", ready: true })
+            );
+            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+            dispatch(
+              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+            );
             toastMessage!.show({
-              severity: "info",
-              life: 3000,
+              severity: "error",
+              life: 6000,
               className: "bg-white",
               content: (props) => (
                 <MessageToast
-                  toastType={ToastType.Info}
-                  message={text}
+                  toastType={ToastType.Error}
+                  message={message.message}
                 />
               ),
             });
           }
-        });
+        );
 
-        connection.on("RestoreProgress", (result: ProgressToast) => {
-          if (result.show) {
-            // return toast(
-            // 	(p) => (
-            // 		<ProgressMessageToast
-            // 			message={result}
-            // 			toastId={progressToastId}
-            // 		/>
-            // 	),
-            // 	{ duration: result.duration, id: progressToastId }
-            // );
+        connection.on(
+          SignalREvents[SignalREvents.EditNotification],
+          (message: NotificationEvent) => {
+            const event = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({ eventName: "WaiterHideNotify", ready: true })
+            );
+            dispatch(
+              setEventFlag({ eventName: "EditNotification", ready: true })
+            );
+
+            const text = event.Enable
+              ? "Уведомление для пользователя " + event.UserLogin + " создано!"
+              : "Уведомление для пользователя " + event.UserLogin + " удалено!";
+            if (message.show) {
+              toastMessage!.show({
+                severity: "info",
+                life: 3000,
+                className: "bg-white",
+                content: (props) => (
+                  <MessageToast
+                    toastType={ToastType.Info}
+                    message={text}
+                  />
+                ),
+              });
+            }
           }
-        });
+        );
 
-        connection.on("SetSnapShotProgress", (result: ProgressToast) => {
-          // return toast(
-          // 	(p) => (
-          // 		<ProgressMessageToast
-          // 			message={result}
-          // 			toastId={progressToastId}
-          // 		/>
-          // 	),
-          // 	{ duration: result.duration, id: progressToastId }
-          // );
-        });
+        connection.on(
+          SignalREvents[SignalREvents.ResetImageCache],
+          (result: string) => {
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.ResetImageCache],
+                ready: true,
+              })
+            );
+            toastMessage!.show({
+              severity: "info",
+              life: 2000,
+              className: "bg-white",
+              content: (props) => (
+                <MessageToast
+                  toastType={ToastType.Info}
+                  message={result}
+                />
+              ),
+            });
+          }
+        );
 
-        connection.on("ResetImageCache", (result: string) => {
-          dispatch(setEventFlag({ eventName: "ResetImageCache", ready: true }));
-          // return toast(
-          // 	(p) => (
-          // 		<MessageToast
-          // 			message={result}
-          // 			toastId={p.id}
-          // 			toastType={ToastType.Info}
-          // 		/>
-          // 	),
-          // 	{ duration: 2000 }
-          // );
-        });
+        connection.on(
+          SignalREvents[SignalREvents.CommunicationCreate],
+          (message: NotificationEvent) => {
+            const data = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+            );
+            dispatch(
+              setChatResponse({
+                itemId: data.ItemId,
+                message: data.Message,
+                parentId: data.ParentId,
+                userLogin: data.UserLogin,
+                auctionId: data.AuctionId,
+                updateAt: data.UpdateAt,
+                actionType: ActionType.create,
+              })
+            );
+          }
+        );
 
-        connection.on("CommunicationCreate", (message: NotificationEvent) => {
-          const data = JSON.parse(message.data);
-          dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
-          dispatch(
-            setChatResponse({
-              itemId: data.ItemId,
-              message: data.Message,
-              parentId: data.ParentId,
-              userLogin: data.UserLogin,
-              auctionId: data.AuctionId,
-              updateAt: data.UpdateAt,
-              actionType: ActionType.create,
-            })
-          );
-        });
+        connection.on(
+          SignalREvents[SignalREvents.CommunicationUpdate],
+          (message: NotificationEvent) => {
+            const data = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+            );
+            dispatch(
+              setChatResponse({
+                itemId: data.ItemId,
+                message: data.Message,
+                parentId: data.ParentId,
+                userLogin: data.UserLogin,
+                auctionId: data.AuctionId,
+                updateAt: data.UpdateAt,
+                actionType: ActionType.update,
+              })
+            );
+          }
+        );
 
-        connection.on("CommunicationUpdate", (message: NotificationEvent) => {
-          const data = JSON.parse(message.data);
-          dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
-          dispatch(
-            setChatResponse({
-              itemId: data.ItemId,
-              message: data.Message,
-              parentId: data.ParentId,
-              userLogin: data.UserLogin,
-              auctionId: data.AuctionId,
-              updateAt: data.UpdateAt,
-              actionType: ActionType.update,
-            })
-          );
-        });
-
-        connection.on("CommunicationDelete", (message: NotificationEvent) => {
-          const data = JSON.parse(message.data);
-          dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: true }));
-          dispatch(
-            setChatResponse({
-              itemId: data.ItemId,
-              message: data.Message,
-              parentId: data.ParentId,
-              userLogin: data.UserLogin,
-              auctionId: data.AuctionId,
-              updateAt: data.UpdateAt,
-              actionType: ActionType.delete,
-            })
-          );
-        });
+        connection.on(
+          SignalREvents[SignalREvents.CommunicationDelete],
+          (message: NotificationEvent) => {
+            const data = JSON.parse(message.data);
+            dispatch(
+              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+            );
+            dispatch(
+              setChatResponse({
+                itemId: data.ItemId,
+                message: data.Message,
+                parentId: data.ParentId,
+                userLogin: data.UserLogin,
+                auctionId: data.AuctionId,
+                updateAt: data.UpdateAt,
+                actionType: ActionType.delete,
+              })
+            );
+          }
+        );
       }
     };
     con_execute();
@@ -461,5 +511,12 @@ export default function SignalRProvider() {
     // eslint-disable-next-line
   }, [messageChat]);
 
-  return <></>;
+  return (
+    <>
+      <ProgressToast
+        toast={progressToast}
+        data={progressData!}
+      />
+    </>
+  );
 }

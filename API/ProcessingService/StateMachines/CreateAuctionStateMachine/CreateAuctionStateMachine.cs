@@ -76,7 +76,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             When(RequestEvent)
             .Then(context =>
             {
-                context.Saga.AuctionId = context.Message.AuctionId;
+                context.Saga.ItemId = context.Message.ItemId;
                 context.Saga.Title = context.Message.Title;
                 context.Saga.Description = context.Message.Description;
                 context.Saga.Properties = context.Message.Properties;
@@ -138,7 +138,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                             {
                                 CRUD = CRUD.Create,
                                 Data = "CRUD",
-                                MessagePartId = context.Saga.AuctionId
+                                MessagePartId = context.Saga.ItemId
                             }
                         },
                         CorrelationId = context.Saga.CorrelationId,
@@ -338,14 +338,15 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
-                    new Uri(configuration["QueuePaths:AuctionEventConsumer"]),
-                    context => new DataForProcessingServicesList<NotifyItem>
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
-                            .DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
-                        CorrelationId = context.Saga.CorrelationId,
-                        CallBackType = "",
-                        Props = $"{!context.Saga.IsError}"
+                        SignalRMethod = SignalRMethod.AuctionCreate,
+                        AuctionId = context.Saga.ItemId,
+                        Show = !context.Saga.IsError,
+                        SessionId = "auctionGroup",
+                        Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
+                        .DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            
@@ -360,7 +361,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                AuctionId = context.Saga.AuctionId,
+                AuctionId = context.Saga.ItemId,
                 IsError = context.Saga.IsError
             })
         .Finalize()
