@@ -302,6 +302,7 @@ export default function AuctionForm() {
             <DateInput
               value={newAuction.auctionEnd}
               onChange={(e) => handleEndDateChanged(e!)}
+              showOnFocus={true}
             />
             <Message
               className="mt-2"

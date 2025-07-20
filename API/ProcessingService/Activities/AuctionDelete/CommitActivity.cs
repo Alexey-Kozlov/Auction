@@ -1,5 +1,6 @@
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
@@ -96,6 +97,16 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             ElkIndex = "search_index"
         });
         await _publishEndpoint.Publish(new NotificationCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
+            CorrelationId = context.Saga.CorrelationId,
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
+        });
+        await _publishEndpoint.Publish(new CommunicationCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",

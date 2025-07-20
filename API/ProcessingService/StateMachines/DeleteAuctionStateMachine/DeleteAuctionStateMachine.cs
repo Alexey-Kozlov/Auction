@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
@@ -17,6 +18,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public State GatewayState { get; }
     public State ImageState { get; }
     public State SearchState { get; }
+    public State CommunicationState { get; }
     public State ElkState { get; }
     public State NotificationState { get; }
     public State PreCommitState { get; }
@@ -32,6 +34,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<AuctionDeletedSearch> SearchEvent { get; }
     public Event<AuctionDeletedElk> ElkEvent { get; }
     public Event<AuctionDeletedNotification> NotificationEvent { get; }
+    public Event<AuctionDeletedCommunication> CommunicationEvent { get; }
     public Event<AuctionDeletedNotificationEvent> NotificationUIEvent { get; }
     public Event<AuctionDeleteESCommit> CommitEvent { get; }
     public Event<BaseServiceError> FaultEvent { get; }
@@ -42,6 +45,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     public Event<Fault<AuctionDeletedSearch>> FaultSearchEvent { get; }
     public Event<Fault<AuctionDeletedElk>> FaultElkEvent { get; }
     public Event<Fault<AuctionDeletedNotification>> FaultNotificationEvent { get; }
+    public Event<Fault<AuctionDeletedCommunication>> FaultCommunicationEvent { get; }
     public Event<Fault<AuctionDeletedNotificationEvent>> FaultNotificationUIEvent { get; }
     public Event<Fault<AuctionDeleteESCommit>> FaultCommitEvent { get; }
     private IConfiguration configuration { get; }
@@ -58,6 +62,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         ConfigureGatewayState();
         ConfigureImageState();
         ConfigureSearchState();
+        ConfigureCommunicationState();
         ConfigureELKState();
         ConfigureNotificationState();
         ConfigurePreCommitState();
@@ -77,6 +82,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         Event(() => SearchEvent);
         Event(() => ElkEvent);
         Event(() => NotificationEvent);
+        Event(() => CommunicationEvent);
         Event(() => NotificationUIEvent);
         Event(() => CommitEvent);
         Event(() => FaultEvent);
@@ -87,6 +93,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
         Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultElkEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommunicationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
@@ -100,7 +107,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
-                context.Saga.CommitCounter = 7;
+                context.Saga.CommitCounter = 8;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для удаления аукциона:
             // - Удаление записей по деньгам в сервисе FinanceService
@@ -253,11 +260,39 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Auction.AuctionDeletedCommunication"
+                })
+            .TransitionTo(CommunicationState),
+        //обрабатываем ошибки из сервиса ImageService            
+        When(FaultSearchEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+        .TransitionTo(PreCommitState)
+        );
+    }
+
+    private void ConfigureCommunicationState()
+    {
+        During(CommunicationState,
+        When(CommunicationEvent)
+            //Удаление записей (если есть) в сервисе CommunicationService
+            .Send(
+                new Uri(configuration["QueuePaths:CommunicationsConsumer"]),
+                context => new DataForProcessingServicesList<CommunicationItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "CommunicationItem").ToList(),
+                    CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeletedElk"
                 })
             .TransitionTo(ElkState),
-        //обрабатываем ошибки из сервиса ImageService            
-        When(FaultSearchEvent)
+        When(FaultCommunicationEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -275,7 +310,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(ElkState,
         When(ElkEvent)
-            //Удаление аукциона из поиска в сервисе ElasticSearchService
+            //Удаление аукциона и сообщений из поиска в сервисе ElasticSearchService,
             .Send(
                 new Uri(configuration["QueuePaths:ElkConsumer"]),
                 context => new DataForProcessingServicesList<AuctionItem>
@@ -312,12 +347,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Auction.AuctionDeleteESCommit",
-                    Props = JsonSerializer.Serialize(new AuctionNotificationData
-                    {
-                        AuctionData = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data,
-                        CorrelationId = context.Saga.CorrelationId,
-                        CRUD = CRUD.Delete
-                    })
+                    Props = ""
                 })
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса ElkService            
@@ -390,7 +420,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
     {
         During(CompleteState,
         When(NotificationUIEvent)
-            //ждем сообщений об обработке всех 5 коллекций с записями
+            //ждем сообщений об обработке всех 8 коллекций с записями
             .Then(context =>
             {
                 lock (locker)

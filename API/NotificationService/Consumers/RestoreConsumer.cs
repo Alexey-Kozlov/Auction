@@ -31,7 +31,7 @@ public class RestoreConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
                 var typedItem = JsonSerializer.Deserialize<NotifyItem>(item.Data);
                 typedItem.Commited = false;
                 typedItem.CorrelationId = correlationId;
-                typedItem.ItemId = Guid.NewGuid();
+                typedItem.ItemId = typedItem.ItemId;
                 await _dbContext.NotifyItems.AddAsync(typedItem);
             }
             if (context.Message.DataObjects.Any())
@@ -56,7 +56,7 @@ public class RestoreConsumer : IConsumer<DataForProcessingServicesList<NotifyIte
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "NotificationService_Restore");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

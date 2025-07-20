@@ -36,7 +36,6 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
                     switch (item.CRUD)
                     {
                         case CRUD.Create:
-                            typedItem.ItemId = Guid.NewGuid();
                             typedItem.Commited = false;
                             await _dbContext.Bids.AddAsync(typedItem);
                             break;
@@ -72,7 +71,7 @@ public class BidConsumer : IConsumer<DataForProcessingServicesList<BidItem>>
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "BidService");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

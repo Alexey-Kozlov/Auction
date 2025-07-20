@@ -38,11 +38,11 @@ public class CheckAuctionFinished : IHostedService, IDisposable
             foreach (var auction in GetAuctionsToFinish())
             {
                 var cancelTokenSource = new CancellationTokenSource();
-                tokens[auction.AuctionId] = cancelTokenSource;
+                tokens[auction.ItemId.Value] = cancelTokenSource;
                 Task.Run(async () =>
                 {
-                    await DelayFinishAuction(tokens[auction.AuctionId].Token, auction);
-                }, tokens[auction.AuctionId].Token);
+                    await DelayFinishAuction(tokens[auction.ItemId.Value].Token, auction);
+                }, tokens[auction.ItemId.Value].Token);
             }
         }
         catch (Exception ex)
@@ -84,7 +84,7 @@ public class CheckAuctionFinished : IHostedService, IDisposable
             var correlationId = Guid.NewGuid();
             try
             {
-                var finishedItem = await _dbContext.set_auction_finished(correlationId, auctionData.AuctionId).FirstOrDefaultAsync();
+                var finishedItem = await _dbContext.set_auction_finished(correlationId, auctionData.ItemId.Value).FirstOrDefaultAsync();
                 //возвращаем список записей для изменения соответствующих БД в нужных сервисах
                 var listItems = new DataForProcessingServicesList
                 {
@@ -121,7 +121,7 @@ public class CheckAuctionFinished : IHostedService, IDisposable
                 messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");
-                messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, auctionData.AuctionId);
+                messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, auctionData.ItemId.Value);
                 messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
                 var faultType = typeof(FaultMessage<>);
@@ -156,26 +156,26 @@ public class CheckAuctionFinished : IHostedService, IDisposable
         return finishedList;
     }
 
-    public Task UpdateFinishTasks(Guid auctionId, DateTime auctionEnd, CRUD operationType)
+    public Task UpdateFinishTasks(Guid itemId, DateTime auctionEnd, CRUD operationType)
     {
         //отменяем ранее созданную задачу для указанного аукциона
-        if (tokens.ContainsKey(auctionId))
+        if (tokens.ContainsKey(itemId))
         {
-            tokens[auctionId].Cancel();
+            tokens[itemId].Cancel();
         }
 
         if (operationType == CRUD.Delete) return Task.CompletedTask;
         //создаем новую задачу (в случае создания или обновления аукциона)
-        tokens[auctionId] = new CancellationTokenSource();
+        tokens[itemId] = new CancellationTokenSource();
         var auction = new AuctionFinishedData
         {
-            AuctionId = auctionId,
+            ItemId = itemId,
             AuctionEnd = auctionEnd
         };
         Task.Run(async () =>
         {
-            await DelayFinishAuction(tokens[auctionId].Token, auction);
-        }, tokens[auctionId].Token);
+            await DelayFinishAuction(tokens[itemId].Token, auction);
+        }, tokens[itemId].Token);
 
         return Task.CompletedTask;
     }

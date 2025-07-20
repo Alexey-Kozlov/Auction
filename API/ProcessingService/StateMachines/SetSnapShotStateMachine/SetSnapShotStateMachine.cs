@@ -105,7 +105,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         Data = JsonSerializer.Serialize(new
                         {
                             title = "Создание снимка БД:",
-                            message = "Начало восстановления...",
+                            message = "Начало создания...",
                             percent = context.Saga.ProgressCurrent = 5
                         })
                     })
@@ -170,20 +170,20 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         context.Saga.ProgressCurrent += float.Parse("0.1");
                     }
                 })
-            //прогресс выполнения операции
-            .Send(
-                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
-                    context => new EventNotificationItem
-                    {
-                        SignalRMethod = SignalRMethod.OperationProgress,
-                        Show = true,
-                        SessionId = context.Saga.SessionId,
-                        Data = JsonSerializer.Serialize(new
+                //прогресс выполнения операции
+                .Send(
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                        context => new EventNotificationItem
                         {
-                            message = "Восстановление изображений...",
-                            percent = context.Saga.ProgressCurrent
+                            SignalRMethod = SignalRMethod.OperationProgress,
+                            Show = true,
+                            SessionId = context.Saga.SessionId,
+                            Data = JsonSerializer.Serialize(new
+                            {
+                                message = "Восстановление изображений...",
+                                percent = context.Saga.ProgressCurrent
+                            })
                         })
-                    })
             )
 
             // переходим на обработку ставок - в следующее состояние BidState - в случаях:

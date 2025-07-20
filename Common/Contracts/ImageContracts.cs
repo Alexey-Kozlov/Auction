@@ -8,6 +8,7 @@ public class ImageItem
     public byte[] Image { get; set; }
     public Guid CorrelationId { get; set; }
     public bool Commited { get; set; }
+    public string UserLogin { get; set; }
 }
 public class ImageDTO
 {
@@ -15,6 +16,7 @@ public class ImageDTO
     public string Image { get; set; }
     public Guid CorrelationId { get; set; }
     public bool Commited { get; set; }
+    public string UserLogin { get; set; }
 }
 
 public class ResetImageCache
@@ -35,6 +37,7 @@ public class ImageCommit
     public string ErrorExceptionMessage { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ImageReset : IFaultMessage
@@ -55,5 +58,6 @@ public class ImageReturnTypeSql
     public Guid? itemid { get; set; }
     public byte[]? image { get; set; }
     public int? recordscount { get; set; }
+    public string? userlogin { get; set; }
 #nullable disable
 }

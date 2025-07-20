@@ -64,6 +64,7 @@ public class BidRestoreSnapShot : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 public class FinanceRestoreSnapShot : IFaultMessage
@@ -75,6 +76,7 @@ public class FinanceRestoreSnapShot : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 public class NotifyRestoreSnapShot : IFaultMessage
@@ -85,7 +87,20 @@ public class NotifyRestoreSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
+    public Guid? ItemId { get; set; }
+    public bool IsError { get; set; }
+}
+
+public class CommunicationRestoreSnapShot : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -97,7 +112,7 @@ public class NotifyUIRestoreSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -109,7 +124,7 @@ public class SearchRestoreSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -121,7 +136,7 @@ public class RestoreSnapShotESCommit : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -143,6 +158,7 @@ public class BidSetSnapShot : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -157,6 +173,7 @@ public class FinanceSetSnapShot : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -170,7 +187,7 @@ public class NotifySetSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -184,7 +201,7 @@ public class NotifyUISetSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -198,7 +215,7 @@ public class SearchSetSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -212,7 +229,7 @@ public class ImageSetSnapShot : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
@@ -227,6 +244,7 @@ public class CommunicationSetSnapShot : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 public class SetSnapShotESCommit : IFaultMessage
@@ -239,13 +257,13 @@ public class SetSnapShotESCommit : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
 
 public class AuctionFinishedData
 {
-    public Guid AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
     public DateTime AuctionEnd { get; set; }
 }
 
@@ -261,7 +279,7 @@ public class SendStartFinishService : IFaultMessage
 
     public string UserLogin { get; set; }
 
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
 
     public bool IsError { get; set; }
 }
@@ -278,7 +296,7 @@ public class SendStopFinishService : IFaultMessage
 
     public string UserLogin { get; set; }
 
-    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
 
     public bool IsError { get; set; }
 }

@@ -31,17 +31,7 @@ public class AuctionDeleteProcessing
     {
         try
         {
-            //В процедуре Postgres делаем:
-            //- запись в ES лог об удалении аукциона
-            //- запись в ES лог об удалении последнего платежа (если были ставки)
-            //- записи в ES лог об удалении всех ставок (если были)
-            //- записи в ES лог об удалении всех уведомлений (если были)
-            //Формирование списка корректирующих записей:
-            //- запись удаленного аукциона - для удаления из сервиса SearchService
-            //- если были - запись удаленного платежа - для удаления из сервиса FinanceService у соответствующего пользователя
-            //- если были - запись обновления денежного баланса - для обновления баланса в сервисе FinanceService у соответствующего пользователя
-            //- если были - записи удаленных ставок - для удаления из сервиса BiddingService
-            //- если были - записи удаленных уведомлений - для удаления из сервиса NotificationService
+            //В процедуре Postgres делаем запись в ES лог об удалении и делаем список корректирующих записей
             var auctionId = context.Message.AuctionId.Value;
             var result = await _dbContext.auction_delete(
                 context.Message.CorrelationId,
@@ -82,7 +72,7 @@ public class AuctionDeleteProcessing
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_AuctionDelete");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
-            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
+            messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, context.Message.AuctionId);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
             var faultType = typeof(FaultMessage<>);

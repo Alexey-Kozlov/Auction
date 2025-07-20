@@ -33,7 +33,7 @@ public class CommunicationConfiguration : IEntityTypeConfiguration<Communication
         builder.Property(p => p.UpdateAt).HasColumnType("timestamp with time zone").HasColumnName("UpdateAt").IsRequired(true);
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CorrelationId).HasColumnType("uuid").HasColumnName("CorrelationId").IsRequired(true);
-        builder.HasIndex(p => p.ItemId).IsUnique(true).HasDatabaseName("PX_CommunicationItems");
+        builder.HasIndex(p => new { p.ItemId, p.Commited }).IsUnique(true).HasDatabaseName("PX_CommunicationItems");
         builder.HasIndex(p => p.AuctionId).HasDatabaseName("IX_Bids_AuctionId");
         builder.HasIndex(p => p.CorrelationId).HasDatabaseName("IX_Bids_CorrelationId");
     }

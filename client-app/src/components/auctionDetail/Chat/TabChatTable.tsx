@@ -24,6 +24,7 @@ import { ContextMenu } from "primereact/contextmenu";
 import { MenuItem } from "primereact/menuitem";
 import ModalEditText from "../../modals/ModalEditText";
 import ModalYesNo from "../../modals/ModalYesNo";
+import { Button } from "primereact/button";
 
 type Props = {
   auction: Auction;
@@ -233,7 +234,7 @@ export default function TabChatTable({ auction, user }: Props) {
             variant="filled"
             disabled={!user.login}
             autoResize
-            placeholder="Новое сообщение (для перевода строки нажмите Shift-Enter)"
+            placeholder="Новое сообщение (для отправления - нажмите Enter, для перевода строки нажмите Shift-Enter)"
             value={newMessage.message}
             onKeyDown={(e) => {
               if (e.key === "Enter" && e.shiftKey) return;
@@ -245,6 +246,13 @@ export default function TabChatTable({ auction, user }: Props) {
             onChange={(e) => handleMessageChanged(e.currentTarget.value)}
             rows={5}
             className="w-full text-4xl"
+          />
+          <Button
+            text
+            icon="pi pi-send"
+            size="large"
+            className="MessageInputButton"
+            onClick={handleMessageSubmit}
           />
         </div>
         {procState.find((p) => p.eventName === "WaiterHideChat") &&

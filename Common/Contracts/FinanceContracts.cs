@@ -24,6 +24,7 @@ public class FinanceCreated : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
+     public Guid ItemId { get; set; }
 };
 
 public class FinanceCreateComplete : IFaultMessage
@@ -37,6 +38,7 @@ public class FinanceCreateComplete : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
+     public Guid ItemId { get; set; }
 };
 
 public class FinanceNotificationCreated : IFaultMessage
@@ -50,6 +52,7 @@ public class FinanceNotificationCreated : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
+     public Guid ItemId { get; set; }
 };
 
 public class FinanceCreateESCommit : IFaultMessage
@@ -63,6 +66,7 @@ public class FinanceCreateESCommit : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
+     public Guid ItemId { get; set; }
 };
 
 public class FinanceCommit
@@ -74,11 +78,12 @@ public class FinanceCommit
      public string ErrorExceptionMessage { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
+     public Guid ItemId { get; set; }
 }
 
 public class FinanceItem
 {
-     public Guid? ItemId { get; set; }
+     public Guid ItemId { get; set; }
      public Guid? AuctionId { get; set; }
      public string UserLogin { get; set; }
      public int Value { get; set; }
@@ -90,7 +95,7 @@ public class FinanceItem
 
 public class FinanceHistoryItem
 {
-     public Guid? ItemId { get; set; }
+     public Guid ItemId { get; set; }
      public Guid? AuctionId { get; set; }
      public string UserLogin { get; set; }
      public int Value { get; set; }
@@ -126,4 +131,5 @@ public class FinanceReset : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
+     public Guid ItemId { get; set; }
 };

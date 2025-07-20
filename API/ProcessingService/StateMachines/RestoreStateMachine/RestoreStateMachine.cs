@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
@@ -21,6 +22,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public State FinanceState { get; }
     public State SearchState { get; }
     public State NotifyState { get; }
+    public State CommunicationState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State StartFinishServiceState { get; }
@@ -37,6 +39,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<FinanceRestoreSnapShot> FinanceEvent { get; }
     public Event<SearchRestoreSnapShot> SearchEvent { get; }
     public Event<NotifyRestoreSnapShot> NotifyEvent { get; }
+    public Event<CommunicationRestoreSnapShot> CommunicationEvent { get; }
     public Event<RestoreSnapShotESCommit> CommitEvent { get; }
     public Event<NotifyUIRestoreSnapShot> NotifyUIEvent { get; }
     public Event<ReIndex> ReIndexEvent { get; }
@@ -50,6 +53,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<Fault<FinanceRestoreSnapShot>> FaultFinanceEvent { get; }
     public Event<Fault<SearchRestoreSnapShot>> FaultSearchEvent { get; }
     public Event<Fault<NotifyRestoreSnapShot>> FaultNotifyEvent { get; }
+    public Event<Fault<CommunicationRestoreSnapShot>> FaultCommunicationEvent { get; }
     public Event<Fault<RestoreSnapShotESCommit>> FaultCommitEvent { get; }
     public Event<Fault<NotifyUIRestoreSnapShot>> FaultNotifyUIEvent { get; }
     public Event<Fault<ReIndex>> FaultReIndexEvent { get; }
@@ -71,6 +75,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         ConfigureSearchState();
         ConfigureGetImagesState();
         ConfigureNotifyState();
+        ConfigureCommunicationState();
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureStartFinishServiceState();
@@ -89,6 +94,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         Event(() => FinanceEvent);
         Event(() => SearchEvent);
         Event(() => NotifyEvent);
+        Event(() => CommunicationEvent);
         Event(() => StartFinishServiceEvent);
         Event(() => ReIndexEvent);
         Event(() => CommitEvent);
@@ -102,6 +108,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultCommunicationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultReIndexEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultStartFinishServiceEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
@@ -121,21 +128,23 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.AllItemsCount = -1;
                 context.Saga.ItemsCount = 0;
                 context.Saga.IsError = false;
-                context.Saga.CommitCounter = 5; //количество коллекций для сброса данных
+                context.Saga.CommitCounter = 6; //количество коллекций для сброса данных
             })
+            //прогресс выполнения операции
             .Send(
-                //сообщение для отслеживания прогресса
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                context => new NotificationProgress
-                {
-
-                    CorrelationId = context.Saga.CorrelationId,
-                    SessionId = context.Saga.SessionId,
-                    Percent = 1,
-                    Show = true,
-                    Duration = 2000,
-                    Message = "Останавливаем сервис завершения аукционов..."
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            title = "Восстановление снимка БД:",
+                            message = "Останавливаем сервис завершения аукционов...",
+                            percent = context.Saga.ProgressCurrent = 1
+                        })
+                    })
             // посылаем сообщение на остановку сервиса проверки завершения аукционов - CheckAuctionFinished
             // причина - для недопущения некорректных ситуаций - когда начинается обработка завершенных аукционов
             // до окончания процесса восстановления
@@ -155,21 +164,22 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(StopFinishServiceState,
         When(StopFinishServiceEvent)
+            //прогресс выполнения операции
             .Send(
-                //сообщение для отслеживания прогресса
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                context => new NotificationProgress
-                {
-
-                    CorrelationId = context.Saga.CorrelationId,
-                    SessionId = context.Saga.SessionId,
-                    Percent = 5,
-                    Show = true,
-                    Duration = 2000,
-                    Message = "Очищаем данные в базах данных чтения..."
-                })
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Очищаем данные в 6 базах данных чтения...",
+                            percent = context.Saga.ProgressCurrent = 5
+                        })
+                    })
             // посылаем через Ребит - подготовка для удаления всех записей в 
-            // BiddingService,FinanceService,NotificationService,SearchService,ImageService
+            // BiddingService,FinanceService,NotificationService,SearchService,ImageService,CommunicationService
             .Activity(p => p.OfType<ItemsResetActivity>())
             .TransitionTo(ResetItemsState),
         When(FaultStopFinishServiceEvent)
@@ -200,24 +210,27 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .If(context => context.Saga.CommitCounter == 0,
             p => p
             //получили все успешные сообщения об удалении всех записей из соответствующих сервисов -
+            //прогресс выполнения операции
                 .Send(
-                //сообщение для отслеживания прогресса
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                context => new NotificationProgress
-                {
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Получаем список аукционов...",
+                            percent = context.Saga.ProgressCurrent = 8
+                        })
+                    })
 
-                    CorrelationId = context.Saga.CorrelationId,
-                    SessionId = context.Saga.SessionId,
-                    Percent = context.Saga.ProgressCurrent = 8,
-                    Show = true,
-                    Duration = 2000,
-                    Message = "Получаем список аукционов..."
-                })
-            // посылаем через Кафку - получение из ES лог всех записей (кроме изображений) 
-            // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,SearchService
-            // для восстановления изображений для сервиса ImageServices - ниже
-            .Activity(p => p.OfType<ESLogActivityGetRecords>())
-            .TransitionTo(GetImagesState)),
+                // посылаем через Кафку - получение из ES лог всех записей (кроме изображений) 
+                // по восстановлению БД для сервисов BiddingService,FinanceService,NotificationService,
+                // SearchService,CommunicationService
+                // для восстановления изображений для сервиса ImageServices - ниже
+                .Activity(p => p.OfType<ESLogActivityGetRecords>())
+                .TransitionTo(GetImagesState)),
         When(FaultResetItemsEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
@@ -228,7 +241,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-        .TransitionTo(PreCommitState));
+            .TransitionTo(PreCommitState)
+        );
     }
 
     private void ConfigureGetImagesState()
@@ -241,26 +255,20 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .If(context => context.Message.BatchCount == -1 &&
                 context.Message.DataItems.DataObjects.Count() == 0,
                 p => p
+                //прогресс выполнения операции
                 .Send(
-                    new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                        context => new NotificationProgress
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
                         {
-                            CorrelationId = context.Saga.CorrelationId,
-                            SessionId = context.Saga.SessionId,
-                            Percent = 100,
-                            Show = true,
-                            Duration = 2000,
-                            Message = "Аукционов для восстановления не найдено"
+                            message = "Записей для восстановления не найдено",
+                            percent = context.Saga.ProgressCurrent = 100
                         })
-                .Send(
-                    new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
-                context => new ESContract
-                {
-                    CallBackType = "",
-                    EventData = "Записей не найдено",
-                    UserLogin = context.Saga.SessionId
-                })
-                .Finalize()
+                    }).Finalize()
             )
 
             // вызываем активити ESLogActivityGetImages - после получения всех записей аукционов,
@@ -321,16 +329,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     context.Saga.ProgressCurrent = 10 + context.Saga.ItemsCount * 65 / context.Saga.AllItemsCount;
                 }
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = context.Saga.ProgressCurrent,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        Duration = 5000,
-                        Message = "Восстановление изображений..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление изображений...",
+                            percent = context.Saga.ProgressCurrent
+                        })
                     })
             //конец обработки изображений - переходим на следующий этап
             .If(context => context.Saga.AllItemsCount == context.Saga.ItemsCount,
@@ -373,17 +384,21 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .Then(context =>
             {
                 context.Saga.NotifyMessage += $", Ставок - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "BidItem").Count()}";
+                context.Saga.NotifyMessage += $", Изображений - {context.Saga.ItemsCount}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = context.Saga.ProgressCurrent = 90,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        Duration = 2000,
-                        Message = "Восстановление ставок аукционов..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление ставок аукционов...",
+                            percent = context.Saga.ProgressCurrent = 90
+                        })
                     })
             //Обновление ставок (если есть) в сервисе BiddingService
             .Send(
@@ -417,16 +432,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             {
                 context.Saga.NotifyMessage += $", Финансов - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "FinanceItem").Count()}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = 91,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        Duration = 2000,
-                        Message = "Восстановление записей финансов..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление записей финансов...",
+                            percent = context.Saga.ProgressCurrent = 91
+                        })
                     })
             //Обновление денег (если есть) в сервисе FinanceService
             .Send(
@@ -460,16 +478,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             {
                 context.Saga.NotifyMessage += $", Аукционов - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "AuctionItem").Count()}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = 92,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        Duration = 2000,
-                        Message = "Восстановление самих аукционов..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление записей аукционов...",
+                            percent = context.Saga.ProgressCurrent = 92
+                        })
                     })
             //Обновление записей аукционов (если есть) в сервисе SearchService
             .Send(
@@ -504,16 +525,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             {
                 context.Saga.NotifyMessage += $", Уведомлений - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").Count()}";
             })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = 93,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        Duration = 2000,
-                        Message = "Восстановление записей уведомлений..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление записей уведомлений...",
+                            percent = context.Saga.ProgressCurrent = 93
+                        })
                     })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
             .Send(
@@ -521,6 +545,53 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context => new DataForProcessingServicesList<NotifyItem>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").ToList(),
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.EventSourcing.CommunicationRestoreSnapShot",
+                    Props = context.Saga.NotifyMessage
+                })
+            .TransitionTo(CommunicationState),
+        When(FaultNotifyEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    private void ConfigureCommunicationState()
+    {
+        During(CommunicationState,
+        When(CommunicationEvent)
+            .Then(context =>
+            {
+                context.Saga.NotifyMessage += $", Сообщений пользователей - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "CommunicationItem").Count()}";
+            })
+            //прогресс выполнения операции
+            .Send(
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление записей сообщений пользователей...",
+                            percent = context.Saga.ProgressCurrent = 94
+                        })
+                    })
+            //Обновление записей уведомлений (если есть) в сервисе CommunicationService
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreCommunicationConsumer"]),
+                context => new DataForProcessingServicesList<CommunicationItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "CommunicationItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Processing.ReIndex",
                     Props = context.Saga.NotifyMessage
@@ -544,20 +615,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(ReIndexState,
         When(ReIndexEvent)
-            .Then(context =>
-            {
-                context.Saga.NotifyMessage += $", Уведомлений - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "NotifyItem").Count()}";
-            })
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = 93,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        Duration = 3000,
-                        Message = "Переиндексация..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Переиндексация...",
+                            percent = context.Saga.ProgressCurrent = 95
+                        })
                     })
             // Переиндексация
             .Publish(context => new RequestElkIndex
@@ -631,17 +701,20 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context => context.Saga.CommitCounter = 5)
+            .Then(context => context.Saga.CommitCounter = 6)
+            //прогресс выполнения операции
             .Send(
-                new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
-                        SessionId = context.Saga.SessionId,
-                        Percent = 96,
+                        SignalRMethod = SignalRMethod.OperationProgress,
                         Show = !context.Saga.IsError,
-                        Duration = 10000,
-                        Message = "Фиксация транзакции восстановления..."
+                        SessionId = context.Saga.SessionId,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Фиксация транзакции восстановления...",
+                            percent = context.Saga.ProgressCurrent = 96
+                        })
                     })
             // посылаем через Кафку в EventSourcingService - для подтверждения транзакции
             // фиксируем изменения во всех базах данных чтения
@@ -681,17 +754,19 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     }).Finalize(),
                 p => p
                 //все прошло корректно, ошибок нет
-                    .Send(
-                    //сообщение для отслеживания прогресса
-                    new Uri(configuration["QueuePaths:RestoreProgressNotificationConsumer"]),
-                    context => new NotificationProgress
+                //прогресс выполнения операции
+                .Send(
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
                     {
-                        CorrelationId = context.Saga.CorrelationId,
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = !context.Saga.IsError,
                         SessionId = context.Saga.SessionId,
-                        Percent = 99,
-                        Show = true,
-                        Duration = 2000,
-                        Message = "Запускаем сервис проверки завершеия аукционов..."
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Запускаем сервис проверки завершеия аукционов...",
+                            percent = context.Saga.ProgressCurrent = 97
+                        })
                     })
                     // запускаем сервис завершения аукционов 
                     .Send(
@@ -739,15 +814,16 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     IsError = context.Saga.IsError
                 }).Finalize(),
             p => p
-            //посылаем финальное сообщение для вывода сообщеничя об итогах восстановления
-            .Send(
-                new Uri(configuration["QueuePaths:RestoreEventNotificationConsumer"]),
-                context => new ESContract
-                {
-                    CallBackType = "",
-                    EventData = context.Saga.NotifyMessage,
-                    UserLogin = context.Saga.SessionId
-                }).Finalize()
+            //посылаем финальное сообщение для вывода сообщения об итогах восстановления
+                .Send(
+                    new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.RestoreSnapShot,
+                        Show = !context.Saga.IsError,
+                        SessionId = context.Saga.SessionId,
+                        Data = context.Saga.NotifyMessage
+                    }).Finalize()
             ),
         When(FaultNotifyUIEvent)
         .Send(

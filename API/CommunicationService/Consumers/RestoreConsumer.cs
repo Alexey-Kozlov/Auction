@@ -1,60 +1,50 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using Common.Contracts.EventSourcing;
-using Common.Contracts.Finance;
+using Common.Contracts.Communication;
 using Common.Contracts.Processing;
 using Common.Utils.Logging;
-using FinanceService.Data;
+using CommunicationService.Data;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
-namespace FinanceService.Consumers;
+namespace CommunicationService.Consumers;
 
-public class SetSnapShotConsumer : IConsumer<ESContract>
+public class RestoreConsumer : IConsumer<DataForProcessingServicesList<CommunicationItem>>
 {
-    private readonly FinanceDbContext _context;
+    private readonly CommunicationDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public SetSnapShotConsumer(FinanceDbContext context, IPublishEndpoint publishEndpoint,
+    public RestoreConsumer(CommunicationDbContext dbContext, IPublishEndpoint publishEndpoint,
         IConfiguration configuration)
     {
-        _context = context;
+        _dbContext = dbContext;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
     }
-    public async Task Consume(ConsumeContext<ESContract> context)
+    public async Task Consume(ConsumeContext<DataForProcessingServicesList<CommunicationItem>> context)
     {
         try
         {
-            var listItems = new DataForProcessingServicesList
+            var correlationId = context.Message.CorrelationId;
+            foreach (var item in context.Message.DataObjects)
             {
-                DataObjects = new List<DataForProcessingService>()
-            };
-
-            //получаем записи по таблице Finance
-            foreach (var item in await _context.FinanceItems.ToListAsync())
-            {
-                if (item.Status == FinanceRecordStatus.Баланс) continue;
-                listItems.DataObjects.Add
-                (
-                    new DataForProcessingService
-                    {
-                        DataType = nameof(FinanceItem),
-                        Data = JsonSerializer.Serialize(item, item.GetType()),
-                        CRUD = CRUD.Create
-                    }
-                );
+                var typedItem = JsonSerializer.Deserialize<CommunicationItem>(item.Data);
+                typedItem.Commited = false;
+                typedItem.CorrelationId = correlationId;
+                typedItem.ItemId = typedItem.ItemId;
+                await _dbContext.Communications.AddAsync(typedItem);
             }
-            var sendObject = new DataForProcessingServicesList<string>
+            if (context.Message.DataObjects.Any())
             {
-                CallBackType = context.Message.CallBackType,
-                DataObjects = listItems.DataObjects,
-                CorrelationId = context.Message.CorrelationId,
-                Props = context.Message.EventData
-            };
-
-            await _publishEndpoint.Publish(sendObject);
+                await _dbContext.SaveChangesAsync();
+            }
+            if (!string.IsNullOrEmpty(context.Message.CallBackType))
+            {
+                var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
+                    _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
+                sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
+                await _publishEndpoint.Publish(sendObject);
+            }
         }
         catch (Exception e)
         {
@@ -64,7 +54,7 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
             messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "FinanceService_SetSnapShot");
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "CommunicationService_Restore");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
@@ -76,5 +66,5 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
             await _publishEndpoint.Publish(faultObject.GetType().GetMethod("CastItem").Invoke(faultObject, null));
         }
     }
-}
 
+}

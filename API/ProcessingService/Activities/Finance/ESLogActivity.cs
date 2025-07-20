@@ -27,7 +27,7 @@ public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFi
             new FinanceItem
             {
                 ActionDate = DateTime.UtcNow,
-                ItemId = context.Saga.ItemId,
+                ItemId = context.Saga.ItemId.Value,
                 Status = FinanceRecordStatus.Приход,
                 UserLogin = context.Saga.UserLogin,
                 Value = context.Message.Amount

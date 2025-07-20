@@ -102,7 +102,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             break;
                         case nameof(CommunicationItem):
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
-                            break;                            
+                            break;
                         case nameof(ImageItem):
                             imageFull = await RestoreImages(item, context.Message);
                             //выходим если была обработана часть изображения
@@ -155,7 +155,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_SetSnapShot");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
             var faultType = typeof(FaultMessage<>);

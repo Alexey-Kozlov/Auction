@@ -4,6 +4,7 @@ using Common.Utils.Logging;
 using Common.Utils.Vault;
 using CommunicationService.Consumers;
 using CommunicationService.Data;
+using CommunicationService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -80,6 +81,7 @@ builder.Services.AddOpenTelemetry()
         })
 );
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<CommunicationProceduresService>();
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseMiddleware<ExceptionMiddleware>();

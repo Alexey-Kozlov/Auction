@@ -42,7 +42,7 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
                     var typedItem = new CommunicationSearch
                     {
                         AuctionId = _typedItem.AuctionId.Value,
-                        ItemId = _typedItem.ItemId,
+                        ItemId = _typedItem.ItemId.Value,
                         Message = _typedItem.Message
                     };
                     var search = await _client.CommunicationClient.SearchAsync<CommunicationSearch>(indices: "communication_index",

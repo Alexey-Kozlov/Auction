@@ -2,6 +2,7 @@
 using System.Text.Json;
 using AutoMapper;
 using Common.Contracts.Auction;
+using Common.Contracts.Communication;
 using Common.Contracts.Processing;
 using Common.Utils;
 using Common.Utils.Logging;
@@ -43,16 +44,19 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 foreach (var item in context.Message.DataObjects)
                 {
                     var typedItem = JsonSerializer.Deserialize<AuctionItem>(item.Data);
-                    var search = await _client.Client.SearchAsync<AuctionCreatingElk>(indices: "search_index",
+                    var searchAuction = await _client.Client.SearchAsync<AuctionCreatingElk>(indices: "search_index",
                         p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId))));
+                    var searchChats = await _client.CommunicationClient.SearchAsync<CommunicationSearch>(indices: "communication_index",
+                        p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.ItemId))));
                     if (item.CRUD != CRUD.Create)
                     {
-                        if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.ItemId}");
+                        if (searchAuction == null) throw new Exception($"Ошибка обновления записи в елке - не найден аукцион с Id - {typedItem.ItemId}");
                     }
-                    //сохраняем в редисе прежнюю запись, чтобы при откате можно было ее восстановить
-                    if (search != null)
+                    //сохраняем в редисе прежние записи (аукциона и сообщений пользователей), 
+                    // чтобы при откате можно было их восстановить
+                    if (searchAuction != null)
                     {
-                        var oldAuction = search.Documents.FirstOrDefault();
+                        var oldAuction = searchAuction.Documents.FirstOrDefault();
                         var cacheDto = new CacheElkDTO
                         {
                             Record = oldAuction,
@@ -60,15 +64,38 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                         };
                         await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
                     }
-                    //начинаем обновлять запись в елке
+                    //для сообщений пользователей - только при удалении аукциона
+                    if (item.CRUD == CRUD.Delete && searchChats != null)
+                    {
+                        foreach (var chatItem in searchChats.Documents)
+                        {
+                            var cacheDto = new CacheCommunicationDTO
+                            {
+                                Record = chatItem,
+                                CRUD = item.CRUD
+                            };
+                            await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
+                        }
+                    }
+                    //начинаем обновлять запись аукциона в елке
                     var elkItem = _mapper.Map<AuctionCreatingElk>(typedItem);
                     switch (item.CRUD)
                     {
                         case CRUD.Delete:
-                            //удаляем из индекса заданную запись
-                            var response = await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
+                            //удаляем из индекса заданную запись аукциона
+                            await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
                                 p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
                                 .WaitForCompletion(true).Refresh());
+                            //удаляем из индекса записи сообщений пользователей
+                            if (searchChats != null)
+                            {
+                                foreach (var chatItem in searchChats.Documents)
+                                {
+                                    await _client.CommunicationClient.DeleteByQueryAsync<CommunicationSearch>(indices: "communication_index",
+                                    p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(chatItem.ItemId)))
+                                    .WaitForCompletion(true).Refresh());
+                                }
+                            }
                             break;
                         case CRUD.Create:
                             //добавляем запись в индекс

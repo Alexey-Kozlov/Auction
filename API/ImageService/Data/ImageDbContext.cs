@@ -38,11 +38,12 @@ public class ItemConfiguration : IEntityTypeConfiguration<ImageItem>
 {
     public void Configure(EntityTypeBuilder<ImageItem> builder)
     {
-        builder.ToTable("ImageItems").HasKey(p => p.ItemId).HasName("PK_ImageItems");
+        builder.ToTable("ImageItems").HasKey(p => new { p.ItemId, p.Commited }).HasName("PK_ImageItems");
         builder.Property(p => p.ItemId).HasColumnType("uuid").HasColumnName("ItemId").IsRequired(true);
         builder.Property(p => p.Image).HasColumnType("bytea").HasColumnName("Image").IsRequired(true);
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CorrelationId).HasColumnType("uuid").HasColumnName("CorrelationId").IsRequired(true);
-        builder.HasIndex(p => p.ItemId).IsUnique(true).HasDatabaseName("PX_ImageItems");
+        builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(true);
+        builder.HasIndex(p => new { p.ItemId, p.Commited }).IsUnique(true).HasDatabaseName("PX_ImageItems");
     }
 }

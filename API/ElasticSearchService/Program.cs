@@ -1,6 +1,7 @@
 using Common.Utils.Logging;
 using Common.Utils.Vault;
 using ElasticSearchService.Consumers;
+using ElasticSearchService.Consumers.Search;
 using ElasticSearchService.Services;
 using MassTransit;
 using OpenTelemetry.Metrics;
@@ -35,6 +36,7 @@ builder.Services.AddMassTransit(p =>
 });
 
 builder.Services.AddScoped<ElkClient>();
+builder.Services.AddScoped<GetSearchItems>();
 builder.Services.AddOpenTelemetry()
     .WithMetrics(opt => opt
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))

@@ -29,13 +29,13 @@ public class NotifyUserConfiguration : IEntityTypeConfiguration<NotifyItem>
 {
     public void Configure(EntityTypeBuilder<NotifyItem> builder)
     {
-        builder.ToTable("NotifyItems").HasKey(p => new { p.ItemId, p.UserLogin }).HasName("PK_NotifyItems");
+        builder.ToTable("NotifyItems").HasKey(p => new { p.ItemId, p.UserLogin, p.Commited }).HasName("PK_NotifyItems");
         builder.Property(p => p.ItemId).HasColumnType("uuid").HasColumnName("ItemId").IsRequired(true);
         builder.Property(p => p.UserLogin).HasColumnType("varchar(256)").HasColumnName("UserLogin").IsRequired(true);
         builder.Property(p => p.Commited).HasColumnType("boolean").HasColumnName("Commited").IsRequired(true);
         builder.Property(p => p.CorrelationId).HasColumnType("uuid").HasColumnName("CorrelationId").IsRequired(true);
         builder.HasIndex(p => p.ItemId).IsUnique(true).HasDatabaseName("PX_NotifyItems");
-        builder.HasIndex("ItemId", "UserLogin").IsUnique(true).HasDatabaseName("IX_NotifyItems_ItemId_UserLogin");
+        builder.HasIndex(p => new { p.ItemId, p.UserLogin, p.Commited }).IsUnique(true).HasDatabaseName("IX_NotifyItems_ItemId_UserLogin");
         builder.HasIndex(p => p.CorrelationId).IsUnique(true).HasDatabaseName("IX_NotifyItems_CorrelationId");
     }
 }

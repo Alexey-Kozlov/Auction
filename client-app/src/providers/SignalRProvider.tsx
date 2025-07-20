@@ -334,23 +334,34 @@ export default function SignalRProvider() {
               };
             });
             progressShow = false;
-            dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.SetSnapShot],
+                ready: true,
+              })
+            );
           }
         );
 
-        connection.on("RestoreSnapShot", (result: string) => {
-          dispatch(setEventFlag({ eventName: "RestoreSnapShot", ready: true }));
-          // return toast(
-          // 	(p) => (
-          // 		<MessageToast
-          // 			message={result}
-          // 			toastId={p.id}
-          // 			toastType={ToastType.Info}
-          // 		/>
-          // 	),
-          // 	{ duration: 5000 }
-          // );
-        });
+        connection.on(
+          SignalREvents[SignalREvents.RestoreSnapShot],
+          (result: NotificationEvent) => {
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.RestoreSnapShot],
+                ready: true,
+              })
+            );
+            setProgressData((prev) => {
+              return {
+                ...prev,
+                message: result.data,
+                percent: 100,
+              };
+            });
+            progressShow = false;
+          }
+        );
 
         connection.on(
           SignalREvents[SignalREvents.ErrorMessage],

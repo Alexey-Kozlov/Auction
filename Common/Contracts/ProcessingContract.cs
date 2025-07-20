@@ -17,17 +17,11 @@ public class FaultMessage<T> : Fault<T> where T : IFaultMessage
         _sendObject = sendObject;
     }
     public Guid FaultId => _correlationId;
-
     public Guid? FaultedMessageId => Guid.NewGuid();
-
     public DateTime Timestamp => DateTime.UtcNow;
-
     public ExceptionInfo[] Exceptions => [new FaultExceptionInfo("")];
-
     public HostInfo Host => new FaultHostInfo();
-
     public string[] FaultMessageTypes => [];
-
     public T Message => _sendObject;
     public Fault<T> CastItem()
     {
@@ -43,13 +37,9 @@ public class FaultExceptionInfo : ExceptionInfo
         _message = message;
     }
     public string ExceptionType => "";
-
     public ExceptionInfo InnerException => null;
-
     public string StackTrace => "";
-
     public string Message => _message;
-
     public string Source => "";
     public IDictionary<string, object> Data => null;
 }
@@ -57,26 +47,18 @@ public class FaultExceptionInfo : ExceptionInfo
 public class FaultHostInfo : HostInfo
 {
     public string MachineName => null;
-
     public string ProcessName => null;
-
     public int ProcessId => System.Diagnostics.Process.GetCurrentProcess().Id;
-
     public string Assembly => null;
-
     public string AssemblyVersion => null;
-
     public string FrameworkVersion => null;
-
     public string MassTransitVersion => null;
-
     public string OperatingSystemVersion => null;
 }
 
 public class DataForProcessingServicesList
 {
     public List<DataForProcessingService> DataObjects { get; set; }
-
 }
 
 public class DataForProcessingService
@@ -136,6 +118,7 @@ public class ESLogAuctionDeleted : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogAuctionCreated : IFaultMessage
@@ -149,6 +132,7 @@ public class ESLogAuctionCreated : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogAuctionUpdated : IFaultMessage
@@ -162,6 +146,7 @@ public class ESLogAuctionUpdated : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogFinanceCreated : IFaultMessage
@@ -175,6 +160,7 @@ public class ESLogFinanceCreated : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogPlaceBid : IFaultMessage
@@ -188,6 +174,7 @@ public class ESLogPlaceBid : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogElkIndex : IFaultMessage
@@ -203,6 +190,7 @@ public class ESLogElkIndex : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int BatchCount { get; set; }
     public int AllItemsCount { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 
@@ -216,6 +204,7 @@ public class ResetItems : IFaultMessage
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogRestoreImages : IFaultMessage
@@ -232,6 +221,7 @@ public class ESLogRestoreImages : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int BatchCount { get; set; }
     public int AllItemsCount { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogEditNotification : IFaultMessage
@@ -246,6 +236,7 @@ public class ESLogEditNotification : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogAuctionFinish : IFaultMessage
@@ -273,6 +264,7 @@ public class ESLogProcessImages : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public int BatchCounter { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ReIndex : IFaultMessage
@@ -283,6 +275,7 @@ public class ReIndex : IFaultMessage
     public string ErrorServiceName { get; set; }
     public string CallBackType { get; set; }
     public bool IsError { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class BaseServiceError
@@ -337,6 +330,7 @@ public class ESLogCommunicationCreated : IFaultMessage
     public Guid? AuctionId { get; set; }
     public bool IsError { get; set; }
     public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
 }
 
 public class ESLogCommunicationDeleted : IFaultMessage

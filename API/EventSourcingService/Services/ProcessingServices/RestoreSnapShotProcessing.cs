@@ -39,7 +39,7 @@ public class RestoreSnapShotProcessing
                 //В процедуре Postgres делаем:
                 //- запись в ES лог о выполнении восстановления БД из лога
                 //- набор записей о восстановлении записей ставок для сервисов BiddingService,FinanceService,NotificationService,
-                //SearchService. Для ImageService - отдельно
+                //SearchService,CommunicationService. Для ImageService - отдельно
                 var result = await _dbContext.restore_snap_shot_items(
                     context.Message.CorrelationId,
                     context.Message.EventData).ToListAsync();
@@ -80,7 +80,7 @@ public class RestoreSnapShotProcessing
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace + e.InnerException?.Message);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_RestoreSnapShot");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
-            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, context.Message.AuctionId);
+            messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, context.Message.AuctionId);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
             var faultType = typeof(FaultMessage<>);
@@ -141,7 +141,8 @@ public class RestoreSnapShotProcessing
                             Data = JsonSerializer.Serialize(new ImageDTO
                             {
                                 ItemId = item.itemid.Value,
-                                Image = ImageBase64
+                                Image = ImageBase64,
+                                UserLogin = item.userlogin
                             }),
                             CRUD = CRUD.Create,
                             MessagePartCounts = 1,
@@ -180,7 +181,8 @@ public class RestoreSnapShotProcessing
                                 {
                                     ItemId = item.itemid.Value,
                                     Image = ImageBase64.Substring(splitPointer,
-                                    imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart)
+                                    imageLastPart > freeMessageSize ? freeMessageSize : imageLastPart),
+                                    UserLogin = item.userlogin
                                 }),
                                 CRUD = CRUD.Create,
                                 MessagePartCounts = 0,

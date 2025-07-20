@@ -62,6 +62,7 @@ public class NotificationCommit
      public string ErrorExceptionMessage { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
+     public Guid ItemId { get; set; }
 }
 
 public class EditNotificationEvent : IFaultMessage
@@ -73,7 +74,7 @@ public class EditNotificationEvent : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public Guid? ItemId { get; set; }
+     public Guid ItemId { get; set; }
      public bool IsError { get; set; }
 };
 
@@ -85,7 +86,7 @@ public class NotificationReset : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public Guid? ItemId { get; set; }
+     public Guid ItemId { get; set; }
      public bool IsError { get; set; }
 };
 

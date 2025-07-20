@@ -45,7 +45,7 @@ public class StartFinishServiceConsumer : IConsumer<StartFinishService>
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_ControlFinishService");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-            messageObject.GetType().GetProperty("AuctionId").SetValue(messageObject, null);
+            messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
             var faultType = typeof(FaultMessage<>);

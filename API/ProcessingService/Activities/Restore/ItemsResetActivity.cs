@@ -1,5 +1,6 @@
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
@@ -46,6 +47,11 @@ public class ItemsResetActivity : IStateMachineActivity<RestoreState, SendStopFi
             CallBackType = "Common.Contracts.Processing.ResetItems"
         });
         await _publishEndpoint.Publish(new NotificationReset
+        {
+            CorrelationId = context.Saga.CorrelationId,
+            CallBackType = "Common.Contracts.Processing.ResetItems"
+        });
+        await _publishEndpoint.Publish(new CommunicationReset
         {
             CorrelationId = context.Saga.CorrelationId,
             CallBackType = "Common.Contracts.Processing.ResetItems"

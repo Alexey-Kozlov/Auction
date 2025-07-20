@@ -52,7 +52,6 @@ public class EventConsumer : IConsumer<EventNotificationItem>
                 {
                     _users.Add(context.Message.UserLogin);
                 }
-
                 await _hubContext.Clients.Groups(_users)
                     .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
                         new

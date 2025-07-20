@@ -258,15 +258,15 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                         IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
-               //Создаем событие в сервис NotificationService для обновления интерфейса
+                //Создаем событие в сервис NotificationService для обновления интерфейса
                 .Send(
                     new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
                     context => new EventNotificationItem
                     {
                         SignalRMethod = SignalRMethod.ElkIndexReset,
-                        Show = true,
+                        Show = context.Saga.ShowMessages,
                         SessionId = context.Saga.SessionId,
-                        Data =  $"Проиндексировано - {context.Saga.ItemNumber} записей"
+                        Data = $"Проиндексировано - {context.Saga.ItemNumber} записей"
                     })
                 // если в начальном сообщении был указан параметр CallBackType - посылаем сообщение
                 // по этому параметру - это значит был вызов процесса индексации из другого процесса

@@ -55,6 +55,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             .Then(context =>
             {
                 context.Saga.Amount = context.Message.Amount;
+                context.Saga.ItemId = Guid.NewGuid();
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
@@ -189,7 +190,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                         Show = true,
                         SessionId = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new { value = context.Saga.Amount })
-                    })).Finalize()                    
+                    })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции - шлем уведомление пользователю
         When(FaultNotificationEvent)

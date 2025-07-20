@@ -2,11 +2,13 @@
 using System.Text.Json;
 using Common.Contracts;
 using Common.Contracts.Auction;
+using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
 using Common.Utils.Logging;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using ElasticSearchService.Consumers.Search;
 using ElasticSearchService.Services;
 using MassTransit;
 
@@ -16,99 +18,34 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ElkClient _client;
+    private readonly GetSearchItems _searchItems;
     private readonly IConfiguration _configuration;
 
-    public SearchCreatingElkConsumer(IPublishEndpoint publishEndpoint, ElkClient client, IConfiguration configuration)
+    public SearchCreatingElkConsumer(IPublishEndpoint publishEndpoint, ElkClient client,
+        IConfiguration configuration, GetSearchItems searchItems)
     {
         _publishEndpoint = publishEndpoint;
         _client = client;
         _configuration = configuration;
+        _searchItems = searchItems;
     }
     public async Task Consume(ConsumeContext<DataForProcessingServicesList<ElkSearchCreating>> context)
     {
         try
         {
             var typed = JsonSerializer.Deserialize<ElkSearchCreating>(context.Message.DataObjects[0].Data);
-            //запрос на получение количества возвращаемых записей
-            var countResponse = await _client.Client.CountAsync<AuctionCreatingElk>(s => s
-                .Query(q => q
-                    .Bool(b => b
-                        .Should(s => s
-                           .Match(m => m
-                               .Field(f => f.Title)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                                .Query(typed.SearchTerm)
-                                .Operator(Operator.And)
-                            ),
-                            s => s
-                           .Match(m => m
-                               .Field(f => f.Description)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                                .Query(typed.SearchTerm)
-                                .Operator(Operator.And)
-                            ),
-                            s => s
-                           .Match(m => m
-                               .Field(f => f.Properties)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                                .Query(typed.SearchTerm)
-                                .Operator(Operator.And)
-                            )
-                        )
-                    )
 
-                )
-            );
-            if (!countResponse.IsValidResponse)
-            {
-                var error = new LoggingServiceError
-                {
-                    CorrelationId = Guid.NewGuid(),
-                    ErrorExceptionMessage = string.Join(",", countResponse.ElasticsearchServerError.Error.RootCause),
-                    ErrorMessage = countResponse.DebugInformation,
-                    IsError = true,
-                    ErrorServiceName = "ElasticSearch_SearchCreatingElk"
-                };
-                await _publishEndpoint.Publish(error);
-                throw new Exception(countResponse.DebugInformation);
-            }
-            //итоговый запрос на получение записей
+            //получаем идентификаторы аукционов, где встречается ичскомая фраза - в аукционах и чатах
+            var auctionIds = await _searchItems.GetAuctionIds(typed);
+            var searchIds = await _searchItems.GetChatIds(typed, auctionIds);
+
+            //итоговый запрос на получение записей - ищем по полученному списку AuctionId
             var elkResponse = await _client.Client.SearchAsync<AuctionCreatingElk>(s => s
                 .From((typed.PageNumber - 1) * typed.PageSize)
                 .Size(typed.PageSize)
                 .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
-                //.Sort()
-                //.Sort(p => p.Field(f => f.Title, f => f.Order(SortOrder.Asc)))
-                // .Sort(p => p.Field("title", fs => fs.Order(SortOrder.Asc)
-                // .UnmappedType(Elastic.Clients.Elasticsearch.Mapping.FieldType.Keyword)))
-                //запрос - поисковый запрос разбивается на термы, все термы должны быть
-                //указанном поле. Поиск нечеткий (Fuzzy), с учетом русского языка.
-                //поиск по ИЛИ в 3-х полях - Title, Properties, Description
-                .Query(q => q
-                    .Bool(b => b
-                        .Should(s => s
-                           .Match(m => m
-                               .Field(f => f.Title)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                                .Query(typed.SearchTerm)
-                                .Operator(Operator.And)
-                            ),
-                            s => s
-                           .Match(m => m
-                               .Field(f => f.Description)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                                .Query(typed.SearchTerm)
-                                .Operator(Operator.And)
-                            ),
-                            s => s
-                           .Match(m => m
-                               .Field(f => f.Properties)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                                .Query(typed.SearchTerm)
-                                .Operator(Operator.And)
-                            )
-                        )
-                    )
+                .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(searchIds)
+                    .MinimumShouldMatch(1))
                 //сортируем сначала по наименованию аукциона, потом по id (если одинаковые наименования)
                 //Suffix - смотрим определение индекса - mappings в формате json, значение Suffix - keyword -
                 //наименование свойства после "fields"
@@ -126,9 +63,9 @@ public class SearchCreatingElkConsumer : IConsumer<DataForProcessingServicesList
                     ErrorServiceName = "ElasticSearch_SearchCreatingElk"
                 };
                 await _publishEndpoint.Publish(error);
-                throw new Exception(countResponse.DebugInformation);
+                //throw new Exception(countResponse.DebugInformation);
             }
-            var itemsCount = (int)countResponse.Count;
+            var itemsCount = 1;// (int)countResponse.Count;
             var pageCount = 0;
             if (itemsCount > 0)
             {

@@ -1,5 +1,6 @@
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
@@ -66,6 +67,16 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             UserLogin = context.Saga.UserLogin
         });
         await _publishEndpoint.Publish(new NotificationCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
+            CorrelationId = context.Saga.CorrelationId,
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
+        });
+        await _publishEndpoint.Publish(new CommunicationCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
