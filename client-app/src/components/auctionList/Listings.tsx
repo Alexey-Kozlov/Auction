@@ -23,7 +23,6 @@ export default function Listings() {
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
   );
-  const [firstRecord, setFirstRecord] = useState(0);
 
   //автоматически запускается при изменении url
   let auctionsData = useGetAuctionsQuery(url, {
@@ -60,8 +59,13 @@ export default function Listings() {
   }, [procState]);
 
   function setPageNumber(e: PaginatorPageChangeEvent) {
-    setFirstRecord(e.first);
-    dispatch(setParams({ pageNumber: e.page + 1, pageSize: e.rows }));
+    dispatch(
+      setParams({
+        pageNumber: e.page + 1,
+        pageSize: e.rows,
+        firstPage: e.first,
+      })
+    );
   }
 
   if (auctionsData.isLoading && auctionsData.isFetching)
@@ -94,7 +98,7 @@ export default function Listings() {
             <div className="ListPagination">
               <Paginator
                 onPageChange={setPageNumber}
-                first={firstRecord}
+                first={params.firstPage}
                 rows={params.pageSize}
                 totalRecords={data.totalCount}
                 rowsPerPageOptions={[4, 8, 16]}

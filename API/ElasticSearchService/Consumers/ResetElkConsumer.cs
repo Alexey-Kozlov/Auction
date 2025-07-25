@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Common.Contracts.Auction;
+using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
 using Common.Utils.Logging;
@@ -27,8 +28,12 @@ public class ResetElkConsumer : IConsumer<ElkIndexResetRequest>
         var correlationId = context.Message.CorrelationId;
         try
         {
-            //сбрасываем БД поиска
+            //сбрасываем БД поиска аукциона
             await _client.Client.DeleteByQueryAsync<AuctionCreatingElk>(indices: "search_index",
+                p => p.Query(q => q.QueryString(f => f.Query("*"))));
+
+            //сбрасываем БД поиска чатов
+            await _client.CommunicationClient.DeleteByQueryAsync<CommunicationSearch>(indices: "communication_index",
                 p => p.Query(q => q.QueryString(f => f.Query("*"))));
 
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +

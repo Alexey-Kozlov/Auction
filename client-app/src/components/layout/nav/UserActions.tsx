@@ -38,52 +38,28 @@ export default function UserActions() {
       items: [
         {
           label: "Мои аукционы",
-          icon: (
-            <HiUser
-              className="MenuItems"
-              size={30}
-            />
-          ),
+          icon: <HiUser size={30} />,
           command: () => handleSetSellerClick(),
         },
         {
           label: "Аукционы выигранные",
-          icon: (
-            <AiFillTrophy
-              className="MenuItems"
-              size={30}
-            />
-          ),
+          icon: <AiFillTrophy size={30} />,
           command: () => handleSetWinnerClick(),
         },
         {
           label: "Создать аукцион",
-          icon: (
-            <RiAuctionFill
-              className="MenuItems"
-              size={30}
-            />
-          ),
+          icon: <RiAuctionFill size={30} />,
           command: () => handleCreateAuctionClick(),
         },
         {
           label: "Финансы",
-          icon: (
-            <GrMoney
-              className="MenuItems"
-              size={30}
-            />
-          ),
+          icon: <GrMoney size={30} />,
           command: () => handleFinanceClick(),
         },
         {
           label: "Отчеты",
-          icon: (
-            <HiOutlineDocumentReport
-              className="MenuItems"
-              size={30}
-            />
-          ),
+          icon: <HiOutlineDocumentReport size={30} />,
+          command: () => handleReportClick(),
         },
       ],
     },
@@ -94,54 +70,29 @@ export default function UserActions() {
     },
     {
       label: "Выход",
-      icon: (
-        <AiOutlineLogout
-          className="MenuItems"
-          size={30}
-        />
-      ),
+      icon: <AiOutlineLogout size={30} />,
       command: () => handleLogoutClick(),
     },
   ];
   const adminMenus = [
     {
       label: "Elk индексация",
-      icon: (
-        <GoCodescanCheckmark
-          className="MenuItems"
-          size={30}
-        />
-      ),
+      icon: <GoCodescanCheckmark size={30} />,
       command: () => handleElkReindexClick(),
     },
     {
       label: "Создать SnapShot",
-      icon: (
-        <GoDatabase
-          className="MenuItems"
-          size={30}
-        />
-      ),
+      icon: <GoDatabase size={30} />,
       command: () => setShowConfirmSet(true),
     },
     {
       label: "Восстановить из SnapShot",
-      icon: (
-        <FaTrashRestoreAlt
-          className="MenuItems"
-          size={30}
-        />
-      ),
+      icon: <FaTrashRestoreAlt size={30} />,
       command: () => setShowConfirmRestore(true),
     },
     {
       label: "Сбросить Кеш изображений",
-      icon: (
-        <RiRestartFill
-          className="MenuItems"
-          size={30}
-        />
-      ),
+      icon: <RiRestartFill size={30} />,
       command: () => handleResetImageCacheClick(),
     },
   ];
@@ -247,9 +198,9 @@ export default function UserActions() {
     navigate("/finance/list");
   };
 
-  // const handleReportClick = () => {
-  // 	window.location.href = process.env.REACT_APP_REPORT_URL!;
-  // };
+  const handleReportClick = () => {
+    window.location.href = process.env.REACT_APP_REPORT_URL!;
+  };
 
   const handleCreateAuctionClick = () => {
     navigate("/auctions/create");

@@ -6,7 +6,6 @@ using ReportService.DTO;
 using Serialize.Linq.Serializers;
 using System.Runtime.Serialization;
 using Common.Utils.Extentions;
-using Common.Contracts;
 using Common.Contracts.Report;
 
 namespace ReportService.Reports;
@@ -82,10 +81,10 @@ public class AuctionList
         if (bidValue != "NoBids")
         {
             //запрос фильтрации по списку id-ников, ids - список id-ников типа GUID
-            var ids = auctions.Result.Select(p => p.AuctionId).ToList();
+            var ids = auctions.Result.Select(p => p.ItemId).ToList();
             var bidTask = Task.Run(() =>
             {
-                var filterField = "AuctionId";
+                var filterField = "ItemId";
                 var eParam = Expression.Parameter(typeof(BidItem), "e");
                 var method = ids.GetType().GetMethod("Contains");
                 var call = Expression.Call(Expression.Constant(ids), method, Expression.Property(eParam, filterField));
@@ -97,11 +96,11 @@ public class AuctionList
 
             var resultWithBids = auctions.Result.LeftOuterJoin(
                 bids.Result,
-                leftKey => leftKey.AuctionId,
+                leftKey => leftKey.ItemId,
                 rightKey => rightKey.AuctionId,
                 (auction, bid) => new
                 {
-                    AuctionId = auction.AuctionId,
+                    ItemId = auction.ItemId,
                     Seller = auction.Seller,
                     Bidder = bid == null ? "" : bid.Bidder,
                     Amount = bid == null ? 0 : bid.Amount,
@@ -115,7 +114,7 @@ public class AuctionList
 
         var resultAuctions = auctions.Result.Select(p => new
         {
-            AuctionId = p.AuctionId,
+            ItemId = p.ItemId,
             Seller = p.Seller,
             Title = p.Title,
             StartDate = p.CreateAt,

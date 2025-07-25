@@ -14,11 +14,5 @@ export default function ListData(): ReportItem[] {
 			Id: "NotificationList",
 			Icon: "333",
 		},
-		{
-			Name: "Тест",
-			Description: "Тест дополнение",
-			Id: "TestItem",
-			Icon: "222",
-		},
 	];
 }

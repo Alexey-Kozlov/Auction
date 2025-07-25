@@ -1,9 +1,7 @@
 using System.Reflection;
-using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.EventSourcing;
-using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.ElkIndex;
@@ -100,7 +98,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     {
         During(ResetIndexState,
         When(ResetIndexEvent)
-            //посылаем через Кафку, запрос на индексацию всех записей аукционов.
+            //посылаем через Кафку, запрос на индексацию всех записей аукционов + записей сообщений пользователей.
             //возвращаются пачки записей для переиндексации из ES лога
             .Activity(p => p.OfType<ESLogActivity>())
             .TransitionTo(ElkIndexState),

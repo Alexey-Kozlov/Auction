@@ -44,10 +44,10 @@ public class NotificationList
         //получаем список аукционам по найденным уведомлениям
 
         //запрос фильтрации по списку id-ников, ids - список id-ников типа GUID
-        var ids = notifyList.Result.Select(p => p.AuctionId).ToList();
+        var ids = notifyList.Result.Select(p => p.ItemId).ToList();
         var auctionTask = Task.Run(() =>
         {
-            var filterField = "AuctionId";
+            var filterField = "ItemId";
             var eParam = Expression.Parameter(typeof(AuctionItem), "e");
             var method = ids.GetType().GetMethod("Contains");
             var call = Expression.Call(Expression.Constant(ids), method, Expression.Property(eParam, filterField));
@@ -59,11 +59,11 @@ public class NotificationList
 
         var result = from auction in auctionList.Result
                      join notify in notifyList.Result
-                     on auction.AuctionId equals notify.AuctionId
+                     on auction.ItemId equals notify.ItemId
                      orderby notify.UserLogin, auction.Title
                      select new
                      {
-                         auction.AuctionId,
+                         auction.ItemId,
                          notify.UserLogin,
                          auction.Title
                      };

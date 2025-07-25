@@ -1,66 +1,70 @@
 import { useEffect, useState } from "react";
 import {
-	NotificationListTypes,
-	NotificationSortColumn,
-	NotificationSortType,
+  NotificationListTypes,
+  NotificationSortColumn,
+  NotificationSortType,
 } from "./NotificationListTypes";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHeader,
-	TableHeaderCell,
-	TableRow,
-} from "semantic-ui-react";
 import { SortDirection } from "../../../types";
 import { dynamicSort } from "../../../utils";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
 
 type Props = {
-	items: NotificationListTypes[];
+  items: NotificationListTypes[];
 };
 
 export default function NotificationTable({ items }: Props) {
-	const [repItems, setRepItems] = useState<NotificationListTypes[] | null>();
+  const [repItems, setRepItems] = useState<NotificationListTypes[] | null>();
 
-	const [sortState, setSortState] = useState<NotificationSortType>({
-		column: NotificationSortColumn.Title,
-		direction: SortDirection.ascending,
-	});
+  const [sortState, setSortState] = useState<NotificationSortType>({
+    column: NotificationSortColumn.Title,
+    direction: SortDirection.ascending,
+  });
 
-	const getSortedValue = (val: NotificationSortColumn) => {
-		return sortState.column === val
-			? sortState.direction === SortDirection.ascending
-				? "ascending"
-				: "descending"
-			: undefined;
-	};
+  const getSortedValue = (val: NotificationSortColumn) => {
+    return sortState.column === val
+      ? sortState.direction === SortDirection.ascending
+        ? "ascending"
+        : "descending"
+      : undefined;
+  };
 
-	const handleSetSort = (value: NotificationSortType) => {
-		//направление сортировки
-		setSortState((prev) => {
-			return {
-				...value,
-				direction:
-					prev.direction === SortDirection.ascending
-						? SortDirection.descending
-						: SortDirection.ascending,
-			};
-		});
-		//сортируем данные
-		setRepItems((prev) => {
-			let _temp = JSON.parse(JSON.stringify(prev)) as NotificationListTypes[];
-			return _temp?.sort(
-				dynamicSort(NotificationSortColumn[value.column], value.direction)
-			);
-		});
-	};
+  const handleSetSort = (value: NotificationSortType) => {
+    //направление сортировки
+    setSortState((prev) => {
+      return {
+        ...value,
+        direction:
+          prev.direction === SortDirection.ascending
+            ? SortDirection.descending
+            : SortDirection.ascending,
+      };
+    });
+    //сортируем данные
+    setRepItems((prev) => {
+      let _temp = JSON.parse(JSON.stringify(prev)) as NotificationListTypes[];
+      return _temp?.sort(
+        dynamicSort(NotificationSortColumn[value.column], value.direction)
+      );
+    });
+  };
 
-	useEffect(() => {
-		setRepItems(() => items);
-	}, []);
-	return (
-		<>
-			<Table sortable celled striped selectable>
+  useEffect(() => {
+    setRepItems(() => items);
+  }, []);
+  return (
+    <>
+      <DataTable value={repItems!}>
+        <Column
+          field="UserLogin"
+          header="Пользователь"
+        ></Column>
+        <Column
+          field="Title"
+          header="Наименование аукциона"
+        ></Column>
+      </DataTable>
+      {/* <Table sortable celled striped selectable>
 				<TableHeader>
 					<TableRow>
 						<TableHeaderCell
@@ -98,7 +102,7 @@ export default function NotificationTable({ items }: Props) {
 						</TableRow>
 					))}
 				</TableBody>
-			</Table>
-		</>
-	);
+			</Table> */}
+    </>
+  );
 }

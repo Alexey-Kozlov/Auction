@@ -7,6 +7,7 @@ using MassTransit;
 using ProcessingService.Activities.AuctionCreate;
 
 namespace ProcessingService.StateMachines.CreateAuctionStateMachine;
+
 public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionState>
 {
     public State ImageState { get; }
@@ -138,7 +139,8 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                             {
                                 CRUD = CRUD.Create,
                                 Data = "CRUD",
-                                MessagePartId = context.Saga.ItemId
+                                MessagePartId = context.Saga.ItemId,
+                                DataType = context.Saga.UserLogin //костыль - передаем UserLogin через это неиспользуемое поле
                             }
                         },
                         CorrelationId = context.Saga.CorrelationId,

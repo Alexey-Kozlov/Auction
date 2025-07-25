@@ -36,11 +36,11 @@ public class SearchServiceSql
         query = searchParams.OrderBy switch
         {
             "titleAsc" => query.OrderBy(p => p.Title).ThenBy(p => p.ItemId),
-            "titleDesc" => query.OrderByDescending(p => p.Title).ThenBy(p => p.ItemId),
+            "titleDesc" => query.OrderByDescending(p => p.Title).ThenByDescending(p => p.ItemId),
             "newAsc" => query.OrderBy(p => p.CreateAt).ThenBy(p => p.ItemId),
-            "newDesc" => query.OrderByDescending(p => p.CreateAt).ThenBy(p => p.ItemId),
+            "newDesc" => query.OrderByDescending(p => p.CreateAt).ThenByDescending(p => p.ItemId),
             "endAsc" => query.OrderBy(p => p.AuctionEnd).ThenBy(p => p.ItemId),
-            _ => query.OrderByDescending(p => p.AuctionEnd).ThenBy(p => p.ItemId)
+            _ => query.OrderByDescending(p => p.AuctionEnd).ThenByDescending(p => p.ItemId)
         };
         //отбор в зависимости от текстового параметра FilterBy
         if (!string.IsNullOrEmpty(searchParams.FilterBy))

@@ -1,5 +1,21 @@
-.container {
-	max-width: 1576px;
+/*настраиваем - 1 rem = 10px*/
+html {
+	font-size: 62.5%;
+}
+
+body {
+	margin: 0;
+}
+
+.MainContainer {
+	max-width: 170rem;
+	margin: auto;
+}
+
+.UserActionsPanel {
+	width: 35rem;
+	display: flex;
+	justify-content: end;
 }
 
 .NavBarContainer {
@@ -47,33 +63,6 @@
 	color: rgb(240 82 82);
 }
 
-.UserActionsPanel .ui.dropdown .menu {
-	z-index: 15 !important;
-}
-
-.MenuItemsText {
-	font-size: 16px;
-}
-
-.MenuItemsAction {
-	color: gray;
-	cursor: not-allowed;
-}
-
-.MenuItems {
-	vertical-align: middle;
-	margin-right: 5px;
-}
-
-.UserTitle {
-	font-size: 16px !important;
-	font-weight: 600;
-}
-
-#BreadCrumbStyle a {
-	color: black;
-}
-
 #ReportList {
 	display: flex;
 	flex-wrap: wrap;
@@ -98,40 +87,23 @@
 	font-weight: 900;
 	font-size: x-large;
 }
-.Main {
-	display: flex;
-	flex-direction: column;
-	height: 100vh;
+
+.CustomButton {
+	font-size: 2rem;
+	justify-content: center;
+	color: #3f51b5;
 }
 
-.ParameterContainer {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+.CustomButtonSmall {
+	font-size: 1.5rem !important;
+	height: 4rem;
 }
 
-.ParameterItem {
-	margin: 6px;
+.p-button.CustomButton {
+	border: 2px solid transparent;
 }
 
-.ParameterItem input,
-.ParameterItem select {
-	border: 1px solid gray !important;
-}
-
-.MainButton {
-	background-color: white !important;
-	color: black !important;
-	font-weight: 700 !important;
-	font-size: 14px !important;
-	border: 2px solid black !important;
-	border-radius: 10px !important;
-	padding: 10px !important;
-	margin: 4px !important;
-	width: 120px !important;
-}
-
-.MainButton:hover {
-	background-color: rgb(14 116 144) !important;
-	color: white !important;
-	cursor: pointer !important;
+.p-button.CustomButton:hover {
+	border: 2px solid black;
+	background-color: rgba(63, 81, 181, 0.12);
 }

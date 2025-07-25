@@ -581,6 +581,14 @@ a.p-menuitem-link > svg {
 	width: 100%;
 }
 
+.ToastMessageTextContainer {
+	background-color: white;
+	padding: 1rem;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
 .CloseToastButtonContainer {
 	display: flex;
 	justify-content: flex-end;

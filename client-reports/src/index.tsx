@@ -1,21 +1,24 @@
 import ReactDOM from "react-dom/client";
-import "./index.css";
-import "./custom.css";
-import "./components/sideSlidePanel/right-nav-style.css";
-import "semantic-ui-css/semantic.min.css";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
+import { PrimeReactProvider } from "primereact/api";
 import { Provider } from "react-redux";
 import store from "./store/Store";
+import "primereact/resources/themes/md-light-indigo/theme.css";
+import "/node_modules/primeflex/primeflex.css";
+import "primeicons/primeicons.css";
+import "./index.css";
 
 const root = ReactDOM.createRoot(
-	document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 
 root.render(
-	<Provider store={store}>
-		<BrowserRouter>
-			<App />
-		</BrowserRouter>
-	</Provider>
+  <Provider store={store}>
+    <BrowserRouter>
+      <PrimeReactProvider>
+        <App />
+      </PrimeReactProvider>
+    </BrowserRouter>
+  </Provider>
 );

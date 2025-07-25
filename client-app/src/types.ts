@@ -213,6 +213,7 @@ export type State = {
 	pageNumber?: number;
 	pageSize?: number;
 	pageCount?: number;
+	firstPage?: number;
 	orderBy?: string;
 	filterBy?: string;
 	seller?: string;

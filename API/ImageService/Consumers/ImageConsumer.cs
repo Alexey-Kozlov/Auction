@@ -70,7 +70,8 @@ public class ImageConsumer : IConsumer<DataForProcessingServicesList<ImageDTO>>
                     var typedItem = new ImageDTO
                     {
                         ItemId = crudItem.MessagePartId,
-                        Image = imageItem.Data
+                        Image = imageItem.Data,
+                        UserLogin = crudItem.DataType
                     };
                     typedItem.CorrelationId = correlationId;
                     switch (crudItem.CRUD)

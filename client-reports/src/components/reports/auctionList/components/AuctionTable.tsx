@@ -1,67 +1,87 @@
 import { useEffect, useState } from "react";
 import {
-	AuctionBidSortType,
-	AuctionListSortColumn,
-	AuctionListTypes,
+  AuctionBidSortType,
+  AuctionListSortColumn,
+  AuctionListTypes,
 } from "../AuctionListTypes";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHeader,
-	TableHeaderCell,
-	TableRow,
-} from "semantic-ui-react";
 import { SortDirection } from "../../../../types";
 import { dynamicSort } from "../../../../utils";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
 
 type Props = {
-	items: AuctionListTypes[];
+  items: AuctionListTypes[];
 };
 
 export default function AuctionTable({ items }: Props) {
-	const [repItems, setRepItems] = useState<AuctionListTypes[] | null>();
+  const [repItems, setRepItems] = useState<AuctionListTypes[] | null>();
 
-	const [sortState, setSortState] = useState<AuctionBidSortType>({
-		column: AuctionListSortColumn.Title,
-		direction: SortDirection.ascending,
-	});
+  const [sortState, setSortState] = useState<AuctionBidSortType>({
+    column: AuctionListSortColumn.Title,
+    direction: SortDirection.ascending,
+  });
 
-	const getSortedValue = (val: AuctionListSortColumn) => {
-		return sortState.column === val
-			? sortState.direction === SortDirection.ascending
-				? "ascending"
-				: "descending"
-			: undefined;
-	};
+  const getSortedValue = (val: AuctionListSortColumn) => {
+    return sortState.column === val
+      ? sortState.direction === SortDirection.ascending
+        ? "ascending"
+        : "descending"
+      : undefined;
+  };
 
-	const handleSetSort = (value: AuctionBidSortType) => {
-		//направление сортировки
-		setSortState((prev) => {
-			return {
-				...value,
-				direction:
-					prev.direction === SortDirection.ascending
-						? SortDirection.descending
-						: SortDirection.ascending,
-			};
-		});
-		//сортируем данные
-		setRepItems((prev) => {
-			let _temp = JSON.parse(JSON.stringify(prev)) as AuctionListTypes[];
-			return _temp?.sort(
-				dynamicSort(AuctionListSortColumn[value.column], value.direction)
-			);
-		});
-	};
+  const handleSetSort = (value: AuctionBidSortType) => {
+    //направление сортировки
+    setSortState((prev) => {
+      return {
+        ...value,
+        direction:
+          prev.direction === SortDirection.ascending
+            ? SortDirection.descending
+            : SortDirection.ascending,
+      };
+    });
+    //сортируем данные
+    setRepItems((prev) => {
+      let _temp = JSON.parse(JSON.stringify(prev)) as AuctionListTypes[];
+      return _temp?.sort(
+        dynamicSort(AuctionListSortColumn[value.column], value.direction)
+      );
+    });
+  };
 
-	useEffect(() => {
-		setRepItems(() => items);
-	}, []);
+  useEffect(() => {
+    setRepItems(() => items);
+  }, []);
 
-	return (
-		<div>
-			<Table sortable celled selectable striped>
+  return (
+    <div>
+      <DataTable value={repItems!}>
+        <Column
+          field="Seller"
+          header="Продавец"
+        ></Column>
+        <Column
+          field="Title"
+          header="Наименование"
+        ></Column>
+        <Column
+          field="StartDate"
+          header="Дата начала"
+        ></Column>
+        <Column
+          field="EndDate"
+          header="Дата завершения"
+        ></Column>
+        <Column
+          field="Bidder"
+          header="Автор ставки"
+        ></Column>
+        <Column
+          field="Amount"
+          header="Размер ставки"
+        ></Column>
+      </DataTable>
+      {/* <Table sortable celled selectable striped>
 				<TableHeader>
 					<TableRow>
 						<TableHeaderCell
@@ -128,7 +148,7 @@ export default function AuctionTable({ items }: Props) {
 						</TableRow>
 					))}
 				</TableBody>
-			</Table>
-		</div>
-	);
+			</Table> */}
+    </div>
+  );
 }

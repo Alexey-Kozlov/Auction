@@ -41,7 +41,7 @@ public class ElkIndexProcessing
             //в параметре ReindexBatchSize - количество обрабатываемых записей в сообщении (в пакете)
             var batchSize = Int32.Parse(_configuration["ReindexBatchSize"]);
             //получаем количество пакетов записей
-            var AllItemsCount = int.Parse(result[0].entitytype);
+            var AllItemsCount = result[0].crud;
             int batchCount = AllItemsCount / batchSize;
             if (result.Count() % batchSize != 0)
             {
@@ -61,7 +61,7 @@ public class ElkIndexProcessing
                     (
                         new DataForProcessingService
                         {
-                            DataType = "AuctionItem",
+                            DataType = item.entitytype,
                             Data = item.eventdata,
                             CRUD = CRUD.Create
                         }

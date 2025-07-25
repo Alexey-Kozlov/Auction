@@ -31,7 +31,10 @@ export default function MessageToast({ message, toastType }: Props) {
             <ImWarning size={36} />
           )}
         </div>
-        <div className="ToastItemText">{message}</div>
+        <div className="ToastMessageTextContainer">
+          <p className="m-2 text-3xl text-center">{message}</p>
+          <div className="flex flex-column gap-2"></div>
+        </div>
       </div>
     </div>
   );

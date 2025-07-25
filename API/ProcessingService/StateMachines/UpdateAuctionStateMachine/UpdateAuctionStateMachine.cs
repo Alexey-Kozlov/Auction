@@ -7,6 +7,7 @@ using MassTransit;
 using ProcessingService.Activities.AuctionUpdate;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
+
 public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionState>
 {
     public State ImageState { get; }
@@ -130,7 +131,8 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                             {
                                 CRUD = context.Saga.UsingImage ? CRUD.Update : CRUD.Delete,
                                 Data = "CRUD",
-                                MessagePartId = context.Saga.AuctionId
+                                MessagePartId = context.Saga.AuctionId,
+                                DataType = context.Saga.UserLogin
                             }
                         },
                         CorrelationId = context.Saga.CorrelationId,

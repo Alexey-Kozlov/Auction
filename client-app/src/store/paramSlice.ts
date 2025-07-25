@@ -5,6 +5,7 @@ const initialState: State = {
 	pageNumber: 1,
 	pageSize: 16,
 	pageCount: 1,
+	firstPage: 0,
 	orderBy: "newDesc",
 	filterBy: "live",
 	seller: undefined,
@@ -21,8 +22,9 @@ export const paramSlice = createSlice({
 		setParams: (state, action) => {
 			if (action.payload.pageNumber)
 				state.pageNumber = action.payload.pageNumber;
+			if (action.payload.firstPage || action.payload.firstPage == "0") state.firstPage = action.payload.firstPage;				
 			if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
-			if (action.payload.pageCount) state.pageCount = action.payload.pageCount;
+			if (action.payload.pageCount || action.payload.pageCount == "0") state.pageCount = action.payload.pageCount;
 			if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
 			if (action.payload.filterBy) {
 				state.filterBy = action.payload.filterBy;
