@@ -15,23 +15,6 @@ export default function AuctionListParams() {
             Id: "Seller",
           } as ParameterItem,
           {
-            Label: "Автор аукционов:",
-            Type: ParameterType.Select,
-            Value: JSON.stringify([
-              {
-                Label: "Все",
-                Value: "All",
-                Default: true,
-              } as ParameterSelect,
-              {
-                Label: "Мои аукционы",
-                Value: "My",
-                Default: false,
-              } as ParameterSelect,
-            ]),
-            Id: "Author",
-          } as ParameterItem,
-          {
             Label: "Ставки:",
             Type: ParameterType.Select,
             Value: JSON.stringify([

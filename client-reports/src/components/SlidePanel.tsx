@@ -5,6 +5,9 @@ import { setParamIsOpen, setReportLoading } from "../store/ReportSlice";
 import { RootState } from "../store/Store";
 import { Button } from "primereact/button";
 import { Sidebar } from "primereact/sidebar";
+import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
 
 type Props = {
   params: ParameterItem[];
@@ -27,39 +30,40 @@ export default function SlidePanel({ params, reportName }: Props) {
     // eslint-disable-next-line
   }, []);
 
+  const convertSelectItem = (ind: any) => {
+    //создаем option объект без свойства Default - иначе не работает контрол DropDown
+    let item = JSON.parse(paramValue[ind]).find(
+      (p: any) => p.Default === true
+    ) as ParameterSelect;
+    return { Label: item.Label, Value: item.Value };
+  };
+
   const GetParamControl = (item: ParameterItem, index: number) => {
     if (item.Type === ParameterType.Select) {
+      //создаем option объект без свойства Default - иначе не работает контрол DropDown
+      var selectOptions: any = [];
+      (JSON.parse(item.Value) as ParameterSelect[]).forEach((item) => {
+        selectOptions.push({ Label: item.Label, Value: item.Value });
+      });
       return (
-        <select
+        <Dropdown
+          options={selectOptions}
           name={item.Id}
-          defaultValue={
-            (JSON.parse(item.Value) as ParameterSelect[]).find((p) => p.Default)
-              ?.Value
-          }
+          optionLabel="Label"
+          value={convertSelectItem(index)}
           onChange={(p) => {
             if (!p.target.value) return;
             setParamValue((st) => {
               let _item: ParameterSelect[] = JSON.parse(st[index]);
               _item.forEach((st) => {
                 if (st.Default) st.Default = false;
-                if (st.Value === p.target.value) st.Default = true;
+                if (st.Value === p.value.Value) st.Default = true;
               });
               st[index] = JSON.stringify(_item);
               return [...st];
             });
           }}
-        >
-          {(JSON.parse(item.Value) as ParameterSelect[]).map((p) => {
-            return (
-              <option
-                value={p.Value}
-                key={p.Value}
-              >
-                {p.Label}
-              </option>
-            );
-          })}
-        </select>
+        />
       );
     }
     if (item.Type === ParameterType.Bool) {
@@ -78,63 +82,83 @@ export default function SlidePanel({ params, reportName }: Props) {
         />
       );
     }
-    return (
-      <input
-        type={
-          item.Type === ParameterType.Text
-            ? "text"
-            : item.Type === ParameterType.Number
-            ? "number"
-            : item.Type === ParameterType.Date
-            ? "datetime-local"
-            : ""
-        }
-        name={item.Id}
-        value={paramValue![index]}
-        onChange={(p) => {
-          setParamValue((st) => {
-            st[index] = p.target.value;
-            return [...st];
-          });
-        }}
-      />
-    );
+    if (item.Type === ParameterType.Text) {
+      return (
+        <InputText
+          name={item.Id}
+          className="InputControl"
+          value={paramValue![index]}
+          onChange={(p) => {
+            setParamValue((st) => {
+              st[index] = p.target.value;
+              return [...st];
+            });
+          }}
+        />
+      );
+    }
+    if (item.Type === ParameterType.Number) {
+      return (
+        <InputNumber
+          name={item.Id}
+          className="InputControl"
+          value={parseInt(paramValue![index])}
+          onChange={(p) => {
+            setParamValue((st) => {
+              st[index] = p.value!.toString();
+              return [...st];
+            });
+          }}
+        />
+      );
+    }
   };
 
   const SetParams = (paramList: string[]): ParameterItem[] => {
+    //создаем параметр запроса используя глубокое клонирование
     let tmp = structuredClone(params);
     paramList.forEach((item, index) => {
-      tmp[index].Value = paramList[index];
+      try {
+        //извлекаем выбранное значение (если было перечисление значений)
+        tmp[index].Value = JSON.parse(paramList[index]).find(
+          (p: ParameterSelect) => p.Default
+        ).Value;
+      } catch {
+        //здесь если не было выбора из перечисления - просто текстовое поле или булево значение
+        tmp[index].Value = paramList[index];
+      }
     });
     return tmp;
   };
 
-  const reportSubmit = async () => {
-    const prm = SetParams(paramValue);
-    dispatch(setReportLoading({ param: prm }));
+  const reportSubmit = async (
+    e:
+      | React.MouseEvent<HTMLButtonElement, MouseEvent>
+      | React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    e.preventDefault();
+    dispatch(setReportLoading({ param: SetParams(paramValue) }));
+    setShowPanel(false);
   };
 
-  const hitEnter = (e: string) => {
-    if (e === "Enter") reportSubmit();
+  const hitEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") reportSubmit(e);
   };
 
   return (
-    <div>
-      <Button
-        text
-        raised
-        rounded
-        className="CustomButton"
+    <div onKeyDown={(e) => hitEnter(e)}>
+      <div
+        className="ParameterButton"
         onClick={() => setShowPanel(true)}
       >
-        Параметры
-      </Button>
+        Параметры отчета
+      </div>
       <Sidebar
         visible={showPanel}
         position="right"
         onHide={() => setShowPanel(false)}
       >
-        <div onKeyDown={(e) => hitEnter(e.key)}>
+        <div>
           <input
             type="checkbox"
             id="nav-toggle"
@@ -143,26 +167,8 @@ export default function SlidePanel({ params, reportName }: Props) {
             readOnly
           ></input>
           <nav className="nav">
-            {reportStore.paramIsOpen ? (
-              <label
-                className="nav-toggle"
-                onClick={() => dispatch(setParamIsOpen({ isOpen: false }))}
-              >
-                &#x2715;
-              </label>
-            ) : (
-              <label
-                className="nav-toggle"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dispatch(setParamIsOpen({ isOpen: true }));
-                }}
-              >
-                Параметры&nbsp;&nbsp;отчета
-              </label>
-            )}
-
-            <h2>Параметры отчета "{reportName}"</h2>
+            <div className="text-center text-4xl">Параметры отчета</div>
+            <div className="text-center text-4xl mb-4">"{reportName}"</div>
             <form>
               <div
                 className="ParameterContainer"
@@ -173,21 +179,23 @@ export default function SlidePanel({ params, reportName }: Props) {
                   params.map((p, index) => {
                     return (
                       <React.Fragment key={index}>
-                        <div className="ParameterItem">{p.Label}</div>
-                        <div className="ParameterItem">
-                          {GetParamControl(p, index)}
+                        <div className="grid w-full">
+                          <div className="col-5 ParameterItem">{p.Label}</div>
+                          <div className="col-7 ParameterItem">
+                            {GetParamControl(p, index)}
+                          </div>
                         </div>
                       </React.Fragment>
                     );
                   })}
               </div>
-              <div className="reportSubmit">
+              <div className="CenterItem mt-4">
                 <Button
                   text
                   raised
                   rounded
-                  className="CustomButton mr-4 w-30rem"
-                  onClick={reportSubmit}
+                  className="CustomButton mr-4 w-20rem"
+                  onClick={(e) => reportSubmit(e)}
                 >
                   Получить отчет
                 </Button>

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "ReportService";
+
+service GrpcReports {  
+    rpc GetNotificationReport (GetNotificationReportRequest) returns (GrpcNotificationReportResponse);
+}
+
+message GetNotificationReportRequest {
+    string NotificationReportRequest = 1;
+}
+
+message GrpcNotificationReportModel {
+    string NotificationItems = 1;
+}
+
+message GrpcNotificationReportResponse {
+    GrpcNotificationReportModel notificationRezult = 1;
+}

@@ -83,6 +83,7 @@ builder.Services.AddOpenTelemetry()
         })
 );
 builder.Services.AddScoped<BidProceduresService>();
+builder.Services.AddGrpc();
 
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
@@ -90,6 +91,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+app.MapGrpcService<GrpcReportService>();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  AuctionBidSortType,
-  AuctionListSortColumn,
-  AuctionListTypes,
-} from "../AuctionListTypes";
-import { SortDirection } from "../../../../types";
-import { dynamicSort } from "../../../../utils";
-import { DataTable } from "primereact/datatable";
+import { AuctionListTypes } from "../AuctionListTypes";
+import { DataTable, DataTableFilterMeta } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { FilterMatchMode } from "primereact/api";
 
 type Props = {
   items: AuctionListTypes[];
@@ -16,139 +11,77 @@ type Props = {
 export default function AuctionTable({ items }: Props) {
   const [repItems, setRepItems] = useState<AuctionListTypes[] | null>();
 
-  const [sortState, setSortState] = useState<AuctionBidSortType>({
-    column: AuctionListSortColumn.Title,
-    direction: SortDirection.ascending,
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    Seller: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    Title: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    StartDate: { value: null, matchMode: FilterMatchMode.DATE_IS },
+    EndDate: { value: null, matchMode: FilterMatchMode.DATE_IS },
   });
-
-  const getSortedValue = (val: AuctionListSortColumn) => {
-    return sortState.column === val
-      ? sortState.direction === SortDirection.ascending
-        ? "ascending"
-        : "descending"
-      : undefined;
-  };
-
-  const handleSetSort = (value: AuctionBidSortType) => {
-    //направление сортировки
-    setSortState((prev) => {
-      return {
-        ...value,
-        direction:
-          prev.direction === SortDirection.ascending
-            ? SortDirection.descending
-            : SortDirection.ascending,
-      };
-    });
-    //сортируем данные
-    setRepItems((prev) => {
-      let _temp = JSON.parse(JSON.stringify(prev)) as AuctionListTypes[];
-      return _temp?.sort(
-        dynamicSort(AuctionListSortColumn[value.column], value.direction)
-      );
-    });
-  };
 
   useEffect(() => {
     setRepItems(() => items);
   }, []);
 
+  const StartDateTemplate = (val: AuctionListTypes) => {
+    return (
+      new Date(val.StartDate).toLocaleDateString() +
+      " " +
+      new Date(val.StartDate).toLocaleTimeString()
+    );
+  };
+
+  const EndDateTemplate = (val: AuctionListTypes) => {
+    return (
+      new Date(val.EndDate).toLocaleDateString() +
+      " " +
+      new Date(val.EndDate).toLocaleTimeString()
+    );
+  };
+
   return (
     <div>
-      <DataTable value={repItems!}>
+      <DataTable
+        value={repItems!}
+        size="large"
+        stripedRows
+        paginator
+        rows={25}
+        rowsPerPageOptions={[25, 50, 100]}
+        emptyMessage="Данных не найдено"
+        filters={filters}
+        filterDisplay="row"
+      >
         <Column
           field="Seller"
           header="Продавец"
+          sortable
+          filter
+          filterPlaceholder="Поиск по автору"
         ></Column>
         <Column
           field="Title"
           header="Наименование"
+          sortable
+          filter
+          filterPlaceholder="Поиск по наименованию"
         ></Column>
         <Column
           field="StartDate"
           header="Дата начала"
+          body={StartDateTemplate}
+          sortable
+          filter
+          filterPlaceholder="Поиск по дате"
         ></Column>
         <Column
           field="EndDate"
           header="Дата завершения"
-        ></Column>
-        <Column
-          field="Bidder"
-          header="Автор ставки"
-        ></Column>
-        <Column
-          field="Amount"
-          header="Размер ставки"
+          body={EndDateTemplate}
+          sortable
+          filter
+          filterPlaceholder="Поиск по дате"
         ></Column>
       </DataTable>
-      {/* <Table sortable celled selectable striped>
-				<TableHeader>
-					<TableRow>
-						<TableHeaderCell
-							textAlign="center"
-							sorted={getSortedValue(AuctionListSortColumn.Seller)}
-							onClick={() =>
-								handleSetSort({
-									column: AuctionListSortColumn.Seller,
-									direction: sortState.direction,
-								})
-							}
-						>
-							Продавец
-						</TableHeaderCell>
-						<TableHeaderCell
-							textAlign="center"
-							sorted={getSortedValue(AuctionListSortColumn.Title)}
-							onClick={() =>
-								handleSetSort({
-									column: AuctionListSortColumn.Title,
-									direction: sortState.direction,
-								})
-							}
-						>
-							Наименование
-						</TableHeaderCell>
-						<TableHeaderCell
-							textAlign="center"
-							sorted={getSortedValue(AuctionListSortColumn.StartDate)}
-							onClick={() =>
-								handleSetSort({
-									column: AuctionListSortColumn.StartDate,
-									direction: sortState.direction,
-								})
-							}
-						>
-							Дата начала
-						</TableHeaderCell>
-						<TableHeaderCell
-							textAlign="center"
-							sorted={getSortedValue(AuctionListSortColumn.EndDate)}
-							onClick={() =>
-								handleSetSort({
-									column: AuctionListSortColumn.EndDate,
-									direction: sortState.direction,
-								})
-							}
-						>
-							Дата завершения
-						</TableHeaderCell>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{repItems?.map((item, index) => (
-						<TableRow key={index}>
-							<TableCell textAlign="center">{item.Seller}</TableCell>
-							<TableCell>{item.Title}</TableCell>
-							<TableCell className="text-center">
-								{new Date(item.StartDate).toLocaleDateString()}
-							</TableCell>
-							<TableCell className="text-center">
-								{new Date(item.EndDate).toLocaleDateString()}
-							</TableCell>
-						</TableRow>
-					))}
-				</TableBody>
-			</Table> */}
     </div>
   );
 }

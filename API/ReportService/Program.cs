@@ -8,10 +8,6 @@ using ReportService.Reports;
 using ReportService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddHttpClient<HttpClientService>(config =>
-{
-    config.Timeout = TimeSpan.FromSeconds(300);
-});
 builder.Configuration.AddVault(options =>
           {
               var vaultOptions = builder.Configuration.GetSection("Vault");
@@ -44,9 +40,9 @@ builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
     jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
 builder.Services.AddCors();
-builder.Services.AddScoped<GetDataService>();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<NotificationList>();
+builder.Services.AddScoped<GrpcReportsClient>();
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

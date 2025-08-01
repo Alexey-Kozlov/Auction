@@ -9,10 +9,16 @@ export default function NotificationListParams() {
       <SlidePanel
         params={[
           {
-            Label: "Пользователь",
+            Label: "Пользователь (логин)",
             Type: ParameterType.Text,
             Value: "",
             Id: "UserLogin",
+          } as ParameterItem,
+          {
+            Label: "Наименование аукциона",
+            Type: ParameterType.Text,
+            Value: "",
+            Id: "Auction",
           } as ParameterItem,
         ]}
         reportName="Уведомления пользователя"

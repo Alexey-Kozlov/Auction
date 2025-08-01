@@ -1,74 +1,138 @@
-using System.Linq.Expressions;
 using Common.Contracts.Auction;
 using ReportService.Services;
 using ReportService.DTO;
-using Serialize.Linq.Serializers;
-using System.Runtime.Serialization;
 using Common.Contracts.Notification;
+using Common.Contracts.Report;
+using Common.Contracts;
 
 namespace ReportService.Reports;
 
-[KnownType(typeof(List<Guid>))]
 public class NotificationList
 {
-    private readonly IServiceProvider _services;
-    public NotificationList(IServiceProvider services)
+    private readonly GrpcReportsClient _client;
+    public NotificationList(GrpcReportsClient client)
     {
-        _services = services;
+        _client = client;
     }
 
-    public async Task<string> GetNotificationItems(ParamItem[] param)
+    public Task<string> GetNotificationItems(ParamItem[] param)
     {
-        var serializer = new ExpressionSerializer(new JsonSerializer())
+        var userLoginPar = param.FirstOrDefault(p => p.Id == "UserLogin").Value;
+        var auctionPar = param.FirstOrDefault(p => p.Id == "Auction").Value;
+        var query = new SqlQuery();
+        List<AuctionItem> auctionList;
+        List<NotifyItem> notifyList;
+        IEnumerable<Guid> ids;
+        //первоначально нужно получить массив id-ников, отфильтрованных по указанным данным
+        //если указан auctionPar - первоначально производим поиск по аукционам
+        //иначе - первоначально производим поиск по уведомлениям
+        if (!string.IsNullOrEmpty(auctionPar))
         {
-            AutoAddKnownTypesAsListTypes = true
-        };
-        using var scope = _services.CreateScope();
-        var httpClient = scope.ServiceProvider.GetRequiredService<HttpClientService>();
-
-        //получаем список уведомлений для заданного пользователя (или для всех, если никто не указан)
-        var notifyTask = Task.Run(() =>
-        {
-            var par = param.FirstOrDefault(p => p.Id == "UserLogin").Value;
-            Expression<Func<NotifyItem, bool>> notifyExp = item => item.UserLogin.Contains(par);
-            if (string.IsNullOrEmpty(par))
+            auctionList = GetAuctionItems(auctionPar, query).GetAwaiter().GetResult().Result;
+            ids = auctionList.Select(p => p.ItemId);
+            if (ids.Count() == 0)
             {
-                notifyExp = item => true;
+                return Task.FromResult("[]");
             }
-
-            var notifyExp_text = serializer.SerializeText(notifyExp);
-            return httpClient.GetNotificationItems(notifyExp_text);
-        });
-        var notifyList = await notifyTask;
-
-        //получаем список аукционам по найденным уведомлениям
-
-        //запрос фильтрации по списку id-ников, ids - список id-ников типа GUID
-        var ids = notifyList.Result.Select(p => p.ItemId).ToList();
-        var auctionTask = Task.Run(() =>
+            //фильтруем по полученным id-никам
+            notifyList = GetNotifyItemsById(userLoginPar, ids, query).GetAwaiter().GetResult().Result;
+        }
+        else
         {
-            var filterField = "ItemId";
-            var eParam = Expression.Parameter(typeof(AuctionItem), "e");
-            var method = ids.GetType().GetMethod("Contains");
-            var call = Expression.Call(Expression.Constant(ids), method, Expression.Property(eParam, filterField));
-            var auctionExp = Expression.Lambda<Func<AuctionItem, bool>>(call, eParam);
-            var auctionExp_text = serializer.SerializeText(auctionExp);
-            return httpClient.GetAuctionItems(auctionExp_text);
-        });
-        var auctionList = await auctionTask;
+            notifyList = GetNotifyItems(userLoginPar, query).GetAwaiter().GetResult().Result;
+            ids = notifyList.Select(p => p.ItemId);
+            if (ids.Count() == 0)
+            {
+                return Task.FromResult("[]");
+            }
+            //фильтруем по полученным id-никам
+            auctionList = GetAuctionItemsById(auctionPar, ids, query).GetAwaiter().GetResult().Result;
+        }
 
-        var result = from auction in auctionList.Result
-                     join notify in notifyList.Result
+        //объединяем оба набора данных
+        var result = from auction in auctionList
+                     join notify in notifyList
                      on auction.ItemId equals notify.ItemId
-                     orderby notify.UserLogin, auction.Title
                      select new
                      {
                          auction.ItemId,
                          notify.UserLogin,
                          auction.Title
                      };
-
-        return System.Text.Json.JsonSerializer.Serialize(result, result.GetType());
+        return Task.FromResult(System.Text.Json.JsonSerializer.Serialize(result, result.GetType()));
     }
 
+    private async Task<ApiResponse<List<NotifyItem>>> GetNotifyItems(string userLoginPar, SqlQuery query)
+    {
+        query.Text = "select * from \"NotifyItems\" where true";
+        query.Parameters.Clear();
+        //получаем список уведомлений для заданного пользователя (или для всех, если никто не указан)
+        //также дополнительный фильтр по наименованию аукциона
+        var notifyTask = Task.Run(() =>
+        {
+            if (!string.IsNullOrEmpty(userLoginPar))
+            {
+                query.Text += " and \"UserLogin\" ilike {0}";
+                query.Parameters.Add("%" + userLoginPar + "%");
+            }
+            query.Text += " limit 100";
+            return _client.GetNotificationReportItems(System.Text.Json.JsonSerializer.Serialize(query));
+        });
+        return await notifyTask;
+    }
+
+    private async Task<ApiResponse<List<AuctionItem>>> GetAuctionItems(string auctionPar, SqlQuery query)
+    {
+        query.Text = "select * from \"SearchItems\" where true";
+        query.Parameters.Clear();
+        var auctionTask = Task.Run(() =>
+        {
+            if (!string.IsNullOrEmpty(auctionPar))
+            {
+                query.Text += " and \"Title\" ilike {0}";
+                query.Parameters.Add("%" + auctionPar + "%");
+            }
+            query.Text += " order by \"ItemId\" limit 100";
+            return _client.GetAuctionReportItems(System.Text.Json.JsonSerializer.Serialize(query));
+        });
+        return await auctionTask;
+    }
+
+    private async Task<ApiResponse<List<AuctionItem>>> GetAuctionItemsById(string auctionPar, IEnumerable<Guid> notifyIds, SqlQuery query)
+    {
+        query.Text = "select * from \"SearchItems\" where \"ItemId\" in (";
+        query.Text += string.Join(',', notifyIds.Select(p => "'" + p + "'"));
+        query.Text += ")";
+        query.Parameters.Clear();
+        var auctionTask = Task.Run(() =>
+        {
+            if (!string.IsNullOrEmpty(auctionPar))
+            {
+                query.Text += " and \"Title\" ilike {0}";
+                query.Parameters.Add("%" + auctionPar + "%");
+            }
+            query.Text += " order by \"ItemId\" limit 100";
+            return _client.GetAuctionReportItems(System.Text.Json.JsonSerializer.Serialize(query));
+        });
+        return await auctionTask;
+    }
+
+    private async Task<ApiResponse<List<NotifyItem>>> GetNotifyItemsById(string userLoginPar, IEnumerable<Guid> auctionIds, SqlQuery query)
+    {
+        query.Text = "select * from \"NotifyItems\" where \"ItemId\" in (";
+        query.Text += string.Join(',', auctionIds.Select(p => "'" + p + "'"));
+        query.Text += ")";
+        query.Parameters.Clear();
+        var auctionTask = Task.Run(() =>
+        {
+            if (!string.IsNullOrEmpty(userLoginPar))
+            {
+                query.Text += " and \"UserLogin\" ilike {0}";
+                query.Parameters.Add("%" + userLoginPar + "%");
+            }
+            query.Text += " limit 100";
+            return _client.GetNotificationReportItems(System.Text.Json.JsonSerializer.Serialize(query));
+        });
+        return await auctionTask;
+    }
 }

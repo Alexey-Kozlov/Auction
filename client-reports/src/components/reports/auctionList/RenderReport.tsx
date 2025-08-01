@@ -35,8 +35,8 @@ export default function RenderReport({ reportId }: Props) {
     const getReport = async (param: ParameterItem[]) => {
       var rezult = await auctionListReport(param);
       setData(rezult.data);
-      //если был отмечен параметр "Отображать ставки по аукционам" - ставим флаг по отображению
-      //2-х дополнительных колонок - автор и размер ставки
+      //если был отмечен параметр "Ставки:Нет"  - ставим флаг по скрытию
+      // 2-х дополнительных колонок - автор и размер ставки
       if (rezult.data && rezult.data.length > 0) {
         setBidderReportType(rezult.data[0]["Bidder"] !== undefined);
       }
@@ -62,7 +62,7 @@ export default function RenderReport({ reportId }: Props) {
 
   return (
     <div ref={contentRef}>
-      <h2 className="text-center">Список аукционов</h2>
+      <h2 className="text-center text-4xl">Список аукционов</h2>
       {reportStore.reportLoading && (
         <div>
           <Waiter />

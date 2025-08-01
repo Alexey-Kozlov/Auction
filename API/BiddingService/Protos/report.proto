@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "ReportService";
+
+service GrpcReports {
+    rpc GetBidReport (GetBidReportRequest) returns (GrpcBidReportResponse);    
+}
+
+message GetBidReportRequest {
+    string BidReportRequest = 1;
+}
+
+message GrpcBidReportModel {
+    string BidItems = 1;
+}
+
+message GrpcBidReportResponse {
+    GrpcBidReportModel bidRezult = 1;
+}

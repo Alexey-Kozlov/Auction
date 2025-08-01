@@ -10,3 +10,9 @@ public class SelectJson
     public string Value { get; set; }
     public bool Default { get; set; }
 }
+
+public class SqlQuery
+{
+    public string Text { get; set; }
+    public List<string> Parameters { get; set; } = new();
+}

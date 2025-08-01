@@ -78,5 +78,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<GrpcFinanceService>();
+app.MapGrpcService<GrpcReportService>();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

@@ -13,7 +13,7 @@ export default function Card(props: ReportItem) {
       className="ReportCardContainer"
     >
       <h5 className="ReportCardTitle">{props.Name}</h5>
-      <p>{props.Description}</p>
+      <p className="text-3xl text-center">{props.Description}</p>
     </Panel>
   );
 }

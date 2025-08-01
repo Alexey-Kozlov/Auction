@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  NotificationListTypes,
-  NotificationSortColumn,
-  NotificationSortType,
-} from "./NotificationListTypes";
-import { SortDirection } from "../../../types";
-import { dynamicSort } from "../../../utils";
-import { DataTable } from "primereact/datatable";
+import { NotificationListTypes } from "./NotificationListTypes";
+import { DataTable, DataTableFilterMeta } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { FilterMatchMode } from "primereact/api";
 
 type Props = {
   items: NotificationListTypes[];
@@ -16,93 +11,50 @@ type Props = {
 export default function NotificationTable({ items }: Props) {
   const [repItems, setRepItems] = useState<NotificationListTypes[] | null>();
 
-  const [sortState, setSortState] = useState<NotificationSortType>({
-    column: NotificationSortColumn.Title,
-    direction: SortDirection.ascending,
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    Title: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    UserLogin: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    ItemId: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
-
-  const getSortedValue = (val: NotificationSortColumn) => {
-    return sortState.column === val
-      ? sortState.direction === SortDirection.ascending
-        ? "ascending"
-        : "descending"
-      : undefined;
-  };
-
-  const handleSetSort = (value: NotificationSortType) => {
-    //направление сортировки
-    setSortState((prev) => {
-      return {
-        ...value,
-        direction:
-          prev.direction === SortDirection.ascending
-            ? SortDirection.descending
-            : SortDirection.ascending,
-      };
-    });
-    //сортируем данные
-    setRepItems((prev) => {
-      let _temp = JSON.parse(JSON.stringify(prev)) as NotificationListTypes[];
-      return _temp?.sort(
-        dynamicSort(NotificationSortColumn[value.column], value.direction)
-      );
-    });
-  };
 
   useEffect(() => {
     setRepItems(() => items);
   }, []);
   return (
     <>
-      <DataTable value={repItems!}>
+      <DataTable
+        value={repItems!}
+        size="large"
+        stripedRows
+        paginator
+        rows={25}
+        rowsPerPageOptions={[25, 50, 100]}
+        emptyMessage="Данных не найдено"
+        filters={filters}
+        filterDisplay="row"
+      >
         <Column
           field="UserLogin"
           header="Пользователь"
+          sortable
+          filter
+          filterPlaceholder="Поиск по автору"
+        ></Column>
+        <Column
+          field="ItemId"
+          header="ID аукциона"
+          sortable
+          filter
+          filterPlaceholder="Поиск по ID"
         ></Column>
         <Column
           field="Title"
           header="Наименование аукциона"
+          sortable
+          filter
+          filterPlaceholder="Поиск по наименованию"
         ></Column>
       </DataTable>
-      {/* <Table sortable celled striped selectable>
-				<TableHeader>
-					<TableRow>
-						<TableHeaderCell
-							textAlign="center"
-							sorted={getSortedValue(NotificationSortColumn.UserLogin)}
-							onClick={() =>
-								handleSetSort({
-									column: NotificationSortColumn.UserLogin,
-									direction: sortState.direction,
-								})
-							}
-						>
-							Пользователь
-						</TableHeaderCell>
-						<TableHeaderCell
-							sorted={getSortedValue(NotificationSortColumn.Title)}
-							onClick={() =>
-								handleSetSort({
-									column: NotificationSortColumn.Title,
-									direction: sortState.direction,
-								})
-							}
-						>
-							Наименование аукциона
-						</TableHeaderCell>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{repItems?.map((item, index) => (
-						<TableRow key={index}>
-							<TableCell textAlign="center" collapsing>
-								{item.UserLogin}
-							</TableCell>
-							<TableCell>{item.Title}</TableCell>
-						</TableRow>
-					))}
-				</TableBody>
-			</Table> */}
     </>
   );
 }

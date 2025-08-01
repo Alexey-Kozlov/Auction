@@ -214,7 +214,7 @@ export default function UserActions() {
         popup
         popupAlignment="right"
         id="menuActions"
-        className="w-30rem p-menu-list mt-3"
+        className="w-30rem mt-3"
       />
       <div
         aria-controls="menuActions"

@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option csharp_namespace = "ReportService";
+
+service GrpcReports {
+    rpc GetAuctionReport (GetAuctionReportRequest) returns (GrpcAuctionReportResponse);
+    rpc GetBidReport (GetBidReportRequest) returns (GrpcBidReportResponse);    
+    rpc GetNotificationReport (GetNotificationReportRequest) returns (GrpcNotificationReportResponse);
+}
+
+message GetAuctionReportRequest {
+    string AuctionReportRequest = 1;
+}
+
+message GetBidReportRequest {
+    string BidReportRequest = 1;
+}
+
+message GetNotificationReportRequest {
+    string NotificationReportRequest = 1;
+}
+
+message GrpcAuctionReportModel {
+    string AuctionItems = 1;
+}
+
+message GrpcBidReportModel {
+    string BidItems = 1;
+}
+
+message GrpcNotificationReportModel {
+    string NotificationItems = 1;
+}
+
+message GrpcAuctionReportResponse {
+    GrpcAuctionReportModel auctionRezult = 1;
+}
+
+message GrpcBidReportResponse {
+    GrpcBidReportModel bidRezult = 1;
+}
+
+message GrpcNotificationReportResponse {
+    GrpcNotificationReportModel notificationRezult = 1;
+}

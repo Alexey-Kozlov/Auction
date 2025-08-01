@@ -13,9 +13,13 @@ body {
 }
 
 .UserActionsPanel {
-	width: 35rem;
+	width: 16.5rem;
 	display: flex;
 	justify-content: end;
+}
+
+.p-menuitem-text {
+    font-size: 1.6rem;
 }
 
 .NavBarContainer {
@@ -54,12 +58,13 @@ body {
 }
 
 #NavBarLogo {
+	text-decoration: none;
 	display: flex;
 	align-items: center;
-	gap: 5px;
+	gap: 0.5rem;
 	font-weight: 600;
-	font-size: 30px;
-	line-height: 36px;
+	font-size: 3rem;
+	line-height: 3.5rem;
 	color: rgb(240 82 82);
 }
 
@@ -77,15 +82,24 @@ body {
 	border: 2px solid transparent !important;
 	cursor: pointer;
 }
+.p-panel-content {
+	border: 2px solid transparent !important;
+}
 
 .ReportCardContainer:hover {
 	border: 2px solid black !important;
+}
+
+.p-panel-content:hover {
 	background-color: rgb(236, 235, 235) !important;
 }
 
+
 .ReportCardTitle {
+	margin: 1rem 0 1rem;
 	font-weight: 900;
 	font-size: x-large;
+	text-align: center;
 }
 
 .CustomButton {
@@ -106,4 +120,123 @@ body {
 .p-button.CustomButton:hover {
 	border: 2px solid black;
 	background-color: rgba(63, 81, 181, 0.12);
+}
+
+.BreadCrumbItem {
+	font-size: 1.8rem;
+	text-decoration: none;
+	color: rgba(0, 0, 0, 0.87);
+}
+
+.ParameterContainer {
+	display: flex;
+	flex-direction: column;
+	justify-content: end;
+	align-items: start;
+	width: 100%;
+}
+
+.ParameterItem {
+	font-size: 1.5rem;
+}
+
+.ParameterButton {
+	background-color: white;
+	position: fixed;
+    right: -8.5rem;
+    top: 17.2rem;
+	transform: translateY(-50%) rotate(90deg);
+    transform-origin: center center; 
+	width: 21rem;
+	height: 4rem;
+	line-height: 4rem;
+	font-size: 2rem;
+	border: black solid 0.1rem;
+	text-align: center;
+	cursor: pointer;
+	border-radius: 0.5rem;
+}
+
+.ParameterButton:hover {
+	background-color: rgb(237, 237, 237);
+}
+
+.p-sidebar {
+	width: 50rem;
+}
+
+.InputControl {
+	height: 3rem !important;
+	font-size: 1.5rem !important;
+}
+
+.InputControl > div {
+	width: 15rem;
+}
+
+.InputControl > div > input {
+	height: 3rem;
+	width: 15rem;
+	font-size: 1.5rem;
+}
+
+.InputControl > div > span {
+	top: 30%;
+}
+
+.CenterItem {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.p-dropdown-label,
+.p-dropdown-item-label  {
+	font-size: 1.5rem;
+}
+
+.p-datatable {
+	font-size: 1.5rem;
+}
+
+.p-column-header-content {
+	font-size: 1.8rem;
+	font-weight: 600;
+}
+
+.Absolute-Center {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1000;
+}
+
+
+.p-paginator-element {
+	font-size: 2rem;
+}
+
+.p-paginator-element > svg {
+	width: 2rem;
+	height: 2rem;
+}
+
+.p-dropdown-item,
+.p-dropdown-label {
+	font-size: 1.6rem;
+}
+
+.p-dropdown span {
+	font-size: 1.6rem;
+	padding: 0.5rem;
+}
+
+.p-dropdown {
+	display: flex;
+	align-items: center;
+}
+
+.p-inputtext {
+	font-size: 1.6rem;
 }

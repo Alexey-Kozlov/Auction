@@ -4,12 +4,26 @@ import { BreadCrumb } from "primereact/breadcrumb";
 
 export default function BreadCrumbNav() {
   const { root, id } = useParams();
-  const home = { icon: "pi pi-home", url: `/${root}` };
+  const home = {
+    icon: (
+      <i
+        className="pi pi-home"
+        style={{ fontSize: "2rem", color: "rgba(0, 0, 0, 0.87)" }}
+      />
+    ),
+    url: `/${root}`,
+  };
 
   const items = [
     {
-      label: id && ReportListData().find((p) => p.Id === id)!.Name,
-      template: () => <Link to="/inputtext">InputText</Link>,
+      template: () => (
+        <Link
+          className="BreadCrumbItem"
+          to="/inputtext"
+        >
+          {id && ReportListData().find((p) => p.Id === id)!.Name}
+        </Link>
+      ),
     },
   ];
 
@@ -19,18 +33,8 @@ export default function BreadCrumbNav() {
       <BreadCrumb
         model={items}
         home={home}
+        style={{ border: "none" }}
       />
-      {/* <Breadcrumb size="big" id="BreadCrumbStyle">
-				<BreadcrumbSection link onClick={() => navigate(`/${root}`)}>
-					Отчеты
-				</BreadcrumbSection>
-				<BreadcrumbDivider icon="right chevron" />
-				{id && (
-					<BreadcrumbSection>
-						{id && ReportListData().find((p) => p.Id === id)!.Name}
-					</BreadcrumbSection>
-				)}
-			</Breadcrumb> */}
     </>
   );
 }

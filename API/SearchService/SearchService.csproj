@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Protobuf Include="Protos/finance.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos/report.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

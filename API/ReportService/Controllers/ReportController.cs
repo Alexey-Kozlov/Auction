@@ -1,8 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReportService.DTO;
-using ReportService.Services;
+using ReportService.Reports;
 
 namespace ReportService.Controllers;
 
@@ -11,24 +10,25 @@ namespace ReportService.Controllers;
 [Route("api/reports")]
 public class ReportController : ControllerBase
 {
-    private readonly GetDataService _reportService;
+    private readonly NotificationList _notificationList;
+    private readonly AuctionList _auctionList;
 
-    public ReportController(GetDataService reportService)
+    public ReportController(NotificationList notificationList, AuctionList auctionList)
     {
-        _reportService = reportService;
+        _notificationList = notificationList;
+        _auctionList = auctionList;
     }
 
     [HttpPost("auctionlist")]
     public async Task<string> AuctionList([FromBody] ParamItem[] param)
     {
-        var currentUser = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        return await _reportService.GetAuctionListData(param, currentUser);
+        return await _auctionList.GetAuctionItems(param);
     }
 
     [HttpPost("notifylist")]
     public async Task<string> NotificationList([FromBody] ParamItem[] param)
     {
-        return await _reportService.GetNotificationListData(param);
+        return await _notificationList.GetNotificationItems(param);
     }
 
 }
