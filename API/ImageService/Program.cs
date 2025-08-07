@@ -12,14 +12,14 @@ using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
-          {
-              var vaultOptions = builder.Configuration.GetSection("Vault");
-              options.Address = vaultOptions["Address"];
-              options.Role = vaultOptions["VAULT_ROLE_ID"];
-              options.SecretPathPg = vaultOptions["SecretPathPg"];
-              options.SecretPathRt = vaultOptions["SecretPathRt"];
-              options.Secret = vaultOptions["VAULT_SECRET_ID"];
-          });
+{
+    var vaultOptions = builder.Configuration.GetSection("Vault");
+    options.Address = vaultOptions["Address"];
+    options.Role = vaultOptions["VAULT_ROLE_ID"];
+    options.SecretPathPg = vaultOptions["SecretPathPg"];
+    options.SecretPathRt = vaultOptions["SecretPathRt"];
+    options.Secret = vaultOptions["VAULT_SECRET_ID"];
+});
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ImageDbContext>(options =>
 {

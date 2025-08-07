@@ -19,14 +19,16 @@ using Common.Contracts.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
-          {
-              var vaultOptions = builder.Configuration.GetSection("Vault");
-              options.Address = vaultOptions["Address"];
-              options.Role = vaultOptions["VAULT_ROLE_ID"];
-              options.SecretPathRt = vaultOptions["SecretPathRt"];
-              options.SecretPathApi = vaultOptions["SecretPathApi"];
-              options.Secret = vaultOptions["VAULT_SECRET_ID"];
-          });
+{
+    var vaultOptions = builder.Configuration.GetSection("Vault");
+    options.Address = vaultOptions["Address"];
+    options.Role = vaultOptions["VAULT_ROLE_ID"];
+    options.SecretPathRt = vaultOptions["SecretPathRt"];
+    options.SecretPathApi = vaultOptions["SecretPathApi"];
+    options.SecretPathKafka = vaultOptions["SecretPathKafka"];
+    options.SecretPathRedis = vaultOptions["SecretPathRedis"];
+    options.Secret = vaultOptions["VAULT_SECRET_ID"];
+});
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = null;
@@ -77,13 +79,13 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
     });
     busConfigurator.AddRider(r =>
     {
-        r.AddProducer<ItemLoggingContract>(builder.Configuration["Kafka_Topic_Event"], new ProducerConfig
+        r.AddProducer<ItemLoggingContract>(builder.Configuration["kf:topiclog"], new ProducerConfig
         {
             MessageMaxBytes = 1000000
         });
         r.UsingKafka((context, k) =>
         {
-            k.Host(builder.Configuration["Kafka_Host"]);
+            k.Host(builder.Configuration["kf:host"]);
         });
     });
 });
@@ -101,8 +103,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["Redis:Config"];
-    options.InstanceName = "AuctionCache";
+    options.Configuration = builder.Configuration["rd:config"];
+    options.InstanceName = builder.Configuration["rd:instance"];
 });
 
 builder.Services.AddScoped<GrpcImageClient>();
@@ -111,7 +113,7 @@ builder.Services.AddScoped<ImageCache>();
 builder.Services.AddSingleton(cfg =>
 {
     //конфигурация чтобы можно было сбрасывать кеш
-    IConnectionMultiplexer multiplexer = ConnectionMultiplexer.Connect(builder.Configuration["Redis:Config"]);
+    IConnectionMultiplexer multiplexer = ConnectionMultiplexer.Connect(builder.Configuration["rd:config"]);
     return multiplexer;
 });
 

@@ -10,4 +10,6 @@ public class VaultOptions
     public string SecretPathApi { get; set; }
     public string SecretPathElk { get; set; }
     public string PasswordPolicy { get; set; }
+    public string SecretPathKafka { get; set; }
+    public string SecretPathRedis { get; set; }
 }

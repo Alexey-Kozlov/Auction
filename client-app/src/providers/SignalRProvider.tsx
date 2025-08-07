@@ -7,14 +7,10 @@ import {
 import { useEffect, useRef, useState } from "react";
 import {
   ActionType,
-  Auction,
   AuctionFinished,
   ChatComment,
-  FinanceItem,
-  FinanceTableItem,
   Message,
   NotificationEvent,
-  PagedResult,
   Progress,
   SignalREvents,
   ToastType,
@@ -22,7 +18,6 @@ import {
 } from "../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
-import BidCreatedToast from "../components/signalRNotifications/ImageToast";
 import { setEventFlag } from "../store/processingSlice";
 import MessageToast from "../components/signalRNotifications/MessageToast";
 import { setData } from "../store/auctionSlice";
@@ -265,7 +260,7 @@ export default function SignalRProvider() {
           }
         );
 
-        connection.on("SessionId", (id: any) => {
+        connection.on(SignalREvents[SignalREvents.SessionId], (id: any) => {
           dispatch(setParams({ sessionId: id }));
         });
 

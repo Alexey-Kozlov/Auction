@@ -18,15 +18,16 @@ using Common.Utils.Logging;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddVault(options =>
-          {
-              var vaultOptions = builder.Configuration.GetSection("Vault");
-              options.Address = vaultOptions["Address"];
-              options.Role = vaultOptions["VAULT_ROLE_ID"];
-              options.SecretPathPg = vaultOptions["SecretPathPg"];
-              options.SecretPathRt = vaultOptions["SecretPathRt"];
-              options.SecretPathApi = vaultOptions["SecretPathApi"];
-              options.Secret = vaultOptions["VAULT_SECRET_ID"];
-          });
+{
+    var vaultOptions = builder.Configuration.GetSection("Vault");
+    options.Address = vaultOptions["Address"];
+    options.Role = vaultOptions["VAULT_ROLE_ID"];
+    options.SecretPathPg = vaultOptions["SecretPathPg"];
+    options.SecretPathRt = vaultOptions["SecretPathRt"];
+    options.SecretPathApi = vaultOptions["SecretPathApi"];
+    options.SecretPathKafka = vaultOptions["SecretPathKafka"];
+    options.Secret = vaultOptions["VAULT_SECRET_ID"];
+});
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = null;
@@ -105,14 +106,14 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
     });
     busConfigurator.AddRider(r =>
     {
-        r.AddProducer<ESContract>(builder.Configuration["Kafka_Topic_Event"], new ProducerConfig
+        r.AddProducer<ESContract>(builder.Configuration["kf:topic"], new ProducerConfig
         {
             MessageMaxBytes = 30485880,
             QueueBufferingMaxKbytes = 40000
         });
         r.UsingKafka((context, k) =>
         {
-            k.Host(builder.Configuration["Kafka_Host"]);
+            k.Host(builder.Configuration["kf:host"]);
         });
     });
 });

@@ -9,14 +9,15 @@ using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
-          {
-              var vaultOptions = builder.Configuration.GetSection("Vault");
-              options.Address = vaultOptions["Address"];
-              options.Role = vaultOptions["VAULT_ROLE_ID"];
-              options.SecretPathRt = vaultOptions["SecretPathRt"];
-              options.SecretPathElk = vaultOptions["SecretPathElk"];
-              options.Secret = vaultOptions["VAULT_SECRET_ID"];
-          });
+{
+    var vaultOptions = builder.Configuration.GetSection("Vault");
+    options.Address = vaultOptions["Address"];
+    options.Role = vaultOptions["VAULT_ROLE_ID"];
+    options.SecretPathRt = vaultOptions["SecretPathRt"];
+    options.SecretPathElk = vaultOptions["SecretPathElk"];
+    options.SecretPathRedis = vaultOptions["SecretPathRedis"];
+    options.Secret = vaultOptions["VAULT_SECRET_ID"];
+});
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMassTransit(p =>
@@ -48,8 +49,8 @@ builder.Services.AddOpenTelemetry()
 );
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["Redis:Config"];
-    options.InstanceName = "AuctionCache";
+    options.Configuration = builder.Configuration["rd:config"];
+    options.InstanceName = builder.Configuration["rd:instance"];
 });
 
 var app = builder.Build();

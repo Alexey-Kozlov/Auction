@@ -30,6 +30,7 @@ internal class Program
             options.SecretPathPg = vaultOptions["SecretPathPg"];
             options.SecretPathRt = vaultOptions["SecretPathRt"];
             options.SecretPathApi = vaultOptions["SecretPathApi"];
+            options.SecretPathKafka = vaultOptions["SecretPathKafka"];
             options.Secret = vaultOptions["VAULT_SECRET_ID"];
         });
         builder.Services.AddControllers();
@@ -75,8 +76,8 @@ internal class Program
                 r.AddConsumer<CreateEventSourcingItemConsumer>();
                 r.UsingKafka((context, k) =>
                 {
-                    k.Host(builder.Configuration["Kafka_Host"]);
-                    k.TopicEndpoint<ESContract>(builder.Configuration["Kafka_Topic_Event"], "consumerGroup", e =>
+                    k.Host(builder.Configuration["kf:host"]);
+                    k.TopicEndpoint<ESContract>(builder.Configuration["kf:topic"], "consumerGroup", e =>
                     {
                         e.ConfigureConsumer<CreateEventSourcingItemConsumer>(context);
                         e.CreateIfMissing();

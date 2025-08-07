@@ -3,5 +3,8 @@
     "editor.defaultFormatter": "ms-dotnettools.csdevkit",
     "[typescriptreact]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
     }
 }

@@ -8,14 +8,15 @@ using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
-          {
-              var vaultOptions = builder.Configuration.GetSection("Vault");
-              options.Address = vaultOptions["Address"];
-              options.Role = vaultOptions["VAULT_ROLE_ID"];
-              options.Secret = vaultOptions["VAULT_SECRET_ID"];
-              options.SecretPathRt = vaultOptions["SecretPathRt"];
-              options.SecretPathElk = vaultOptions["SecretPathElk"];
-          });
+{
+    var vaultOptions = builder.Configuration.GetSection("Vault");
+    options.Address = vaultOptions["Address"];
+    options.Role = vaultOptions["VAULT_ROLE_ID"];
+    options.Secret = vaultOptions["VAULT_SECRET_ID"];
+    options.SecretPathRt = vaultOptions["SecretPathRt"];
+    options.SecretPathElk = vaultOptions["SecretPathElk"];
+    options.SecretPathKafka = vaultOptions["SecretPathKafka"];
+});
 builder.Services.AddControllers();
 builder.Services.AddMassTransit(busConfigurator =>
         {
@@ -43,8 +44,8 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
                     r.AddConsumer<LoggingConsumer>();
                     r.UsingKafka((context, k) =>
                     {
-                        k.Host(builder.Configuration["Kafka_Host"]);
-                        k.TopicEndpoint<ItemLoggingContract>(builder.Configuration["Kafka_Topic_Event"], "consumerGroup", e =>
+                        k.Host(builder.Configuration["kf:host"]);
+                        k.TopicEndpoint<ItemLoggingContract>(builder.Configuration["kf:topiclog"], "consumerGroup", e =>
                         {
                             e.ConfigureConsumer<LoggingConsumer>(context);
                             e.CreateIfMissing();

@@ -2,12 +2,10 @@
 using System.Text.Json;
 using Common.Contracts;
 using Common.Contracts.Auction;
-using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
 using Common.Utils.Logging;
 using Elastic.Clients.Elasticsearch;
-using Elastic.Clients.Elasticsearch.QueryDsl;
 using ElasticSearchService.Consumers.Search;
 using ElasticSearchService.Services;
 using MassTransit;

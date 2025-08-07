@@ -1,13 +1,9 @@
-using System.Linq.Expressions;
 using AutoMapper;
 using BiddingService.Data;
 using BiddingService.DTO;
 using Common.Contracts;
-using Common.Contracts.Bid;
-using Common.Contracts.Report;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Serialize.Linq.Serializers;
 
 namespace BiddingService.Controllers;
 
@@ -37,23 +33,5 @@ public class BidsController : ControllerBase
             IsSuccess = true,
             Result = highBid.Select(_mapper.Map<BidDTO>).ToList()
         };
-    }
-
-    [HttpPost("GetBidItemsByQuery")]
-    public async Task<string> GetBidItemsByQuery(ReportParamsDTO dto)
-    {
-        var serializer = new ExpressionSerializer(new JsonSerializer())
-        {
-            AutoAddKnownTypesAsListTypes = true
-        };
-        var expression = serializer.DeserializeText(dto.Expression) as Expression<Func<BidItem, bool>>;
-        var items = await _context.Bids.Where(expression).ToListAsync();
-        return System.Text.Json.JsonSerializer.Serialize(new ApiResponse<List<BidItem>>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = items
-        });
-
     }
 }

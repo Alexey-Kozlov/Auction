@@ -16,18 +16,24 @@ public class ConsoleLogging
         var server = app.Services.GetService<IServer>();
         var addressFeature = server.Features.Get<IServerAddressesFeature>();
 
-        foreach (var address in addressFeature.Addresses)
+        if (addressFeature.Addresses.Count == 0)
         {
-            if (app.Environment.IsDevelopment())
+            Console.WriteLine($"{DateTime.Now.AddHours(3).ToString("dd.MM.yyyy HH:mm:ss")} - Web-server has no any adresses");
+        }
+        else
+        {
+            foreach (var address in addressFeature.Addresses)
             {
-                Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")} - Kestrel is listening on address: {address}");
-            }
-            else
-            {
-                Console.WriteLine($"{DateTime.Now.AddHours(3).ToString("dd.MM.yyyy HH:mm:ss")} - Kestrel is listening on address: {address}");
+                if (app.Environment.IsDevelopment())
+                {
+                    Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")} - Kestrel is listening on address: {address}");
+                }
+                else
+                {
+                    Console.WriteLine($"{DateTime.Now.AddHours(3).ToString("dd.MM.yyyy HH:mm:ss")} - Kestrel is listening on address: {address}");
+                }
             }
         }
-
         app.WaitForShutdown();
     }
 }

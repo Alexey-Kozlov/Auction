@@ -8,9 +8,6 @@ COPY LocalNugetPackages /tmp
 COPY Auction/API/BiddingService/BiddingService.csproj API/BiddingService/BiddingService.csproj
 RUN dotnet restore API/BiddingService/BiddingService.csproj -a $TARGETARCH --source /tmp
 
-#COPY Auction/Packages /Packages
-#RUN dotnet restore API/BiddingService/BiddingService.csproj -a $TARGETARCH --source https://api.nuget.org/v3/index.json --source /Packages 
-
 #копируем остальные файлы проекта Auction
 COPY Auction/API/BiddingService API/BiddingService
 

@@ -34,6 +34,8 @@ public class VaultConfigurationProvider : ConfigurationProvider
         await GetApiSecret();
         await GetELKCredentials();
         await GetPasswordPolicy();
+        await GetKafkaSettings();
+        await GetRedisSettings();
     }
 
     private async Task GetDatabaseCredentials()
@@ -61,7 +63,6 @@ public class VaultConfigurationProvider : ConfigurationProvider
             Data.Add("rt:password", secrets.Data.Data["password"].ToString());
             Data.Add("rt:host", secrets.Data.Data["host"].ToString());
         }
-
     }
 
     private async Task GetApiSecret()
@@ -96,6 +97,31 @@ public class VaultConfigurationProvider : ConfigurationProvider
             Secret<SecretData> secrets = await _client.V1.Secrets.KeyValue.V2.ReadSecretAsync(
               _config.PasswordPolicy, null, "secret");
             Data.Add("pw:password_policy", secrets.Data.Data["policy"].ToString());
+        }
+    }
+
+    private async Task GetKafkaSettings()
+    {
+        if (!string.IsNullOrEmpty(_config.SecretPathKafka))
+        {
+            Secret<SecretData> secrets = await _client.V1.Secrets.KeyValue.V2.ReadSecretAsync(
+              _config.SecretPathKafka, null, "secret");
+
+            Data.Add("kf:host", secrets.Data.Data["host"].ToString());
+            Data.Add("kf:topic", secrets.Data.Data["topic"].ToString());
+            Data.Add("kf:topiclog", secrets.Data.Data["topiclog"].ToString());
+        }
+    }
+
+    private async Task GetRedisSettings()
+    {
+        if (!string.IsNullOrEmpty(_config.SecretPathRedis))
+        {
+            Secret<SecretData> secrets = await _client.V1.Secrets.KeyValue.V2.ReadSecretAsync(
+              _config.SecretPathRedis, null, "secret");
+
+            Data.Add("rd:config", secrets.Data.Data["config"].ToString());
+            Data.Add("rd:instance", secrets.Data.Data["instance"].ToString());
         }
     }
 }

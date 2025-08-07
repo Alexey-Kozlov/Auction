@@ -323,5 +323,6 @@ export enum SignalREvents {
 	CommunicationCreate,
 	CommunicationUpdate,
 	CommunicationDelete,
-	RestoreSnapShot
+	RestoreSnapShot,
+	SessionId
 }
