@@ -28,7 +28,8 @@ public class SearchServiceSql
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
             query = query.Where(p => p.Title.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||
-            p.Properties.ToLower().Contains(searchParams.SearchTerm.ToLower()));
+            p.Properties.ToLower().Contains(searchParams.SearchTerm.ToLower()) ||
+            p.Description.ToLower().Contains(searchParams.SearchTerm.ToLower()));
         }
         //сортировка в зависимости от текстового параметра OrderBy
         query = searchParams.OrderBy switch

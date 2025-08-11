@@ -9,13 +9,15 @@ import { RootState } from "../../store/store";
 import { setData } from "../../store/auctionSlice";
 import Filters from "./Filters";
 import { Auction, ProcessingState } from "../../types";
-import { setEventFlag } from "../../store/processingSlice";
 import Waiter from "../Waiter";
 import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
+import {
+  CheckEventLastChangedNotReady,
+  CheckEventLastChangedReady,
+} from "../../utils/CheckEvent";
 
 export default function Listings() {
   const dispatch = useDispatch();
-  // eslint-disable-next-line
   const params = useSelector((state: RootState) => state.paramStore);
   const data = useSelector((state: RootState) => state.auctionStore);
   const auctions: Auction[] = data.auctions;
@@ -23,6 +25,7 @@ export default function Listings() {
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
   );
+  const [isWait, setIsWait] = useState(true);
 
   //автоматически запускается при изменении url
   let auctionsData = useGetAuctionsQuery(url, {
@@ -34,26 +37,36 @@ export default function Listings() {
   // auctionStore -> auctionSlice
   useEffect(() => {
     if (
+      !CheckEventLastChangedReady(procState, "ElkSearch") &&
       !auctionsData.isLoading &&
       !auctionsData.isFetching &&
       auctionsData.data
     ) {
       //данные готовы - заполняем локальное хранилище и скрываем иконку ожидания
       dispatch(setData(auctionsData.data.result));
-      dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+      setIsWait(() => false);
+    } else {
+      setIsWait(() => true);
     }
     // eslint-disable-next-line
   }, [auctionsData]);
 
   //запрос на обновление данных при поступлении сообщения об изменении коллекции - нужно
-  //принудительно обновить все записи.
+  //принудительно обновить все записи. Это возникает при поиске через Эластик или при завершении аукциона
   useEffect(() => {
-    const eventStateChanged = procState.find(
-      (p) => p.eventName === "CollectionChanged" && p.ready && p.lastChanged
-    );
-    if (eventStateChanged) {
+    if (
+      !auctionsData.isUninitialized &&
+      CheckEventLastChangedNotReady(procState, "AuctionFinished")
+    ) {
       auctionsData.refetch();
-      dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
+      setIsWait(() => true);
+    }
+    //поиск из Эластика
+    if (CheckEventLastChangedNotReady(procState, "ElkSearch")) {
+      setIsWait(() => false);
+    }
+    if (CheckEventLastChangedReady(procState, "ElkSearch")) {
+      setIsWait(() => true);
     }
     // eslint-disable-next-line
   }, [procState]);
@@ -68,9 +81,6 @@ export default function Listings() {
     );
   }
 
-  if (auctionsData.isLoading && auctionsData.isFetching)
-    return <h3>Загрузка...</h3>;
-
   return (
     <div>
       <div className="ListingFilter">
@@ -78,8 +88,7 @@ export default function Listings() {
       </div>
 
       <div className="ListingContainer">
-        {procState.find((p) => p.eventName === "WaiterHide") &&
-        !procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
+        {isWait ? (
           <Waiter />
         ) : auctions.length === 0 ? (
           <EmptyFilter showReset />

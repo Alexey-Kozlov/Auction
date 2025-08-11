@@ -170,9 +170,10 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем восстановление БД на указанную дату
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        //корректируем время - приходит по Гринвичу, прибавляем 3 часа - для Московского
         await _publishEndpoint.Publish(new RequestRestoreItems
         {
-            RestoreDate = param.RestoreDate,
+            RestoreDate = param.RestoreDate.AddHours(3),
             UserLogin = userLogin,
             CorrelationId = Guid.NewGuid(),
             SessionId = param.SessionId,

@@ -25,6 +25,7 @@ import { MenuItem } from "primereact/menuitem";
 import ModalEditText from "../../modals/ModalEditText";
 import ModalYesNo from "../../modals/ModalYesNo";
 import { Button } from "primereact/button";
+import { CheckEventReady } from "../../../utils/CheckEvent";
 
 type Props = {
   auction: Auction;
@@ -76,7 +77,7 @@ export default function TabChatTable({ auction, user }: Props) {
     let createMessage = newMessage;
     createMessage.actionType = ActionType.create;
     dispatch(setChatMessage(createMessage));
-    dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: false }));
+    dispatch(setEventFlag({ eventName: "CommunicationChanged", ready: true }));
   };
 
   //отслеживаем обновления данных чата и обновляем отображение при изменениях
@@ -191,7 +192,7 @@ export default function TabChatTable({ auction, user }: Props) {
     updateMessage.sessionId = SessionType[SessionType.all];
     setShowConfirmEditDialog(false);
     dispatch(setChatMessage(updateMessage));
-    dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: false }));
+    dispatch(setEventFlag({ eventName: "CommunicationChanged", ready: true }));
   };
 
   const rejectEditDialog = () => {
@@ -207,7 +208,7 @@ export default function TabChatTable({ auction, user }: Props) {
     deleteMessage.actionType = ActionType.delete;
     setShowConfirmDeleteDialog(false);
     dispatch(setChatMessage(deleteMessage));
-    dispatch(setEventFlag({ eventName: "WaiterHideChat", ready: false }));
+    dispatch(setEventFlag({ eventName: "CommunicationChanged", ready: true }));
   };
 
   const rejectDeleteDialog = () => {
@@ -255,8 +256,7 @@ export default function TabChatTable({ auction, user }: Props) {
             onClick={handleMessageSubmit}
           />
         </div>
-        {procState.find((p) => p.eventName === "WaiterHideChat") &&
-        !procState.find((p) => p.eventName === "WaiterHideChat")!.ready ? (
+        {CheckEventReady(procState, "CommunicationChanged") ? (
           <div className="CenterItem">
             <Waiter />
           </div>

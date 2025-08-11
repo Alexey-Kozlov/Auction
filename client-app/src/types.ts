@@ -324,5 +324,7 @@ export enum SignalREvents {
 	CommunicationUpdate,
 	CommunicationDelete,
 	RestoreSnapShot,
-	SessionId
+	SessionId,
+	CommunicationChanged,
+	CollectionChanged
 }

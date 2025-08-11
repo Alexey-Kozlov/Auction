@@ -88,11 +88,10 @@ export default function SignalRProvider() {
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.BidPlaced],
-                ready: true,
+                ready: false,
                 itemId: bid.ItemId,
               })
             );
-            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
             toastMessage!.show({
               severity: "success",
               life: 4000,
@@ -110,21 +109,13 @@ export default function SignalRProvider() {
         connection.on(
           SignalREvents[SignalREvents.AuctionCreate],
           (message: NotificationEvent) => {
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.CollectionChanged],
+                ready: false,
+              })
+            );
             const auction = JSON.parse(message.data);
-            dispatch(
-              setEventFlag({
-                eventName: "CollectionChanged",
-                ready: true,
-                itemId: auction.ItemId,
-              })
-            );
-            dispatch(
-              setEventFlag({
-                eventName: "ImageChanged",
-                ready: true,
-                itemId: auction.ItemId,
-              })
-            );
             if (message.show) {
               toastMessage!.show({
                 severity: "success",
@@ -144,21 +135,13 @@ export default function SignalRProvider() {
         connection.on(
           SignalREvents[SignalREvents.AuctionUpdate],
           (message: NotificationEvent) => {
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.CollectionChanged],
+                ready: false,
+              })
+            );
             const auction = JSON.parse(message.data);
-            dispatch(
-              setEventFlag({
-                eventName: "CollectionChanged",
-                ready: true,
-                itemId: auction.ItemId,
-              })
-            );
-            dispatch(
-              setEventFlag({
-                eventName: "ImageChanged",
-                ready: true,
-                itemId: auction.ItemId,
-              })
-            );
             if (message.show) {
               toastMessage!.show({
                 severity: "success",
@@ -183,8 +166,8 @@ export default function SignalRProvider() {
             ) as AuctionFinished;
             dispatch(
               setEventFlag({
-                eventName: "CollectionChanged",
-                ready: true,
+                eventName: SignalREvents[SignalREvents.AuctionFinished],
+                ready: false,
                 itemId: auction.itemId,
               })
             );
@@ -212,9 +195,8 @@ export default function SignalRProvider() {
             const auction = JSON.parse(message.data);
             dispatch(
               setEventFlag({
-                eventName: "AuctionDeleted",
-                ready: true,
-                itemId: auction.ItemId,
+                eventName: SignalREvents[SignalREvents.CollectionChanged],
+                ready: false,
               })
             );
             if (message.show) {
@@ -240,10 +222,9 @@ export default function SignalRProvider() {
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.FinanceCreate],
-                ready: true,
+                ready: false,
               })
             );
-            dispatch(setEventFlag({ eventName: "Waiter", ready: true }));
             if (message.show) {
               toastMessage!.show({
                 severity: "success",
@@ -270,7 +251,12 @@ export default function SignalRProvider() {
             let elkData = JSON.parse(elk.data).Result as any;
             elkData = CamelToSnake(elkData);
             dispatch(setData(elkData));
-            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.ElkSearch],
+                ready: false,
+              })
+            );
           }
         );
 
@@ -280,7 +266,7 @@ export default function SignalRProvider() {
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.ElkIndexReset],
-                ready: true,
+                ready: false,
               })
             );
             if (result.show) {
@@ -332,7 +318,7 @@ export default function SignalRProvider() {
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.SetSnapShot],
-                ready: true,
+                ready: false,
               })
             );
           }
@@ -344,7 +330,7 @@ export default function SignalRProvider() {
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.RestoreSnapShot],
-                ready: true,
+                ready: false,
               })
             );
             setProgressData((prev) => {
@@ -361,14 +347,12 @@ export default function SignalRProvider() {
         connection.on(
           SignalREvents[SignalREvents.ErrorMessage],
           (message: Message) => {
-            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
             //убираем иконку ожидания
             dispatch(
-              setEventFlag({ eventName: "WaiterHideNotify", ready: true })
-            );
-            dispatch(setEventFlag({ eventName: "WaiterHide", ready: true }));
-            dispatch(
-              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.ElkSearch],
+                ready: false,
+              })
             );
             toastMessage!.show({
               severity: "error",
@@ -389,10 +373,10 @@ export default function SignalRProvider() {
           (message: NotificationEvent) => {
             const event = JSON.parse(message.data);
             dispatch(
-              setEventFlag({ eventName: "WaiterHideNotify", ready: true })
-            );
-            dispatch(
-              setEventFlag({ eventName: "EditNotification", ready: true })
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.EditNotification],
+                ready: false,
+              })
             );
 
             const text = event.Enable
@@ -420,7 +404,7 @@ export default function SignalRProvider() {
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.ResetImageCache],
-                ready: true,
+                ready: false,
               })
             );
             toastMessage!.show({
@@ -442,7 +426,10 @@ export default function SignalRProvider() {
           (message: NotificationEvent) => {
             const data = JSON.parse(message.data);
             dispatch(
-              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.CommunicationChanged],
+                ready: false,
+              })
             );
             dispatch(
               setChatResponse({
@@ -463,7 +450,10 @@ export default function SignalRProvider() {
           (message: NotificationEvent) => {
             const data = JSON.parse(message.data);
             dispatch(
-              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.CommunicationChanged],
+                ready: false,
+              })
             );
             dispatch(
               setChatResponse({
@@ -484,7 +474,10 @@ export default function SignalRProvider() {
           (message: NotificationEvent) => {
             const data = JSON.parse(message.data);
             dispatch(
-              setEventFlag({ eventName: "WaiterHideChat", ready: true })
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.CommunicationChanged],
+                ready: false,
+              })
             );
             dispatch(
               setChatResponse({

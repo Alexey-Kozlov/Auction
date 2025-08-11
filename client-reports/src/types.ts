@@ -1,10 +1,10 @@
-import { AuctionListTypes } from "./components/reports/auctionList/AuctionListTypes";
+import { IconType } from "react-icons";
 
 export interface ReportItem {
 	Name: string;
 	Description: string;
 	Id: string;
-	Icon: string;
+	Icon: IconType;
 }
 
 export type ParameterItem = {

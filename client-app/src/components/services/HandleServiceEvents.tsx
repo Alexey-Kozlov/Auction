@@ -8,9 +8,10 @@ import {
   useRestoreSnapShotMutation,
   useResetImageCacheMutation,
 } from "../../api/ServiceApi";
+import { CheckEventLastChangedReady } from "../../utils/CheckEvent";
 
 export default function HandleServiceEvents() {
-  const events: ProcessingState[] = useSelector(
+  const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
   );
   const sessionId = useSelector(
@@ -22,33 +23,21 @@ export default function HandleServiceEvents() {
   const [resetImageCache] = useResetImageCacheMutation();
   useEffect(() => {
     //запускаем переиндексацию
-    if (
-      events.find(
-        (p) => p.eventName === "ElkIndex" && !p.ready && p.lastChanged
-      )
-    ) {
+    if (CheckEventLastChangedReady(procState, "ElkIndex")) {
       const sesion: Session = { sessionid: sessionId };
       elkIndex(sesion);
     }
 
     //запускаем создание снапшота
-    if (
-      events.find(
-        (p) => p.eventName === "SetSnapShot" && !p.ready && p.lastChanged
-      )
-    ) {
+    if (CheckEventLastChangedReady(procState, "SetSnapShot")) {
       const session: Session = { sessionid: sessionId };
       snapShotDb(session);
     }
 
     //запускаем восстановление снапшота
-    if (
-      events.find(
-        (p) => p.eventName === "RestoreSnapShot" && !p.ready && p.lastChanged
-      )
-    ) {
-      let restoreData = events.find(
-        (p) => p.eventName === "RestoreSnapShot" && !p.ready && p.lastChanged
+    if (CheckEventLastChangedReady(procState, "RestoreSnapShot")) {
+      let restoreData = procState.find(
+        (p) => p.eventName === "RestoreSnapShot" && p.ready && p.lastChanged
       )?.param;
       const data: RestoreDb = {
         sessionid: sessionId,
@@ -59,16 +48,12 @@ export default function HandleServiceEvents() {
     }
 
     //запускаем сброс кеша изображений
-    if (
-      events.find(
-        (p) => p.eventName === "ResetImageCache" && !p.ready && p.lastChanged
-      )
-    ) {
+    if (CheckEventLastChangedReady(procState, "ResetImageCache")) {
       const session: Session = { sessionid: sessionId };
       resetImageCache(session);
     }
     // eslint-disable-next-line
-  }, [events, sessionId]);
+  }, [procState, sessionId]);
 
   return <></>;
 }

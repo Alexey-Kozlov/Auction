@@ -40,14 +40,14 @@ export default function BidList({ user, auction }: Props) {
   //при каждом обновлении заявок - вычисление последней заявки для прокрутки
   //списка заявок вверх (если заявок много)
   useEffect(() => {
-    if (!bidList.isLoading && !bidList.isFetching && bids && bids.length > 0) {
+    if (bids && bids.length > 0) {
       const maxBidId: Bid = Array.from(bids).sort((a: Bid, b: Bid) => {
         return Date.parse(b.bidTime) - Date.parse(a.bidTime);
       })[0];
       setLastBidId(maxBidId.itemId);
     }
     // eslint-disable-next-line
-  }, [bidList, bids]);
+  }, [bids]);
 
   //первоначальное заполнение списка заявок
   useEffect(() => {
@@ -79,8 +79,6 @@ export default function BidList({ user, auction }: Props) {
 
     // eslint-disable-next-line
   }, [lastBidId]);
-
-  if (bidList.isLoading) return <span>Загрузка предложений...</span>;
 
   return (
     <div className="BidPanel">
@@ -124,7 +122,6 @@ export default function BidList({ user, auction }: Props) {
           <BidForm
             auctionId={auction?.itemId}
             highBid={bidRestriction()}
-            bidList={bidList}
           />
         )}
       </div>

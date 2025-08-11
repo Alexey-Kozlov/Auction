@@ -8,12 +8,17 @@ export default function Card(props: ReportItem) {
     nav(`/reports/${props.Id}`, { replace: true });
   };
   return (
-    <Panel
-      onClick={clickHandler}
-      className="ReportCardContainer"
-    >
-      <h5 className="ReportCardTitle">{props.Name}</h5>
-      <p className="text-3xl text-center">{props.Description}</p>
-    </Panel>
+    <>
+      <Panel
+        onClick={clickHandler}
+        className="ReportCardContainer"
+      >
+        <div>
+          <props.Icon size={22} />
+        </div>
+        <h5 className="ReportCardTitle">{props.Name}</h5>
+        <p className="text-3xl text-center">{props.Description}</p>
+      </Panel>
+    </>
   );
 }

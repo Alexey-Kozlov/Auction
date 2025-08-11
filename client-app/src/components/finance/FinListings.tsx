@@ -28,6 +28,7 @@ import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
 import { SelectItem } from "primereact/selectitem";
 import Waiter from "../Waiter";
 import Footer from "../layout/Footer";
+import { CheckEventReady } from "../../utils/CheckEvent";
 
 export default function FinListings() {
   const dispatch = useDispatch();
@@ -67,7 +68,6 @@ export default function FinListings() {
 
   // первоначальное получение всех записей по финансам данного пользователя
   useEffect(() => {
-    //dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
     if (
       !financeQuery.isFetching &&
       !financeQuery.isLoading &&
@@ -80,10 +80,10 @@ export default function FinListings() {
 
   //при добавлении нового значения - обновляем таблицу
   useEffect(() => {
-    if (procState.find((p) => p.eventName === "FinanceCreate" && p.ready)) {
-      dispatch(setEventFlag({ eventName: "FinanceCreate", ready: false }));
+    if (!CheckEventReady(procState, "FinanceCreate") && isWaiting) {
       financeQuery.refetch();
       balance.refetch();
+      setIsWaiting(() => false);
     }
     // eslint-disable-next-line
   }, [procState]);
@@ -98,9 +98,9 @@ export default function FinListings() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsWaiting(() => true);
     dispatch(reset(null));
-    dispatch(setEventFlag({ eventName: "FinanceCreate", ready: false }));
-    dispatch(setEventFlag({ eventName: "Waiter", ready: false }));
+    dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
     await addCredit({
       amount: amount as number,
       sessionid: sessionId,
@@ -348,8 +348,7 @@ export default function FinListings() {
                     />
                   </div>
                   <div>
-                    {procState.find((p) => p.eventName === "Waiter") &&
-                    !procState.find((p) => p.eventName === "Waiter")!.ready ? (
+                    {CheckEventReady(procState, "FinanceCreate") ? (
                       <Waiter />
                     ) : (
                       <Button

@@ -28,12 +28,13 @@ public class SearchController : ControllerBase
     {
         //если заполнен параметр SearchAdv - это означает, что поступил запрос на поиск
         //в ElasticSearch. В этом случае направляем запрос через шину сообщений в сервис ElasticSearchService
+        //и ничего не возвращаем
         if (!string.IsNullOrEmpty(searchParams.SearchAdv))
         {
             return await _search.ElkSearchItems(searchParams);
         }
-
-        //а здесь обычный SQL-поиск с точным частичным вхождением поисковой последовательности в поля title, properties
+        //а здесь обычный SQL-поиск с точным вхождением поисковой последовательности в поля title, description, properties
+        //возвращаем полученные записи в ответ, синхронное взаимодействие
         return await _search.SqlSearchItems(searchParams);
     }
 

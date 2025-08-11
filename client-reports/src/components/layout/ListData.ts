@@ -1,4 +1,6 @@
 import { ReportItem } from "../../types";
+import { RiAuctionLine } from "react-icons/ri";
+import { MdOutlineNotificationImportant } from "react-icons/md";
 
 export default function ListData(): ReportItem[] {
 	return [
@@ -6,13 +8,13 @@ export default function ListData(): ReportItem[] {
 			Name: "Аукционы",
 			Description: "Список всех аукционов",
 			Id: "AuctionList",
-			Icon: "111",
+			Icon: RiAuctionLine
 		},
 		{
 			Name: "Уведомления",
 			Description: "Список уведомлений",
 			Id: "NotificationList",
-			Icon: "333",
+			Icon: MdOutlineNotificationImportant
 		},
 	];
 }

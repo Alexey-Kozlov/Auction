@@ -3,7 +3,6 @@ import { ApiResponseNet } from "../types";
 export const PostApiProcess = (response: ApiResponseNet<any>) => {
 	if (response && response.errorMessages && !response.isSuccess) {
 		console.log(response.errorMessages.join(","));
-		//toast.error(response.errorMessages[0]);
 	}
 };
 
@@ -15,26 +14,20 @@ export const PostErrorApiProcess = (response: any) => {
 		!response.data.isSuccess
 	) {
 		console.log(response.data.errorMessages.join(","));
-		//toast.error(response.data.errorMessages[0]);
 		return;
 	}
 	if (response && response.status === 403) {
 		console.log("Ошибка доступа!");
-		//toast.error("Ошибка доступа к ресурсу!");
 		return;
 	}
 	if (response && response.status === 404) {
 		console.log("Страница не найдена!");
-		//toast.error("Страница не найдена!");
 		return;
 	}
 	if (response) {
 		console.log(
 			"Ошибка, код  - " + response.status + ", " + response.data.errors["$"]
 		);
-		// toast.error(
-		// 	"Ошибка, код  - " + response.status + ", " + response.data.errors["$"]
-		// );
 		return;
 	}
 };

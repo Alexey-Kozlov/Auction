@@ -112,6 +112,7 @@ export default function UserActions() {
       menuItems.push(...logoutMenuItem);
       return prev;
     });
+    // eslint-disable-next-line
   }, [user]);
 
   const [logoutUser] = useLogoutUserMutation();
@@ -139,7 +140,7 @@ export default function UserActions() {
   };
 
   const handleElkReindexClick = () => {
-    dispatch(setEventFlag({ eventName: "ElkIndex", ready: false }));
+    dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
     toastMessage!.show({
       severity: "success",
       life: 4000,
@@ -155,7 +156,7 @@ export default function UserActions() {
 
   const acceptSetSnapShotDialog = () => {
     //создаем снимок БД
-    dispatch(setEventFlag({ eventName: "SetSnapShot", ready: false }));
+    dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
     setShowConfirmSet(false);
   };
 
@@ -168,7 +169,7 @@ export default function UserActions() {
     dispatch(
       setEventFlag({
         eventName: "RestoreSnapShot",
-        ready: false,
+        ready: true,
         param: { dateValue: dateValue, resetLog: resetLog },
       })
     );
@@ -180,7 +181,7 @@ export default function UserActions() {
   };
 
   const handleResetImageCacheClick = () => {
-    dispatch(setEventFlag({ eventName: "ResetImageCache", ready: false }));
+    dispatch(setEventFlag({ eventName: "ResetImageCache", ready: true }));
     toastMessage!.show({
       severity: "success",
       life: 4000,

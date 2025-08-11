@@ -1,7 +1,7 @@
 import { SortDirection } from "../../../types";
 
 export type AuctionListTypes = {
-	AuctionId: string;
+	ItemId: string;
 	Seller: string;
 	Bidder: string;
 	Amount: number;

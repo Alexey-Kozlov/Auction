@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ReportListData from "../ListData";
 import { BreadCrumb } from "primereact/breadcrumb";
 
@@ -19,7 +19,7 @@ export default function BreadCrumbNav() {
       template: () => (
         <Link
           className="BreadCrumbItem"
-          to="/inputtext"
+          to={`/reports/${id}`}
         >
           {id && ReportListData().find((p) => p.Id === id)!.Name}
         </Link>
@@ -27,7 +27,6 @@ export default function BreadCrumbNav() {
     },
   ];
 
-  const navigate = useNavigate();
   return (
     <>
       <BreadCrumb

@@ -3,6 +3,7 @@ import { AuctionListTypes } from "../AuctionListTypes";
 import { DataTable, DataTableFilterMeta } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FilterMatchMode } from "primereact/api";
+import { NavLink } from "react-router-dom";
 
 type Props = {
   items: AuctionListTypes[];
@@ -10,7 +11,7 @@ type Props = {
 
 export default function AuctionTable({ items }: Props) {
   const [repItems, setRepItems] = useState<AuctionListTypes[] | null>();
-
+  // eslint-disable-next-line
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     Seller: { value: null, matchMode: FilterMatchMode.CONTAINS },
     Title: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -20,6 +21,7 @@ export default function AuctionTable({ items }: Props) {
 
   useEffect(() => {
     setRepItems(() => items);
+    // eslint-disable-next-line
   }, []);
 
   const StartDateTemplate = (val: AuctionListTypes) => {
@@ -38,6 +40,18 @@ export default function AuctionTable({ items }: Props) {
     );
   };
 
+  const AuctionIdTemplate = (val: AuctionListTypes) => {
+    return (
+      <NavLink
+        to={process.env.REACT_APP_API_URL! + "/auctions/" + val.ItemId}
+        target="_blank"
+        className="no-underline text-color"
+      >
+        <div>{val.ItemId}</div>
+      </NavLink>
+    );
+  };
+
   return (
     <div>
       <DataTable
@@ -51,6 +65,11 @@ export default function AuctionTable({ items }: Props) {
         filters={filters}
         filterDisplay="row"
       >
+        <Column
+          field="AuctionId"
+          header="ID аукциона"
+          body={AuctionIdTemplate}
+        ></Column>
         <Column
           field="Seller"
           header="Продавец"

@@ -9,6 +9,13 @@ type Props = {
 };
 
 export default function FinRow({ item }: Props) {
+  const getLocalTime = (_date: Date, selector: string): string => {
+    let dt = new Date(_date);
+    dt.setHours(dt.getHours() - 3);
+    return selector === "d"
+      ? dt.toLocaleDateString("RU-ru")
+      : dt.toLocaleTimeString("RU-ru");
+  };
   return (
     <div className="grid m-0">
       <div className="col-2 CenterItem FinanceTableCell">
@@ -42,8 +49,8 @@ export default function FinRow({ item }: Props) {
       </div>
       <div className="col-2 CenterItem FinanceTableCell">
         <div className="FinanceListText">
-          {`${new Date(item.actionDate).toLocaleDateString("ru-RU")} 
-				${new Date(item?.actionDate).toLocaleTimeString("ru-RU")}`}
+          {`${getLocalTime(item.actionDate, "d")} 
+				  ${getLocalTime(item.actionDate, "t")}`}
         </div>
       </div>
 

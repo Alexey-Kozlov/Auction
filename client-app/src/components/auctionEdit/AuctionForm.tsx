@@ -30,6 +30,7 @@ import {
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import Waiter from "../Waiter";
+import { CheckEventReady } from "../../utils/CheckEvent";
 
 export default function AuctionForm() {
   let { id } = useParams();
@@ -128,11 +129,7 @@ export default function AuctionForm() {
   //при получении сообщения об изменении параметра CollectionChanged -
   //обновляем значения записи (удаляем кеширование), переходим на список аукционов
   useEffect(() => {
-    if (
-      procState.find(
-        (p) => p.eventName === "CollectionChanged" && p.ready && isWaiting
-      )
-    ) {
+    if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
       if (id && id !== "empty") {
         auction.refetch();
       }
@@ -229,8 +226,10 @@ export default function AuctionForm() {
       correlationId: uuid.v4() as string,
       usingImage: newAuction.usingImage!,
     };
-    dispatch(setEventFlag({ eventName: "WaiterHide", ready: false }));
-    dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
+    // событие CollectionChanged для отслеживания значка ожидания, событие ожидания создается (ready=true)
+    // после нажатия кнопки "Сохранить" - и снимается после получения сообщения в SignalRProvider
+    // (ready=false)
+    dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
     if (id && id !== "empty") {
       //обновление аукциона
       await updateAuction(auctionUpdated);
@@ -241,16 +240,9 @@ export default function AuctionForm() {
     //далее ждем сообщения о выполнении команды
   };
 
-  if (auction.isLoading) return "Загрузка...";
-
   return (
     <div className="CenterItem">
-      {procState.find((p) => p.eventName === "WaiterHide") &&
-      !procState.find((p) => p.eventName === "WaiterHide")!.ready ? (
-        <Waiter />
-      ) : (
-        <></>
-      )}
+      {CheckEventReady(procState, "CollectionChanged") ? <Waiter /> : <></>}
       <Panel className="EditForm">
         <Heading
           title="Редактирование аукциона"
@@ -364,7 +356,10 @@ export default function AuctionForm() {
                 raised
                 rounded
                 className="CustomButton w-16rem"
-                disabled={!isFormChanged || isWaiting}
+                disabled={
+                  !isFormChanged ||
+                  CheckEventReady(procState, "CollectionChanged")
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   handleSubmit();
