@@ -155,7 +155,6 @@ public class AuctionCreateFinalize
 #region AuctionDelete
 
 public record RequestAuctionDelete(
-      string SessionId,
       string UserLogin,
       Guid ItemId,
       Guid CorrelationId

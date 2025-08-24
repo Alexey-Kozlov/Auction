@@ -7,7 +7,6 @@ public class MessageChat
     public string Message { get; set; }
     public string UserLogin { get; set; }
     public string AuctionId { get; set; }
-    public string SessionId { get; set; }
     public ActionType ActionType { get; set; }
 }
 

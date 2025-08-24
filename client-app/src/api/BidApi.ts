@@ -6,7 +6,6 @@ import uuid from "react-native-uuid";
 import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const bidApi = createApi({
-	//refetchOnMountOrArgChange: true,
 	reducerPath: "bidApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + `/api/bids`,

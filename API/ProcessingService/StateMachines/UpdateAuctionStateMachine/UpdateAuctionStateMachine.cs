@@ -338,7 +338,7 @@ public class UpdateAuctionStateMachine : MassTransitStateMachine<UpdateAuctionSt
                         SignalRMethod = SignalRMethod.AuctionUpdate,
                         AuctionId = context.Saga.AuctionId,
                         Show = !context.Saga.IsError,
-                        SessionId = "auctionGroup",
+                        EventType = EventType.AuctionGroup,
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
                         .DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data

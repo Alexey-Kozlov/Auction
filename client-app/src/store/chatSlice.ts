@@ -8,7 +8,6 @@ const initialChatMessage: ChatComment = {
 	userLogin: "",
 	auctionId: "",
 	updateAt: new Date(),
-	sessionId: "",
 	actionType: ActionType.read,
 };
 
@@ -33,7 +32,6 @@ export const chatMessage = createSlice({
 			if (action.payload?.userLogin) state.userLogin = action.payload.userLogin;
 			if (action.payload?.auctionId) state.auctionId = action.payload.auctionId;
 			if (action.payload?.updateAt) state.updateAt = action.payload.updateAt;
-			if (action.payload?.sessionId) state.sessionId = action.payload.sessionId;
 			if (action.payload?.actionType !== null)
 				state.actionType = action.payload.actionType;
 		},

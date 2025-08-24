@@ -21,11 +21,11 @@ public class ImageDTO
 
 public class ResetImageCache
 {
-    public string SessionId { get; set; }
+    public string UserLogin { get; set; }
 }
 public class ResetImageCacheNotification
 {
-    public string SessionId { get; set; }
+    public string UserLogin { get; set; }
 }
 
 public class ImageCommit

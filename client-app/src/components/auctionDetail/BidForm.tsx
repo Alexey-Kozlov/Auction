@@ -1,6 +1,6 @@
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { usePlaceBidForAuctionMutation } from "../../api/ProcessingApi";
-import { FormErrors, ProcessingState, SessionType, User } from "../../types";
+import { FormErrors, ProcessingState, SignalREvents, User } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { FormEvent, useEffect, useState } from "react";
@@ -9,9 +9,10 @@ import Waiter from "../Waiter";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
 import { Message } from "primereact/message";
 import { InputNumber } from "primereact/inputnumber";
-import { useGetBidsForAuctionQuery } from "../../api/BidApi";
-import { CheckEventReady } from "../../utils/CheckEvent";
-import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
+import {
+  CheckEventLastChangedReady,
+  CheckEventReady,
+} from "../../utils/CheckEvent";
 
 type Props = {
   auctionId: string;
@@ -27,18 +28,18 @@ export default function BidForm({ auctionId, highBid }: Props) {
   );
   const user: User = useSelector((state: RootState) => state.authStore);
   const isNotifyUser = useIsNotifyUserQuery(auctionId, {
-    skip: user.login === "" || user.login === undefined,
-  });
-  const bidList = useGetBidsForAuctionQuery(auctionId);
-  const auction = useGetDetailedViewDataQuery(auctionId, {
-    skip: auctionId === "empty",
+    skip: user.isGuest,
   });
   //обновляем список ставок и переключатель уведомлений после добавления ставки
   useEffect(() => {
-    if (isWaiting && !CheckEventReady(procState, "BidPlaced")) {
-      bidList.refetch();
+    if (
+      isWaiting &&
+      !CheckEventLastChangedReady(
+        procState,
+        SignalREvents[SignalREvents.BidPlaced]
+      )
+    ) {
       isNotifyUser.refetch();
-      auction.refetch();
       setIsWaiting(() => false);
     }
     // eslint-disable-next-line
@@ -71,18 +72,26 @@ export default function BidForm({ auctionId, highBid }: Props) {
     }
     setBidError(null);
 
-    dispatch(setEventFlag({ eventName: "BidPlaced", ready: true }));
+    dispatch(
+      setEventFlag({
+        eventName: SignalREvents[SignalREvents.BidPlaced],
+        ready: true,
+      })
+    );
     setIsWaiting(() => true);
     await placeBid({
       amount: bidValue as number,
       auctionId: auctionId,
-      sessionId: SessionType[SessionType.auctionGroup],
     });
   };
 
   return (
     <>
-      {CheckEventReady(procState, "BidPlaced") ? <Waiter /> : <></>}
+      {CheckEventReady(procState, SignalREvents[SignalREvents.BidPlaced]) ? (
+        <Waiter />
+      ) : (
+        <></>
+      )}
       <div>
         <form onSubmit={(e) => handleSubmit(e)}>
           <div className="text-center">

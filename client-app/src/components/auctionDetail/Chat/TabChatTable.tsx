@@ -5,7 +5,6 @@ import {
   ChatComment,
   ModalTypes,
   ProcessingState,
-  SessionType,
   SortDirection,
   User,
 } from "../../../types";
@@ -26,6 +25,7 @@ import ModalEditText from "../../modals/ModalEditText";
 import ModalYesNo from "../../modals/ModalYesNo";
 import { Button } from "primereact/button";
 import { CheckEventReady } from "../../../utils/CheckEvent";
+import { useSetUsersCurrentPageMutation } from "../../../api/ServiceApi";
 
 type Props = {
   auction: Auction;
@@ -33,6 +33,7 @@ type Props = {
 };
 
 export default function TabChatTable({ auction, user }: Props) {
+  const [setCurrentPage] = useSetUsersCurrentPageMutation();
   const cm = useRef<ContextMenu>(null);
   const [communicationItems, setCommunicationItems] = useState<ChatComment[]>(
     []
@@ -54,7 +55,6 @@ export default function TabChatTable({ auction, user }: Props) {
     parentId: "",
     userLogin: "",
     auctionId: "",
-    sessionId: SessionType[SessionType.all],
   } as ChatComment);
 
   const dispatch = useDispatch();
@@ -80,8 +80,10 @@ export default function TabChatTable({ auction, user }: Props) {
     dispatch(setEventFlag({ eventName: "CommunicationChanged", ready: true }));
   };
 
-  //отслеживаем обновления данных чата и обновляем отображение при изменениях
   useEffect(() => {
+    //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
+    setCurrentPage("/communication/" + auction.itemId);
+    //сортируем при первоначальной загрузке
     if (
       !communication.isFetching &&
       !communication.isLoading &&
@@ -94,14 +96,12 @@ export default function TabChatTable({ auction, user }: Props) {
         _temp?.sort(DynamicSort("updateAt", SortDirection.descending))
       );
     }
+    // eslint-disable-next-line
   }, [communication]);
 
+  //если на странице поменяли пользователя
   useEffect(() => {
-    if (!user.login) {
-      setCommunicationItems(() => []);
-    } else {
-      communication.refetch();
-    }
+    communication.refetch();
     // eslint-disable-next-line
   }, [user]);
 
@@ -114,14 +114,13 @@ export default function TabChatTable({ auction, user }: Props) {
           itemId: chatResponse.itemId,
           message: chatResponse.message,
           parentId: chatResponse.parentId,
-          sessionId: "",
           updateAt: chatResponse.updateAt,
           userLogin: chatResponse.userLogin,
           actionType: ActionType.create,
         };
-        setCommunicationItems((prev) => [...prev, newChatMessage]);
         setCommunicationItems((prev) => {
-          let _temp = JSON.parse(JSON.stringify(prev)) as ChatComment[];
+          let _temp = [...prev, newChatMessage];
+          _temp = JSON.parse(JSON.stringify(_temp)) as ChatComment[];
           return _temp?.sort(
             DynamicDateSort("updateAt", SortDirection.descending)
           );
@@ -138,18 +137,19 @@ export default function TabChatTable({ auction, user }: Props) {
           itemId: chatResponse.itemId,
           message: chatResponse.message,
           parentId: chatResponse.parentId,
-          sessionId: "",
           updateAt: chatResponse.updateAt,
           userLogin: chatResponse.userLogin,
           actionType: ActionType.update,
         };
-        setCommunicationItems((prev) => [
-          ...prev.filter((p) => p.itemId !== chatResponse.itemId),
-          updateChatMessage,
-        ]);
         setCommunicationItems((prev) => {
-          let _temp = JSON.parse(JSON.stringify(prev)) as ChatComment[];
-          return _temp?.sort(DynamicSort("updateAt", SortDirection.descending));
+          let _temp = [
+            ...prev.filter((p) => p.itemId !== chatResponse.itemId),
+            updateChatMessage,
+          ];
+          _temp = JSON.parse(JSON.stringify(_temp)) as ChatComment[];
+          return _temp?.sort(
+            DynamicDateSort("updateAt", SortDirection.descending)
+          );
         });
         break;
     }
@@ -189,7 +189,6 @@ export default function TabChatTable({ auction, user }: Props) {
     // начало процесса редактирования сообщения чата - в UseEffect свойства "messageChat" в SignalRProvider
     let updateMessage = chatSelected!;
     updateMessage.actionType = ActionType.update;
-    updateMessage.sessionId = SessionType[SessionType.all];
     setShowConfirmEditDialog(false);
     dispatch(setChatMessage(updateMessage));
     dispatch(setEventFlag({ eventName: "CommunicationChanged", ready: true }));
@@ -204,7 +203,6 @@ export default function TabChatTable({ auction, user }: Props) {
     // удаляем сообщение через SignalR
     // начало процесса удаления сообщения чата - в UseEffect свойства "messageChat" в SignalRProvider
     let deleteMessage = chatSelected!;
-    deleteMessage.sessionId = SessionType[SessionType.all];
     deleteMessage.actionType = ActionType.delete;
     setShowConfirmDeleteDialog(false);
     dispatch(setChatMessage(deleteMessage));
@@ -233,7 +231,7 @@ export default function TabChatTable({ auction, user }: Props) {
         <div className="col-12 MessageInputItem">
           <InputTextarea
             variant="filled"
-            disabled={!user.login}
+            disabled={user.isGuest}
             autoResize
             placeholder="Новое сообщение (для отправления - нажмите Enter, для перевода строки нажмите Shift-Enter)"
             value={newMessage.message}
@@ -279,9 +277,13 @@ export default function TabChatTable({ auction, user }: Props) {
                 </div>
                 <div className="flex flex-column text-4xl">
                   <div className="px-6 ">
-                    {new Date(item.updateAt).toLocaleDateString() +
+                    {new Date(item.updateAt).toLocaleDateString("RU-ru", {
+                      timeZone: "UTC",
+                    }) +
                       " " +
-                      new Date(item.updateAt).toLocaleTimeString()}
+                      new Date(item.updateAt).toLocaleTimeString("RU-ru", {
+                        timeZone: "UTC",
+                      })}
                   </div>
                   <div className="px-6 py-4">
                     {item.message.split("\n").map((line, index) => {

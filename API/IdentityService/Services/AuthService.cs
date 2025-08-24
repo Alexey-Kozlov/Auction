@@ -44,7 +44,7 @@ public class AuthService : IAuthService
         {
             Id = Guid.NewGuid().ToString(),
             Email = registerRequestDTO.Login,
-            UserName = registerRequestDTO.Name
+            UserName = registerRequestDTO.Name,
         };
 
         var result = await _userManager.CreateAsync(newUser, registerRequestDTO.Password);
@@ -62,6 +62,10 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<LoginResponseDTO>> Login(LoginRequestDTO loginRequestDTO)
     {
+        if (loginRequestDTO.IsGuest)
+        {
+            return GuestLogin(loginRequestDTO);
+        }
         var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.Email.ToLower() == loginRequestDTO.Login.ToLower());
         if (user == null)
         {
@@ -81,7 +85,7 @@ public class AuthService : IAuthService
                 StatusCode = HttpStatusCode.Forbidden,
                 IsSuccess = false,
                 ErrorMessages = [$"Ошибка пользователя или пароля, пользователь - '{loginRequestDTO.Login}'"],
-                Result = new LoginResponseDTO()
+                Result = new LoginResponseDTO(),
             };
         }
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -89,7 +93,8 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.UserName),
-            new Claim("Login", user.Email)
+            new Claim("Login", user.Email),
+            new Claim("IsGuest","false")
         };
         //захардкодили - роль админа только пользователю с именем "admin", остальным - роль "User"
         if (user.Email == "admin")
@@ -115,7 +120,7 @@ public class AuthService : IAuthService
             Name = user.UserName,
             Token = tokenHandler.WriteToken(token),
             Login = user.Email,
-            Id = user.Id
+            IsGuest = false
         };
         if (string.IsNullOrEmpty(loginResponse.Token))
         {
@@ -176,5 +181,51 @@ public class AuthService : IAuthService
         }
 
         throw new Exception("Ошибка регистрации нового пользователя - " + result.Errors.First().Description);
+    }
+
+    private ApiResponse<LoginResponseDTO> GuestLogin(LoginRequestDTO loginRequestDTO)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_secretKey);
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, loginRequestDTO.Login),
+            new Claim("Login", loginRequestDTO.Login),
+            new Claim("IsGuest","true"),
+            new Claim(ClaimTypes.Role, "User")
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor()
+        {
+            Subject = new ClaimsIdentity(claims),
+            //получаем значение жизни токена из волта в виде json, используем свойство "expiration_hours"
+            Expires = DateTime.UtcNow.AddHours(JsonDocument.Parse(_passwordPolicy).RootElement.GetProperty("expiration_hours").GetInt32()),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        var loginResponse = new LoginResponseDTO()
+        {
+            Name = loginRequestDTO.Login,
+            Token = tokenHandler.WriteToken(token),
+            Login = loginRequestDTO.Login,
+            IsGuest = true,
+        };
+        if (string.IsNullOrEmpty(loginResponse.Token))
+        {
+            return new ApiResponse<LoginResponseDTO>()
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                IsSuccess = false,
+                ErrorMessages = ["Ошибка пользователя или пароля"],
+                Result = new LoginResponseDTO()
+            };
+        }
+        return new ApiResponse<LoginResponseDTO>()
+        {
+            StatusCode = HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = loginResponse
+        };
     }
 }

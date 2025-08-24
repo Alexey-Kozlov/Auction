@@ -8,7 +8,10 @@ import {
   ProcessingState,
 } from "../../types";
 
-import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
+import {
+  useGetAuctionsQuery,
+  useGetDetailedViewDataQuery,
+} from "../../api/AuctionApi";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setEventFlag } from "../../store/processingSlice";
@@ -31,19 +34,21 @@ import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import Waiter from "../Waiter";
 import { CheckEventReady } from "../../utils/CheckEvent";
+import { useSetUsersCurrentPageMutation } from "../../api/ServiceApi";
 
 export default function AuctionForm() {
   let { id } = useParams();
   if (!id) id = "empty";
-
-  const auction = useGetDetailedViewDataQuery(id!, {
+  const auction = useGetDetailedViewDataQuery(id, {
     skip: id === "empty",
   });
+
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
   );
   const [createAuction] = useCreateAuctionMutation();
   const [updateAuction] = useUpdateAuctionMutation();
+  const [setCurrentPage] = useSetUsersCurrentPageMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -65,7 +70,14 @@ export default function AuctionForm() {
   const [image, setImage] = useState("");
   const [isWaiting, setIsWaiting] = useState(false);
   const [isFormChanged, setIsFormChanged] = useState(false);
+  const [isImageChanged, setIsImageChanged] = useState(false);
   const [editError, setEditError] = useState<FormErrors | null>(null);
+  const cacheStore = useSelector((state: RootState) => state.cacheStore);
+  let auctionsQuery = useGetAuctionsQuery(cacheStore.urlAuction);
+  const imageQuery = useGetImageForAuctionQuery({
+    id: cacheStore.urlImage.id,
+    cache: cacheStore.urlImage.cache,
+  });
 
   const editErrorList: FormErrors[] = [
     {
@@ -83,10 +95,23 @@ export default function AuctionForm() {
     { skip: newAuction.itemId === undefined }
   );
 
-  //получаем данные по аукциону
   useEffect(() => {
+    //получаем данные по аукциону
     if (!auction.isLoading && auction.data && !auction.isFetching) {
       setNewAuction((prev) => auction.data!.result);
+      //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
+      setCurrentPage("/edit/");
+    }
+    //отлавливаем несуществующий адрес страницы
+    if (
+      id !== "empty" &&
+      !auction.isLoading &&
+      !auction.isFetching &&
+      auction.data?.isSuccess &&
+      auction.data?.result &&
+      !auction.data?.result.title
+    ) {
+      navigate("/not-found");
     }
     // eslint-disable-next-line
   }, [id, auction]);
@@ -110,28 +135,22 @@ export default function AuctionForm() {
     // eslint-disable-next-line
   }, [id, auction, auctionImage]);
 
-  //отлавливаем несуществующий адрес страницы
-  useEffect(() => {
-    if (
-      id !== "empty" &&
-      !auction.isLoading &&
-      !auction.isFetching &&
-      auction.data?.isSuccess &&
-      auction.data?.result &&
-      !auction.data?.result.title
-    ) {
-      navigate("/not-found");
-    }
-    // eslint-disable-next-line
-  }, [id, auction]);
-
   //возврат на список аукционов после редактирования записи аукциона
   //при получении сообщения об изменении параметра CollectionChanged -
   //обновляем значения записи (удаляем кеширование), переходим на список аукционов
   useEffect(() => {
     if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
       if (id && id !== "empty") {
+        //ставим признак по обновлению описания аукциона
         auction.refetch();
+      }
+      //ставим признак по обновлению списка аукционов
+      auctionsQuery.refetch();
+      if (isImageChanged) {
+        //ставим признак по обновлению кешированного изображения
+        imageQuery.refetch();
+        //ставим признак по обновлению полного изображения
+        auctionImage.refetch();
       }
       navigate("/");
     }
@@ -174,6 +193,7 @@ export default function AuctionForm() {
   const handleImageChanged = (value: string) => {
     setIsFormChanged(true);
     setEditError(() => null);
+    setIsImageChanged(true);
     if (value) {
       handleImageUsingChanged(true);
     }

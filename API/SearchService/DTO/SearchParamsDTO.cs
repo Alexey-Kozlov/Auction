@@ -8,7 +8,7 @@ public class SearchParamsDTO
     public string Winner { get; set; }
     public string OrderBy { get; set; }
     public string FilterBy { get; set; }
-    public string SessionId { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; }
+    public string UserLogin { get; set; }
 }

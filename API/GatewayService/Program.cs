@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using GatewayService.Services;
-using GatewayService.Cache;
 using MassTransit;
 using GatewayService.Consumers;
 using OpenTelemetry.Metrics;
@@ -89,7 +88,6 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
         });
     });
 });
-builder.Services.AddTransient<SendMessage>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("customPolicy", p =>
@@ -104,9 +102,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration["rd:config"];
-    options.InstanceName = builder.Configuration["rd:instance"];
+    options.InstanceName = builder.Configuration[""];
 });
-
+builder.Services.AddTransient<SendMessage>();
 builder.Services.AddScoped<GrpcImageClient>();
 builder.Services.AddSingleton<IDistributedCache, RedisCache>();
 builder.Services.AddScoped<ImageCache>();
@@ -116,7 +114,8 @@ builder.Services.AddSingleton(cfg =>
     IConnectionMultiplexer multiplexer = ConnectionMultiplexer.Connect(builder.Configuration["rd:config"]);
     return multiplexer;
 });
-
+builder.Services.AddSingleton<UserCurrentPage>();
+builder.Services.AddGrpc();
 
 
 builder.Services.AddOpenTelemetry()
@@ -131,7 +130,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 app.UseCors("customPolicy");
-//app.UseMiddleware<ExceptionMiddleware>();
+//тут для отладки можно включить логирование поступающих запросов и выходящих ответов
 // app.Use(async (context, next) =>
 // {
 //     // логируем вошедший запрос
@@ -140,20 +139,16 @@ app.UseCors("customPolicy");
 //     // логируем ответ
 // });
 
-// добавляем дополнительный роутинг для возврата изображений
-// это все запросы начинающиеся с :
-//    /api/images/*
-//    /api/images_dop/*
-//    /api/images_file/*
-// если это такой запрос - дальше запрос не проходит, возвращается изображение или null
 
-
-//если запрашивается не изображение - проходим сюда и вызываем штатный функционал реверс-прокси YARP
+//первоначально - вызываем штатный функционал реверс-прокси YARP по переходу на нужные маршруты сервисов
 //с помощью правил YARP маршрутизируем микросервисы
 app.MapReverseProxy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseLoggingMiddleware();
+//если ни один из маршрутов не сработал (в случае маршрута "/api/images" или "/api/images_file/{auctionid}") -
+//переходим в расширение по маршрутизации на сервисы по обработке изображений
 app.ImageMiddleware();
+app.MapGrpcService<GrpcNotifyUsersService>();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

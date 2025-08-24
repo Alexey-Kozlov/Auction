@@ -1,9 +1,9 @@
 using Common.Contracts;
-using GatewayService.Cache;
 using GatewayService.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GatewayService.Services;
+
 public static class ImageMiddlewareExtentions
 {
     public static IEndpointRouteBuilder ImageMiddleware(this IEndpointRouteBuilder app)

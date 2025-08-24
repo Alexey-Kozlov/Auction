@@ -74,7 +74,6 @@ public class CreateCommunicationStateMachine : MassTransitStateMachine<CreateCom
                 context.Saga.ParentId = context.Message.ParentId;
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 3;
-                context.Saga.SessionId = context.Message.SessionId;
             })
             //посылаем через Кафку, выполнение всех операций в ES лог для создания ставки:
             .Activity(p => p.OfType<ESLogActivity>()
@@ -234,10 +233,12 @@ public class CreateCommunicationStateMachine : MassTransitStateMachine<CreateCom
                         SignalRMethod = SignalRMethod.CommunicationCreate,
                         AuctionId = context.Saga.AuctionId,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.Page,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
                             .DataObjects[0].Data,
-                        UserLogin = context.Saga.UserLogin
+                        UserLogin = context.Saga.UserLogin,
+                        //Page - URL страницы вида "communication/<id аукциона>"
+                        Page = "communication/" + context.Saga.AuctionId.ToString()
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            

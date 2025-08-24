@@ -5,7 +5,6 @@ import uuid from "react-native-uuid";
 import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const imageApi = createApi({
-	refetchOnMountOrArgChange: true,
 	reducerPath: "imageApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + `/api/images`,

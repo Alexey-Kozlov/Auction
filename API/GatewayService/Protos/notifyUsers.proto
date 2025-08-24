@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "NotifyService";
+
+service NotifyUsers {
+    rpc GetUsers (GetUsersRequest) returns (NotifyUsersResponse);
+}
+
+message GetUsersRequest {
+    string PageId = 1;
+}
+
+message NotifyUsersResponse {
+    string Users = 1;
+}

@@ -6,7 +6,6 @@ import { bidReducer } from "./bidSlice";
 import { auctionReducer } from "./auctionSlice";
 import { paramReducer } from "./paramSlice";
 import bidApi from "../api/BidApi";
-import signalRApi from "../api/SignalRApi";
 import imageApi from "../api/ImageApi";
 import notificationApi from "../api/NotificationApi";
 import financeApi from "../api/FinanceApi";
@@ -16,6 +15,7 @@ import serviceApi from "../api/ServiceApi";
 import { chatMessageReducer, chatResponseReducer } from "./chatSlice";
 import communicationApi from "../api/CommunicationApi";
 import { serviceReducer } from "./serviceSlice";
+import { cacheReducer } from "./cacheSlice";
 
 const store = configureStore({
 	reducer: {
@@ -27,10 +27,10 @@ const store = configureStore({
 		chatMessageStore: chatMessageReducer,
 		chatResponseStore: chatResponseReducer,
 		serviceStore: serviceReducer,
+		cacheStore:cacheReducer,
 		[auctionApi.reducerPath]: auctionApi.reducer,
 		[authApi.reducerPath]: authApi.reducer,
 		[bidApi.reducerPath]: bidApi.reducer,
-		[signalRApi.reducerPath]: signalRApi.reducer,
 		[imageApi.reducerPath]: imageApi.reducer,
 		[notificationApi.reducerPath]: notificationApi.reducer,
 		[financeApi.reducerPath]: financeApi.reducer,
@@ -45,7 +45,6 @@ const store = configureStore({
 			.concat(auctionApi.middleware)
 			.concat(authApi.middleware)
 			.concat(bidApi.middleware)
-			.concat(signalRApi.middleware)
 			.concat(imageApi.middleware)
 			.concat(notificationApi.middleware)
 			.concat(financeApi.middleware)

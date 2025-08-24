@@ -316,7 +316,6 @@ public class NotificationServiceError
     public Guid? ItemId { get; set; }
     public Guid? TraceId { get; set; }
     public bool IsError { get; set; }
-    public string SessionId { get; set; }
 }
 
 public class ESLogCommunicationCreated : IFaultMessage
@@ -384,8 +383,18 @@ public class EventNotificationItem
     public SignalRMethod SignalRMethod { get; set; }
     public bool Show { get; set; }
     public string Data { get; set; }
-    public string SessionId { get; set; }
     public Guid? AuctionId { get; set; }
     public string UserLogin { get; set; }
     public Guid? ItemId { get; set; }
+    public EventType EventType { get; set; }
+    public string Page { get; set; }
+}
+
+public enum EventType
+{
+    All,
+    AuctionGroup,
+    Page,
+    AuctionGroup_Page,
+    UserLogin
 }

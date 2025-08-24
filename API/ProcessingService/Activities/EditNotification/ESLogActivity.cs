@@ -27,7 +27,6 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
                 ItemId = context.Saga.ItemId.Value,
                 Enable = context.Saga.Enable,
                 CorrelationId = context.Saga.CorrelationId,
-                SessionId = context.Saga.SessionId,
                 UserLogin = context.Saga.UserLogin
             },
             nameof(RequestEditNotification),

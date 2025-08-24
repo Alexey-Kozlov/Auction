@@ -13,6 +13,7 @@ using Common.Utils;
 using NotificationService.Services;
 using Common.Utils.Logging;
 using NotificationService.Consumers;
+using ReportService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -99,6 +100,7 @@ builder.Services.AddOpenTelemetry()
 );
 builder.Services.AddScoped<NotifyProceduresService>();
 builder.Services.AddGrpc();
+builder.Services.AddScoped<GrpcUsersNotifyClient>();
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

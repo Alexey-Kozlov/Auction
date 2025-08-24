@@ -3,7 +3,7 @@ using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Processing;
 using Common.Utils.Logging;
-using GatewayService.Cache;
+using GatewayService.Services;
 using MassTransit;
 
 namespace GatewayService.Consumers;

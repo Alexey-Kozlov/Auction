@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import AddTokenHeader from "./AddTokenHeader";
 import { PostApiProcess, PostErrorApiProcess } from "../utils/PostApiProcess";
-import { ApiResponseNet, RequestType, RestoreDb, Session } from "../types";
+import { ApiResponseNet, RequestType, RestoreDb } from "../types";
 import uuid from "react-native-uuid";
 import { GetCurrentUser } from "../utils/GetCurrentUser";
 
@@ -23,14 +23,13 @@ const serviceApi = createApi({
 	}),
 	tagTypes: ["service"],
 	endpoints: (builder) => ({
-		elkIndex: builder.mutation<ApiResponseNet<number>, Session>({
-			query: (params) => ({
+		elkIndex: builder.mutation<ApiResponseNet<number>, null>({
+			query: () => ({
 				url: "/elkindex",
 				method: "post",
 				headers: {
 					RequestType: RequestType[RequestType.ELK],
 				},
-				body: JSON.stringify(params),
 			}),
 			transformResponse: (response: ApiResponseNet<number>, meta: any) => {
 				PostApiProcess(response);
@@ -41,14 +40,13 @@ const serviceApi = createApi({
 			},
 			invalidatesTags: ["service"],
 		}),
-		setSnapShot: builder.mutation<ApiResponseNet<number>, Session>({
-			query: (params) => ({
+		setSnapShot: builder.mutation<ApiResponseNet<number>, null>({
+			query: () => ({
 				url: "/setsnapshot",
 				method: "post",
 				headers: {
 					RequestType: RequestType[RequestType.SnapShot],
-				},
-				body: JSON.stringify(params),
+				}
 			}),
 			transformResponse: (response: ApiResponseNet<number>, meta: any) => {
 				PostApiProcess(response);
@@ -77,14 +75,31 @@ const serviceApi = createApi({
 			},
 			invalidatesTags: ["service"],
 		}),
-		resetImageCache: builder.mutation<ApiResponseNet<{}>, Session>({
-			query: (params) => ({
+		resetImageCache: builder.mutation<ApiResponseNet<{}>, null>({
+			query: () => ({
 				url: `/resetimagecache`,
 				method: "post",
 				headers: {
 					RequestType: RequestType[RequestType.Cache],
+				}
+			}),
+			transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+				PostApiProcess(response);
+				return response;
+			},
+			transformErrorResponse: (response: any, meta: any) => {
+				PostErrorApiProcess(response);
+			},
+			invalidatesTags: ["service"],
+		}),
+		setUsersCurrentPage: builder.mutation<ApiResponseNet<{}>, string>({
+			query: (url) => ({
+				url: `/setuserscurrentpage`,
+				method: "post",
+				headers: {
+					RequestType: RequestType[RequestType.UsersCurrentPage],
 				},
-				body: JSON.stringify(params),
+				body: JSON.stringify(url),
 			}),
 			transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
 				PostApiProcess(response);
@@ -103,5 +118,6 @@ export const {
 	useSetSnapShotMutation,
 	useRestoreSnapShotMutation,
 	useResetImageCacheMutation,
+	useSetUsersCurrentPageMutation
 } = serviceApi;
 export default serviceApi;

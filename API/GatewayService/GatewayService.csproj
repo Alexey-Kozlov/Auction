@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />   
     <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
@@ -25,11 +26,12 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.12.0-beta.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
     <PackageReference Include="VaultSharp" Version="1.17.5.1" />  
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />         
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />         
   </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <Protobuf Include="Protos/images.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos/notifyUsers.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

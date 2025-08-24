@@ -40,7 +40,6 @@ export default function ModalYesNo({
             color="red"
           />
         );
-        break;
       case ModalTypes.info:
         return (
           <BsInfoCircle
@@ -48,17 +47,14 @@ export default function ModalYesNo({
             color="rgba(131, 147, 236, 0.12);"
           />
         );
-        break;
     }
   };
   const getStyle = () => {
     switch (modalType) {
       case ModalTypes.warning:
         return " WarningButton";
-        break;
       case ModalTypes.info:
         return "";
-        break;
     }
   };
 

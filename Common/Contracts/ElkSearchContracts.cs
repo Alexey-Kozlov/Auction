@@ -9,7 +9,7 @@ public record ElkSearchRequest(
      string SearchTerm,
      int PageNumber,
      int PageSize,
-     string SessionId
+     string UserLogin
 );
 
 public record ElkSearchCreating(
@@ -25,7 +25,6 @@ public class RequestElkIndex
 {
      public string UserLogin { get; set; }
      public Guid CorrelationId { get; set; }
-     public string SessionId { get; set; }
      public string CallBackType { get; set; }
      public bool ShowMessages { get; set; }
 }

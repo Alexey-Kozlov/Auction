@@ -60,7 +60,6 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                 context.Saga.ItemId = context.Message.ItemId;
                 context.Saga.Enable = context.Message.Enable;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 2;
             })
@@ -188,10 +187,10 @@ public class EditNotificationStateMachine : MassTransitStateMachine<EditNotifica
                         AuctionId = context.Saga.ItemId,
                         ItemId = context.Saga.ItemId,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
-                            .DataObjects[0].Data,
-                        UserLogin = context.Saga.UserLogin
+                            .DataObjects[0].Data
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            

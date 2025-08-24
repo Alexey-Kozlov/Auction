@@ -114,9 +114,9 @@ export default function BidList({ user, auction }: Props) {
       <div className="DetailNotifyText text-center">
         {!open ? (
           <div>Аукцион завершен</div>
-        ) : !user?.login ? (
+        ) : user!.isGuest ? (
           <div>Войдите в систему чтобы делать заявки</div>
-        ) : user && user.login === auction?.seller ? (
+        ) : user!.login === auction?.seller ? (
           <div>Невозможно сделать заявку для собственного аукциона</div>
         ) : (
           <BidForm

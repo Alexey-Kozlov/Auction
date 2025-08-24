@@ -37,6 +37,7 @@ export default function Login() {
   const [loginUserModel, setLoginUserModel] = useState<LoginUser>({
     login: "",
     password: "",
+    isGuest: true,
   });
   const [editError, setEditError] = useState<FormErrors | null>(null);
   const editErrorList: FormErrors[] = [
@@ -59,13 +60,12 @@ export default function Login() {
   useEffect(() => {
     if (updatePassword) {
       setSubmittingPassword(true);
-      const setPasswordFunc = async () =>
-        await setPassword({
-          login: loginUserModel.login,
-          name: "",
-          password: loginUserModel.password,
-        });
-      setPasswordFunc()
+      setPassword({
+        login: loginUserModel.login,
+        name: "",
+        password: loginUserModel.password,
+        isGuest: false,
+      })
         .then((rez: ApiResponse<object>) => {
           if (rez.data!.isSuccess) {
             toastMessage!.show({
@@ -185,20 +185,21 @@ export default function Login() {
     const response: ApiResponse<LoginResponse> = await loginUser({
       login: loginUserModel.login,
       password: loginUserModel.password,
+      isGuest: false,
     });
     if (response.data && response.data.isSuccess) {
       const userData: LoginResponse = {
         token: response.data.result.token,
-        itemId: response.data.result.itemId,
         login: response.data.result.login,
         name: response.data.result.name,
+        isGuest: response.data.result.isGuest,
       };
       localStorage.setItem("Auction", JSON.stringify(userData));
       dispatch(
         setAuthUser({
           name: response.data.result.name,
           login: response.data.result.login,
-          itemId: response.data.result.itemId,
+          isGuest: response.data.result.isGuest,
         })
       );
       toastMessage!.show({

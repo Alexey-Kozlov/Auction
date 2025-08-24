@@ -8,16 +8,19 @@ import { setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
 import { setData } from "../../store/auctionSlice";
 import Filters from "./Filters";
-import { Auction, ProcessingState } from "../../types";
+import { Auction, ProcessingState, UrlCacheList } from "../../types";
 import Waiter from "../Waiter";
 import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
 import {
   CheckEventLastChangedNotReady,
   CheckEventLastChangedReady,
 } from "../../utils/CheckEvent";
+import { useSetUsersCurrentPageMutation } from "../../api/ServiceApi";
+import { setCacheQuery } from "../../store/cacheSlice";
 
 export default function Listings() {
   const dispatch = useDispatch();
+  const [setCurrentPage] = useSetUsersCurrentPageMutation();
   const params = useSelector((state: RootState) => state.paramStore);
   const data = useSelector((state: RootState) => state.auctionStore);
   const auctions: Auction[] = data.auctions;
@@ -28,10 +31,7 @@ export default function Listings() {
   const [isWait, setIsWait] = useState(true);
 
   //автоматически запускается при изменении url
-  let auctionsData = useGetAuctionsQuery(url, {
-    skip: !params.sessionId,
-    refetchOnMountOrArgChange: true,
-  });
+  let auctionsData = useGetAuctionsQuery(url);
 
   // Обновляем набор записей при поступлении новых данных из апи - пишем в локальное хранилище
   // auctionStore -> auctionSlice
@@ -42,9 +42,12 @@ export default function Listings() {
       !auctionsData.isFetching &&
       auctionsData.data
     ) {
+      //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
+      setCurrentPage("/root/");
       //данные готовы - заполняем локальное хранилище и скрываем иконку ожидания
       dispatch(setData(auctionsData.data.result));
       setIsWait(() => false);
+      dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
     } else {
       setIsWait(() => true);
     }

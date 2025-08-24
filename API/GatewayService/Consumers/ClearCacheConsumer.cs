@@ -21,7 +21,7 @@ public class ClearCacheConsumer : IConsumer<ResetImageCache>
         var redis = _redis.GetServer(_redis.GetEndPoints().Single());
         await redis.FlushAllDatabasesAsync();
 
-        await _publishEndpoint.Publish(new ResetImageCacheNotification { SessionId = context.Message.SessionId });
+        await _publishEndpoint.Publish(new ResetImageCacheNotification { UserLogin = context.Message.UserLogin });
     }
 
 }

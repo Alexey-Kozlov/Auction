@@ -95,7 +95,7 @@ public class SearchServiceSql
     {
         //посылаем сообщение для поиска в ELK
         await _publishEndpoint.Publish(new ElkSearchRequest(Guid.NewGuid(), Guid.NewGuid(),
-            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, searchParams.SessionId));
+            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, searchParams.UserLogin));
 
         //посылаем null в качестве результата для отображения заставки ожидания
         return new ApiResponse<PagedResult<List<AuctionItem>>>

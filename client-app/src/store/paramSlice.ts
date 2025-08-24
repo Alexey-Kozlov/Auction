@@ -12,7 +12,6 @@ const initialState: State = {
 	winner: undefined,
 	searchTerm: "",
 	searchAdv: "",
-	sessionId: "",
 };
 
 export const paramSlice = createSlice({
@@ -22,9 +21,9 @@ export const paramSlice = createSlice({
 		setParams: (state, action) => {
 			if (action.payload.pageNumber)
 				state.pageNumber = action.payload.pageNumber;
-			if (action.payload.firstPage || action.payload.firstPage == "0") state.firstPage = action.payload.firstPage;				
+			if (action.payload.firstPage || action.payload.firstPage === "0") state.firstPage = action.payload.firstPage;				
 			if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
-			if (action.payload.pageCount || action.payload.pageCount == "0") state.pageCount = action.payload.pageCount;
+			if (action.payload.pageCount || action.payload.pageCount === "0") state.pageCount = action.payload.pageCount;
 			if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
 			if (action.payload.filterBy) {
 				state.filterBy = action.payload.filterBy;
@@ -57,9 +56,6 @@ export const paramSlice = createSlice({
 				state.winner = undefined;
 			}
 
-			if (action.payload.sessionId) {
-				state.sessionId = action.payload.sessionId;
-			}
 		},
 		reset: (state, action) => {
 			state.pageNumber = 1;

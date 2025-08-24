@@ -21,7 +21,6 @@ import {
   useDeleteAuctionMutation,
   useSetNotifyUserMutation,
 } from "../../api/ProcessingApi";
-import uuid from "react-native-uuid";
 import { Button } from "primereact/button";
 import { InputSwitch } from "primereact/inputswitch";
 import { Panel } from "primereact/panel";
@@ -43,9 +42,8 @@ export default function DetailMain() {
   const [isNotifySetWaiting, notifySetWaiting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [auctionDetail, setAuctionDetail] = useState<Auction | null>(null);
-  const data = useGetDetailedViewDataQuery(id!, {
-    skip: auctionDetail?.title === "",
-  });
+  const data = useGetDetailedViewDataQuery(id!);
+
   const userSeller = useGetUserNameQuery(
     auctionDetail ? auctionDetail.seller : "",
     {
@@ -53,20 +51,21 @@ export default function DetailMain() {
     }
   );
   const isNotifyUser = useIsNotifyUserQuery(id!, {
-    skip: user.login === "" || user.login === undefined,
+    skip: user.isGuest,
   });
   const [setNotifyUserApi] = useSetNotifyUserMutation();
   const [deleteAuctionProc] = useDeleteAuctionMutation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const sessionId = useSelector(
-    (state: RootState) => state.paramStore
-  ).sessionId;
 
   //инициализация данных
   useEffect(() => {
     if (!data.isLoading && !data.isFetching && data.data!.result) {
       setAuctionDetail(data.data!.result);
+    }
+    //если не нашли данных по указанному id - переход на страницу "Не найдено"
+    if (!data.isLoading && (!data || !data.data!.result)) {
+      navigate("/not-found");
     }
     // eslint-disable-next-line
   }, [data]);
@@ -110,20 +109,12 @@ export default function DetailMain() {
       notifySetWaiting(() => false);
     }
 
-    //переход на список аукционов при удалении текущего аукциона
+    //переход на список аукционов при редактировании текущего аукциона
     if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
       navigate("/");
     }
     // eslint-disable-next-line
   }, [procState]);
-
-  //если не нашли данных по указанному id - переход на страницу "Не найдено"
-  useEffect(() => {
-    if (!data.isLoading && (!data || !data.data!.result)) {
-      navigate("/not-found");
-    }
-    // eslint-disable-next-line
-  }, [data]);
 
   //обработчик переключения переключателя уведомлений пользователя по событиям данного аукциона
   const handleSetNotifyUser = async (checked: boolean) => {
@@ -132,7 +123,6 @@ export default function DetailMain() {
     var notifyUser: NotifyUser = {
       itemId: id!,
       enable: checked,
-      sessionid: sessionId,
     };
     await setNotifyUserApi(notifyUser);
   };
@@ -143,7 +133,6 @@ export default function DetailMain() {
     dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
     const auctionDeleted: AuctionDeleted = {
       itemId: id!,
-      sessionId: sessionId,
     };
     deleteAuctionProc(auctionDeleted);
   };
@@ -203,7 +192,7 @@ export default function DetailMain() {
                   </div>
                 </div>
 
-                {user.name && (
+                {!user.isGuest && (
                   <div className="CenterItem">
                     <h3 className="DetailNotifyText">
                       Получать уведомления этого аукциона:

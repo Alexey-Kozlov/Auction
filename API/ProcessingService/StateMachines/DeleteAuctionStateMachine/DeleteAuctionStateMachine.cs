@@ -105,7 +105,6 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
             {
                 context.Saga.ItemId = context.Message.ItemId;
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 8;
             })
@@ -454,7 +453,8 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                         SignalRMethod = SignalRMethod.AuctionDelete,
                         AuctionId = context.Saga.ItemId,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.AuctionGroup,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
                         .DataObjects.FirstOrDefault(p => p.DataType == "AuctionItem").Data
                     })).Finalize()

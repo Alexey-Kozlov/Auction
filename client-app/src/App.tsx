@@ -13,21 +13,20 @@ import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setServiceData } from "./store/serviceSlice";
 import DetailMain from "./components/auctionDetail/DetailMain";
-import { User } from "./types";
-import { RootState } from "./store/store";
+import { ApiResponse, LoginResponse } from "./types";
 import AddTokenHeader from "./api/AddTokenHeader";
-import { emptyUserState, setAuthUser } from "./store/authSlice";
+import { setAuthUser } from "./store/authSlice";
+import uuid from "react-native-uuid";
+import { useLoginUserMutation } from "./api/AuthApi";
+import { RootState } from "./store/store";
 
 function App() {
   const toastMessage = useRef<Toast>(null);
   const dispatch = useDispatch();
-  let user: User = useSelector((state: RootState) => state.authStore);
+  const [loginUser] = useLoginUserMutation();
+  const auth = useSelector((state: RootState) => state.authStore);
 
-  //если токен просрочен - очищаем в хранилище данные о пользователе
-  if (!AddTokenHeader() && user.login) {
-    dispatch(setAuthUser(emptyUserState));
-  }
-
+  //инициализируем выпадающее сообщение для вызова в любом месте приложения
   useEffect(() => {
     if (toastMessage) {
       dispatch(setServiceData({ toast: toastMessage.current }));
@@ -35,12 +34,38 @@ function App() {
     // eslint-disable-next-line
   }, [toastMessage]);
 
+  //инициализация пользователя
   useEffect(() => {
+    //если уже входил в систему
     if (localStorage.getItem("Auction")) {
-      dispatch(setAuthUser(JSON.parse(localStorage.getItem("Auction")!)));
+      dispatch(
+        setAuthUser(
+          JSON.parse(localStorage.getItem("Auction")!) as LoginResponse
+        )
+      );
+    }
+    //если еще не входил в систему - регистрируем пользователя в системе как гостя
+    if (!AddTokenHeader()) {
+      const _login = uuid.v4() as string;
+      loginUser({
+        login: _login,
+        password: _login,
+        isGuest: true,
+      }).then((rez2: ApiResponse<LoginResponse>) => {
+        if (rez2.data && rez2.data.isSuccess) {
+          localStorage.setItem("Auction", JSON.stringify(rez2.data.result));
+          dispatch(
+            setAuthUser({
+              name: rez2.data.result.name,
+              login: rez2.data.result.login,
+              isGuest: rez2.data.result.isGuest,
+            })
+          );
+        }
+      });
     }
     // eslint-disable-next-line
-  }, []);
+  }, [auth]);
 
   return (
     <div>

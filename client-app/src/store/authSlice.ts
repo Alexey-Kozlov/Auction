@@ -6,6 +6,7 @@ export const emptyUserState: User = {
 	name: "",
 	login: "",
 	isAdmin: false,
+	isGuest: true
 };
 
 export const authSlice = createSlice({
@@ -16,7 +17,8 @@ export const authSlice = createSlice({
 			state.name = action.payload.name;
 			state.login = action.payload.login;
 			state.isAdmin = getIsAdmin();
-		},
+			state.isGuest = action.payload.isGuest;
+		}
 	},
 });
 
@@ -24,8 +26,10 @@ const getIsAdmin = (): boolean => {
 	const tokenData = localStorage.getItem("Auction");
 	if (tokenData) {
 		const token = JSON.parse(tokenData).token;
-		const decode: { role: string } = jwtDecode(token);
-		if (decode.role === "Admin") return true;
+		if (token) {
+			const decode: { role: string } = jwtDecode(token);
+			if (decode.role === "Admin") return true;
+		}
 	}
 	return false;
 };

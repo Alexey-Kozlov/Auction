@@ -29,6 +29,7 @@ import { SelectItem } from "primereact/selectitem";
 import Waiter from "../Waiter";
 import Footer from "../layout/Footer";
 import { CheckEventReady } from "../../utils/CheckEvent";
+import { useSetUsersCurrentPageMutation } from "../../api/ServiceApi";
 
 export default function FinListings() {
   const dispatch = useDispatch();
@@ -50,6 +51,7 @@ export default function FinListings() {
   });
 
   const [addCredit] = useFinanceCreateMutation();
+  const [setCurrentPage] = useSetUsersCurrentPageMutation();
   const sortUrl = qs.stringifyUrl({
     url: "",
     query: { ...sortParam },
@@ -59,9 +61,6 @@ export default function FinListings() {
   const user: User = useSelector((state: RootState) => state.authStore);
   const [financeItems, setFinanceItems] =
     useState<PagedResult<FinanceTableItem>>();
-  const sessionId = useSelector(
-    (state: RootState) => state.paramStore
-  ).sessionId;
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
   );
@@ -74,6 +73,8 @@ export default function FinListings() {
       financeQuery.data
     ) {
       setFinanceItems(financeQuery.data.result);
+      //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
+      setCurrentPage("/edit/");
     }
     // eslint-disable-next-line
   }, [financeQuery]);
@@ -90,7 +91,7 @@ export default function FinListings() {
 
   //если вышли из пользователя - переход на начало сайта
   useEffect(() => {
-    if (!balance.isLoading && !balance.isFetching && (!user || !user.login)) {
+    if (!balance.isLoading && !balance.isFetching && (!user || user.isGuest)) {
       navigate("/");
     }
     // eslint-disable-next-line
@@ -103,7 +104,6 @@ export default function FinListings() {
     dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
     await addCredit({
       amount: amount as number,
-      sessionid: sessionId,
       userlogin: user.login,
     });
     setAmount(0);
@@ -132,6 +132,7 @@ export default function FinListings() {
     setFirstRecord(e.first);
   }
   // #region OrderItems
+  // eslint-disable-next-line
   const [orderItem, setOrderItem] = useState<SelectItem[]>([
     {
       label: "Наименование",

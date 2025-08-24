@@ -19,6 +19,7 @@ export default function ImageToast({
     id: auctionId,
     cache: true,
   });
+
   const auctionData = useGetDetailedViewDataQuery(auctionId, {
     skip: !auctionId,
     refetchOnMountOrArgChange: true,

@@ -9,7 +9,6 @@ public class EditNotificationState : SagaStateMachineInstance
     public string UserLogin { get; set; }
     public Guid? ItemId { get; set; }
     public bool Enable { get; set; }
-    public string SessionId { get; set; }
     public string DataForProcessingServicesList { get; set; }
     public bool IsError { get; set; }
     public int CommitCounter { get; set; }

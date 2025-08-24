@@ -122,6 +122,8 @@ public class VaultConfigurationProvider : ConfigurationProvider
 
             Data.Add("rd:config", secrets.Data.Data["config"].ToString());
             Data.Add("rd:instance", secrets.Data.Data["instance"].ToString());
+            Data.Add("rd:ImageExpirationDays", secrets.Data.Data["ImageExpirationDays"].ToString());
+            Data.Add("rd:PageExpirationHours", secrets.Data.Data["PageExpirationHours"].ToString());
         }
     }
 }

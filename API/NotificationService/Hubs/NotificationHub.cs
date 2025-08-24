@@ -23,8 +23,6 @@ public class NotificationHub : Hub
             var userLogin = httpContext.User.FindFirst("Login").Value;
             await Groups.AddToGroupAsync(Context.ConnectionId, userLogin);
         }
-        //посылаем клиенту SessionId для последующей идентификации при персональной рассылке
-        await Clients.Caller.SendAsync("SessionId", Context.ConnectionId);
     }
 
     public override Task OnDisconnectedAsync(Exception exception)
@@ -53,7 +51,6 @@ public class NotificationHub : Hub
                     Message = comment.Message,
                     ParentId = string.IsNullOrEmpty(comment.ParentId) ? null : Guid.Parse(comment.ParentId),
                     UserLogin = comment.UserLogin,
-                    SessionId = comment.SessionId
                 });
                 break;
             case ActionType.delete:
@@ -64,7 +61,6 @@ public class NotificationHub : Hub
                     AuctionId = Guid.Parse(comment.AuctionId),
                     CorrelationId = Guid.NewGuid(),
                     UserLogin = comment.UserLogin,
-                    SessionId = comment.SessionId
                 });
                 break;
             case ActionType.update:
@@ -76,10 +72,8 @@ public class NotificationHub : Hub
                     Message = comment.Message,
                     CorrelationId = Guid.NewGuid(),
                     UserLogin = comment.UserLogin,
-                    SessionId = comment.SessionId
                 });
                 break;
         }
-
     }
 }

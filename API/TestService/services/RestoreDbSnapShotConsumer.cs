@@ -20,7 +20,6 @@ public class RestoreDbSnapShotConsumer
         //через рефлексию заполняем нужные свойства
         //можно было назначить интерфейс и заполнять не через рефлексию, это как другой вариант.
         sendObject.GetType().GetProperty("UserLogin").SetValue(sendObject, "UserLogin");
-        sendObject.GetType().GetProperty("SessionId").SetValue(sendObject, "SessionId");
         sendObject.GetType().GetProperty("Items").SetValue(sendObject, new List<string>());
 
 

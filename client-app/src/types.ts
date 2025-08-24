@@ -33,18 +33,20 @@ export type LoginResponse = {
 	name: string;
 	login: string;
 	token: string;
-	itemId: string;
+	isGuest: boolean;
 };
 
 export type CreateUser = {
 	name: string;
 	login: string;
 	password: string;
+	isGuest: boolean;
 };
 
 export type LoginUser = {
 	login: string;
 	password: string;
+	isGuest: boolean;
 };
 
 export type LogoutUser = {
@@ -55,6 +57,7 @@ export type User = {
 	name: string;
 	login: string;
 	isAdmin: boolean;
+	isGuest: boolean;
 };
 
 export type PagedResult<T> = {
@@ -83,7 +86,6 @@ export type ObjectResponse<T> = {
 export type PlaceBidParams = {
 	amount: number;
 	auctionId: string;
-	sessionId: string;
 };
 
 export type AuctionImage = {
@@ -94,7 +96,6 @@ export type AuctionImage = {
 export type NotifyUser = {
 	itemId: string;
 	enable: boolean;
-	sessionid?: string;
 };
 
 export type FinanceStore = {
@@ -126,7 +127,6 @@ export type FinanceTableItem = {
 export type FinanceCreate = {
 	amount: number;
 	userlogin: string;
-	sessionid?: string;
 };
 
 export type ProcessingState = {
@@ -158,7 +158,6 @@ export type AuctionFinished = {
 
 export type AuctionDeleted = {
 	itemId: string;
-	sessionId?: string;
 };
 
 export type Message = {
@@ -168,12 +167,7 @@ export type Message = {
 	userLogin?: string;
 };
 
-export type Session = {
-	sessionid?: string;
-};
-
 export type RestoreDb = {
-	sessionid?: string;
 	restoreDate: Date;
 	resetLog: boolean;
 };
@@ -207,6 +201,7 @@ export enum RequestType {
 	Cache,
 	SignalR,
 	Communications,
+	UsersCurrentPage
 }
 
 export type State = {
@@ -220,7 +215,6 @@ export type State = {
 	winner?: string;
 	searchTerm?: string;
 	searchAdv?: string;
-	sessionId?: string;
 };
 
 export type FormErrors = {
@@ -259,7 +253,6 @@ export type ChatComment = {
 	userLogin: string;
 	auctionId: string;
 	updateAt: Date;
-	sessionId: SessionType | string;
 	actionType: ActionType;
 };
 
@@ -324,7 +317,15 @@ export enum SignalREvents {
 	CommunicationUpdate,
 	CommunicationDelete,
 	RestoreSnapShot,
-	SessionId,
 	CommunicationChanged,
 	CollectionChanged
 }
+
+export type UrlCacheList = {
+	urlAuction: string;
+	urlImage: {
+		id: string,
+		cache: boolean
+	}
+}
+

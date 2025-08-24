@@ -123,7 +123,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.NotifyMessage = "Восстановление данных завершено";
                 context.Saga.ProgressCurrent = 0; //Текущей прогресс в процентах
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.ResetLog = context.Message.ResetLog;
                 context.Saga.AllItemsCount = -1;
                 context.Saga.ItemsCount = 0;
@@ -137,7 +136,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             title = "Восстановление снимка БД:",
@@ -171,7 +171,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Очищаем данные в 6 базах данных чтения...",
@@ -217,7 +218,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Получаем список аукционов...",
@@ -262,7 +264,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Записей для восстановления не найдено",
@@ -336,7 +339,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление изображений...",
@@ -393,7 +397,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление ставок аукционов...",
@@ -439,7 +444,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей финансов...",
@@ -485,7 +491,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей аукционов...",
@@ -532,7 +539,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей уведомлений...",
@@ -579,7 +587,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей сообщений пользователей...",
@@ -622,7 +631,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Переиндексация...",
@@ -633,7 +643,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .Publish(context => new RequestElkIndex
             {
                 CorrelationId = context.Saga.CorrelationId,
-                SessionId = context.Saga.SessionId,
                 UserLogin = context.Saga.UserLogin,
                 ShowMessages = false,
                 CallBackType = "Common.Contracts.EventSourcing.RestoreSnapShotESCommit"
@@ -709,7 +718,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Фиксация транзакции восстановления...",
@@ -761,7 +771,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Запускаем сервис проверки завершеия аукционов...",
@@ -821,7 +832,8 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     {
                         SignalRMethod = SignalRMethod.RestoreSnapShot,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = context.Saga.NotifyMessage
                     }).Finalize()
             ),

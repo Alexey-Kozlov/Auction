@@ -21,7 +21,6 @@ import { RootState } from "../store/store";
 import { setEventFlag } from "../store/processingSlice";
 import MessageToast from "../components/signalRNotifications/MessageToast";
 import { setData } from "../store/auctionSlice";
-import { setParams } from "../store/paramSlice";
 import { setChatResponse } from "../store/chatSlice";
 import { Toast } from "primereact/toast";
 import ImageToast from "../components/signalRNotifications/ImageToast";
@@ -241,10 +240,6 @@ export default function SignalRProvider() {
           }
         );
 
-        connection.on(SignalREvents[SignalREvents.SessionId], (id: any) => {
-          dispatch(setParams({ sessionId: id }));
-        });
-
         connection.on(
           SignalREvents[SignalREvents.ElkSearch],
           (elk: NotificationEvent) => {
@@ -431,6 +426,7 @@ export default function SignalRProvider() {
                 ready: false,
               })
             );
+            let date = new Date(data.UpdateAt);
             dispatch(
               setChatResponse({
                 itemId: data.ItemId,
@@ -438,7 +434,7 @@ export default function SignalRProvider() {
                 parentId: data.ParentId,
                 userLogin: data.UserLogin,
                 auctionId: data.AuctionId,
-                updateAt: data.UpdateAt,
+                updateAt: date.setHours(date.getHours() + 3),
                 actionType: ActionType.create,
               })
             );
@@ -455,6 +451,7 @@ export default function SignalRProvider() {
                 ready: false,
               })
             );
+            let date = new Date(data.UpdateAt);
             dispatch(
               setChatResponse({
                 itemId: data.ItemId,
@@ -462,7 +459,7 @@ export default function SignalRProvider() {
                 parentId: data.ParentId,
                 userLogin: data.UserLogin,
                 auctionId: data.AuctionId,
-                updateAt: data.UpdateAt,
+                updateAt: date.setHours(date.getHours() + 3),
                 actionType: ActionType.update,
               })
             );

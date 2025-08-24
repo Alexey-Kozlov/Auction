@@ -40,7 +40,6 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.Term = context.Message.SearchTerm;
                 context.Saga.PageSize = context.Message.PageSize;
                 context.Saga.PageNumber = context.Message.PageNumber;
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
             })
             .Send(
@@ -80,7 +79,8 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                     {
                         SignalRMethod = SignalRMethod.ElkSearch,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        UserLogin = context.Saga.UserLogin,
+                        EventType = EventType.UserLogin,
                         Data = JsonSerializer.Serialize(context.Message.Result)
                     }).Finalize(),
         //обрабатываем ошибки из сервиса ElasticSearchService            
@@ -89,7 +89,6 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
                 {
-                    SessionId = context.Saga.SessionId,
                     CorrelationId = context.Saga.CorrelationId,
                     ErrorMessage = context.Message.Message.ErrorMessage,
                     ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,

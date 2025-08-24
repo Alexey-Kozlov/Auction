@@ -1,11 +1,10 @@
 using GatewayService.Models;
-using GatewayService.Services;
 using Microsoft.Extensions.Caching.Distributed;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 
-namespace GatewayService.Cache;
+namespace GatewayService.Services;
 
 public class ImageCache
 {
@@ -84,7 +83,7 @@ public class ImageCache
                         await _cache.SetStringAsync(auctionId, newImage,
                             new DistributedCacheEntryOptions
                             {
-                                SlidingExpiration = TimeSpan.FromDays(Double.Parse(_config["CacheImageExpirationDays"]))
+                                SlidingExpiration = TimeSpan.FromDays(Double.Parse(_config["rd:ImageExpirationDays"]))
                             });
                         return newImage;
                     }

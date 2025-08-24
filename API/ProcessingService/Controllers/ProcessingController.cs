@@ -37,7 +37,7 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> PlaceBid([FromBody] PlaceBidDTO par)
     {
         var bid = new RequestBidPlace(par.AuctionId, User.Identity.Name, par.Amount,
-            par.SessionId, Guid.NewGuid());
+            "page", Guid.NewGuid());
 
         await _publishEndpoint.Publish(bid);
 
@@ -108,7 +108,7 @@ public class ProcessingController : ControllerBase
     public async Task<ApiResponse<object>> DeleteAuction([FromBody] DeleteAuctionDTO par)
     {
         var auctionAuthor = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        var reqAuctionDelete = new RequestAuctionDelete(par.SessionId, auctionAuthor, par.ItemId, Guid.NewGuid());
+        var reqAuctionDelete = new RequestAuctionDelete(auctionAuthor, par.ItemId, Guid.NewGuid());
 
         await _publishEndpoint.Publish(reqAuctionDelete);
 
@@ -125,7 +125,7 @@ public class ProcessingController : ControllerBase
     {
         //Добавление денег на счет
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new RequestCreateFinance(param.Amount, userLogin, Guid.NewGuid(), param.SessionId));
+        await _publishEndpoint.Publish(new RequestCreateFinance(param.Amount, userLogin, Guid.NewGuid()));
         return new ApiResponse<object>
         {
             StatusCode = HttpStatusCode.Accepted,
@@ -143,7 +143,6 @@ public class ProcessingController : ControllerBase
         await _publishEndpoint.Publish(new RequestElkIndex
         {
             CorrelationId = Guid.NewGuid(),
-            SessionId = param.SessionId,
             UserLogin = userLogin,
             CallBackType = "",
             ShowMessages = true
@@ -159,8 +158,7 @@ public class ProcessingController : ControllerBase
         await _publishEndpoint.Publish(new RequestSetSnapShot
         {
             UserLogin = userLogin,
-            CorrelationId = Guid.NewGuid(),
-            SessionId = param.SessionId
+            CorrelationId = Guid.NewGuid()
         });
     }
 
@@ -176,7 +174,6 @@ public class ProcessingController : ControllerBase
             RestoreDate = param.RestoreDate.AddHours(3),
             UserLogin = userLogin,
             CorrelationId = Guid.NewGuid(),
-            SessionId = param.SessionId,
             ResetLog = param.ResetLog
         });
     }
@@ -191,7 +188,6 @@ public class ProcessingController : ControllerBase
             ItemId = notifyUserDTO.ItemId,
             UserLogin = userLogin,
             Enable = notifyUserDTO.Enable,
-            SessionId = notifyUserDTO.SessionId,
             CorrelationId = Guid.NewGuid()
         });
         return new ApiResponse<object>
@@ -204,9 +200,16 @@ public class ProcessingController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost("resetimagecache")]
-    public async Task ResetImageCache(SessionDTO param)
+    public async Task ResetImageCache()
     {
         //Выполняем сброс кеша изобюражений
-        await _publishEndpoint.Publish(new ResetImageCache { SessionId = param.SessionId });
+        await _publishEndpoint.Publish(new ResetImageCache());
+    }
+
+    [HttpPost("setuserscurrentpage")]
+    public void SetUserCurrentPage([FromBody] string fake)
+    {
+        //заглушка, цель - на этот ендпойнт приходит запрос по записи текущей страницы пользователя,
+        //сама запись осуществляется в GatewayService, где обрабатываются логи
     }
 }

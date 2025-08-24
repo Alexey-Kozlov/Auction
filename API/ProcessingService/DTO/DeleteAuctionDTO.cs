@@ -1,6 +1,6 @@
 namespace ProcessingService.DTO;
+
 public record DeleteAuctionDTO
 (
-     Guid ItemId,
-     string SessionId
+     Guid ItemId
 );

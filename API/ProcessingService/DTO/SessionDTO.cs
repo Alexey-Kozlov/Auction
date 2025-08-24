@@ -1,10 +1,7 @@
 namespace ProcessingService.DTO;
 
-public record SessionDTO(
-    string SessionId
-);
+public record SessionDTO();
 public record RestoreSnapShotDTO(
-    string SessionId,
     DateTime RestoreDate,
     bool ResetLog
 );

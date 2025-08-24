@@ -9,8 +9,7 @@ public record FinanceCreate(
 public record RequestCreateFinance(
      int Amount,
      string UserLogin,
-     Guid CorrelationId,
-     string SessionId
+     Guid CorrelationId
 );
 
 public class FinanceCreated : IFaultMessage
@@ -109,7 +108,7 @@ public class FinanceSortRequest
 {
      public List<FinanceHistoryItem> FinanceItems { get; set; }
      public string OrderBy { get; set; }
-     public string SessionId { get; set; }
+     public string UserLogin { get; set; }
      public int PageNumber { get; set; }
      public int PageSize { get; set; }
 }

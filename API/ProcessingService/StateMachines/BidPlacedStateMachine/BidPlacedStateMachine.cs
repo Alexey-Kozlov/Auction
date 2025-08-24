@@ -86,7 +86,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 context.Saga.Bidder = context.Message.Bidder;
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.Amount = context.Message.Amount;
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.ItemId = Guid.NewGuid();
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 5;
@@ -315,9 +314,12 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                         SignalRMethod = SignalRMethod.BidPlaced,
                         AuctionId = context.Saga.AuctionId,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
-                            .DataObjects[0].Data
+                            .DataObjects[0].Data,
+                        UserLogin = context.Saga.Bidder,
+                        EventType = EventType.AuctionGroup_Page,
+                        //Page - URL страницы вида "<id аукциона>"
+                        Page = context.Saga.AuctionId.ToString()
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            

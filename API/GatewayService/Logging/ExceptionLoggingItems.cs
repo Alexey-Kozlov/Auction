@@ -6,7 +6,7 @@ public class ExceptionLoggingItems
     public static bool CheckPathToInclude(string path)
     {
         if (path == "/") return true; //исключаем общий запрос
-        if (path.Contains(".ico")) return true; //исключаем из иконки
+        if (path.Contains(".ico")) return true; //исключаем иконки
         if (path.Contains(".js")) return true; //исключаем скрипты
         if (path.Contains("/negotiate")) return true; //исключаем синхронизацию
         if (path.Contains("/notifications")) return true; //исключаем уведомления

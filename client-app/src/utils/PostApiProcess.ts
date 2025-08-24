@@ -26,7 +26,8 @@ export const PostErrorApiProcess = (response: any) => {
 	}
 	if (response) {
 		console.log(
-			"Ошибка, код  - " + response.status + ", " + response.data.errors["$"]
+			"Ошибка, код  - " + response.status + ", " +
+			response.error ? response.error : response.data ? response.data.errors["$"] : ""
 		);
 		return;
 	}

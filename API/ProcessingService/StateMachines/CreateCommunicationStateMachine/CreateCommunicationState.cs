@@ -14,5 +14,4 @@ public class CreateCommunicationState : SagaStateMachineInstance
     public bool IsError { get; set; }
     public string DataForProcessingServicesList { get; set; }
     public int CommitCounter { get; set; }
-    public string SessionId { get; set; }
 }

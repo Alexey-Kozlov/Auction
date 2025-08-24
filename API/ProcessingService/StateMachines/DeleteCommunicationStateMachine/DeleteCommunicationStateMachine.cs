@@ -72,7 +72,6 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 3;
-                context.Saga.SessionId = context.Message.SessionId;
             })
             .Activity(p => p.OfType<ESLogActivity>()
             .TransitionTo(MessageState))
@@ -228,10 +227,12 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
                         AuctionId = context.Saga.AuctionId,
                         ItemId = context.Saga.ItemId,
                         Show = !context.Saga.IsError,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.Page,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
                             .DataObjects[0].Data,
-                        UserLogin = context.Saga.UserLogin
+                        UserLogin = context.Saga.UserLogin,
+                        //Page - URL страницы вида "communication/<id аукциона>"
+                        Page = "communication/" + context.Saga.AuctionId.ToString()
                     })).Finalize()
             ),
         //обрабатываем ошибки подтверждения/отката транзакции            

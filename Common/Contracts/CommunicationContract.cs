@@ -23,7 +23,7 @@ public class RequestCommunicationCreate
     public string UserLogin { get; set; }
     public string Message { get; set; }
     public Guid CorrelationId { get; set; }
-    public string SessionId { get; set; }
+    public string EventType { get; set; }
 }
 
 public class RequestCommunicationUpdate
@@ -34,7 +34,7 @@ public class RequestCommunicationUpdate
     public string UserLogin { get; set; }
     public string Message { get; set; }
     public Guid CorrelationId { get; set; }
-    public string SessionId { get; set; }
+    public string EventType { get; set; }
 }
 
 public class RequestCommunicationDelete
@@ -43,7 +43,7 @@ public class RequestCommunicationDelete
     public Guid? AuctionId { get; set; }
     public string UserLogin { get; set; }
     public Guid CorrelationId { get; set; }
-    public string SessionId { get; set; }
+    public string EventType { get; set; }
 }
 
 public class CommunicationCreateSearch : IFaultMessage

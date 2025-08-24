@@ -24,10 +24,10 @@ const auctionApi = createApi({
 	tagTypes: ["auctions"],
 	endpoints: (builder) => ({
 		getDetailedViewData: builder.query<ApiResponseNet<Auction>, string>({
-			query: (id) => ({
-				url: `/search/${id}`,
+			query: (itemId) => ({
+				url: `/search/${itemId}`,
 				headers: {
-					RequestType: RequestType[RequestType.ReadDetail],
+					RequestType: RequestType[RequestType.ReadDetail]
 				},
 			}),
 			transformResponse: (response: ApiResponseNet<Auction>, meta: any) => {

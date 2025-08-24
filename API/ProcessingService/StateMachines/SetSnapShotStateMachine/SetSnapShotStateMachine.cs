@@ -90,7 +90,6 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 context.Saga.BatchCounter = -1;
                 context.Saga.AllItemsCount = 0;
                 context.Saga.ProgressCurrent = 0; //Текущей прогресс в процентах
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.ActionDate = DateTime.UtcNow;
                 context.Saga.IsError = false;
             })
@@ -101,7 +100,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             title = "Создание снимка БД:",
@@ -177,7 +177,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         {
                             SignalRMethod = SignalRMethod.OperationProgress,
                             Show = true,
-                            SessionId = context.Saga.SessionId,
+                            EventType = EventType.UserLogin,
+                            UserLogin = context.Saga.UserLogin,
                             Data = JsonSerializer.Serialize(new
                             {
                                 message = "Восстановление изображений...",
@@ -239,7 +240,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление ставок...",
@@ -286,7 +288,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление платежей...",
@@ -333,7 +336,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей аукционов...",
@@ -380,7 +384,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление уведомлений...",
@@ -427,7 +432,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.OperationProgress,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление сообщений пользователей...",
@@ -542,7 +548,8 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     {
                         SignalRMethod = SignalRMethod.SetSnapShot,
                         Show = true,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = context.Saga.NotifyMessage
                     }).Finalize()
         ),

@@ -22,6 +22,7 @@ export default function Register() {
     name: "",
     login: "",
     password: "",
+    isGuest: false,
   });
   const [editError, setEditError] = useState<FormErrors | null>(null);
   const [submittingCreate, setSubmittingCreate] = useState(false);
@@ -86,6 +87,7 @@ export default function Register() {
       login: loginUserModel.login,
       name: loginUserModel.name,
       password: loginUserModel.password,
+      isGuest: false,
     });
     if (response.data && response.data.isSuccess) {
       toastMessage!.show({

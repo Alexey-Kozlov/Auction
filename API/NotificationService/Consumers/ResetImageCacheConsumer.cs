@@ -16,7 +16,7 @@ public class ResetImageCacheConsumer : IConsumer<ResetImageCacheNotification>
     }
     public async Task Consume(ConsumeContext<ResetImageCacheNotification> context)
     {
-        await _hubContext.Clients.Group(context.Message.SessionId).SendAsync(
+        await _hubContext.Clients.Group(context.Message.UserLogin).SendAsync(
             Enum.GetName(typeof(SignalRMethod), SignalRMethod.ResetImageCache),
         "Выполнен сброс кеша изображений Redis");
     }

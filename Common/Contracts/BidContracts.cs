@@ -6,7 +6,7 @@ public record RequestBidPlace(
      Guid AuctionId,
      string Bidder,
      int Amount,
-     string SessionId,
+     string UserLogin,
      Guid CorrelationId
 );
 

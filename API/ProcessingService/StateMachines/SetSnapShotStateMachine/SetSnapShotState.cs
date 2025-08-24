@@ -12,7 +12,6 @@ public class SetSnapShotState : SagaStateMachineInstance
     public int BatchCounter { get; set; }
     public float AllItemsCount { get; set; }
     public float ProgressCurrent { get; set; }
-    public string SessionId { get; set; }
     public DateTime ActionDate { get; set; }
     public bool IsError { get; set; }
     public int CommitCounter { get; set; }

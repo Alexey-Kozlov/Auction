@@ -57,7 +57,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 context.Saga.Amount = context.Message.Amount;
                 context.Saga.ItemId = Guid.NewGuid();
                 context.Saga.UserLogin = context.Message.UserLogin;
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 2;
             })
@@ -188,7 +187,8 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     {
                         SignalRMethod = SignalRMethod.FinanceCreate,
                         Show = true,
-                        SessionId = context.Saga.UserLogin,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new { value = context.Saga.Amount })
                     })).Finalize()
             ),

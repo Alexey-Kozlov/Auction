@@ -5,5 +5,5 @@ public record LoginResponseDTO
      string Name = "",
      string Token = "",
      string Login = "",
-     string Id = ""
+     bool IsGuest = false
 );

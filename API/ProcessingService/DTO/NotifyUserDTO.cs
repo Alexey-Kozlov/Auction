@@ -6,6 +6,5 @@ public record EditNotificationDTO
 (
     [Required]
      Guid ItemId,
-     bool Enable,
-     string SessionId
+     bool Enable
 );

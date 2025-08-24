@@ -17,7 +17,7 @@ export default function NavBar() {
       <div className="NavBar">
         <Logo />
         <Search />
-        {user.login ? (
+        {!user.isGuest ? (
           <UserActions />
         ) : (
           <div>

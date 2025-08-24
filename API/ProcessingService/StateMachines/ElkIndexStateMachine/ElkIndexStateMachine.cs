@@ -67,7 +67,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             When(RequestElkIndexEvent)
             .Then(context =>
             {
-                context.Saga.SessionId = context.Message.SessionId;
                 context.Saga.UserLogin = context.Message.UserLogin;
                 context.Saga.IsError = false;
                 context.Saga.CallBackType = context.Message.CallBackType;
@@ -263,7 +262,8 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                     {
                         SignalRMethod = SignalRMethod.ElkIndexReset,
                         Show = context.Saga.ShowMessages,
-                        SessionId = context.Saga.SessionId,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
                         Data = $"Проиндексировано - {context.Saga.ItemNumber} записей"
                     })
                 // если в начальном сообщении был указан параметр CallBackType - посылаем сообщение

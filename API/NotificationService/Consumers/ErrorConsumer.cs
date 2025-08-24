@@ -24,9 +24,7 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
     public async Task Consume(ConsumeContext<NotificationServiceError> context)
     {
         context.Message.TraceId = context.Message.TraceId.Value;
-        var group = string.IsNullOrEmpty(context.Message.UserLogin) ?
-            context.Message.SessionId :
-            context.Message.UserLogin;
+        var group = context.Message.UserLogin;
         // если сообщение ошибки от системного сервиса (например, завершение аукциона) - 
         // пересылаем администратору системы (если не указан AuctionId) или всем кто подписался
         // на получение уведомлений для данного аукциона (если указан AuctionId)
