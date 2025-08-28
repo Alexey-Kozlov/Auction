@@ -8,7 +8,12 @@ import { setParams } from "../../store/paramSlice";
 import { RootState } from "../../store/store";
 import { setData } from "../../store/auctionSlice";
 import Filters from "./Filters";
-import { Auction, ProcessingState, UrlCacheList } from "../../types";
+import {
+  Auction,
+  ProcessingState,
+  SignalREvents,
+  UrlCacheList,
+} from "../../types";
 import Waiter from "../Waiter";
 import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
 import {
@@ -57,25 +62,44 @@ export default function Listings() {
   }, [auctionsData]);
 
   //запрос на обновление данных при поступлении сообщения об изменении коллекции - нужно
-  //принудительно обновить все записи. Это возникает при поиске через Эластик или при завершении аукциона
+  //принудительно обновить все записи. Это возникает при поиске через Эластик, при завершении аукциона
+  //или при изменении ставок
   useEffect(() => {
     if (
       !auctionsData.isUninitialized &&
-      CheckEventLastChangedNotReady(procState, "AuctionFinished")
+      (CheckEventLastChangedNotReady(
+        procState,
+        SignalREvents[SignalREvents.AuctionFinished]
+      ) ||
+        CheckEventLastChangedNotReady(
+          procState,
+          SignalREvents[SignalREvents.BidPlaced]
+        ))
     ) {
       auctionsData.refetch();
       setIsWait(() => true);
     }
     //поиск из Эластика закончен, убираем иконку ожидания
-    if (CheckEventLastChangedNotReady(procState, "ElkSearch")) {
+    if (
+      CheckEventLastChangedNotReady(
+        procState,
+        SignalREvents[SignalREvents.ElkSearch]
+      )
+    ) {
       setIsWait(() => false);
     }
     // здесь отслеживаем начало поиска для Эластика - отображаем иконку ожидания, ставим признак
     // сброса кеша для отправки запроса на поиск
-    if (CheckEventLastChangedReady(procState, "ElkSearch")) {
+    if (
+      CheckEventLastChangedReady(
+        procState,
+        SignalREvents[SignalREvents.ElkSearch]
+      )
+    ) {
       auctionsData.refetch();
       setIsWait(() => true);
     }
+
     // eslint-disable-next-line
   }, [procState]);
 

@@ -14,10 +14,7 @@ import { RootState } from "../../store/store";
 import { useNavigate, useParams } from "react-router-dom";
 import ImageCard from "../auctionList/ImageCard";
 import BidList from "./BidList";
-import api, {
-  useGetAuctionsQuery,
-  useGetDetailedViewDataQuery,
-} from "../../api/AuctionApi";
+import api, { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
 import { setEventFlag } from "../../store/processingSlice";
 import {
@@ -46,8 +43,6 @@ export default function DetailMain() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [auctionDetail, setAuctionDetail] = useState<Auction | null>(null);
   const data = useGetDetailedViewDataQuery(id ? id : "", { skip: !id });
-  const cacheStore = useSelector((state: RootState) => state.cacheStore);
-  let auctionsQuery = useGetAuctionsQuery(cacheStore.urlAuction);
 
   const userSeller = useGetUserNameQuery(
     auctionDetail ? auctionDetail.seller : "",

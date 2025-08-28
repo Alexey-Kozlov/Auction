@@ -35,9 +35,8 @@ import { useSetUsersCurrentPageMutation } from "../../api/ServiceApi";
 
 export default function AuctionForm() {
   let { id } = useParams();
-  if (!id) id = "empty";
-  const auction = useGetDetailedViewDataQuery(id, {
-    skip: id === "empty",
+  const auction = useGetDetailedViewDataQuery(id!, {
+    skip: id === "",
   });
 
   const procState: ProcessingState[] = useSelector(
@@ -80,10 +79,15 @@ export default function AuctionForm() {
     },
   ];
 
-  const auctionImage = useGetImageForAuctionQuery(
+  const fullImageQuery = useGetImageForAuctionQuery(
     { id: newAuction.itemId, cache: false },
     { skip: newAuction.itemId === undefined }
   );
+  const cacheStore = useSelector((state: RootState) => state.cacheStore);
+  const cachedImageQuery = useGetImageForAuctionQuery({
+    id: cacheStore.urlImage.id,
+    cache: cacheStore.urlImage.cache,
+  });
 
   useEffect(() => {
     //получаем данные по аукциону
@@ -110,29 +114,40 @@ export default function AuctionForm() {
   useEffect(() => {
     if (
       auction.data &&
-      !auctionImage.isLoading &&
-      !auctionImage.isFetching &&
-      auctionImage.data?.result?.image
+      !fullImageQuery.isLoading &&
+      !fullImageQuery.isFetching &&
+      fullImageQuery.data?.result?.image
     ) {
-      setImage("data:image/png;base64, " + auctionImage?.data?.result?.image);
+      setImage("data:image/png;base64, " + fullImageQuery?.data?.result?.image);
       setNewAuction((prev) => {
         return {
           ...auction.data!.result,
-          usingImage: auctionImage?.data?.result?.image ? true : false,
+          usingImage: fullImageQuery?.data?.result?.image ? true : false,
         };
       });
     }
     // eslint-disable-next-line
-  }, [id, auction, auctionImage]);
+  }, [id, auction, fullImageQuery]);
 
   //возврат на список аукционов после редактирования записи аукциона
   //при получении сообщения об изменении параметра CollectionChanged -
   //удаляем кеширование и переходим на список аукционов
   useEffect(() => {
     if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
-      //функцией api.util.resetApiState() - полностью удаляем кеш RTK, иначе в пейджинге на других
-      //страницах останутся старые данные
+      //ставим признак по обновлению описания аукциона
+      auction.refetch();
+      //ставим признак по обновлению списка аукционов
+      //функцией api.util.resetApiState() - полностью удаляем кеш RTK для списка аукционрв,
+      // иначе в пейджинге на других страницах останутся старые данные
       dispatch(api.util.resetApiState());
+      //ставим признак по обновлению кешированного изображения
+      if (!cachedImageQuery.isUninitialized) {
+        cachedImageQuery.refetch();
+      }
+      //ставим признак по обновлению полного изображения
+      if (!fullImageQuery.isUninitialized) {
+        fullImageQuery.refetch();
+      }
       navigate("/");
     }
     // eslint-disable-next-line
@@ -216,7 +231,7 @@ export default function AuctionForm() {
     //обработка данных
     setIsWaiting(() => true);
     const auctionUpdated: AuctionUpdated = {
-      itemId: id,
+      itemId: id!,
       title: newAuction.title,
       description: newAuction.description ? newAuction.description : "",
       properties: newAuction.properties,

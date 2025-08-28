@@ -2,13 +2,22 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import Heading from "../auctionList/Heading";
-import { Auction, Bid, User } from "../../types";
+import {
+  Auction,
+  Bid,
+  ProcessingState,
+  SignalREvents,
+  User,
+} from "../../types";
 import BidItem from "./BidItem";
 import BidForm from "./BidForm";
 import { useGetBidsForAuctionQuery } from "../../api/BidApi";
 import { setBids, setOpen } from "../../store/bidSlice";
 import NumberWithSpaces from "../../utils/NumberWithSpaces";
 import { Panel } from "primereact/panel";
+import { useIsNotifyUserQuery } from "../../api/NotificationApi";
+import { useGetAuctionsQuery } from "../../api/AuctionApi";
+import { CheckEventLastChangedNotReady } from "../../utils/CheckEvent";
 
 type Props = {
   user: User | null;
@@ -22,7 +31,15 @@ export default function BidList({ user, auction }: Props) {
   const bidStore = useSelector((state: RootState) => state.bidStore);
   const bids = bidStore.bids;
   const open = bidStore.open;
+  const cacheStore = useSelector((state: RootState) => state.cacheStore);
   const openForBids = new Date(auction?.auctionEnd) > new Date();
+  const isNotifyUser = useIsNotifyUserQuery(auction?.itemId, {
+    skip: user?.isGuest,
+  });
+  const auctionList = useGetAuctionsQuery(cacheStore.urlAuction);
+  const procState: ProcessingState[] = useSelector(
+    (state: RootState) => state.processingStore
+  );
 
   //вычисляем самую большую ставку. Делать ставку меньше нельзя
   const bidRestriction = () => {
@@ -79,6 +96,30 @@ export default function BidList({ user, auction }: Props) {
 
     // eslint-disable-next-line
   }, [lastBidId]);
+
+  //обновляем список ставок и переключатель уведомлений после добавления ставки
+  useEffect(() => {
+    if (
+      CheckEventLastChangedNotReady(
+        procState,
+        SignalREvents[SignalREvents.BidPlaced]
+      )
+    ) {
+      //ставим признак по обновлению переключателя по уведомлениям рассылки аукциона
+      if (!isNotifyUser.isUninitialized) {
+        isNotifyUser.refetch();
+      }
+      //ставим признак по обновлению списка ставок
+      if (!bidList.isUninitialized) {
+        bidList.refetch();
+      }
+      //ставим признак по обновлению списка аукционов - чтобы обновился банер ставки для аукциона
+      if (!auctionList.isUninitialized) {
+        auctionList.refetch();
+      }
+    }
+    // eslint-disable-next-line
+  }, [procState]);
 
   return (
     <div className="BidPanel">
