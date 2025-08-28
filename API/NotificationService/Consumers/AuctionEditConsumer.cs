@@ -42,14 +42,11 @@ public class AuctionEditConsumer : IConsumer<DataForProcessingServicesList<Notif
                         var delItem = await _dbContext.NotifyItems.Where(p =>
                             p.ItemId == typedItem.ItemId && p.Commited &&
                             p.UserLogin == typedItem.UserLogin).FirstOrDefaultAsync();
-                        if (delItem == null)
+                        if (delItem != null)
                         {
-                            var errorString = $"Запись для удаления - {typedItem.ItemId}";
-                            errorString += $" для пользователя {typedItem.UserLogin} не найдена";
-                            throw new Exception(errorString);
+                            delItem.CorrelationId = correlationId;
+                            _dbContext.NotifyItems.Update(delItem);
                         }
-                        delItem.CorrelationId = correlationId;
-                        _dbContext.NotifyItems.Update(delItem);
                         break;
                 }
                 await _dbContext.SaveChangesAsync();

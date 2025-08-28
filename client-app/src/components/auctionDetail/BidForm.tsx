@@ -10,9 +10,11 @@ import { useIsNotifyUserQuery } from "../../api/NotificationApi";
 import { Message } from "primereact/message";
 import { InputNumber } from "primereact/inputnumber";
 import {
-  CheckEventLastChangedReady,
+  CheckEventLastChangedNotReady,
   CheckEventReady,
 } from "../../utils/CheckEvent";
+import { useGetBidsForAuctionQuery } from "../../api/BidApi";
+import { useGetAuctionsQuery } from "../../api/AuctionApi";
 
 type Props = {
   auctionId: string;
@@ -22,25 +24,30 @@ type Props = {
 export default function BidForm({ auctionId, highBid }: Props) {
   const [placeBid] = usePlaceBidForAuctionMutation();
   const dispatch = useDispatch();
-  const [isWaiting, setIsWaiting] = useState(false);
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
   );
+  const cacheStore = useSelector((state: RootState) => state.cacheStore);
   const user: User = useSelector((state: RootState) => state.authStore);
   const isNotifyUser = useIsNotifyUserQuery(auctionId, {
     skip: user.isGuest,
   });
+  const bidList = useGetBidsForAuctionQuery(auctionId);
+  const auctionList = useGetAuctionsQuery(cacheStore.urlAuction);
   //обновляем список ставок и переключатель уведомлений после добавления ставки
   useEffect(() => {
     if (
-      isWaiting &&
-      !CheckEventLastChangedReady(
+      CheckEventLastChangedNotReady(
         procState,
         SignalREvents[SignalREvents.BidPlaced]
       )
     ) {
+      //ставим признак по обновлению переключателя по уведомлениям рассылки аукциона
       isNotifyUser.refetch();
-      setIsWaiting(() => false);
+      //ставим признак по обновлению списка ставок
+      bidList.refetch();
+      //ставим признак по обновлению списка аукционов - чтобы обновился банер ставки для аукциона
+      auctionList.refetch();
     }
     // eslint-disable-next-line
   }, [procState]);
@@ -78,7 +85,6 @@ export default function BidForm({ auctionId, highBid }: Props) {
         ready: true,
       })
     );
-    setIsWaiting(() => true);
     await placeBid({
       amount: bidValue as number,
       auctionId: auctionId,

@@ -12,6 +12,7 @@ const initialState: State = {
 	winner: undefined,
 	searchTerm: "",
 	searchAdv: "",
+	userLogin: ""
 };
 
 export const paramSlice = createSlice({
@@ -25,6 +26,7 @@ export const paramSlice = createSlice({
 			if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
 			if (action.payload.pageCount || action.payload.pageCount === "0") state.pageCount = action.payload.pageCount;
 			if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
+			if (action.payload.userLogin) state.userLogin = action.payload.userLogin;
 			if (action.payload.filterBy) {
 				state.filterBy = action.payload.filterBy;
 				state.seller = undefined;

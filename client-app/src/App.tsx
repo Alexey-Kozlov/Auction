@@ -19,6 +19,7 @@ import { setAuthUser } from "./store/authSlice";
 import uuid from "react-native-uuid";
 import { useLoginUserMutation } from "./api/AuthApi";
 import { RootState } from "./store/store";
+import { setParams } from "./store/paramSlice";
 
 function App() {
   const toastMessage = useRef<Toast>(null);
@@ -43,6 +44,9 @@ function App() {
           JSON.parse(localStorage.getItem("Auction")!) as LoginResponse
         )
       );
+    }
+    if (auth.login) {
+      dispatch(setParams({ userLogin: auth.login }));
     }
     //если еще не входил в систему - регистрируем пользователя в системе как гостя
     if (!AddTokenHeader()) {

@@ -215,6 +215,7 @@ export type State = {
 	winner?: string;
 	searchTerm?: string;
 	searchAdv?: string;
+	userLogin?: string;
 };
 
 export type FormErrors = {

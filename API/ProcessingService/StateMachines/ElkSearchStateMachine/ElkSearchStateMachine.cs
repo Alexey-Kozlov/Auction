@@ -41,6 +41,7 @@ public class ElkSearchStateMachine : MassTransitStateMachine<ElkSearchState>
                 context.Saga.PageSize = context.Message.PageSize;
                 context.Saga.PageNumber = context.Message.PageNumber;
                 context.Saga.IsError = false;
+                context.Saga.UserLogin = context.Message.UserLogin;
             })
             .Send(
                 new Uri(configuration["QueuePaths:ElkSearchCreating"]),

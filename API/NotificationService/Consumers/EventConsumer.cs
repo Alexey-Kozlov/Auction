@@ -43,20 +43,26 @@ public class EventConsumer : IConsumer<EventNotificationItem>
                 var _users = await _dbContext.NotifyItems.Where(p =>
                         p.ItemId == context.Message.AuctionId && p.Commited)
                         .Select(p => p.UserLogin).ToListAsync();
-                //проверка на дубли пользователей
-                // var doubles = _users.GroupBy(p => p).SelectMany(grp => grp.Skip(1));
-                // if (doubles.Any())
-                // {
-                //     throw new Exception("Ошибка рассылки для группы пользователей - есть дубликаты рассылки" +
-                //     "'" + doubles.FirstOrDefault() + "'");
-                // }
-                //если был указан UserLogin - добавить в рассылку (если нет)
-                // if (!string.IsNullOrEmpty(context.Message.UserLogin) &&
-                //     _users.FirstOrDefault(p => p.ToLower() == context.Message.UserLogin.ToLower()) == null)
-                // {
-                //     _users.Add(context.Message.UserLogin);
-                // }
                 await _hubContext.Clients.Groups(_users)
+                    .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
+                        new
+                        {
+                            show = context.Message.Show,
+                            data = context.Message.Data
+                        });
+                break;
+            //рассылка по подписчикам на данный аукцион + текущий пользователь
+            case EventType.AuctionGroup_UserLogin:
+                var _users2 = await _dbContext.NotifyItems.Where(p =>
+                        p.ItemId == context.Message.AuctionId && p.Commited)
+                        .Select(p => p.UserLogin).ToListAsync();
+                //если был указан UserLogin - добавить в рассылку (если нет)
+                if (!string.IsNullOrEmpty(context.Message.UserLogin) &&
+                    _users2.FirstOrDefault(p => p.ToLower() == context.Message.UserLogin.ToLower()) == null)
+                {
+                    _users2.Add(context.Message.UserLogin);
+                }
+                await _hubContext.Clients.Groups(_users2)
                     .SendAsync(Enum.GetName(typeof(SignalRMethod), context.Message.SignalRMethod),
                         new
                         {

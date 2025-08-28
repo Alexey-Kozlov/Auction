@@ -231,7 +231,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                     {
                         SignalRMethod = SignalRMethod.AuctionFinished,
                         Show = true,
-                        EventType = EventType.AuctionGroup,
+                        EventType = EventType.All,
                         AuctionId = context.Saga.ItemId,
                         Data = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList)
                             .DataObjects[0].Data

@@ -6,7 +6,6 @@ import uuid from "react-native-uuid";
 import { GetCurrentUser } from "../utils/GetCurrentUser";
 
 const notificationApi = createApi({
-	refetchOnMountOrArgChange: true,
 	reducerPath: "notificationApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_NOTIFY_URL,

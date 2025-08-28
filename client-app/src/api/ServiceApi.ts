@@ -30,6 +30,7 @@ const serviceApi = createApi({
 				headers: {
 					RequestType: RequestType[RequestType.ELK],
 				},
+				body: {}
 			}),
 			transformResponse: (response: ApiResponseNet<number>, meta: any) => {
 				PostApiProcess(response);
@@ -46,7 +47,8 @@ const serviceApi = createApi({
 				method: "post",
 				headers: {
 					RequestType: RequestType[RequestType.SnapShot],
-				}
+				},
+				body: {}
 			}),
 			transformResponse: (response: ApiResponseNet<number>, meta: any) => {
 				PostApiProcess(response);
@@ -81,7 +83,8 @@ const serviceApi = createApi({
 				method: "post",
 				headers: {
 					RequestType: RequestType[RequestType.Cache],
-				}
+				},
+				body: {}
 			}),
 			transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
 				PostApiProcess(response);

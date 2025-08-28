@@ -14,7 +14,10 @@ import { RootState } from "../../store/store";
 import { useNavigate, useParams } from "react-router-dom";
 import ImageCard from "../auctionList/ImageCard";
 import BidList from "./BidList";
-import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
+import api, {
+  useGetAuctionsQuery,
+  useGetDetailedViewDataQuery,
+} from "../../api/AuctionApi";
 import { useIsNotifyUserQuery } from "../../api/NotificationApi";
 import { setEventFlag } from "../../store/processingSlice";
 import {
@@ -38,11 +41,13 @@ export default function DetailMain() {
     (state: RootState) => state.processingStore
   );
   const [notifyUser, setNotifyUser] = useState(false);
-  const [isWaiting, setIsWaiting] = useState(false);
   const [isNotifySetWaiting, notifySetWaiting] = useState(false);
+  const [isDeleteSetWaiting, deleteSetWaiting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [auctionDetail, setAuctionDetail] = useState<Auction | null>(null);
-  const data = useGetDetailedViewDataQuery(id!);
+  const data = useGetDetailedViewDataQuery(id ? id : "", { skip: !id });
+  const cacheStore = useSelector((state: RootState) => state.cacheStore);
+  let auctionsQuery = useGetAuctionsQuery(cacheStore.urlAuction);
 
   const userSeller = useGetUserNameQuery(
     auctionDetail ? auctionDetail.seller : "",
@@ -108,9 +113,11 @@ export default function DetailMain() {
       isNotifyUser.refetch();
       notifySetWaiting(() => false);
     }
-
-    //переход на список аукционов при редактировании текущего аукциона
-    if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
+    //переход на список аукционов при удалении текущего аукциона
+    if (isDeleteSetWaiting) {
+      //функцией api.util.resetApiState() - полностью удаляем кеш RTK, иначе в пейджинге на других
+      //страницах останутся старые данные
+      dispatch(api.util.resetApiState());
       navigate("/");
     }
     // eslint-disable-next-line
@@ -127,14 +134,14 @@ export default function DetailMain() {
     await setNotifyUserApi(notifyUser);
   };
 
-  const acceptDeleteDialog = () => {
+  const acceptDeleteDialog = async () => {
     //подтверждено удаления аукциона
-    setIsWaiting(() => true);
     dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
     const auctionDeleted: AuctionDeleted = {
       itemId: id!,
     };
-    deleteAuctionProc(auctionDeleted);
+    await deleteAuctionProc(auctionDeleted);
+    deleteSetWaiting(true);
   };
 
   const rejectDeleteDialog = () => {

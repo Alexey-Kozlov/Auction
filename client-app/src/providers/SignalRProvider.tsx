@@ -43,30 +43,26 @@ export default function SignalRProvider() {
   const tokenData = localStorage.getItem("Auction");
 
   useEffect(() => {
-    if (connection && connection.state === HubConnectionState.Connected) {
-      connection.stop();
-      setConnection(() => null);
-    }
-    if (tokenData) {
-      const token = JSON.parse(tokenData!).token;
-      const newConnection = new HubConnectionBuilder()
-        .withUrl(apiUrl!, {
-          accessTokenFactory: () => token,
-        })
-        .withAutomaticReconnect()
-        .configureLogging(LogLevel.Information)
-        .build();
-      setConnection(newConnection);
-    } else {
-      const newConnection = new HubConnectionBuilder()
-        .withUrl(apiUrl!)
-        .withAutomaticReconnect()
-        .configureLogging(LogLevel.Information)
-        .build();
-      setConnection(newConnection);
+    if (user.login) {
+      //при смене пользователя - закрываем старый коннект и открываем новый
+      if (connection && connection.state === HubConnectionState.Connected) {
+        connection.stop();
+        setConnection(() => null);
+      }
+      if (tokenData) {
+        const token = JSON.parse(tokenData!).token;
+        const newConnection = new HubConnectionBuilder()
+          .withUrl(apiUrl!, {
+            accessTokenFactory: () => token,
+          })
+          .withAutomaticReconnect()
+          .configureLogging(LogLevel.Information)
+          .build();
+        setConnection(newConnection);
+      }
     }
     // eslint-disable-next-line
-  }, [tokenData]);
+  }, [user.login]);
 
   useEffect(() => {
     const con_execute = async () => {
@@ -493,7 +489,7 @@ export default function SignalRProvider() {
     };
     con_execute();
     // eslint-disable-next-line
-  }, [connection, user.login]);
+  }, [connection]);
 
   useEffect(() => {
     //посылаем новое сообщение в чате на сервер

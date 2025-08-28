@@ -136,7 +136,7 @@ public class ProcessingController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost("elkindex")]
-    public async Task ElkIndex(SessionDTO param)
+    public async Task ElkIndex()
     {
         //Выполняем реиндексацию ELK
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
@@ -151,7 +151,7 @@ public class ProcessingController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost("SetSnapShot")]
-    public async Task SetSnapShot(SessionDTO param)
+    public async Task SetSnapShot()
     {
         //зафиксировать полное состояние БД в EventSourcing - делаем SnapShot
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
@@ -203,7 +203,8 @@ public class ProcessingController : ControllerBase
     public async Task ResetImageCache()
     {
         //Выполняем сброс кеша изобюражений
-        await _publishEndpoint.Publish(new ResetImageCache());
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new ResetImageCache { UserLogin = userLogin });
     }
 
     [HttpPost("setuserscurrentpage")]

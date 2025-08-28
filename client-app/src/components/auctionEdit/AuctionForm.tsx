@@ -8,10 +8,7 @@ import {
   ProcessingState,
 } from "../../types";
 
-import {
-  useGetAuctionsQuery,
-  useGetDetailedViewDataQuery,
-} from "../../api/AuctionApi";
+import api, { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
 import { useGetImageForAuctionQuery } from "../../api/ImageApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setEventFlag } from "../../store/processingSlice";
@@ -70,14 +67,7 @@ export default function AuctionForm() {
   const [image, setImage] = useState("");
   const [isWaiting, setIsWaiting] = useState(false);
   const [isFormChanged, setIsFormChanged] = useState(false);
-  const [isImageChanged, setIsImageChanged] = useState(false);
   const [editError, setEditError] = useState<FormErrors | null>(null);
-  const cacheStore = useSelector((state: RootState) => state.cacheStore);
-  let auctionsQuery = useGetAuctionsQuery(cacheStore.urlAuction);
-  const imageQuery = useGetImageForAuctionQuery({
-    id: cacheStore.urlImage.id,
-    cache: cacheStore.urlImage.cache,
-  });
 
   const editErrorList: FormErrors[] = [
     {
@@ -137,21 +127,12 @@ export default function AuctionForm() {
 
   //возврат на список аукционов после редактирования записи аукциона
   //при получении сообщения об изменении параметра CollectionChanged -
-  //обновляем значения записи (удаляем кеширование), переходим на список аукционов
+  //удаляем кеширование и переходим на список аукционов
   useEffect(() => {
     if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
-      if (id && id !== "empty") {
-        //ставим признак по обновлению описания аукциона
-        auction.refetch();
-      }
-      //ставим признак по обновлению списка аукционов
-      auctionsQuery.refetch();
-      if (isImageChanged) {
-        //ставим признак по обновлению кешированного изображения
-        imageQuery.refetch();
-        //ставим признак по обновлению полного изображения
-        auctionImage.refetch();
-      }
+      //функцией api.util.resetApiState() - полностью удаляем кеш RTK, иначе в пейджинге на других
+      //страницах останутся старые данные
+      dispatch(api.util.resetApiState());
       navigate("/");
     }
     // eslint-disable-next-line
@@ -193,7 +174,6 @@ export default function AuctionForm() {
   const handleImageChanged = (value: string) => {
     setIsFormChanged(true);
     setEditError(() => null);
-    setIsImageChanged(true);
     if (value) {
       handleImageUsingChanged(true);
     }

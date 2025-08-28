@@ -29,9 +29,11 @@ export default function Listings() {
     (state: RootState) => state.processingStore
   );
   const [isWait, setIsWait] = useState(true);
-
   //автоматически запускается при изменении url
-  let auctionsData = useGetAuctionsQuery(url);
+
+  let auctionsData = useGetAuctionsQuery(url, {
+    skip: params.userLogin === undefined || params.userLogin === "",
+  });
 
   // Обновляем набор записей при поступлении новых данных из апи - пишем в локальное хранилище
   // auctionStore -> auctionSlice
@@ -64,11 +66,14 @@ export default function Listings() {
       auctionsData.refetch();
       setIsWait(() => true);
     }
-    //поиск из Эластика
+    //поиск из Эластика закончен, убираем иконку ожидания
     if (CheckEventLastChangedNotReady(procState, "ElkSearch")) {
       setIsWait(() => false);
     }
+    // здесь отслеживаем начало поиска для Эластика - отображаем иконку ожидания, ставим признак
+    // сброса кеша для отправки запроса на поиск
     if (CheckEventLastChangedReady(procState, "ElkSearch")) {
+      auctionsData.refetch();
       setIsWait(() => true);
     }
     // eslint-disable-next-line
@@ -79,7 +84,7 @@ export default function Listings() {
       setParams({
         pageNumber: e.page + 1,
         pageSize: e.rows,
-        firstPage: e.first,
+        firstPage: e.first === 0 ? 1 : e.first,
       })
     );
   }
