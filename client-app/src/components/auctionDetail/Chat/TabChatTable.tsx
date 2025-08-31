@@ -41,6 +41,7 @@ export default function TabChatTable({ auction, user }: Props) {
   const [chatSelected, setChatSelected] = useState<ChatComment | null>();
   const [showConfirmEditDialog, setShowConfirmEditDialog] = useState(false);
   const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
+  const [firstLoad, setFirstLoad] = useState(false);
   const communication = useGetCommunicationItemsQuery(auction.itemId);
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore
@@ -81,6 +82,10 @@ export default function TabChatTable({ auction, user }: Props) {
   };
 
   useEffect(() => {
+    dispatch(setEventFlag({ eventName: "CommunicationChanged", ready: true }));
+  }, []);
+
+  useEffect(() => {
     //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
     setCurrentPage("/communication/" + auction.itemId);
     //сортируем при первоначальной загрузке
@@ -94,6 +99,9 @@ export default function TabChatTable({ auction, user }: Props) {
       ) as ChatComment[];
       setCommunicationItems(
         _temp?.sort(DynamicSort("updateAt", SortDirection.descending))
+      );
+      dispatch(
+        setEventFlag({ eventName: "CommunicationChanged", ready: false })
       );
     }
     // eslint-disable-next-line

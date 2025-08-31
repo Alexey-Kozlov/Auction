@@ -22,7 +22,6 @@ export default function ImageToast({
 
   const auctionData = useGetDetailedViewDataQuery(auctionId, {
     skip: !auctionId,
-    refetchOnMountOrArgChange: true,
   });
   let text = "";
   switch (messageType) {

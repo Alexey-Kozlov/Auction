@@ -5,7 +5,6 @@ import { AuctionListTypes } from "../components/reports/auctionList/AuctionListT
 import uuid from "react-native-uuid";
 
 const ReportApi = createApi({
-	//refetchOnMountOrArgChange: true,
 	reducerPath: "reportApi",
 	baseQuery: fetchBaseQuery({
 		baseUrl: process.env.REACT_APP_API_URL + "/api/reports",

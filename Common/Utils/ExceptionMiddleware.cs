@@ -31,21 +31,28 @@ public class ExceptionMiddleware
             _log.LogError(e, e.Message);
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            var response = _env.IsDevelopment()
-                ? new ApiResponse<string>()
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = [e.Message, e.StackTrace.ToString()],
-                    Result = ""
-                }
-                : new ApiResponse<string>()
-                {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    IsSuccess = false,
-                    ErrorMessages = ["Ошибка сервера", "Обратитесь к разработчику"],
-                    Result = ""
-                };
+            var response = new ApiResponse<string>()
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                IsSuccess = false,
+                ErrorMessages = [e.Message, e.StackTrace.ToString()],
+                Result = ""
+            };
+            // var response = _env.IsDevelopment()
+            //     ? new ApiResponse<string>()
+            //     {
+            //         StatusCode = HttpStatusCode.InternalServerError,
+            //         IsSuccess = false,
+            //         ErrorMessages = [e.Message, e.StackTrace.ToString()],
+            //         Result = ""
+            //     }
+            //     : new ApiResponse<string>()
+            //     {
+            //         StatusCode = HttpStatusCode.InternalServerError,
+            //         IsSuccess = false,
+            //         ErrorMessages = ["Ошибка сервера", "Обратитесь к разработчику"],
+            //         Result = ""
+            //     };
             var jsonPolicy = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var json = JsonSerializer.Serialize(response, jsonPolicy);
             await context.Response.WriteAsync(json);

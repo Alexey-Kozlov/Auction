@@ -27,7 +27,6 @@ public class CommunicationController : ControllerBase
         //сортируем записи потом, на клиенте
         var items = await _context.Communications.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
             .ToListAsync();
-
         return new ApiResponse<List<CommunicationDTO>>()
         {
             StatusCode = System.Net.HttpStatusCode.OK,

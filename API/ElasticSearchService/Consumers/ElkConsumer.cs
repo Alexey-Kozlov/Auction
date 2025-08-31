@@ -79,17 +79,19 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                                 await _client.Client.IndexAsync(elkItem, p => p.Index("search_index"));
                                 break;
                             case CRUD.Update:
-                                //обновляем запись по полям - title, properties, description
+                                //обновляем запись по полям - title, properties, description, auctionEnd
                                 await _client.Client.UpdateByQueryAsync<AuctionCreatingElk>(indices: "search_index",
                                     p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
                                     .Script(s => s.Source(
                                         "ctx._source.title = params.title;" +
                                         "ctx._source.properties = params.properties;" +
-                                        "ctx._source.description = params.description;"
+                                        "ctx._source.description = params.description;" +
+                                        "ctx._source.auctionEnd = params.auctionEnd;"
                                     ).Params(p => p
                                     .Add("title", elkItem.Title)
                                     .Add("properties", elkItem.Properties)
-                                    .Add("description", elkItem.Description)))
+                                    .Add("description", elkItem.Description)
+                                    .Add("auctionEnd", elkItem.AuctionEnd)))
                                     .Conflicts(Conflicts.Proceed)
                                     .WaitForCompletion(true).Refresh());
                                 break;

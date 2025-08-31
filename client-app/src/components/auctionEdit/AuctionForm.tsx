@@ -339,19 +339,21 @@ export default function AuctionForm() {
               }}
             />
           </div>
-          <div className="col-3">Начальная цена</div>
-          <div className="col-9">
-            <InputNumber
-              id="Title"
-              placeholder="Начальная цена"
-              className="InputControl w-full"
-              value={newAuction.reservePrice}
-              suffix=" руб"
-              onValueChange={(e: InputNumberValueChangeEvent) =>
-                handleReservePriceChanged(e)
-              }
-            />
-          </div>
+          {!id && <div className="col-3">Начальная цена</div>}
+          {!id && (
+            <div className="col-9">
+              <InputNumber
+                id="Title"
+                placeholder="Начальная цена"
+                className="InputControl w-full"
+                value={newAuction.reservePrice}
+                suffix=" руб"
+                onValueChange={(e: InputNumberValueChangeEvent) =>
+                  handleReservePriceChanged(e)
+                }
+              />
+            </div>
+          )}
           <div className="col-3">Примечание</div>
           <div className="col-9">
             <InputTextarea

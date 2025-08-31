@@ -21,9 +21,7 @@ export default function Search() {
   };
 
   const Search = () => {
-    if (params.searchTerm === search) {
-      return;
-    }
+    if (!search) return;
     dispatch(setParams({ searchTerm: search, searchAdv: "" }));
     if (location.pathname !== "/") {
       navigate("/");
@@ -36,9 +34,7 @@ export default function Search() {
   };
 
   const AdvSearch = () => {
-    if (params.searchAdv === searchAdv) {
-      return;
-    }
+    if (!searchAdv) return;
     dispatch(setParams({ searchAdv: searchAdv, searchTerm: "" }));
     dispatch(setEventFlag({ eventName: "ElkSearch", ready: true }));
     if (location.pathname !== "/") {
