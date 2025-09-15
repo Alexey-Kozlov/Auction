@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, ParameterItem, RequestType } from "../types";
 import { PostApiProcess, PostErrorApiProcess } from "../api/PostResponse";
-import { AuctionListTypes } from "../components/reports/auctionList/AuctionListTypes";
+import { AuctionListTypes, DiagramType } from "../components/reports/auctionList/AuctionListTypes";
 import uuid from "react-native-uuid";
 
 const ReportApi = createApi({
@@ -57,9 +57,27 @@ const ReportApi = createApi({
 			},
 			invalidatesTags: ["report"],
 		}),
+		runDiagrams: builder.mutation<any, ParameterItem[]>({
+			query: (params) => ({
+				url: "/diagrams",
+				method: "post",
+				body: JSON.stringify(params),
+			}),
+			transformResponse: (
+				response: ApiResponseNet<DiagramType[]>,
+				meta: any
+			) => {
+				PostApiProcess(response);
+				return response;
+			},
+			transformErrorResponse: (response: any, meta: any) => {
+				PostErrorApiProcess(response);
+			},
+			invalidatesTags: ["report"],
+		}),		
 	}),
 });
 
-export const { useRunAuctionListMutation, useRunNotifyListMutation } =
+export const { useRunAuctionListMutation, useRunNotifyListMutation, useRunDiagramsMutation } =
 	ReportApi;
 export default ReportApi;

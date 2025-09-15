@@ -17,6 +17,13 @@ export default function TabDetailInfo({ auction }: Props) {
       _rows.push({ field: "Наименование", value: auction.title });
       _rows.push({ field: "Автор аукциона", value: auction.sellerName! });
       _rows.push({
+        field: "Начало аукциона",
+        value:
+          auction.createAt.toLocaleDateString() +
+          " " +
+          auction.createAt.toLocaleTimeString(),
+      });
+      _rows.push({
         field: "Завершение аукциона",
         value:
           auction.auctionEnd.toLocaleDateString() +

@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("Logout")]
-    public ApiResponse<object> Logout([FromBody] LogoutRequestDTO logoutRequestDTO)
+    public ApiResponse<object> Logout([FromBody] LogoutRequestDTO dto)
     {
         //заглушка, ничего не делаем - вся логика в логировании запроса на Logout в сервисе Gateway
         return new ApiResponse<object>();
@@ -45,6 +45,12 @@ public class AuthController : ControllerBase
     public async Task<ApiResponse<object>> SetPassword([FromBody] LoginRequestDTO dto)
     {
         return await _authService.SetPassword(dto);
+    }
+
+    [HttpPost("RefreshToken")]
+    public async Task<ApiResponse<LoginResponseDTO>> RefreshToken([FromBody] LogoutRequestDTO dto)
+    {
+        return await _authService.SetRefreshToken(dto.Login);
     }
 
 }

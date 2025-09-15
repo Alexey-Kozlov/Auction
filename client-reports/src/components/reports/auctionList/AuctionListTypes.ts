@@ -23,4 +23,4 @@ export enum AuctionListSortColumn {
 	Title,
 	StartDate,
 	EndDate,
-}
+};

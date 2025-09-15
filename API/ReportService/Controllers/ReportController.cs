@@ -12,11 +12,13 @@ public class ReportController : ControllerBase
 {
     private readonly NotificationList _notificationList;
     private readonly AuctionList _auctionList;
+    private readonly Diagrams _diagrams;
 
-    public ReportController(NotificationList notificationList, AuctionList auctionList)
+    public ReportController(NotificationList notificationList, AuctionList auctionList, Diagrams diagrams)
     {
         _notificationList = notificationList;
         _auctionList = auctionList;
+        _diagrams = diagrams;
     }
 
     [HttpPost("auctionlist")]
@@ -31,4 +33,9 @@ public class ReportController : ControllerBase
         return await _notificationList.GetNotificationItems(param);
     }
 
+    [HttpPost("diagrams")]
+    public async Task<string> Diagrams([FromBody] ParamItem[] param)
+    {
+        return await _diagrams.GetDiagrams(param);
+    }
 }

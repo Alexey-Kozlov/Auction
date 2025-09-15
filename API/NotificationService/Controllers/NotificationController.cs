@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
+using NotificationService.Services;
 
 namespace NotificationService.Controllers;
 
@@ -10,11 +11,11 @@ namespace NotificationService.Controllers;
 [Route("notifications/items")]
 public class NotificationController : ControllerBase
 {
-    private readonly NotificationDbContext _context;
+    private readonly GetNotifyService _getNotifyService;
 
-    public NotificationController(NotificationDbContext context)
+    public NotificationController(GetNotifyService getNotifyService)
     {
-        _context = context;
+        _getNotifyService = getNotifyService;
     }
 
 
@@ -23,18 +24,7 @@ public class NotificationController : ControllerBase
     public async Task<ApiResponse<bool>> IsNotifyUser(Guid id)
     {
         var userLogin = User.FindFirst("Login").Value;
-        var userNotify = await _context.NotifyItems.Where(p => p.Commited && p.ItemId == id &&
-            p.UserLogin == userLogin).FirstOrDefaultAsync();
-        var rezult = new ApiResponse<bool>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = true
-        };
-        if (userNotify == null)
-        {
-            rezult.Result = false;
-        }
-        return rezult;
+
+        return await _getNotifyService.IsNotifyUser(id, userLogin);
     }
 }

@@ -1,7 +1,8 @@
-import AuctionListParams from "../reports/auctionList/AuctionListParams";
+import AuctionListParams from "../../reports/auctionList/AuctionListParams";
 import { useParams } from "react-router-dom";
-import NotificationListParams from "../reports/notificationList/NotificationListParams";
-import Header from "./header/Header";
+import NotificationListParams from "../../reports/notificationList/NotificationListParams";
+import Header from "../header/Header";
+import DiagramParams from "../../reports/diagrams/DiagramParams";
 
 export default function Main() {
   const { id } = useParams();
@@ -11,6 +12,8 @@ export default function Main() {
         return <AuctionListParams />;
       case "NotificationList":
         return <NotificationListParams />;
+      case "RoundDiagrams":
+        return <DiagramParams />;
       default:
         return null;
     }

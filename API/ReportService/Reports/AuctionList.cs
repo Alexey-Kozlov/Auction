@@ -60,7 +60,7 @@ public class AuctionList
             query.Text += string.Join(',', auctionList.Select(p => "'" + p.ItemId + "'"));
             query.Text += ") limit 300";
             query.Parameters.Clear();
-            bidList = _client.GetBidReportItems(System.Text.Json.JsonSerializer.Serialize(query))
+            bidList = _client.GetBidReportItems(JsonSerializer.Serialize(query))
                 .GetAwaiter().GetResult().Result;
 
             var resultWithBids = auctionList.LeftOuterJoin(

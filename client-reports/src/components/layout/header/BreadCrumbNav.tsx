@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import ReportListData from "../ListData";
+import ReportListData from "../DataComponents/ListData";
 import { BreadCrumb } from "primereact/breadcrumb";
 
 export default function BreadCrumbNav() {

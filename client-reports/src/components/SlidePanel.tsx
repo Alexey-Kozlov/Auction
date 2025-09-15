@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { ParameterItem, ParameterSelect, ParameterType } from "../types";
 import { useDispatch, useSelector } from "react-redux";
-import { setParamIsOpen, setReportLoading } from "../store/ReportSlice";
+import { setReportLoading } from "../store/ReportSlice";
 import { RootState } from "../store/Store";
 import { Button } from "primereact/button";
 import { Sidebar } from "primereact/sidebar";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
+import DateInput from "./inputComponents/DateInput";
 
 type Props = {
   params: ParameterItem[];
@@ -23,7 +24,7 @@ export default function SlidePanel({ params, reportName }: Props) {
   useEffect(() => {
     let paramVal: string[] = [];
     params.forEach((item, index) => {
-      paramVal[index] = item.Value;
+      paramVal[index] = item.Value as string;
     });
     setParamValue(paramVal);
     document.getElementById("rt")?.focus();
@@ -42,9 +43,11 @@ export default function SlidePanel({ params, reportName }: Props) {
     if (item.Type === ParameterType.Select) {
       //создаем option объект без свойства Default - иначе не работает контрол DropDown
       var selectOptions: any = [];
-      (JSON.parse(item.Value) as ParameterSelect[]).forEach((item) => {
-        selectOptions.push({ Label: item.Label, Value: item.Value });
-      });
+      (JSON.parse(item.Value as string) as ParameterSelect[]).forEach(
+        (item) => {
+          selectOptions.push({ Label: item.Label, Value: item.Value });
+        }
+      );
       return (
         <Dropdown
           options={selectOptions}
@@ -109,6 +112,20 @@ export default function SlidePanel({ params, reportName }: Props) {
               return [...st];
             });
           }}
+        />
+      );
+    }
+    if (item.Type === ParameterType.Date) {
+      return (
+        <DateInput
+          value={paramValue![index] ? new Date(paramValue![index]) : null}
+          onChange={(p) => {
+            setParamValue((st) => {
+              st[index] = p ? p.toISOString() : "";
+              return [...st];
+            });
+          }}
+          showOnFocus={true}
         />
       );
     }

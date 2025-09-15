@@ -1,6 +1,7 @@
-import { ReportItem } from "../../types";
+import { ReportItem } from "../../../types";
 import { RiAuctionLine } from "react-icons/ri";
 import { MdOutlineNotificationImportant } from "react-icons/md";
+import { FaChartPie } from "react-icons/fa";
 
 export default function ListData(): ReportItem[] {
 	return [
@@ -15,6 +16,12 @@ export default function ListData(): ReportItem[] {
 			Description: "Список уведомлений",
 			Id: "NotificationList",
 			Icon: MdOutlineNotificationImportant
+		},
+		{
+			Name: "Круговые диаграммы",
+			Description: "Статистика по аукционам",
+			Id: "RoundDiagrams",
+			Icon: FaChartPie
 		},
 	];
 }

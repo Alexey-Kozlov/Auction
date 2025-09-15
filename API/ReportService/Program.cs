@@ -42,7 +42,9 @@ builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
 builder.Services.AddCors();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<NotificationList>();
+builder.Services.AddScoped<Diagrams>();
 builder.Services.AddScoped<GrpcReportsClient>();
+
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

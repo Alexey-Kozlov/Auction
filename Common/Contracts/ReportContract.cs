@@ -16,3 +16,9 @@ public class SqlQuery
     public string Text { get; set; }
     public List<string> Parameters { get; set; } = new();
 }
+
+public class DiagramData
+{
+    public string Seller { get; set; }
+    public int ItemsCount { get; set; }
+}

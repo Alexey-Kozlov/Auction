@@ -10,7 +10,7 @@ export interface ReportItem {
 export type ParameterItem = {
 	Label: string;
 	Type: ParameterType;
-	Value: string;
+	Value: string | Date;
 	Id: string;
 };
 

@@ -10,7 +10,7 @@ type Props = {
 
 export default function NotificationTable({ items }: Props) {
   const [repItems, setRepItems] = useState<NotificationListTypes[] | null>();
-
+  // eslint-disable-next-line
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     Title: { value: null, matchMode: FilterMatchMode.CONTAINS },
     UserLogin: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -19,6 +19,7 @@ export default function NotificationTable({ items }: Props) {
 
   useEffect(() => {
     setRepItems(() => items);
+    // eslint-disable-next-line
   }, []);
   return (
     <>

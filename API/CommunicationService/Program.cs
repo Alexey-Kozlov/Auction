@@ -82,6 +82,8 @@ builder.Services.AddOpenTelemetry()
 );
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<CommunicationProceduresService>();
+builder.Services.AddScoped<GetItemsService>();
+
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseMiddleware<ExceptionMiddleware>();

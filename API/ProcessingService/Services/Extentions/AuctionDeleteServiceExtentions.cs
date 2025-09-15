@@ -1,7 +1,6 @@
 using MassTransit;
 using ProcessingService.Data;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
-using ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
 namespace ProcessingService.Services;
 

@@ -1,9 +1,7 @@
-using AutoMapper;
-using BiddingService.Data;
 using BiddingService.DTO;
+using BiddingService.Services;
 using Common.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BiddingService.Controllers;
 
@@ -11,27 +9,16 @@ namespace BiddingService.Controllers;
 [Route("api/[controller]")]
 public class BidsController : ControllerBase
 {
-    private readonly IMapper _mapper;
-    private readonly BidDbContext _context;
-
-    public BidsController(IMapper mapper, BidDbContext context)
+    private readonly GetBidsService _bidsService;
+    public BidsController(GetBidsService bidsService)
     {
-        _mapper = mapper;
-        _context = context;
+        _bidsService = bidsService;
     }
 
 
     [HttpGet("{auctionId}")]
     public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(string auctionId)
     {
-        var highBid = await _context.Bids.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
-                .OrderBy(p => p.BidTime).ToListAsync();
-
-        return new ApiResponse<List<BidDTO>>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = highBid.Select(_mapper.Map<BidDTO>).ToList()
-        };
+        return await _bidsService.GetBidsForAuction(auctionId);
     }
 }

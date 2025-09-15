@@ -1,9 +1,7 @@
-using AutoMapper;
 using Common.Contracts;
-using CommunicationService.Data;
 using CommunicationService.DTO;
+using CommunicationService.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CommunicationService.Controllers;
 
@@ -11,27 +9,17 @@ namespace CommunicationService.Controllers;
 [Route("api/[controller]")]
 public class CommunicationController : ControllerBase
 {
-    private readonly CommunicationDbContext _context;
-    private readonly IMapper _mapper;
+    private readonly GetItemsService _itemsService;
 
-    public CommunicationController(IMapper mapper, CommunicationDbContext context)
+    public CommunicationController(GetItemsService itemsService)
     {
-        _context = context;
-        _mapper = mapper;
+        _itemsService = itemsService;
     }
 
 
     [HttpGet("{auctionId}")]
     public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems(string auctionId)
     {
-        //сортируем записи потом, на клиенте
-        var items = await _context.Communications.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
-            .ToListAsync();
-        return new ApiResponse<List<CommunicationDTO>>()
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = items.Select(_mapper.Map<CommunicationDTO>).ToList()
-        };
+        return await _itemsService.GetCommunicationItems(auctionId);
     }
 }

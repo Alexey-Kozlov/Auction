@@ -3,6 +3,7 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.Notification;
+using Common.Contracts.Report;
 using Grpc.Core;
 using Grpc.Net.Client;
 
@@ -30,7 +31,7 @@ public class GrpcReportsClient
         try
         {
             var reply = await client.GetAuctionReportAsync(request);
-            return JsonSerializer.Deserialize<ApiResponse<List<AuctionItem>>>(reply.AuctionRezult.AuctionItems);
+            return JsonSerializer.Deserialize<ApiResponse<List<AuctionItem>>>(reply.AuctionRezult);
         }
         catch (RpcException ex)
         {
@@ -57,7 +58,7 @@ public class GrpcReportsClient
         try
         {
             var reply = await client.GetBidReportAsync(request);
-            return JsonSerializer.Deserialize<ApiResponse<List<BidItem>>>(reply.BidRezult.BidItems);
+            return JsonSerializer.Deserialize<ApiResponse<List<BidItem>>>(reply.BidRezult);
         }
         catch (RpcException ex)
         {
@@ -84,7 +85,7 @@ public class GrpcReportsClient
         try
         {
             var reply = await client.GetNotificationReportAsync(request);
-            return JsonSerializer.Deserialize<ApiResponse<List<NotifyItem>>>(reply.NotificationRezult.NotificationItems);
+            return JsonSerializer.Deserialize<ApiResponse<List<NotifyItem>>>(reply.NotificationRezult);
         }
         catch (RpcException ex)
         {
@@ -94,6 +95,33 @@ public class GrpcReportsClient
         catch (Exception ex)
         {
             Console.WriteLine($"{DateTime.Now} Невозможно вызвать GrpcNotificationReport сервер - {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<ApiResponse<List<DiagramData>>> GetDiagramReportItems(string diagramRequest)
+    {
+        var channel = GrpcChannel.ForAddress(_config["GrpcAuctionReport"], new GrpcChannelOptions
+        {
+            MaxSendMessageSize = int.MaxValue,
+            MaxReceiveMessageSize = int.MaxValue
+        });
+        var client = new GrpcReports.GrpcReportsClient(channel);
+        var request = new GetDiagramReportRequest { DiagramReportRequest = diagramRequest };
+
+        try
+        {
+            var reply = await client.GetDiagramDataAsync(request);
+            return JsonSerializer.Deserialize<ApiResponse<List<DiagramData>>>(reply.DiagramRezult);
+        }
+        catch (RpcException ex)
+        {
+            Console.WriteLine($"{DateTime.Now} Ошибка GRPC - {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{DateTime.Now} Невозможно вызвать GrpcDiagramReport сервер - {ex.Message}");
             return null;
         }
     }

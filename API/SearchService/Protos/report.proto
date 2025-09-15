@@ -4,16 +4,21 @@ option csharp_namespace = "ReportService";
 
 service GrpcReports {
     rpc GetAuctionReport (GetAuctionReportRequest) returns (GrpcAuctionReportResponse);
+    rpc GetDiagramData (GetDiagramReportRequest) returns (GetDiagramReportResponse);    
 }
 
 message GetAuctionReportRequest {
     string AuctionReportRequest = 1;
 }
 
-message GrpcAuctionReportModel {
-    string AuctionItems = 1;
+message GrpcAuctionReportResponse {
+    string auctionRezult = 1;
 }
 
-message GrpcAuctionReportResponse {
-    GrpcAuctionReportModel auctionRezult = 1;
+message GetDiagramReportRequest {
+    string DiagramReportRequest = 1;
+}
+
+message GetDiagramReportResponse {
+    string diagramRezult = 1;
 }

@@ -83,6 +83,7 @@ builder.Services.AddOpenTelemetry()
         })
 );
 builder.Services.AddScoped<BidProceduresService>();
+builder.Services.AddScoped<GetBidsService>();
 builder.Services.AddGrpc();
 
 var app = builder.Build();

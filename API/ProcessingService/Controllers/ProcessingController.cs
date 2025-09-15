@@ -22,14 +22,11 @@ namespace ProcessingService.Controllers;
 public class ProcessingController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ILogger<ProcessingController> _logger;
     private readonly SplitImages _splitImages;
 
-    public ProcessingController(IPublishEndpoint publishEndpoint,
-        ILogger<ProcessingController> logger, SplitImages splitImages)
+    public ProcessingController(IPublishEndpoint publishEndpoint, SplitImages splitImages)
     {
         _publishEndpoint = publishEndpoint;
-        _logger = logger;
         _splitImages = splitImages;
     }
 
@@ -210,7 +207,7 @@ public class ProcessingController : ControllerBase
     [HttpPost("setuserscurrentpage")]
     public void SetUserCurrentPage([FromBody] string fake)
     {
-        //заглушка, цель - на этот ендпойнт приходит запрос по записи текущей страницы пользователя,
-        //сама запись осуществляется в GatewayService, где обрабатываются логи
+        //заглушка, смысл - на этот ендпойнт приходит служебный запрос по записи текущей страницы 
+        // пользователя, сама запись осуществляется в GatewayService, где обрабатываются логи
     }
 }

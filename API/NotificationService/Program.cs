@@ -101,6 +101,7 @@ builder.Services.AddOpenTelemetry()
 builder.Services.AddScoped<NotifyProceduresService>();
 builder.Services.AddGrpc();
 builder.Services.AddScoped<GrpcUsersNotifyClient>();
+builder.Services.AddScoped<GetNotifyService>();
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

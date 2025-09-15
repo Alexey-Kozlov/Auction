@@ -1,14 +1,14 @@
-using IdentityService.Models;
-using IdentityService.Data;
-using Microsoft.EntityFrameworkCore;
-using System.Net;
-using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using Common.Contracts;
+using IdentityService.Data;
+using IdentityService.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace IdentityService.Services;
 
@@ -89,36 +89,11 @@ public class AuthService : IAuthService
             };
         }
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_secretKey);
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim("Login", user.Email),
-            new Claim("IsGuest","false")
-        };
-        //захардкодили - роль админа только пользователю с именем "admin", остальным - роль "User"
-        if (user.Email == "admin")
-        {
-            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
-        }
-        else
-        {
-            claims.Add(new Claim(ClaimTypes.Role, "User"));
-        }
-
-        var tokenDescriptor = new SecurityTokenDescriptor()
-        {
-            Subject = new ClaimsIdentity(claims),
-            //получаем значение жизни токена из волта в виде json, используем свойство "expiration_hours"
-            Expires = DateTime.UtcNow.AddHours(JsonDocument.Parse(_passwordPolicy).RootElement.GetProperty("expiration_hours").GetInt32()),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-
         var loginResponse = new LoginResponseDTO()
         {
             Name = user.UserName,
-            Token = tokenHandler.WriteToken(token),
+            Token = tokenHandler.WriteToken(GenerateToken(user.Email, false,
+                user.Email == "admin" ? "Admin" : "User")),
             Login = user.Email,
             IsGuest = false
         };
@@ -186,28 +161,10 @@ public class AuthService : IAuthService
     private ApiResponse<LoginResponseDTO> GuestLogin(LoginRequestDTO loginRequestDTO)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_secretKey);
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, loginRequestDTO.Login),
-            new Claim("Login", loginRequestDTO.Login),
-            new Claim("IsGuest","true"),
-            new Claim(ClaimTypes.Role, "User")
-        };
-
-        var tokenDescriptor = new SecurityTokenDescriptor()
-        {
-            Subject = new ClaimsIdentity(claims),
-            //получаем значение жизни токена из волта в виде json, используем свойство "expiration_hours"
-            Expires = DateTime.UtcNow.AddHours(JsonDocument.Parse(_passwordPolicy).RootElement.GetProperty("expiration_hours").GetInt32()),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-
         var loginResponse = new LoginResponseDTO()
         {
             Name = loginRequestDTO.Login,
-            Token = tokenHandler.WriteToken(token),
+            Token = tokenHandler.WriteToken(GenerateToken(loginRequestDTO.Login, true, "User")),
             Login = loginRequestDTO.Login,
             IsGuest = true,
         };
@@ -227,5 +184,49 @@ public class AuthService : IAuthService
             IsSuccess = true,
             Result = loginResponse
         };
+    }
+
+    private SecurityToken GenerateToken(string userLogin, bool isGuest, string role)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_secretKey);
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, userLogin),
+            new Claim("Login", userLogin),
+            new Claim("IsGuest",isGuest.ToString().ToLower()),
+            new Claim(ClaimTypes.Role, role)
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor()
+        {
+            Subject = new ClaimsIdentity(claims),
+            //получаем значение жизни токена из волта в виде json, используем свойство "expiration_minutes"
+            Expires = DateTime.UtcNow.AddMinutes(JsonDocument.Parse(_passwordPolicy).RootElement.GetProperty("expiration_minutes").GetInt32()),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+        return tokenHandler.CreateToken(tokenDescriptor);
+    }
+
+    public async Task<ApiResponse<LoginResponseDTO>> SetRefreshToken(string userLogin)
+    {
+        var user = await _db.ApplicationUsers.FirstOrDefaultAsync(p => p.Email.ToLower() == userLogin.ToLower());
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var loginResponse = new LoginResponseDTO()
+        {
+            Name = user == null ? userLogin : user.UserName,
+            Token = tokenHandler.WriteToken(GenerateToken(userLogin,
+                user == null ? true : false,
+                userLogin == "admin" ? "Admin" : "User")),
+            Login = userLogin,
+            IsGuest = user == null ? true : false
+        };
+        return new ApiResponse<LoginResponseDTO>()
+        {
+            StatusCode = HttpStatusCode.OK,
+            IsSuccess = true,
+            Result = loginResponse
+        };
+
     }
 }
