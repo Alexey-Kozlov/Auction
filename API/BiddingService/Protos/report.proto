@@ -10,10 +10,6 @@ message GetBidReportRequest {
     string BidReportRequest = 1;
 }
 
-message GrpcBidReportModel {
-    string BidItems = 1;
-}
-
 message GrpcBidReportResponse {
-    GrpcBidReportModel bidRezult = 1;
+    string bidRezult = 1;
 }

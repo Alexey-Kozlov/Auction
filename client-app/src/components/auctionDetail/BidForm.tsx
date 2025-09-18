@@ -1,14 +1,14 @@
-import NumberWithSpaces from "../../utils/NumberWithSpaces";
-import { usePlaceBidForAuctionMutation } from "../../api/ProcessingApi";
-import { FormErrors, ProcessingState, SignalREvents } from "../../types";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/store";
-import { FormEvent, useState } from "react";
-import { setEventFlag } from "../../store/processingSlice";
-import Waiter from "../Waiter";
-import { Message } from "primereact/message";
-import { InputNumber } from "primereact/inputnumber";
-import { CheckEventReady } from "../../utils/CheckEvent";
+import NumberWithSpaces from '../../utils/NumberWithSpaces';
+import { usePlaceBidForAuctionMutation } from '../../api/ProcessingApi';
+import { FormErrors, ProcessingState, SignalREvents } from '../../types';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import { FormEvent, useState } from 'react';
+import { setEventFlag } from '../../store/processingSlice';
+import Waiter from '../Waiter';
+import { Message } from 'primereact/message';
+import { InputNumber } from 'primereact/inputnumber';
+import { CheckEventReady } from '../../utils/CheckEvent';
 
 type Props = {
   auctionId: string;
@@ -19,20 +19,20 @@ export default function BidForm({ auctionId, highBid }: Props) {
   const [placeBid] = usePlaceBidForAuctionMutation();
   const dispatch = useDispatch();
   const procState: ProcessingState[] = useSelector(
-    (state: RootState) => state.processingStore
+    (state: RootState) => state.processingStore,
   );
   const [bidValue, setBidValue] = useState<number>(0);
   const [bidError, setBidError] = useState<FormErrors | null>(null);
   const bidErrorList: FormErrors[] = [
     {
-      name: "SmallBid",
+      name: 'SmallBid',
       message: `Размер новой ставки должен быть больше ${highBid}.`,
     },
   ];
 
   const handleBidChanged = (bid: number | null) => {
     if ((bid !== null && bid <= 0) || !Number.isInteger(bid)) {
-      setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
+      setBidError(() => bidErrorList.find((p) => p.name === 'SmallBid')!);
       return;
     }
     //сбрасываем ошибки валидации ставки
@@ -43,7 +43,7 @@ export default function BidForm({ auctionId, highBid }: Props) {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (bidValue <= highBid) {
-      setBidError(() => bidErrorList.find((p) => p.name === "SmallBid")!);
+      setBidError(() => bidErrorList.find((p) => p.name === 'SmallBid')!);
       return;
     }
     setBidError(null);
@@ -52,8 +52,9 @@ export default function BidForm({ auctionId, highBid }: Props) {
       setEventFlag({
         eventName: SignalREvents[SignalREvents.BidPlaced],
         ready: true,
-      })
+      }),
     );
+
     await placeBid({
       amount: bidValue as number,
       auctionId: auctionId,
@@ -81,7 +82,7 @@ export default function BidForm({ auctionId, highBid }: Props) {
                 className="BidInputControl"
                 placeholder={`Ваша ставка (мин. ${highBid + 1}) руб`}
                 tooltip="Стрелки вверх/вниз - шаг 5 руб."
-                tooltipOptions={{ position: "bottom" }}
+                tooltipOptions={{ position: 'bottom' }}
                 onChange={(e) => handleBidChanged(e.value)}
                 value={bidValue}
               />
@@ -93,9 +94,9 @@ export default function BidForm({ auctionId, highBid }: Props) {
               pt={{
                 root: {
                   className:
-                    bidError !== null && bidError.name === "SmallBid"
-                      ? ""
-                      : "hidden",
+                    bidError !== null && bidError.name === 'SmallBid'
+                      ? ''
+                      : 'hidden',
                 },
               }}
             />

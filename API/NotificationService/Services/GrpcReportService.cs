@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Common.Contracts;
 using Common.Contracts.Notification;
 using Common.Contracts.Report;
@@ -5,8 +7,6 @@ using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
 using ReportService;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace NotificationService.Services;
 
@@ -34,16 +34,13 @@ public class GrpcReportService : GrpcReports.GrpcReportsBase
         var items = await _dbContext.Database.SqlQuery<NotifyItem>(formattedString).ToListAsync();
         return new GrpcNotificationReportResponse
         {
-            NotificationRezult = new GrpcNotificationReportModel
-            {
-                NotificationItems = JsonSerializer.Serialize(
-                    new ApiResponse<List<NotifyItem>>
-                    {
-                        IsSuccess = true,
-                        StatusCode = System.Net.HttpStatusCode.OK,
-                        Result = items
-                    })
-            }
+            NotificationRezult = JsonSerializer.Serialize(
+                new ApiResponse<List<NotifyItem>>
+                {
+                    IsSuccess = true,
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Result = items
+                })
         };
     }
 }

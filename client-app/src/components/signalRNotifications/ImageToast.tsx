@@ -1,8 +1,8 @@
-import { AuctionImage, SignalREvents } from "../../types";
-import { NavLink } from "react-router-dom";
-import { useGetImageForAuctionQuery } from "../../api/ImageApi";
-import { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
-const empty = require("../../assets/Empty.png");
+import { AuctionImage, SignalREvents } from '../../types';
+import { NavLink } from 'react-router-dom';
+import { useGetImageForAuctionQuery } from '../../api/ImageApi';
+import { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+const empty = require('../../assets/Empty.png');
 
 type Props = {
   auctionId: string;
@@ -22,8 +22,10 @@ export default function ImageToast({
 
   const auctionData = useGetDetailedViewDataQuery(auctionId, {
     skip: !auctionId,
+    refetchOnMountOrArgChange: true,
   });
-  let text = "";
+
+  let text = '';
   switch (messageType) {
     //BidPlaced
     case SignalREvents.BidPlaced:
@@ -45,16 +47,13 @@ export default function ImageToast({
 
   return (
     <div className="w-full">
-      <NavLink
-        to={`/auctions/${auctionId}`}
-        className="no-underline"
-      >
+      <NavLink to={`/auctions/${auctionId}`} className="no-underline">
         <div className="ToastMessageContainer">
           <img
             className="ToastImage"
             src={
               !isLoading && (data?.result as AuctionImage)!.image
-                ? `data:image/png;base64 , ${data?.result["image"]}`
+                ? `data:image/png;base64 , ${data?.result['image']}`
                 : empty
             }
             alt=""

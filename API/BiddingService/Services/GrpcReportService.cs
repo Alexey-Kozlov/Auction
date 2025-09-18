@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using BiddingService.Data;
 using Common.Contracts;
 using Common.Contracts.Bid;
@@ -5,8 +7,6 @@ using Common.Contracts.Report;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using ReportService;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace BiddingService.Services;
 
@@ -34,15 +34,12 @@ public class GrpcReportService : GrpcReports.GrpcReportsBase
         var items = await _dbContext.Database.SqlQuery<BidItem>(formattedString).ToListAsync();
         return new GrpcBidReportResponse
         {
-            BidRezult = new GrpcBidReportModel
+            BidRezult = JsonSerializer.Serialize(new ApiResponse<List<BidItem>>
             {
-                BidItems = JsonSerializer.Serialize(new ApiResponse<List<BidItem>>
-                {
-                    IsSuccess = true,
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Result = items
-                })
-            }
+                IsSuccess = true,
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Result = items
+            })
         };
     }
 }

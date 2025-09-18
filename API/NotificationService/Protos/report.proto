@@ -10,10 +10,6 @@ message GetNotificationReportRequest {
     string NotificationReportRequest = 1;
 }
 
-message GrpcNotificationReportModel {
-    string NotificationItems = 1;
-}
-
 message GrpcNotificationReportResponse {
-    GrpcNotificationReportModel notificationRezult = 1;
+    string notificationRezult = 1;
 }

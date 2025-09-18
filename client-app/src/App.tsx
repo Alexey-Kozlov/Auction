@@ -51,7 +51,7 @@ function App() {
   useEffect(() => {
     stopRefreshTokenTimer();
     //если уже входил в систему
-    if (AddTokenHeader() && auth && auth.login) {
+    if (AddTokenHeader()) {
       const tokenData = localStorage.getItem('Auction');
       const token: LoginResponse = JSON.parse(tokenData!);
       dispatch(setAuthUser(token));
@@ -76,6 +76,10 @@ function App() {
         }
       });
     }
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
     if (auth && auth.login) {
       startRefreshTokenTimer();
     }
