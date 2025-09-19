@@ -19,6 +19,7 @@ import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
 import {
   CheckEventLastChangedNotReady,
   CheckEventLastChangedReady,
+  CheckEventReady,
 } from '../../utils/CheckEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import { setCacheQuery } from '../../store/cacheSlice';
@@ -34,15 +35,15 @@ export default function Listings() {
     (state: RootState) => state.processingStore,
   );
   const [isWait, setIsWait] = useState(true);
-  //автоматически запускается при изменении url
 
+  //автоматически запускается при изменении url
   let auctionsData = useGetAuctionsQuery(url);
 
-  // Обновляем набор записей при поступлении новых данных из апи - пишем в локальное хранилище
+  // Обновляем набор записей при изменении url строки запроса - пишем в локальное хранилище
   // auctionStore -> auctionSlice
   useEffect(() => {
     if (
-      !CheckEventLastChangedReady(procState, 'ElkSearch') &&
+      !CheckEventReady(procState, 'ElkSearch') &&
       !auctionsData.isLoading &&
       !auctionsData.isFetching &&
       auctionsData.data
@@ -52,6 +53,7 @@ export default function Listings() {
       //данные готовы - заполняем локальное хранилище и скрываем иконку ожидания
       dispatch(setData(auctionsData.data.result));
       setIsWait(() => false);
+      //сохраняем обновленный url - потом будем использовать при  обновлении аукциона или ставок
       dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
     } else {
       setIsWait(() => true);
@@ -65,13 +67,21 @@ export default function Listings() {
   useEffect(() => {
     if (
       !auctionsData.isUninitialized &&
+      //отслеживаем окончание аукциона
       (CheckEventLastChangedNotReady(
         procState,
         SignalREvents[SignalREvents.AuctionFinished],
       ) ||
+        //отслеживаем размещение новых ставок
         CheckEventLastChangedNotReady(
           procState,
           SignalREvents[SignalREvents.BidPlaced],
+        ) ||
+        // здесь отслеживаем начало поиска для Эластика - отображаем иконку ожидания, ставим признак
+        // сброса кеша для отправки запроса на поиск
+        CheckEventLastChangedReady(
+          procState,
+          SignalREvents[SignalREvents.ElkSearch],
         ))
     ) {
       auctionsData.refetch();
@@ -86,18 +96,6 @@ export default function Listings() {
     ) {
       setIsWait(() => false);
     }
-    // здесь отслеживаем начало поиска для Эластика - отображаем иконку ожидания, ставим признак
-    // сброса кеша для отправки запроса на поиск
-    if (
-      CheckEventLastChangedReady(
-        procState,
-        SignalREvents[SignalREvents.ElkSearch],
-      )
-    ) {
-      auctionsData.refetch();
-      setIsWait(() => true);
-    }
-
     // eslint-disable-next-line
   }, [procState]);
 
