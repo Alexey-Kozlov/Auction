@@ -1,10 +1,10 @@
+using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
-using ReportService.Services;
-using ReportService.DTO;
-using Common.Utils.Extentions;
 using Common.Contracts.Report;
-using System.Text.Json;
+using Common.Utils.Extentions;
+using ReportService.DTO;
+using ReportService.Services;
 
 namespace ReportService.Reports;
 
@@ -16,7 +16,7 @@ public class AuctionList
         _client = client;
     }
 
-    public Task<string> GetAuctionItems(ParamItem[] param)
+    public Task<string> GetAuctionItems(ParamItemDTO[] param)
     {
         var sellerPar = param.FirstOrDefault(p => p.Id == "Seller").Value;
         var bidsPar = param.FirstOrDefault(p => p.Id == "Bids").Value;
@@ -46,7 +46,7 @@ public class AuctionList
             case "All":
                 break;
         }
-        query.Text += " order by \"ItemId\" limit 100";
+        query.Text += " order by \"ItemId\" limit 1000";
         auctionList = _client.GetAuctionReportItems(JsonSerializer.Serialize(query))
             .GetAwaiter().GetResult().Result;
 

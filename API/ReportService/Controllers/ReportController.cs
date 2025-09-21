@@ -12,29 +12,38 @@ public class ReportController : ControllerBase
 {
     private readonly NotificationList _notificationList;
     private readonly AuctionList _auctionList;
+    private readonly AuctionListTree _auctionListTree;
     private readonly Diagrams _diagrams;
 
-    public ReportController(NotificationList notificationList, AuctionList auctionList, Diagrams diagrams)
+    public ReportController(NotificationList notificationList, AuctionList auctionList,
+        Diagrams diagrams, AuctionListTree auctionListTree)
     {
         _notificationList = notificationList;
         _auctionList = auctionList;
         _diagrams = diagrams;
+        _auctionListTree = auctionListTree;
     }
 
     [HttpPost("auctionlist")]
-    public async Task<string> AuctionList([FromBody] ParamItem[] param)
+    public async Task<string> AuctionList([FromBody] ParamItemDTO[] param)
     {
         return await _auctionList.GetAuctionItems(param);
     }
 
+    [HttpPost("auctionlisttree")]
+    public async Task<string> AuctionListTree([FromBody] ParamItemDTO[] param)
+    {
+        return await _auctionListTree.GetAuctionTreeItems(param);
+    }
+
     [HttpPost("notifylist")]
-    public async Task<string> NotificationList([FromBody] ParamItem[] param)
+    public async Task<string> NotificationList([FromBody] ParamItemDTO[] param)
     {
         return await _notificationList.GetNotificationItems(param);
     }
 
     [HttpPost("diagrams")]
-    public async Task<string> Diagrams([FromBody] ParamItem[] param)
+    public async Task<string> Diagrams([FromBody] ParamItemDTO[] param)
     {
         return await _diagrams.GetDiagrams(param);
     }

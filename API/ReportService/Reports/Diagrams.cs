@@ -13,7 +13,7 @@ public class Diagrams
         _client = client;
     }
 
-    public Task<string> GetDiagrams(ParamItem[] param)
+    public Task<string> GetDiagrams(ParamItemDTO[] param)
     {
         var BeginDatePar = param.FirstOrDefault(p => p.Id == "BeginDate").Value;
         var EndDatePar = param.FirstOrDefault(p => p.Id == "EndDate").Value;

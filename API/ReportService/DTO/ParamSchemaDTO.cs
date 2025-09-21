@@ -1,6 +1,6 @@
 namespace ReportService.DTO;
 
-public class ParamItem
+public class ParamItemDTO
 {
     public string Label { get; set; }
     public int Type { get; set; }

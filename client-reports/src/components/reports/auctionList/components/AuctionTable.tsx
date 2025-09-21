@@ -25,19 +25,19 @@ export default function AuctionTable({ items }: Props) {
   }, []);
 
   const StartDateTemplate = (val: AuctionListTypes) => {
-    return (
-      new Date(val.StartDate).toLocaleDateString() +
-      " " +
-      new Date(val.StartDate).toLocaleTimeString()
-    );
+    return val.StartDate
+      ? new Date(val.StartDate).toLocaleDateString() +
+          " " +
+          new Date(val.StartDate).toLocaleTimeString()
+      : "";
   };
 
   const EndDateTemplate = (val: AuctionListTypes) => {
-    return (
-      new Date(val.EndDate).toLocaleDateString() +
-      " " +
-      new Date(val.EndDate).toLocaleTimeString()
-    );
+    return val.EndDate
+      ? new Date(val.EndDate).toLocaleDateString() +
+          " " +
+          new Date(val.EndDate).toLocaleTimeString()
+      : "";
   };
 
   const AuctionIdTemplate = (val: AuctionListTypes) => {

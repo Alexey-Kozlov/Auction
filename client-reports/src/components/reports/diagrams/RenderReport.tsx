@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/Store";
 import { DiagramTypes } from "./DiagramTypes";
-import { useRunDiagramsMutation } from "../../../api/ReportApi";
+import { useDiagramsMutation } from "../../../api/ReportApi";
 import { ParameterItem } from "../../../types";
 import { useReactToPrint } from "react-to-print";
 import { setEvent } from "../../../store/EventSlice";
@@ -20,7 +20,7 @@ export default function RenderReport({ reportId }: Props) {
   const eventStore = useSelector((state: RootState) => state.eventStore);
   const dispatch = useDispatch();
   const [data, setData] = useState<DiagramTypes[]>();
-  const [diagramData] = useRunDiagramsMutation();
+  const [diagramData] = useDiagramsMutation();
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
   const { onDownload } = useDownloadExcel({

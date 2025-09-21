@@ -81,6 +81,7 @@ body {
 	flex-direction: column;
 	border: 2px solid transparent !important;
 	cursor: pointer;
+	background-color: lightgray
 }
 .p-panel-content {
 	border: 2px solid transparent !important;
@@ -94,12 +95,16 @@ body {
 	background-color: rgb(236, 235, 235) !important;
 }
 
-
 .ReportCardTitle {
 	margin: 1rem 0 1rem;
 	font-weight: 900;
 	font-size: x-large;
 	text-align: center;
+}
+
+.ReportCardIconTitle {
+	margin-right: 1rem;
+	font-size: x-large;
 }
 
 .CustomButton {
@@ -195,7 +200,7 @@ body {
 	font-size: 1.5rem;
 }
 
-.p-datatable {
+.p-datatable, .p-treetable-tbody {
 	font-size: 1.5rem;
 }
 

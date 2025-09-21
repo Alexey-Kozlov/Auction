@@ -41,6 +41,7 @@ builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
 });
 builder.Services.AddCors();
 builder.Services.AddScoped<AuctionList>();
+builder.Services.AddScoped<AuctionListTree>();
 builder.Services.AddScoped<NotificationList>();
 builder.Services.AddScoped<Diagrams>();
 builder.Services.AddScoped<GrpcReportsClient>();

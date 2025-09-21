@@ -1,9 +1,9 @@
+using Common.Contracts;
 using Common.Contracts.Auction;
-using ReportService.Services;
-using ReportService.DTO;
 using Common.Contracts.Notification;
 using Common.Contracts.Report;
-using Common.Contracts;
+using ReportService.DTO;
+using ReportService.Services;
 
 namespace ReportService.Reports;
 
@@ -15,7 +15,7 @@ public class NotificationList
         _client = client;
     }
 
-    public Task<string> GetNotificationItems(ParamItem[] param)
+    public Task<string> GetNotificationItems(ParamItemDTO[] param)
     {
         var userLoginPar = param.FirstOrDefault(p => p.Id == "UserLogin").Value;
         var auctionPar = param.FirstOrDefault(p => p.Id == "Auction").Value;

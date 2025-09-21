@@ -5,7 +5,7 @@ import { AuctionListTypes } from "../components/reports/auctionList/AuctionListT
 import { DiagramTypes } from "../components/reports/diagrams/DiagramTypes";
 import uuid from "react-native-uuid";
 
-const ReportApi = createApi({
+export const ReportApi = createApi({
   reducerPath: "reportApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_URL + "/api/reports",
@@ -22,25 +22,7 @@ const ReportApi = createApi({
   }),
   tagTypes: ["report"],
   endpoints: (builder) => ({
-    runAuctionList: builder.mutation<any, ParameterItem[]>({
-      query: (params) => ({
-        url: "/auctionlist",
-        method: "post",
-        body: JSON.stringify(params),
-      }),
-      transformResponse: (
-        response: ApiResponseNet<AuctionListTypes[]>,
-        meta: any
-      ) => {
-        PostApiProcess(response);
-        return response;
-      },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
-      },
-      invalidatesTags: ["report"],
-    }),
-    runNotifyList: builder.mutation<any, ParameterItem[]>({
+    NotifyList: builder.mutation<any, ParameterItem[]>({
       query: (params) => ({
         url: "/notifylist",
         method: "post",
@@ -58,7 +40,7 @@ const ReportApi = createApi({
       },
       invalidatesTags: ["report"],
     }),
-    runDiagrams: builder.mutation<any, ParameterItem[]>({
+    Diagrams: builder.mutation<any, ParameterItem[]>({
       query: (params) => ({
         url: "/diagrams",
         method: "post",
@@ -79,9 +61,5 @@ const ReportApi = createApi({
   }),
 });
 
-export const {
-  useRunAuctionListMutation,
-  useRunNotifyListMutation,
-  useRunDiagramsMutation,
-} = ReportApi;
+export const { useNotifyListMutation, useDiagramsMutation } = ReportApi;
 export default ReportApi;

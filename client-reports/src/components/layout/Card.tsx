@@ -13,10 +13,14 @@ export default function Card(props: ReportItem) {
         onClick={clickHandler}
         className="ReportCardContainer"
       >
-        <div>
-          <props.Icon size={22} />
+        <div className="CenterItem">
+          <props.Icon
+            size={22}
+            className="ReportCardIconTitle"
+          />
+          <h5 className="ReportCardTitle">{props.Name}</h5>
         </div>
-        <h5 className="ReportCardTitle">{props.Name}</h5>
+
         <p className="text-3xl text-center">{props.Description}</p>
       </Panel>
     </>

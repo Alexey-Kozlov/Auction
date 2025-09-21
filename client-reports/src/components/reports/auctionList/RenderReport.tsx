@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/Store";
 import { AuctionListTypes } from "./AuctionListTypes";
-import { useRunAuctionListMutation } from "../../../api/ReportApi";
 import { ParameterItem } from "../../../types";
 import AuctionBidsTable from "./components/AuctionBidsTable";
 import AuctionTable from "./components/AuctionTable";
@@ -11,6 +10,7 @@ import { setEvent } from "../../../store/EventSlice";
 import { useDownloadExcel } from "react-export-table-to-excel";
 import Waiter from "../../Waiter";
 import { setReportLoaded } from "../../../store/ReportSlice";
+import { useAuctionListMutation } from "../../../api/ReportApiAuction";
 
 type Props = {
   reportId: string;
@@ -22,7 +22,7 @@ export default function RenderReport({ reportId }: Props) {
   const dispatch = useDispatch();
   const [data, setData] = useState<AuctionListTypes[]>();
   const [bidderReportType, setBidderReportType] = useState(false);
-  const [auctionListReport] = useRunAuctionListMutation();
+  const [auctionListReport] = useAuctionListMutation();
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
   const { onDownload } = useDownloadExcel({
