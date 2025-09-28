@@ -1,19 +1,19 @@
-using MassTransit;
-using Microsoft.EntityFrameworkCore;
-using Common.Utils;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using ProcessingService.Data;
-using ProcessingService.Services;
+using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Utils;
+using Common.Utils.Logging;
+using Common.Utils.Vault;
+using Confluent.Kafka;
+using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using Npgsql;
-using Common.Contracts;
-using Confluent.Kafka;
-using Common.Utils.Vault;
-using Common.Contracts.EventSourcing;
-using Common.Utils.Logging;
+using ProcessingService.Data;
+using ProcessingService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -119,14 +119,13 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
 });
 
 
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 
 builder.Services.AddScoped<SendEventToES>();
@@ -139,6 +138,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

@@ -4,6 +4,8 @@ using Common.Utils.Logging;
 using Common.Utils.Vault;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using ReportService.Reports;
 using ReportService.Services;
 
@@ -39,6 +41,14 @@ builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
 {
     jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
+);
 builder.Services.AddCors();
 builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<AuctionListTree>();
@@ -53,6 +63,7 @@ app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExpose
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);
 

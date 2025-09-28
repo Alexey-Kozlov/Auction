@@ -1,17 +1,17 @@
 ﻿using System.Text;
+using Common.Utils;
+using Common.Utils.Logging;
+using Common.Utils.Vault;
 using IdentityService.Data;
 using IdentityService.Models;
+using IdentityService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using IdentityService.Services;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using Npgsql;
-using Common.Utils.Vault;
-using Common.Utils;
-using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -69,14 +69,13 @@ builder.Services.AddControllers();
 builder.Services.AddCors();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 
 var app = builder.Build();
@@ -87,7 +86,7 @@ app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExpose
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+app.MapPrometheusScrapingEndpoint();
 
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

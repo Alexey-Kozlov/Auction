@@ -5,6 +5,8 @@ using Common.Utils.Vault;
 using Logging.Consumers;
 using Logging.Services;
 using MassTransit;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -54,7 +56,15 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
                 });
 });
 builder.Services.AddScoped<ElkClient>();
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
+);
 var app = builder.Build();
-
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

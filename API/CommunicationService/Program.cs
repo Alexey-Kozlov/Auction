@@ -71,14 +71,13 @@ builder.Services.AddAuthentication(p =>
     };
 });
 
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<CommunicationProceduresService>();
@@ -90,5 +89,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapPrometheusScrapingEndpoint();
 ConsoleLogging.RunApp(app);
 

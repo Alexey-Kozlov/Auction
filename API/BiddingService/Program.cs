@@ -1,17 +1,17 @@
+using System.Text;
 using BiddingService.Consumers;
 using BiddingService.Data;
+using BiddingService.Services;
+using Common.Utils;
+using Common.Utils.Logging;
+using Common.Utils.Vault;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using Npgsql;
-using Common.Utils.Vault;
-using Common.Utils;
-using BiddingService.Services;
-using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -73,14 +73,13 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 builder.Services.AddScoped<BidProceduresService>();
 builder.Services.AddScoped<GetBidsService>();
@@ -93,5 +92,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<GrpcReportService>();
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

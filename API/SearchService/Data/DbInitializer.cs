@@ -4,6 +4,8 @@ using SearchService.Services;
 
 namespace SearchService;
 
+/*это не используется в функционале, для примера выполнения сервиса в конвейере
+*/
 public class DbInitializer
 {
     public static async Task InitDb(WebApplication app)

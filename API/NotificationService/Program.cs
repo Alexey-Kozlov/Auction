@@ -1,18 +1,18 @@
-using MassTransit;
-using NotificationService.Hubs;
-using NotificationService.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Common.Utils;
+using Common.Utils.Logging;
+using Common.Utils.Vault;
+using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using NotificationService.Consumers;
+using NotificationService.Data;
+using NotificationService.Hubs;
+using NotificationService.Services;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using Npgsql;
-using Common.Utils.Vault;
-using Common.Utils;
-using NotificationService.Services;
-using Common.Utils.Logging;
-using NotificationService.Consumers;
 using ReportService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -89,14 +89,13 @@ builder.Services.AddMassTransit(p =>
 });
 builder.Services.AddSignalR();
 
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 builder.Services.AddScoped<NotifyProceduresService>();
 builder.Services.AddGrpc();
@@ -110,6 +109,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<GrpcReportService>();
 app.MapHub<NotificationHub>("/notifications");
-
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

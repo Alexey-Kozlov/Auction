@@ -3,19 +3,18 @@ using Common.Contracts.Auction;
 
 namespace SearchService.Services;
 
+//нигде не используется, оставлено для примера - сревис синхронного вызова REST-сервиса
 public class AuctionSvcHttpClient
 {
     private readonly HttpClient _client;
-    private readonly IConfiguration _config;
 
-    public AuctionSvcHttpClient(HttpClient client, IConfiguration config)
+    public AuctionSvcHttpClient(HttpClient client)
     {
         _client = client;
-        _config = config;
     }
 
     public async Task<ApiResponse<List<AuctionItem>>> GetItemsForSearchDb()
     {
-        return await _client.GetFromJsonAsync<ApiResponse<List<AuctionItem>>>(_config["AuctionServiceUrl"] + "/api/auctions");
+        return await _client.GetFromJsonAsync<ApiResponse<List<AuctionItem>>>("http://localhost/api/auctions");
     }
 }

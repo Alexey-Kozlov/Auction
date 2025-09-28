@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/Store";
 import { ParameterItem } from "../../../types";
@@ -8,7 +8,6 @@ import { useDownloadExcel } from "react-export-table-to-excel";
 import Waiter from "../../Waiter";
 import { setReportLoaded } from "../../../store/ReportSlice";
 import { useAuctionListTreeMutation } from "../../../api/ReportApiAuction";
-import AuctionTableTree from "./AuctionTree";
 import { AuctionTreeItem } from "./AuctionListTypes";
 import AuctionTree from "./AuctionTree";
 

@@ -18,7 +18,9 @@ export default function AuctionTree({ items }: Props) {
 
   useEffect(() => {
     if (items) {
-      setRepItems(JSON.parse(JSON.stringify(items)));
+      //нужно глубокое копирование, можно использовать JSON.parse(JSON.stringify(items)),
+      //а можно более эффективное решение - structuredClone(items)
+      setRepItems(structuredClone(items));
     }
     // eslint-disable-next-line
   }, [items]);

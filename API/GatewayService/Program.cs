@@ -1,20 +1,20 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Common.Contracts;
+using Common.Contracts.Logging;
+using Common.Utils.Logging;
+using Common.Utils.Vault;
+using Confluent.Kafka;
+using GatewayService.Consumers;
+using GatewayService.Logging;
 using GatewayService.Services;
 using MassTransit;
-using GatewayService.Consumers;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using Common.Utils.Vault;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using StackExchange.Redis;
-using GatewayService.Logging;
-using Common.Contracts;
-using Confluent.Kafka;
-using Common.Utils.Logging;
-using Common.Contracts.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -117,15 +117,13 @@ builder.Services.AddSingleton(cfg =>
 builder.Services.AddSingleton<UserCurrentPage>();
 builder.Services.AddGrpc();
 
-
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 
 var app = builder.Build();
@@ -150,5 +148,6 @@ app.UseLoggingMiddleware();
 //переходим в расширение по маршрутизации на сервисы по обработке изображений
 app.ImageMiddleware();
 app.MapGrpcService<GrpcNotifyUsersService>();
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);

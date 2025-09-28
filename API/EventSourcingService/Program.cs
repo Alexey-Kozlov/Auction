@@ -1,20 +1,20 @@
 using System.Text;
+using AuctionService.Metrics;
+using Common.Contracts;
+using Common.Contracts.EventSourcing;
+using Common.Utils.Logging;
+using Common.Utils.Vault;
+using EventSourcingService.Consumers;
+using EventSourcingService.Data;
+using EventSourcingService.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using AuctionService.Metrics;
-using Npgsql;
-using Common.Contracts;
-using EventSourcingService.Data;
 using SearchService.Consumers;
-using Common.Utils.Vault;
-using EventSourcingService.Consumers;
-using EventSourcingService.Services;
-using Common.Contracts.EventSourcing;
-using Common.Utils.Logging;
 
 internal class Program
 {
@@ -107,21 +107,16 @@ internal class Program
         builder.Services.AddOpenTelemetry()
             .WithMetrics(opt => opt
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricConfig:MetricGroup")))
-                //.AddAspNetCoreInstrumentation()
-                //.AddRuntimeInstrumentation()
                 .AddProcessInstrumentation()
-                .AddOtlpExporter(options =>
-                {
-                    options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-                })
+                .AddAspNetCoreInstrumentation()
+                .AddMeter("Microsoft.AspNetCore.Hosting")
+                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                .AddPrometheusExporter()
             )
             .WithMetrics(opt => opt
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricConfig:MetricCustom:MetricGroup")))
                 .AddMeter(builder.Configuration.GetValue<string>("MetricConfig:MetricCustom:MetricGroup"))
-                .AddOtlpExporter(options =>
-                {
-                    options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-                })
+                .AddPrometheusExporter()
             );
         builder.Services.AddSingleton<CheckAuctionFinished>();
         builder.Services.AddHostedService(p => p.GetRequiredService<CheckAuctionFinished>());
@@ -146,7 +141,7 @@ internal class Program
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
-
+        app.MapPrometheusScrapingEndpoint();
         //запускаем веб-сервер и пишем в консоль хост и порт
         ConsoleLogging.RunApp(app);
     }

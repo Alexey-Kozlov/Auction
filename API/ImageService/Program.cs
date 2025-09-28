@@ -1,14 +1,14 @@
 
+using Common.Utils.Logging;
+using Common.Utils.Vault;
 using ImageService.Consumers;
+using ImageService.Data;
+using ImageService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using ImageService.Data;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using Npgsql;
-using Common.Utils.Vault;
-using ImageService.Services;
-using Common.Utils.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddVault(options =>
@@ -55,14 +55,13 @@ builder.Services.AddGrpc(opt =>
     opt.MaxReceiveMessageSize = int.MaxValue;
 });
 
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(opt => opt
-        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
-        .AddProcessInstrumentation()
-        .AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-        })
+builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
+    .AddProcessInstrumentation()
+    .AddAspNetCoreInstrumentation()
+    .AddMeter("Microsoft.AspNetCore.Hosting")
+    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddPrometheusExporter()
 );
 
 builder.Services.AddSingleton<RestoreImageService>();
@@ -72,5 +71,6 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGrpcService<GrpcImageServer>();
+app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
 ConsoleLogging.RunApp(app);
