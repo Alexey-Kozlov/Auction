@@ -103,14 +103,13 @@ internal class Program
                 NameClaimType = "Login"
             };
         });
-
+        builder.Services.AddResourceMonitoring();
         builder.Services.AddOpenTelemetry()
             .WithMetrics(opt => opt
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricConfig:MetricGroup")))
                 .AddProcessInstrumentation()
                 .AddAspNetCoreInstrumentation()
-                .AddMeter("Microsoft.AspNetCore.Hosting")
-                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
                 .AddPrometheusExporter()
             )
             .WithMetrics(opt => opt

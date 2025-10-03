@@ -38,12 +38,12 @@ builder.Services.AddMassTransit(p =>
 
 builder.Services.AddScoped<ElkClient>();
 builder.Services.AddScoped<GetSearchItems>();
+builder.Services.AddResourceMonitoring();
 builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
     .AddProcessInstrumentation()
     .AddAspNetCoreInstrumentation()
-    .AddMeter("Microsoft.AspNetCore.Hosting")
-    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
     .AddPrometheusExporter()
 );
 builder.Services.AddStackExchangeRedisCache(options =>

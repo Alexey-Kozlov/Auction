@@ -73,12 +73,12 @@ builder.Services.AddAuthentication(p =>
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+builder.Services.AddResourceMonitoring();
 builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
     .AddProcessInstrumentation()
     .AddAspNetCoreInstrumentation()
-    .AddMeter("Microsoft.AspNetCore.Hosting")
-    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+    .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
     .AddPrometheusExporter()
 );
 builder.Services.AddScoped<BidProceduresService>();
