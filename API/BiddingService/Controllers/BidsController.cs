@@ -15,7 +15,7 @@ public class BidsController : ControllerBase
         _bidsService = bidsService;
     }
 
-
+    //получение списка ставок для аукциона
     [HttpGet("{auctionId}")]
     public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(string auctionId)
     {

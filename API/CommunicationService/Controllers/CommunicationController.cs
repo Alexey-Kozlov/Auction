@@ -16,7 +16,7 @@ public class CommunicationController : ControllerBase
         _itemsService = itemsService;
     }
 
-
+    //при первоначальном открытии на клиенте списка сообщений чата
     [HttpGet("{auctionId}")]
     public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems(string auctionId)
     {

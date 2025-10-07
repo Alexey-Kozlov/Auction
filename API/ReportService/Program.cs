@@ -54,6 +54,7 @@ builder.Services.AddScoped<AuctionList>();
 builder.Services.AddScoped<AuctionListTree>();
 builder.Services.AddScoped<NotificationList>();
 builder.Services.AddScoped<Diagrams>();
+builder.Services.AddScoped<Comments>();
 builder.Services.AddScoped<GrpcReportsClient>();
 
 var app = builder.Build();

@@ -4,7 +4,7 @@ public class AuctionTreeItem
 {
     public Guid key { get; set; }
     public AuctionTreeItemData data { get; set; }
-    public BidTreeItem[] children { get; set; }
+    public List<BidTreeItem> children { get; set; } = new();
 }
 
 public class AuctionTreeItemData
@@ -27,5 +27,25 @@ public class BidTreeItemData
     public DateTime createAt { get; set; }
     public string bidder { get; set; }
     public int amount { get; set; }
+}
+
+public class AuctionTreeItemCommunication
+{
+    public Guid key { get; set; }
+    public AuctionTreeItemData data { get; set; }
+    public List<CommunicationTreeItem> children { get; set; } = new();
+}
+
+public class CommunicationTreeItem
+{
+    public Guid key { get; set; }
+    public CommunicationTreeItemData data { get; set; }
+}
+
+public class CommunicationTreeItemData
+{
+    public DateTime createAt { get; set; }
+    public string author { get; set; }
+    public string comment { get; set; }
 }
 

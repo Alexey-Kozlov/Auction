@@ -73,6 +73,7 @@ function App() {
               isGuest: rez.data.result.isGuest,
             }),
           );
+          dispatch(setParams({ userLogin: rez.data.result.login }));
         }
       });
     }

@@ -2,6 +2,7 @@
 using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
+using Common.Contracts.Communication;
 using Common.Contracts.Notification;
 using Common.Contracts.Report;
 using Grpc.Core;
@@ -122,6 +123,33 @@ public class GrpcReportsClient
         catch (Exception ex)
         {
             Console.WriteLine($"{DateTime.Now} Невозможно вызвать GrpcDiagramReport сервер - {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<ApiResponse<List<CommunicationItem>>> GetCommunicationReportItems(string communicationRequest)
+    {
+        var channel = GrpcChannel.ForAddress(_config["GrpcCommunicationReport"], new GrpcChannelOptions
+        {
+            MaxSendMessageSize = int.MaxValue,
+            MaxReceiveMessageSize = int.MaxValue
+        });
+        var client = new GrpcReports.GrpcReportsClient(channel);
+        var request = new GetCommunicationReportRequest { CommunicationReportRequest = communicationRequest };
+
+        try
+        {
+            var reply = await client.GetCommunicationReportAsync(request);
+            return JsonSerializer.Deserialize<ApiResponse<List<CommunicationItem>>>(reply.CommunicationRezult);
+        }
+        catch (RpcException ex)
+        {
+            Console.WriteLine($"{DateTime.Now} Ошибка GRPC - {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{DateTime.Now} Невозможно вызвать GrpcCommunicationReport сервер - {ex.Message}");
             return null;
         }
     }

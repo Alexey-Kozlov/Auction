@@ -82,6 +82,7 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<CommunicationProceduresService>();
 builder.Services.AddScoped<GetItemsService>();
+builder.Services.AddGrpc();
 
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -89,6 +90,7 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGrpcService<GrpcReportService>();
 app.MapPrometheusScrapingEndpoint();
 ConsoleLogging.RunApp(app);
 

@@ -3,6 +3,7 @@ import { PostApiProcess, PostErrorApiProcess } from "./PostResponse";
 import { AuctionListTypes } from "../components/reports/auctionList/AuctionListTypes";
 import { ReportApi } from "./ReportApi";
 import { AuctionTreeItem } from "../components/reports/auctionListTree/AuctionListTypes";
+import { CommentTreeItem } from "../components/reports/comments/CommentsTypes";
 
 const ReportApiAuction = ReportApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -39,9 +40,27 @@ const ReportApiAuction = ReportApi.injectEndpoints({
       },
       invalidatesTags: ["report"],
     }),
+    CommentsList: builder.mutation<CommentTreeItem[], ParameterItem[]>({
+      query: (params) => ({
+        url: "/comments",
+        method: "post",
+        body: JSON.stringify(params),
+      }),
+      transformResponse: (response: CommentTreeItem[], meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any) => {
+        PostErrorApiProcess(response);
+      },
+      invalidatesTags: ["report"],
+    }),
   }),
 });
 
-export const { useAuctionListMutation, useAuctionListTreeMutation } =
-  ReportApiAuction;
+export const {
+  useAuctionListMutation,
+  useAuctionListTreeMutation,
+  useCommentsListMutation,
+} = ReportApiAuction;
 export default ReportApiAuction;

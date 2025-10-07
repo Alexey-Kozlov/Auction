@@ -14,14 +14,16 @@ public class ReportController : ControllerBase
     private readonly AuctionList _auctionList;
     private readonly AuctionListTree _auctionListTree;
     private readonly Diagrams _diagrams;
+    private readonly Comments _comments;
 
     public ReportController(NotificationList notificationList, AuctionList auctionList,
-        Diagrams diagrams, AuctionListTree auctionListTree)
+        Diagrams diagrams, AuctionListTree auctionListTree, Comments comments)
     {
         _notificationList = notificationList;
         _auctionList = auctionList;
         _diagrams = diagrams;
         _auctionListTree = auctionListTree;
+        _comments = comments;
     }
 
     [HttpPost("auctionlist")]
@@ -46,5 +48,11 @@ public class ReportController : ControllerBase
     public async Task<string> Diagrams([FromBody] ParamItemDTO[] param)
     {
         return await _diagrams.GetDiagrams(param);
+    }
+
+    [HttpPost("comments")]
+    public async Task<string> Comments([FromBody] ParamItemDTO[] param)
+    {
+        return await _comments.GetCommentsItems(param);
     }
 }

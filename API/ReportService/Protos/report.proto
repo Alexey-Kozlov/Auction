@@ -7,6 +7,7 @@ service GrpcReports {
     rpc GetBidReport (GetBidReportRequest) returns (GrpcBidReportResponse);    
     rpc GetNotificationReport (GetNotificationReportRequest) returns (GrpcNotificationReportResponse);
     rpc GetDiagramData (GetDiagramReportRequest) returns (GetDiagramReportResponse);
+    rpc GetCommunicationReport (GetCommunicationReportRequest) returns (GrpcCommunicationReportResponse);
 }
 
 message GetAuctionReportRequest {
@@ -39,4 +40,12 @@ message GrpcNotificationReportResponse {
 
 message GetDiagramReportResponse {
     string diagramRezult = 1;
+}
+
+message GetCommunicationReportRequest {
+    string CommunicationReportRequest = 1;
+}
+
+message GrpcCommunicationReportResponse {
+    string communicationRezult = 1;
 }

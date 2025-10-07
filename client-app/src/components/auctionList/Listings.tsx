@@ -37,7 +37,9 @@ export default function Listings() {
   const [isWait, setIsWait] = useState(true);
 
   //автоматически запускается при изменении url
-  let auctionsData = useGetAuctionsQuery(url);
+  let auctionsData = useGetAuctionsQuery(url, {
+    skip: params.userLogin === '',
+  });
 
   // Обновляем набор записей при изменении url строки запроса - пишем в локальное хранилище
   // auctionStore -> auctionSlice

@@ -4,6 +4,7 @@ import NotificationListParams from "../../reports/notificationList/NotificationL
 import Header from "../header/Header";
 import DiagramParams from "../../reports/diagrams/DiagramParams";
 import AuctionListTreeParams from "../../reports/auctionListTree/AuctionListTreeParams";
+import CommentsParams from "../../reports/comments/CommentsParams";
 
 export default function Main() {
   const { id } = useParams();
@@ -17,6 +18,8 @@ export default function Main() {
         return <NotificationListParams />;
       case "RoundDiagrams":
         return <DiagramParams />;
+      case "CommentsList":
+        return <CommentsParams />;
       default:
         return null;
     }

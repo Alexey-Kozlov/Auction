@@ -46,7 +46,7 @@ public class AuctionList
             case "All":
                 break;
         }
-        query.Text += " order by \"ItemId\" limit 1000";
+        query.Text += " order by \"ItemId\" limit 3000";
         auctionList = _client.GetAuctionReportItems(JsonSerializer.Serialize(query))
             .GetAwaiter().GetResult().Result;
 
@@ -56,9 +56,13 @@ public class AuctionList
         if (bidsPar != "NoBids")
         {
             //запрос фильтрации по списку id-ников, ids - список id-ников типа GUID
-            query.Text = "select * from \"BidItems\" where \"AuctionId\" in (";
-            query.Text += string.Join(',', auctionList.Select(p => "'" + p.ItemId + "'"));
-            query.Text += ") limit 300";
+            query.Text = "select * from \"BidItems\" where true";
+            if (!string.IsNullOrEmpty(sellerPar))
+            {
+                query.Text += " and \"AuctionId\" in (";
+                query.Text += string.Join(',', auctionList.Select(p => "'" + p.ItemId + "'")) + ")";
+            }
+            query.Text += " limit 3000";
             query.Parameters.Clear();
             bidList = _client.GetBidReportItems(JsonSerializer.Serialize(query))
                 .GetAwaiter().GetResult().Result;

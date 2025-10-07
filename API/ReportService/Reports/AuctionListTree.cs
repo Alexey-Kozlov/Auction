@@ -2,6 +2,7 @@ using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.Report;
+using Common.Utils.Extentions;
 using ReportService.DTO;
 using ReportService.Services;
 
@@ -34,32 +35,38 @@ public class AuctionListTree
             .GetAwaiter().GetResult().Result;
 
         if (auctionList.Count() == 0) return Task.FromResult("[]");
-        // делаем дополнительный запрос к микросервису ставок для получения - кто ставил и размера ставок
-        //запрос фильтрации по списку id-ников, ids - список id-ников типа GUID
-        query.Text = "select * from \"BidItems\" where \"AuctionId\" in (";
-        query.Text += string.Join(',', auctionList.Select(p => "'" + p.ItemId + "'"));
-        query.Text += ") limit 3000";
+
+        query.Text = "select * from \"BidItems\" where true";
+        // если был параметр фильтрации - отбираем ставки по возвращенным id-никам, типа GUID
+        // если не было фильтрации по автору - отменяем фильтрацию по полученным id-никам - нет смысла
+        if (!string.IsNullOrEmpty(sellerPar))
+        {
+            query.Text += " and \"AuctionId\" in (";
+            query.Text += string.Join(',', auctionList.Select(p => "'" + p.ItemId + "'")) + ")";
+        }
+        query.Text += " limit 3000";
         query.Parameters.Clear();
         bidList = _client.GetBidReportItems(JsonSerializer.Serialize(query))
             .GetAwaiter().GetResult().Result;
 
         //делаем иерархическую структуру - аукцион + его ставки
-        var rezult = new AuctionTreeItem[auctionList.Count];
-        var i = 0;
-        foreach (var auctionItem in auctionList.OrderBy(p => p.Title))
+        var rezult = auctionList.LeftOuterJoin(
+        bidList,
+        p => p.ItemId,
+        p => p.AuctionId,
+        (auction, bid) =>
+        new AuctionTreeItem
         {
-            rezult[i] = new AuctionTreeItem
+            key = auction.ItemId,
+            data = new AuctionTreeItemData
             {
-                key = auctionItem.ItemId,
-                data = new AuctionTreeItemData
-                {
-                    auctionEnd = auctionItem.AuctionEnd,
-                    createAt = auctionItem.CreateAt,
-                    seller = auctionItem.Seller,
-                    title = auctionItem.Title,
-                    itemid = auctionItem.ItemId
-                },
-                children = bidList.Where(b => b.AuctionId == auctionItem.ItemId).Select(p =>
+                auctionEnd = auction.AuctionEnd,
+                createAt = auction.CreateAt,
+                seller = auction.Seller,
+                title = auction.Title,
+                itemid = auction.ItemId,
+            },
+            children = bidList.Where(b => b.AuctionId == auction.ItemId).Select(p =>
                     new BidTreeItem
                     {
                         key = p.ItemId,
@@ -69,10 +76,9 @@ public class AuctionListTree
                             createAt = p.BidTime,
                             bidder = p.Bidder
                         }
-                    }).OrderByDescending(p => p.data.amount).ToArray()
-            };
-            i++;
-        }
+                    }).ToList()
+        }).DistinctBy(p => p.key);
+
         return Task.FromResult(JsonSerializer.Serialize(rezult));
     }
 }
