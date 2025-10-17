@@ -7,13 +7,10 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import {
   ActionType,
-  ApiResponseNet,
-  Auction,
   AuctionFinished,
   ChatComment,
   Message,
   NotificationEvent,
-  PagedResult,
   Progress,
   SignalREvents,
   ToastType,
@@ -23,13 +20,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { setEventFlag } from '../store/processingSlice';
 import MessageToast from '../components/signalRNotifications/MessageToast';
-import { setData } from '../store/auctionSlice';
 import { setChatResponse } from '../store/chatSlice';
 import { Toast } from 'primereact/toast';
 import ImageToast from '../components/signalRNotifications/ImageToast';
 import CamelToSnake from '../utils/CamelToSnake';
 import ProgressToast from '../components/signalRNotifications/ProgressToast';
-import searchApi from '../api/AuctionApi';
 
 export default function SignalRProvider() {
   const user: User = useSelector((state: RootState) => state.authStore);

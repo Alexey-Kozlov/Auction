@@ -16,11 +16,7 @@ import {
 } from '../../types';
 import Waiter from '../Waiter';
 import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
-import {
-  CheckEventLastChangedNotReady,
-  CheckEventLastChangedReady,
-  CheckEventReady,
-} from '../../utils/CheckEvent';
+import { CheckEventLastChangedNotReady } from '../../utils/CheckEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import { setCacheQuery } from '../../store/cacheSlice';
 
@@ -45,6 +41,7 @@ export default function Listings() {
     if (url) {
       dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
     }
+    // eslint-disable-next-line
   }, [params]);
 
   // Обновляем набор записей при изменении url строки запроса - пишем в локальное хранилище

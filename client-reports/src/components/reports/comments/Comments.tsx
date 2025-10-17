@@ -106,24 +106,28 @@ export default function Comments({ items }: Props) {
   return (
     <>
       <div className="CenterItem">
-        <Button
-          text
-          raised
-          rounded
-          className="CustomButton mr-4 mb-4 w-40rem"
-          onClick={expandAll}
-        >
-          Показать комментарии
-        </Button>
-        <Button
-          text
-          raised
-          rounded
-          className="CustomButton w-40rem mb-4"
-          onClick={collapseAll}
-        >
-          Скрыть комментарии
-        </Button>
+        {Object.keys(expand).length === 0 && (
+          <Button
+            text
+            raised
+            rounded
+            className="CustomButton mr-4 mb-4 w-40rem"
+            onClick={expandAll}
+          >
+            Показать комментарии
+          </Button>
+        )}
+        {Object.keys(expand).length !== 0 && (
+          <Button
+            text
+            raised
+            rounded
+            className="CustomButton w-40rem mb-4"
+            onClick={collapseAll}
+          >
+            Скрыть комментарии
+          </Button>
+        )}
       </div>
 
       <TreeTable

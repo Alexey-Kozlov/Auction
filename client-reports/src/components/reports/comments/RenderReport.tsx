@@ -7,10 +7,7 @@ import { setEvent } from "../../../store/EventSlice";
 import { useDownloadExcel } from "react-export-table-to-excel";
 import Waiter from "../../Waiter";
 import { setReportLoaded } from "../../../store/ReportSlice";
-import {
-  useAuctionListTreeMutation,
-  useCommentsListMutation,
-} from "../../../api/ReportApiAuction";
+import { useCommentsListMutation } from "../../../api/ReportApiAuction";
 import { CommentTreeItem } from "./CommentsTypes";
 import Comments from "./Comments";
 
