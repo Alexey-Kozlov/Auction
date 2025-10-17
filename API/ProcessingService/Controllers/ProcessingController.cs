@@ -137,7 +137,7 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем реиндексацию ELK
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        await _publishEndpoint.Publish(new RequestElkIndex
+        await _publishEndpoint.Publish(new ElkIndexRequest
         {
             CorrelationId = Guid.NewGuid(),
             UserLogin = userLogin,

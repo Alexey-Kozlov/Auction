@@ -41,11 +41,16 @@ export default function Listings() {
     skip: params.userLogin === '',
   });
 
+  useEffect(() => {
+    if (url) {
+      dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
+    }
+  }, [params]);
+
   // Обновляем набор записей при изменении url строки запроса - пишем в локальное хранилище
   // auctionStore -> auctionSlice
   useEffect(() => {
     if (
-      !CheckEventReady(procState, 'ElkSearch') &&
       !auctionsData.isLoading &&
       !auctionsData.isFetching &&
       auctionsData.data
@@ -55,8 +60,6 @@ export default function Listings() {
       //данные готовы - заполняем локальное хранилище и скрываем иконку ожидания
       dispatch(setData(auctionsData.data.result));
       setIsWait(() => false);
-      //сохраняем обновленный url - потом будем использовать при  обновлении аукциона или ставок
-      dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
     } else {
       setIsWait(() => true);
     }
@@ -64,8 +67,7 @@ export default function Listings() {
   }, [auctionsData]);
 
   //запрос на обновление данных при поступлении сообщения об изменении коллекции - нужно
-  //принудительно обновить все записи. Это возникает при поиске через Эластик, при завершении аукциона
-  //или при изменении ставок
+  //принудительно обновить все записи. Это возникает при завершении аукциона или при изменении ставок
   useEffect(() => {
     if (
       !auctionsData.isUninitialized &&
@@ -78,12 +80,6 @@ export default function Listings() {
         CheckEventLastChangedNotReady(
           procState,
           SignalREvents[SignalREvents.BidPlaced],
-        ) ||
-        // здесь отслеживаем начало поиска для Эластика - отображаем иконку ожидания, ставим признак
-        // сброса кеша для отправки запроса на поиск
-        CheckEventLastChangedReady(
-          procState,
-          SignalREvents[SignalREvents.ElkSearch],
         ))
     ) {
       auctionsData.refetch();
@@ -109,6 +105,8 @@ export default function Listings() {
         firstPage: e.first === 0 ? 1 : e.first,
       }),
     );
+    //сохраняем обновленный url - потом будем использовать при  обновлении аукциона или ставок
+    //dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
   }
 
   return (

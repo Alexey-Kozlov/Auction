@@ -73,27 +73,22 @@ public class Comments
                     seller = auction.Seller,
                     title = auction.Title,
                     itemid = auction.ItemId
-                }
+                },
+                children = communicationList.Where(b => b.AuctionId == auction.ItemId).Select(p =>
+                    new CommunicationTreeItem
+                    {
+                        key = p.ItemId.Value,
+                        data = new CommunicationTreeItemData
+                        {
+                            author = p.UserLogin,
+                            createAt = p.UpdateAt,
+                            comment = p.Message
+                        }
+                    }).ToList()
             }
         ).DistinctBy(p => p.key).OrderBy(p => p.data.title);
         rezult.AddRange(_tmp);
 
-        // заполняем отобранные записи аукционов комментариями
-        foreach (var rezult_item in rezult)
-        {
-            rezult_item.children.AddRange(
-                communicationList.Where(b => b.AuctionId == rezult_item.key).Select(p =>
-                             new CommunicationTreeItem
-                             {
-                                 key = p.ItemId.Value,
-                                 data = new CommunicationTreeItemData
-                                 {
-                                     author = p.UserLogin,
-                                     createAt = p.UpdateAt,
-                                     comment = p.Message
-                                 }
-                             }));
-        }
         return Task.FromResult(JsonSerializer.Serialize(rezult));
     }
 }

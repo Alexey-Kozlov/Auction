@@ -1,46 +1,46 @@
-import { useEffect, useState } from "react";
-import Heading from "../auctionList/Heading";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import Heading from '../auctionList/Heading';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Auction,
   AuctionUpdated,
   FormErrors,
   ProcessingState,
-} from "../../types";
+} from '../../types';
 
-import api, { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
-import { useGetImageForAuctionQuery } from "../../api/ImageApi";
-import { useDispatch, useSelector } from "react-redux";
-import { setEventFlag } from "../../store/processingSlice";
-import { RootState } from "../../store/store";
+import api, { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useGetImageForAuctionQuery } from '../../api/ImageApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { setEventFlag } from '../../store/processingSlice';
+import { RootState } from '../../store/store';
 import {
   useCreateAuctionMutation,
   useUpdateAuctionMutation,
-} from "../../api/ProcessingApi";
-import uuid from "react-native-uuid";
-import { InputText } from "primereact/inputtext";
-import { InputTextarea } from "primereact/inputtextarea";
-import DateInput from "../inputComponents/DateInput";
-import { Panel } from "primereact/panel";
-import ImageFileInput from "../inputComponents/ImageFileInput";
+} from '../../api/ProcessingApi';
+import uuid from 'react-native-uuid';
+import { InputText } from 'primereact/inputtext';
+import { InputTextarea } from 'primereact/inputtextarea';
+import DateInput from '../inputComponents/DateInput';
+import { Panel } from 'primereact/panel';
+import ImageFileInput from '../inputComponents/ImageFileInput';
 import {
   InputNumber,
   InputNumberValueChangeEvent,
-} from "primereact/inputnumber";
-import { Button } from "primereact/button";
-import { Message } from "primereact/message";
-import Waiter from "../Waiter";
-import { CheckEventReady } from "../../utils/CheckEvent";
-import { useSetUsersCurrentPageMutation } from "../../api/ServiceApi";
+} from 'primereact/inputnumber';
+import { Button } from 'primereact/button';
+import { Message } from 'primereact/message';
+import Waiter from '../Waiter';
+import { CheckEventReady } from '../../utils/CheckEvent';
+import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 
 export default function AuctionForm() {
   let { id } = useParams();
   const auction = useGetDetailedViewDataQuery(id!, {
-    skip: id === "",
+    skip: id === '' || id === undefined,
   });
 
   const procState: ProcessingState[] = useSelector(
-    (state: RootState) => state.processingStore
+    (state: RootState) => state.processingStore,
   );
   const [createAuction] = useCreateAuctionMutation();
   const [updateAuction] = useUpdateAuctionMutation();
@@ -54,34 +54,34 @@ export default function AuctionForm() {
   auctionEndDate.setDate(auctionEndDate.getDate() + 1);
   const [newAuction, setNewAuction] = useState<Auction>({
     itemId: id,
-    title: "",
-    properties: "",
+    title: '',
+    properties: '',
     auctionEnd: auctionEndDate,
-    image: "",
+    image: '',
     reservePrice: 0,
-    description: "",
-    error: "",
+    description: '',
+    error: '',
     usingImage: false,
   } as Auction);
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState('');
   const [isWaiting, setIsWaiting] = useState(false);
   const [isFormChanged, setIsFormChanged] = useState(false);
   const [editError, setEditError] = useState<FormErrors | null>(null);
 
   const editErrorList: FormErrors[] = [
     {
-      name: "EmptyTitle",
-      message: "Нужно указать наименование аукциона",
+      name: 'EmptyTitle',
+      message: 'Нужно указать наименование аукциона',
     },
     {
-      name: "ErrorEndDate",
+      name: 'ErrorEndDate',
       message: `Нужно указать дату окончания аукциона не ранее чем за 1 минуту до текущей даты`,
     },
   ];
 
   const fullImageQuery = useGetImageForAuctionQuery(
     { id: newAuction.itemId, cache: false },
-    { skip: newAuction.itemId === undefined }
+    { skip: newAuction.itemId === undefined },
   );
   const cacheStore = useSelector((state: RootState) => state.cacheStore);
   const cachedImageQuery = useGetImageForAuctionQuery({
@@ -94,18 +94,18 @@ export default function AuctionForm() {
     if (!auction.isLoading && auction.data && !auction.isFetching) {
       setNewAuction((prev) => auction.data!.result);
       //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
-      setCurrentPage("/edit/");
+      setCurrentPage('/edit/');
     }
     //отлавливаем несуществующий адрес страницы
     if (
-      id !== "empty" &&
+      id !== 'empty' &&
       !auction.isLoading &&
       !auction.isFetching &&
       auction.data?.isSuccess &&
       auction.data?.result &&
       !auction.data?.result.title
     ) {
-      navigate("/not-found");
+      navigate('/not-found');
     }
     // eslint-disable-next-line
   }, [id, auction]);
@@ -118,7 +118,7 @@ export default function AuctionForm() {
       !fullImageQuery.isFetching &&
       fullImageQuery.data?.result?.image
     ) {
-      setImage("data:image/png;base64, " + fullImageQuery?.data?.result?.image);
+      setImage('data:image/png;base64, ' + fullImageQuery?.data?.result?.image);
       setNewAuction((prev) => {
         return {
           ...auction.data!.result,
@@ -129,13 +129,11 @@ export default function AuctionForm() {
     // eslint-disable-next-line
   }, [id, auction, fullImageQuery]);
 
-  //возврат на список аукционов после редактирования записи аукциона
+  //возврат на список аукционов после создания нового аукциона, редактирования записи аукциона -
   //при получении сообщения об изменении параметра CollectionChanged -
   //удаляем кеширование и переходим на список аукционов
   useEffect(() => {
-    if (!CheckEventReady(procState, "CollectionChanged") && isWaiting) {
-      //ставим признак по обновлению описания аукциона
-      auction.refetch();
+    if (!CheckEventReady(procState, 'CollectionChanged') && isWaiting) {
       //ставим признак по обновлению списка аукционов
       //функцией api.util.resetApiState() - полностью удаляем кеш RTK для списка аукционрв,
       // иначе в пейджинге на других страницах останутся старые данные
@@ -148,7 +146,7 @@ export default function AuctionForm() {
       if (!fullImageQuery.isUninitialized) {
         fullImageQuery.refetch();
       }
-      navigate("/");
+      navigate('/');
     }
     // eslint-disable-next-line
   }, [procState]);
@@ -166,7 +164,7 @@ export default function AuctionForm() {
     setIsFormChanged(true);
     setEditError(() => null);
     setNewAuction((prev) => {
-      return { ...prev, properties: value ? value.toString() : "" };
+      return { ...prev, properties: value ? value.toString() : '' };
     });
   };
 
@@ -174,7 +172,7 @@ export default function AuctionForm() {
     setIsFormChanged(true);
     setEditError(() => null);
     setNewAuction((prev) => {
-      return { ...prev, description: value ? value.toString() : "" };
+      return { ...prev, description: value ? value.toString() : '' };
     });
   };
 
@@ -220,12 +218,12 @@ export default function AuctionForm() {
     let _date = new Date();
     _date = new Date(_date.getTime() + 60000);
     if (newAuction.auctionEnd < _date) {
-      setEditError(() => editErrorList.find((p) => p.name === "ErrorEndDate")!);
+      setEditError(() => editErrorList.find((p) => p.name === 'ErrorEndDate')!);
       return;
     }
     //пустое наименование
     if (!newAuction.title) {
-      setEditError(() => editErrorList.find((p) => p.name === "EmptyTitle")!);
+      setEditError(() => editErrorList.find((p) => p.name === 'EmptyTitle')!);
       return;
     }
     //обработка данных
@@ -233,19 +231,19 @@ export default function AuctionForm() {
     const auctionUpdated: AuctionUpdated = {
       itemId: id!,
       title: newAuction.title,
-      description: newAuction.description ? newAuction.description : "",
+      description: newAuction.description ? newAuction.description : '',
       properties: newAuction.properties,
       auctionEnd: newAuction.auctionEnd,
       reservePrice: newAuction.reservePrice,
-      image: newAuction.image ? newAuction.image : "",
+      image: newAuction.image ? newAuction.image : '',
       correlationId: uuid.v4() as string,
       usingImage: newAuction.usingImage!,
     };
     // событие CollectionChanged для отслеживания значка ожидания, событие ожидания создается (ready=true)
     // после нажатия кнопки "Сохранить" - и снимается после получения сообщения в SignalRProvider
     // (ready=false)
-    dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
-    if (id && id !== "empty") {
+    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
+    if (id && id !== 'empty') {
       //обновление аукциона
       await updateAuction(auctionUpdated);
     } else {
@@ -257,7 +255,7 @@ export default function AuctionForm() {
 
   return (
     <div className="CenterItem">
-      {CheckEventReady(procState, "CollectionChanged") ? <Waiter /> : <></>}
+      {CheckEventReady(procState, 'CollectionChanged') ? <Waiter /> : <></>}
       <Panel className="EditForm">
         <Heading
           title="Редактирование аукциона"
@@ -283,9 +281,9 @@ export default function AuctionForm() {
               pt={{
                 root: {
                   className:
-                    editError !== null && editError.name === "EmptyTitle"
-                      ? ""
-                      : "hidden",
+                    editError !== null && editError.name === 'EmptyTitle'
+                      ? ''
+                      : 'hidden',
                 },
               }}
             />
@@ -318,9 +316,9 @@ export default function AuctionForm() {
               pt={{
                 root: {
                   className:
-                    editError !== null && editError.name === "ErrorEndDate"
-                      ? ""
-                      : "hidden",
+                    editError !== null && editError.name === 'ErrorEndDate'
+                      ? ''
+                      : 'hidden',
                 },
               }}
             />
@@ -375,14 +373,14 @@ export default function AuctionForm() {
                 className="CustomButton w-16rem"
                 disabled={
                   !isFormChanged ||
-                  CheckEventReady(procState, "CollectionChanged")
+                  CheckEventReady(procState, 'CollectionChanged')
                 }
                 onClick={(e) => {
                   e.preventDefault();
                   handleSubmit();
                 }}
               >
-                {id ? "Сохранить" : "Создать"}
+                {id ? 'Сохранить' : 'Создать'}
               </Button>
               <Button
                 text

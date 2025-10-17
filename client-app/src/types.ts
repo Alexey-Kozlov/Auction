@@ -64,6 +64,7 @@ export type PagedResult<T> = {
   results: T[];
   pageCount: number;
   totalCount: number;
+  pageNumber: number;
 };
 
 export type ApiResponseNet<T> = {

@@ -26,4 +26,5 @@ public class PagedResult<T>
     public int PageCount { get; set; }
     public int TotalCount { get; set; }
     public string UserLogin { get; set; }
+    public int PageNumber { get; set; }
 }

@@ -3,7 +3,6 @@ using Common.Utils.Logging;
 using Common.Utils.Vault;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -69,7 +68,7 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
     .AddPrometheusExporter()
 );
-
+builder.Services.AddScoped<GrpcElkClient>();
 var app = builder.Build();
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
 app.UseMiddleware<ExceptionMiddleware>();

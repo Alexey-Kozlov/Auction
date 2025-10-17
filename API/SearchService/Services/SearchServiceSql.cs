@@ -12,11 +12,14 @@ public class SearchServiceSql
 {
     private readonly SearchDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly GrpcElkClient _grpcElkClient;
 
-    public SearchServiceSql(SearchDbContext context, IPublishEndpoint publishEndpoint)
+    public SearchServiceSql(SearchDbContext context, IPublishEndpoint publishEndpoint,
+        GrpcElkClient grpcElkClient)
     {
         _context = context;
         _publishEndpoint = publishEndpoint;
+        _grpcElkClient = grpcElkClient;
     }
 
     //SQL поиск по частичному точному совпадению в полях title, properties
@@ -93,17 +96,10 @@ public class SearchServiceSql
 
     public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> ElkSearchItems(SearchParamsDTO searchParams)
     {
-        //посылаем сообщение для поиска в ELK
-        await _publishEndpoint.Publish(new ElkSearchRequest(Guid.NewGuid(), Guid.NewGuid(),
-            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize, searchParams.UserLogin));
-
-        //посылаем null в качестве результата для отображения заставки ожидания
-        return new ApiResponse<PagedResult<List<AuctionItem>>>
-        {
-            StatusCode = System.Net.HttpStatusCode.OK,
-            IsSuccess = true,
-            Result = null
-        };
+        //ищем в ELKе и возвращаем ответ
+        return await _grpcElkClient.GetElkSearchItems(new ElkSearchRequest(Guid.NewGuid(),
+            searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize,
+            searchParams.UserLogin, searchParams.OrderBy));
     }
 
     public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)

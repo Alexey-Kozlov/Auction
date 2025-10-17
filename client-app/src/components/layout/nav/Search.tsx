@@ -41,6 +41,7 @@ export default function Search() {
   //поиск в сервисе Search, потом поисковая строка уходит в елку
   const AdvSearch = () => {
     if (!searchAdv) return;
+    dispatch(api.util.resetApiState());
     //выставляем параметр поиска - после этого срабатывает обновление отображаемых аукционов в Listings.tsx
     dispatch(setParams({ searchAdv: searchAdv, searchTerm: '' }));
     //выставляем флаг для скрытия страницы с аукционами и выставления иконки ожидания, т.к. поиск будет асинхронным
@@ -52,8 +53,10 @@ export default function Search() {
 
   //для сброса значений поиска при щелчке на сброс фильтров
   useEffect(() => {
+    dispatch(api.util.resetApiState());
     setSearch(params.searchTerm ? params.searchTerm : '');
     setSearchAdv(params.searchAdv ? params.searchAdv : '');
+    // eslint-disable-next-line
   }, [params.searchTerm, params.searchAdv]);
 
   return (

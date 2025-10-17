@@ -20,6 +20,12 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />    
+    <PackageReference Include="Google.Protobuf" Version="3.32.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>      
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.12.0-beta.1" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
@@ -30,6 +36,7 @@
   <ItemGroup>
     <Protobuf Include="Protos/finance.proto" GrpcServices="Server" />
     <Protobuf Include="Protos/report.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos/elk.proto" GrpcServices="Client" />    
   </ItemGroup>
 
 </Project>

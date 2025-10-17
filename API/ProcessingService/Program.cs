@@ -75,7 +75,6 @@ builder.Services.AddMassTransit(p =>
     p.AddAuctionCreateMassTransitConfigurator();
     p.AddAuctionFinishMassTransitConfigurator();
     p.AddBidPlacedMassTransitConfigurator();
-    p.ElkSearchMassTransitConfigurator();
     p.ElkIndexMassTransitConfigurator();
     p.FinanceMassTransitConfigurator();
     p.EditNotificationMassTransitConfigurator();

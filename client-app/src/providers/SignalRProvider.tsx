@@ -3,44 +3,48 @@ import {
   HubConnectionBuilder,
   HubConnectionState,
   LogLevel,
-} from "@microsoft/signalr";
-import { useEffect, useRef, useState } from "react";
+} from '@microsoft/signalr';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActionType,
+  ApiResponseNet,
+  Auction,
   AuctionFinished,
   ChatComment,
   Message,
   NotificationEvent,
+  PagedResult,
   Progress,
   SignalREvents,
   ToastType,
   User,
-} from "../types";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../store/store";
-import { setEventFlag } from "../store/processingSlice";
-import MessageToast from "../components/signalRNotifications/MessageToast";
-import { setData } from "../store/auctionSlice";
-import { setChatResponse } from "../store/chatSlice";
-import { Toast } from "primereact/toast";
-import ImageToast from "../components/signalRNotifications/ImageToast";
-import CamelToSnake from "../utils/CamelToSnake";
-import ProgressToast from "../components/signalRNotifications/ProgressToast";
+} from '../types';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { setEventFlag } from '../store/processingSlice';
+import MessageToast from '../components/signalRNotifications/MessageToast';
+import { setData } from '../store/auctionSlice';
+import { setChatResponse } from '../store/chatSlice';
+import { Toast } from 'primereact/toast';
+import ImageToast from '../components/signalRNotifications/ImageToast';
+import CamelToSnake from '../utils/CamelToSnake';
+import ProgressToast from '../components/signalRNotifications/ProgressToast';
+import searchApi from '../api/AuctionApi';
 
 export default function SignalRProvider() {
   const user: User = useSelector((state: RootState) => state.authStore);
   const messageChat: ChatComment = useSelector(
-    (state: RootState) => state.chatMessageStore
+    (state: RootState) => state.chatMessageStore,
   );
   const toastMessage: Toast | null = useSelector(
-    (state: RootState) => state.serviceStore
+    (state: RootState) => state.serviceStore,
   ).toast;
   const dispatch = useDispatch();
   const [connection, setConnection] = useState<HubConnection | null>(null);
   const progressToast = useRef<null | Toast>(null);
   const [progressData, setProgressData] = useState<Progress>();
   const apiUrl = process.env.REACT_APP_NOTIFY_URL;
-  const tokenData = localStorage.getItem("Auction");
+  const tokenData = localStorage.getItem('Auction');
 
   useEffect(() => {
     if (user.login) {
@@ -71,9 +75,9 @@ export default function SignalRProvider() {
         if (connection.state === HubConnectionState.Disconnected) {
           try {
             await connection.start();
-            console.log("Коннект установлен с хабом уведомлений");
+            console.log('Коннект установлен с хабом уведомлений');
           } catch (e) {
-            console.log("Ошибка Коннекта с хабом - " + e);
+            console.log('Ошибка Коннекта с хабом - ' + e);
           }
         }
         connection.on(
@@ -85,12 +89,12 @@ export default function SignalRProvider() {
                 eventName: SignalREvents[SignalREvents.BidPlaced],
                 ready: false,
                 itemId: bid.ItemId,
-              })
+              }),
             );
             toastMessage!.show({
-              severity: "success",
+              severity: 'success',
               life: 4000,
-              className: "bg-white",
+              className: 'bg-white',
               content: (props) => (
                 <ImageToast
                   auctionId={bid.AuctionId}
@@ -98,7 +102,7 @@ export default function SignalRProvider() {
                 />
               ),
             });
-          }
+          },
         );
 
         connection.on(
@@ -108,14 +112,14 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.CollectionChanged],
                 ready: false,
-              })
+              }),
             );
             const auction = JSON.parse(message.data);
             if (message.show) {
               toastMessage!.show({
-                severity: "success",
+                severity: 'success',
                 life: 4000,
-                className: "bg-white",
+                className: 'bg-white',
                 content: (props) => (
                   <ImageToast
                     auctionId={auction.ItemId}
@@ -124,7 +128,7 @@ export default function SignalRProvider() {
                 ),
               });
             }
-          }
+          },
         );
 
         connection.on(
@@ -134,14 +138,14 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.CollectionChanged],
                 ready: false,
-              })
+              }),
             );
             const auction = JSON.parse(message.data);
             if (message.show) {
               toastMessage!.show({
-                severity: "success",
+                severity: 'success',
                 life: 4000,
-                className: "bg-white",
+                className: 'bg-white',
                 content: (props) => (
                   <ImageToast
                     auctionId={auction.ItemId}
@@ -150,29 +154,29 @@ export default function SignalRProvider() {
                 ),
               });
             }
-          }
+          },
         );
 
         connection.on(
           SignalREvents[SignalREvents.AuctionFinished],
           (message: NotificationEvent) => {
             const auction = CamelToSnake(
-              JSON.parse(message.data)
+              JSON.parse(message.data),
             ) as AuctionFinished;
             dispatch(
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.AuctionFinished],
                 ready: false,
                 itemId: auction.itemId,
-              })
+              }),
             );
             const mess = auction.winner
               ? `Поздравления для победителя аукциона "${auction.winner}!" Итоговая стоимость лота - ${auction.soldAmount} руб.`
               : `Аукцион закончен, лот не был продан.`;
             toastMessage!.show({
-              severity: "success",
+              severity: 'success',
               life: 6000,
-              className: "bg-white",
+              className: 'bg-white',
               content: (props) => (
                 <ImageToast
                   auctionId={auction.itemId}
@@ -181,7 +185,7 @@ export default function SignalRProvider() {
                 />
               ),
             });
-          }
+          },
         );
 
         connection.on(
@@ -192,13 +196,13 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.CollectionChanged],
                 ready: false,
-              })
+              }),
             );
             if (message.show) {
               toastMessage!.show({
-                severity: "success",
+                severity: 'success',
                 life: 4000,
-                className: "bg-white",
+                className: 'bg-white',
                 content: (props) => (
                   <MessageToast
                     message={`Аукцион - "${auction.Title}" удален`}
@@ -207,7 +211,7 @@ export default function SignalRProvider() {
                 ),
               });
             }
-          }
+          },
         );
 
         connection.on(
@@ -218,13 +222,13 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.FinanceCreate],
                 ready: false,
-              })
+              }),
             );
             if (message.show) {
               toastMessage!.show({
-                severity: "success",
+                severity: 'success',
                 life: 4000,
-                className: "bg-white",
+                className: 'bg-white',
                 content: (props) => (
                   <MessageToast
                     toastType={ToastType.Info}
@@ -233,22 +237,7 @@ export default function SignalRProvider() {
                 ),
               });
             }
-          }
-        );
-
-        connection.on(
-          SignalREvents[SignalREvents.ElkSearch],
-          (elk: NotificationEvent) => {
-            let elkData = JSON.parse(elk.data).Result as any;
-            elkData = CamelToSnake(elkData);
-            dispatch(setData(elkData));
-            dispatch(
-              setEventFlag({
-                eventName: SignalREvents[SignalREvents.ElkSearch],
-                ready: false,
-              })
-            );
-          }
+          },
         );
 
         connection.on(
@@ -258,13 +247,13 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.ElkIndexReset],
                 ready: false,
-              })
+              }),
             );
             if (result.show) {
               toastMessage!.show({
-                severity: "info",
+                severity: 'info',
                 life: 2000,
-                className: "bg-white",
+                className: 'bg-white',
                 content: (props) => (
                   <MessageToast
                     toastType={ToastType.Info}
@@ -273,7 +262,7 @@ export default function SignalRProvider() {
                 ),
               });
             }
-          }
+          },
         );
 
         connection.on(
@@ -292,7 +281,7 @@ export default function SignalRProvider() {
               progressShow = true;
               progressToast.current!.show({});
             }
-          }
+          },
         );
 
         connection.on(
@@ -310,9 +299,9 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.SetSnapShot],
                 ready: false,
-              })
+              }),
             );
-          }
+          },
         );
 
         connection.on(
@@ -322,7 +311,7 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.RestoreSnapShot],
                 ready: false,
-              })
+              }),
             );
             setProgressData((prev) => {
               return {
@@ -332,7 +321,7 @@ export default function SignalRProvider() {
               };
             });
             progressShow = false;
-          }
+          },
         );
 
         connection.on(
@@ -343,12 +332,12 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.ElkSearch],
                 ready: false,
-              })
+              }),
             );
             toastMessage!.show({
-              severity: "error",
+              severity: 'error',
               life: 6000,
-              className: "bg-white",
+              className: 'bg-white',
               content: (props) => (
                 <MessageToast
                   toastType={ToastType.Error}
@@ -356,7 +345,7 @@ export default function SignalRProvider() {
                 />
               ),
             });
-          }
+          },
         );
 
         connection.on(
@@ -367,26 +356,23 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.EditNotification],
                 ready: false,
-              })
+              }),
             );
 
             const text = event.Enable
-              ? "Уведомление для пользователя " + event.UserLogin + " создано!"
-              : "Уведомление для пользователя " + event.UserLogin + " удалено!";
+              ? 'Уведомление для пользователя ' + event.UserLogin + ' создано!'
+              : 'Уведомление для пользователя ' + event.UserLogin + ' удалено!';
             if (message.show) {
               toastMessage!.show({
-                severity: "info",
+                severity: 'info',
                 life: 3000,
-                className: "bg-white",
+                className: 'bg-white',
                 content: (props) => (
-                  <MessageToast
-                    toastType={ToastType.Info}
-                    message={text}
-                  />
+                  <MessageToast toastType={ToastType.Info} message={text} />
                 ),
               });
             }
-          }
+          },
         );
 
         connection.on(
@@ -396,20 +382,17 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.ResetImageCache],
                 ready: false,
-              })
+              }),
             );
             toastMessage!.show({
-              severity: "info",
+              severity: 'info',
               life: 2000,
-              className: "bg-white",
+              className: 'bg-white',
               content: (props) => (
-                <MessageToast
-                  toastType={ToastType.Info}
-                  message={result}
-                />
+                <MessageToast toastType={ToastType.Info} message={result} />
               ),
             });
-          }
+          },
         );
 
         connection.on(
@@ -420,7 +403,7 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.CommunicationChanged],
                 ready: false,
-              })
+              }),
             );
             let date = new Date(data.UpdateAt);
             dispatch(
@@ -432,9 +415,9 @@ export default function SignalRProvider() {
                 auctionId: data.AuctionId,
                 updateAt: date.setHours(date.getHours() + 3),
                 actionType: ActionType.create,
-              })
+              }),
             );
-          }
+          },
         );
 
         connection.on(
@@ -445,7 +428,7 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.CommunicationChanged],
                 ready: false,
-              })
+              }),
             );
             let date = new Date(data.UpdateAt);
             dispatch(
@@ -457,9 +440,9 @@ export default function SignalRProvider() {
                 auctionId: data.AuctionId,
                 updateAt: date.setHours(date.getHours() + 3),
                 actionType: ActionType.update,
-              })
+              }),
             );
-          }
+          },
         );
 
         connection.on(
@@ -470,7 +453,7 @@ export default function SignalRProvider() {
               setEventFlag({
                 eventName: SignalREvents[SignalREvents.CommunicationChanged],
                 ready: false,
-              })
+              }),
             );
             dispatch(
               setChatResponse({
@@ -481,9 +464,9 @@ export default function SignalRProvider() {
                 auctionId: data.AuctionId,
                 updateAt: data.UpdateAt,
                 actionType: ActionType.delete,
-              })
+              }),
             );
-          }
+          },
         );
       }
     };
@@ -495,7 +478,7 @@ export default function SignalRProvider() {
     //посылаем новое сообщение в чате на сервер
     if (messageChat && messageChat.message && connection) {
       try {
-        connection.invoke("SendComment", messageChat);
+        connection.invoke('SendComment', messageChat);
       } catch (error) {
         console.log(error);
       }
@@ -505,10 +488,7 @@ export default function SignalRProvider() {
 
   return (
     <>
-      <ProgressToast
-        toast={progressToast}
-        data={progressData!}
-      />
+      <ProgressToast toast={progressToast} data={progressData!} />
     </>
   );
 }

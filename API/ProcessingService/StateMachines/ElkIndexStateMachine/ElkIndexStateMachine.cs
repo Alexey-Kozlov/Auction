@@ -17,7 +17,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
     public State CompleteState { get; }
 
 
-    public Event<RequestElkIndex> RequestElkIndexEvent { get; }
+    public Event<ElkIndexRequest> RequestElkIndexEvent { get; }
     public Event<ElkIndexReset> ResetIndexEvent { get; }
     public Event<ESLogElkIndex> EsLogEvent { get; }
     public Event<ElkIndexCompleted> NotificationEvent { get; }

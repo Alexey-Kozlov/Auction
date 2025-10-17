@@ -16,5 +16,11 @@ public class MappingProfiles : Profile
 
         CreateMap<CommunicationItem, CommunicationSearch>();
 
+        CreateMap<AuctionCreatingElk, AuctionItem>()
+        .ForMember(dest => dest.SoldAmount, opt => opt.MapFrom(src => src.Amount))
+        .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.UserLogin))
+        .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.AuctionCreated))
+        .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.ItemSold ? src.Winner : ""));
+
     }
 }

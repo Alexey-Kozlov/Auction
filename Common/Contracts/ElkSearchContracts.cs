@@ -5,23 +5,15 @@ namespace Common.Contracts.ELKSearch;
 
 public record ElkSearchRequest(
      Guid ItemId,
-     Guid CorrelationId,
      string SearchTerm,
      int PageNumber,
      int PageSize,
-     string UserLogin
-);
-
-public record ElkSearchCreating(
-     Guid ItemId,
-     Guid CorrelationId,
-     string SearchTerm,
-     int PageNumber,
-     int PageSize
+     string UserLogin,
+     string OrderBy
 );
 
 
-public class RequestElkIndex
+public class ElkIndexRequest
 {
      public string UserLogin { get; set; }
      public Guid CorrelationId { get; set; }
@@ -83,9 +75,8 @@ public class ElkCommit
      public string UserLogin { get; set; }
 }
 
-public class ElkSearchResult : IFaultMessage
+public class ElkSearchResult
 {
-     public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
      public string ErrorExceptionMessage { get; set; }
      public string ErrorServiceName { get; set; }
@@ -93,4 +84,5 @@ public class ElkSearchResult : IFaultMessage
      public string CallBackType { get; set; }
      public bool IsError { get; set; }
      public ApiResponse<PagedResult<List<AuctionCreatingElk>>> Result { get; set; }
+
 }

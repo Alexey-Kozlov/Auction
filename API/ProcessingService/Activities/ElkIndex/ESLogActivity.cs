@@ -22,12 +22,12 @@ public class ESLogActivity : IStateMachineActivity<ElkIndexState, ElkIndexReset>
     public async Task Execute(BehaviorContext<ElkIndexState, ElkIndexReset> context, IBehavior<ElkIndexState, ElkIndexReset> next)
     {
         await _sendEventToES.SendItemToEventSourcing(
-            new RequestElkIndex
+            new ElkIndexRequest
             {
                 UserLogin = context.Saga.UserLogin,
                 CorrelationId = context.Saga.CorrelationId,
             },
-            nameof(RequestElkIndex),
+            nameof(ElkIndexRequest),
             "Common.Contracts.Processing.ESLogElkIndex",
             context.Message.CorrelationId,
             context.Saga.UserLogin,

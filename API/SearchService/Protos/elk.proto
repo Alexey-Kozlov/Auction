@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "ElkSearchService";
+
+service GrpcElk {
+    rpc GetElkSearch (GetElkSearchRequest) returns (GetElkSearchResponse);    
+}
+
+message GetElkSearchRequest {
+    string ElkSearchRequest = 1;
+}
+
+message GetElkSearchResponse {
+    string ElkSearchResult = 1;
+}

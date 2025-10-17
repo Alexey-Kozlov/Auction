@@ -33,11 +33,11 @@ export default function ImageToast({
       break;
     //AuctionCreated
     case SignalREvents.AuctionCreate:
-      text = `Создан новый аукцион - "${auctionData.data?.result.title}"`;
+      text = `Создан новый аукцион - "${auctionData.data?.result?.title}"`;
       break;
     //AuctionUpdate
     case SignalREvents.AuctionUpdate:
-      text = `Обновлен аукцион - "${auctionData.data?.result.title}"`;
+      text = `Обновлен аукцион - "${auctionData.data?.result?.title}"`;
       break;
     //AuctionFinished
     case SignalREvents.AuctionFinished:

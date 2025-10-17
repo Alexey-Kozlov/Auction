@@ -640,7 +640,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         })
                     })
             // Переиндексация
-            .Publish(context => new RequestElkIndex
+            .Publish(context => new ElkIndexRequest
             {
                 CorrelationId = context.Saga.CorrelationId,
                 UserLogin = context.Saga.UserLogin,

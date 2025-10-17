@@ -1,8 +1,8 @@
 using Common.Utils.Logging;
 using Common.Utils.Vault;
 using ElasticSearchService.Consumers;
-using ElasticSearchService.Consumers.Search;
 using ElasticSearchService.Services;
+using ElasticSearchService.Services.Search;
 using MassTransit;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -38,6 +38,7 @@ builder.Services.AddMassTransit(p =>
 
 builder.Services.AddScoped<ElkClient>();
 builder.Services.AddScoped<GetSearchItems>();
+builder.Services.AddScoped<SearchElk>();
 builder.Services.AddResourceMonitoring();
 builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration.GetValue<string>("MetricGroup")))
@@ -51,7 +52,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration["rd:config"];
     options.InstanceName = builder.Configuration["rd:instance"];
 });
-
+builder.Services.AddGrpc();
 var app = builder.Build();
 app.Use(async (context, next) =>
 {
@@ -59,6 +60,7 @@ app.Use(async (context, next) =>
     //Console.WriteLine($"{DateTime.Now} Вошедший запрос -> {context.Request.Path}");
     await next.Invoke();
 });
+app.MapGrpcService<GrpcElkSearchService>();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт

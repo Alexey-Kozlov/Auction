@@ -1,11 +1,11 @@
-import { useDispatch } from "react-redux";
-import { useGetImageForAuctionQuery } from "../../api/ImageApi";
-import { useEffect } from "react";
-import { Image } from "primereact/image";
-import { setCacheQuery } from "../../store/cacheSlice";
-import { UrlCacheList } from "../../types";
+import { useDispatch } from 'react-redux';
+import { useGetImageForAuctionQuery } from '../../api/ImageApi';
+import { useEffect } from 'react';
+import { Image } from 'primereact/image';
+import { setCacheQuery } from '../../store/cacheSlice';
+import { UrlCacheList } from '../../types';
 
-const empty = require("../../assets/Empty.png");
+const empty = require('../../assets/Empty.png');
 
 type Props = {
   id?: string;
@@ -16,10 +16,10 @@ type Props = {
 
 export default function ImageCard({ id, dopStyle, detail, cache }: Props) {
   const imageQuery = useGetImageForAuctionQuery(
-    { id: id ? id : "", cache: cache },
+    { id: id ? id : '', cache: cache },
     {
       skip: !id,
-    }
+    },
   );
   const dispatch = useDispatch();
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function ImageCard({ id, dopStyle, detail, cache }: Props) {
       dispatch(
         setCacheQuery({
           urlImage: { cache: true, id: id },
-        } as UrlCacheList)
+        } as UrlCacheList),
       );
     }
     // eslint-disable-next-line
@@ -56,7 +56,7 @@ export default function ImageCard({ id, dopStyle, detail, cache }: Props) {
                 : empty
             }
             alt=""
-            className={dopStyle ? dopStyle : "AuctionImageCardList"}
+            className={dopStyle ? dopStyle : 'AuctionImageCardList'}
           />
         ))}
     </>
