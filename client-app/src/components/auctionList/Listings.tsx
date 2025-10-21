@@ -31,6 +31,7 @@ export default function Listings() {
     (state: RootState) => state.processingStore,
   );
   const [isWait, setIsWait] = useState(true);
+  const [currentPageNumber, setCurrentPageNumber] = useState(0);
 
   //автоматически запускается при изменении url
   let auctionsData = useGetAuctionsQuery(url, {
@@ -38,9 +39,14 @@ export default function Listings() {
   });
 
   useEffect(() => {
+    //запоминаем в кеше URL списка аукционов, с которой переходим на просмотр или редактирование
+    // аукциона. Это для функционала обновления ставок на странице списка аукционов, если изменили ставку
+    // на каком-то аукционе
     if (url) {
       dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
     }
+    //для функционала сброса пагинатора на первую страницу при поиске
+    setCurrentPageNumber(params.firstPage!);
     // eslint-disable-next-line
   }, [params]);
 
@@ -102,8 +108,7 @@ export default function Listings() {
         firstPage: e.first === 0 ? 1 : e.first,
       }),
     );
-    //сохраняем обновленный url - потом будем использовать при  обновлении аукциона или ставок
-    //dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
+    setCurrentPageNumber(e.first === 0 ? 1 : e.first);
   }
 
   return (
@@ -126,8 +131,9 @@ export default function Listings() {
             </div>
             <div className="ListPagination">
               <Paginator
+                alwaysShow={true}
                 onPageChange={setPageNumber}
-                first={params.firstPage}
+                first={currentPageNumber}
                 rows={params.pageSize}
                 totalRecords={data.totalCount}
                 rowsPerPageOptions={[4, 8, 16]}

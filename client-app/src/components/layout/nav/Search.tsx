@@ -27,7 +27,14 @@ export default function Search() {
     //функцией api.util.resetApiState() - полностью удаляем кеш RTK для списка аукционов,чтобы были только свежие данные
     dispatch(api.util.resetApiState());
     //выставляем параметр поиска - после этого срабатывает обновление отображаемых аукционов в Listings.tsx
-    dispatch(setParams({ searchTerm: search, searchAdv: '' }));
+    dispatch(
+      setParams({
+        searchTerm: search,
+        searchAdv: '',
+        pageNumber: 1,
+        firstPage: 0,
+      }),
+    );
     if (location.pathname !== '/') {
       navigate('/');
     }
@@ -43,7 +50,14 @@ export default function Search() {
     if (!searchAdv) return;
     dispatch(api.util.resetApiState());
     //выставляем параметр поиска - после этого срабатывает обновление отображаемых аукционов в Listings.tsx
-    dispatch(setParams({ searchAdv: searchAdv, searchTerm: '' }));
+    dispatch(
+      setParams({
+        searchAdv: searchAdv,
+        searchTerm: '',
+        pageNumber: 1,
+        firstPage: 0,
+      }),
+    );
     //выставляем флаг для скрытия страницы с аукционами и выставления иконки ожидания, т.к. поиск будет асинхронным
     dispatch(setEventFlag({ eventName: 'ElkSearch', ready: true }));
     if (location.pathname !== '/') {

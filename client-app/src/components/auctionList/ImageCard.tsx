@@ -23,6 +23,9 @@ export default function ImageCard({ id, dopStyle, detail, cache }: Props) {
   );
   const dispatch = useDispatch();
   useEffect(() => {
+    //запоминаем в кеше, что данная страница обработана и в кеше есть данные.
+    //используем на странице списка аукционов, если было редактирование аукциона и в кеше
+    //есть изображение - сбрасываем кеш
     if (id) {
       dispatch(
         setCacheQuery({
