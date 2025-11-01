@@ -10,9 +10,11 @@ namespace ElasticSearchService.Services.Search;
 public class GetSearchItems
 {
     private readonly ElkClient _client;
-    public GetSearchItems(ElkClient client)
+    private readonly IConfiguration _configuration;
+    public GetSearchItems(ElkClient client, IConfiguration configuration)
     {
         _client = client;
+        _configuration = configuration;
     }
 
     public async Task<Dictionary<Guid, string>> GetAuctionIds(ElkSearchRequest context)
@@ -27,6 +29,7 @@ public class GetSearchItems
             {
                 Includes = Fields.FromStrings(["itemId"])
             }))
+            .Size(int.Parse(_configuration["SearchSizeLimit"]))
             //запрос - поисковый запрос разбивается на термы, все термы должны быть
             //указанном поле. Поиск нечеткий (Fuzzy), с учетом русского языка.
             //поиск по ИЛИ в 3-х полях - Title, Properties, Description            
@@ -70,6 +73,7 @@ public class GetSearchItems
     {
         //запрос на получение количества возвращаемых записей (в чатах)
         var docs = await _client.CommunicationClient.SearchAsync<CommunicationSearch>(s => s
+            .Size(int.Parse(_configuration["SearchSizeLimit"]))
             .Source(new SourceConfig(new SourceFilter
             {
                 Includes = Fields.FromStrings(["auctionId"])

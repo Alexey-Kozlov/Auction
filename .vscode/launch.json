@@ -88,6 +88,12 @@
 			"type": "dotnet",
 			"request": "launch",
 			"projectPath": "/home/alex/Projects/Auction/API/CommunicationService/CommunicationService.csproj"
-		}
+		},
+		{
+			"name": "CheckVaultUnblocked",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/CheckVaultUnblocked/CheckVaultUnblocked.csproj"
+		}		
 	]
 }
