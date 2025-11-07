@@ -59,27 +59,28 @@ public class LoggingConsumer : IConsumer<ItemLoggingContract>
         }
         //в зависимости от типа сообщения - пишем в разные индексы эластика
         //каждый день - новый индекс
-        var todayName = $"{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}";
+        var todayName = $"{DateTime.Now.Year}_{NumberNormalize(DateTime.Now.Month)}" +
+            $"_{NumberNormalize(DateTime.Now.Day)}";
         try
         {
             switch (message.LogType)
             {
                 case LogType.Audit:
-                    var result = await _client.Client.IndexAsync(message, p => p.Index($"audit-{todayName}"));
+                    var result = await _client.Client.IndexAsync(message, p => p.Index($"audit_{todayName}"));
                     if (!result.IsValidResponse)
                     {
                         Console.WriteLine(result.DebugInformation);
                     }
                     break;
                 case LogType.System:
-                    var result1 = await _client.Client.IndexAsync(message, p => p.Index($"system-{todayName}"));
+                    var result1 = await _client.Client.IndexAsync(message, p => p.Index($"system_{todayName}"));
                     if (!result1.IsValidResponse)
                     {
                         Console.WriteLine(result1.DebugInformation);
                     }
                     break;
                 case LogType.Error:
-                    var result2 = await _client.Client.IndexAsync(message, p => p.Index($"error-{todayName}"));
+                    var result2 = await _client.Client.IndexAsync(message, p => p.Index($"error_{todayName}"));
                     if (!result2.IsValidResponse)
                     {
                         Console.WriteLine(result2.DebugInformation);
@@ -92,5 +93,10 @@ public class LoggingConsumer : IConsumer<ItemLoggingContract>
             Console.WriteLine($"Write logging error - {e.Message}");
         }
 
+    }
+
+    private string NumberNormalize(int per)
+    {
+        return per > 9 ? per.ToString() : "0" + per.ToString();
     }
 }
