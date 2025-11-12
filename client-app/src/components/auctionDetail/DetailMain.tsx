@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import Heading from "../auctionList/Heading";
-import CountdownTimer from "../auctionList/CountDownTimer";
+import { useEffect, useState } from 'react';
+import Heading from '../auctionList/Heading';
+import CountdownTimer from '../auctionList/CountDownTimer';
 import {
   Auction,
   AuctionDeleted,
@@ -8,47 +8,47 @@ import {
   NotifyUser,
   ProcessingState,
   User,
-} from "../../types";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/store";
-import { useNavigate, useParams } from "react-router-dom";
-import ImageCard from "../auctionList/ImageCard";
-import BidList from "./BidList";
-import api, { useGetDetailedViewDataQuery } from "../../api/AuctionApi";
-import { useIsNotifyUserQuery } from "../../api/NotificationApi";
-import { setEventFlag } from "../../store/processingSlice";
+} from '../../types';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import { useNavigate, useParams } from 'react-router-dom';
+import ImageCard from '../auctionList/ImageCard';
+import BidList from './BidList';
+import api, { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
+import { useIsNotifyUserQuery } from '../../api/NotificationApi';
+import { setEventFlag } from '../../store/processingSlice';
 import {
   useDeleteAuctionMutation,
   useSetNotifyUserMutation,
-} from "../../api/ProcessingApi";
-import { Button } from "primereact/button";
-import { InputSwitch } from "primereact/inputswitch";
-import { Panel } from "primereact/panel";
-import DetailedSpec from "./DetailedSpec";
-import { useGetUserNameQuery } from "../../api/AuthApi";
-import Waiter from "../Waiter";
-import Footer from "../layout/Footer";
-import ModalYesNo from "../modals/ModalYesNo";
-import { CheckEventReady } from "../../utils/CheckEvent";
+} from '../../api/ProcessingApi';
+import { Button } from 'primereact/button';
+import { InputSwitch } from 'primereact/inputswitch';
+import { Panel } from 'primereact/panel';
+import DetailedSpec from './DetailedSpec';
+import { useGetUserNameQuery } from '../../api/AuthApi';
+import Waiter from '../Waiter';
+import Footer from '../layout/Footer';
+import ModalYesNo from '../modals/ModalYesNo';
+import { CheckEventReady } from '../../utils/CheckEvent';
 
 export default function DetailMain() {
   const { id } = useParams();
   const user: User = useSelector((state: RootState) => state.authStore);
   const procState: ProcessingState[] = useSelector(
-    (state: RootState) => state.processingStore
+    (state: RootState) => state.processingStore,
   );
   const [notifyUser, setNotifyUser] = useState(false);
   const [isNotifySetWaiting, notifySetWaiting] = useState(false);
   const [isDeleteSetWaiting, deleteSetWaiting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [auctionDetail, setAuctionDetail] = useState<Auction | null>(null);
-  const data = useGetDetailedViewDataQuery(id ? id : "", { skip: !id });
+  const data = useGetDetailedViewDataQuery(id ? id : '', { skip: !id });
 
   const userSeller = useGetUserNameQuery(
-    auctionDetail ? auctionDetail.seller : "",
+    auctionDetail ? auctionDetail.seller : '',
     {
-      skip: auctionDetail?.seller === "",
-    }
+      skip: auctionDetail?.seller === '',
+    },
   );
   const isNotifyUser = useIsNotifyUserQuery(id!, {
     skip: user.isGuest,
@@ -65,7 +65,7 @@ export default function DetailMain() {
     }
     //если не нашли данных по указанному id - переход на страницу "Не найдено"
     if (!data.isLoading && (!data || !data.data!.result)) {
-      navigate("/not-found");
+      navigate('/not-found');
     }
     // eslint-disable-next-line
   }, [data]);
@@ -103,7 +103,7 @@ export default function DetailMain() {
   //отслеживаем сообщения по редактированию уведомления и удалению аукциона
   useEffect(() => {
     //обновление переключателя рассылки уведомлений
-    if (!CheckEventReady(procState, "EditNotification") && isNotifySetWaiting) {
+    if (!CheckEventReady(procState, 'EditNotification') && isNotifySetWaiting) {
       //обновление переключателя
       isNotifyUser.refetch();
       notifySetWaiting(() => false);
@@ -113,7 +113,7 @@ export default function DetailMain() {
       //функцией api.util.resetApiState() - полностью удаляем кеш RTK, иначе в пейджинге на других
       //страницах останутся старые данные
       dispatch(api.util.resetApiState());
-      navigate("/");
+      navigate('/');
     }
     // eslint-disable-next-line
   }, [procState]);
@@ -121,7 +121,7 @@ export default function DetailMain() {
   //обработчик переключения переключателя уведомлений пользователя по событиям данного аукциона
   const handleSetNotifyUser = async (checked: boolean) => {
     notifySetWaiting(() => true);
-    dispatch(setEventFlag({ eventName: "EditNotification", ready: true }));
+    dispatch(setEventFlag({ eventName: 'EditNotification', ready: true }));
     var notifyUser: NotifyUser = {
       itemId: id!,
       enable: checked,
@@ -131,7 +131,7 @@ export default function DetailMain() {
 
   const acceptDeleteDialog = async () => {
     //подтверждено удаления аукциона
-    dispatch(setEventFlag({ eventName: "CollectionChanged", ready: true }));
+    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: true }));
     const auctionDeleted: AuctionDeleted = {
       itemId: id!,
     };
@@ -146,8 +146,8 @@ export default function DetailMain() {
 
   return (
     <div>
-      {CheckEventReady(procState, "CollectionChanged") ||
-      CheckEventReady(procState, "EditNotification") ? (
+      {CheckEventReady(procState, 'CollectionChanged') ||
+      CheckEventReady(procState, 'EditNotification') ? (
         <Waiter />
       ) : (
         <></>
@@ -158,7 +158,7 @@ export default function DetailMain() {
             <div className="col-6 CenterItem">
               <div className="CenterItem flex-column w-full">
                 <Heading title={`${auctionDetail!.title}`} />
-                {user?.login === auctionDetail!.seller && (
+                {(user?.login === auctionDetail!.seller || user?.isAdmin) && (
                   <div className="flex w-auto">
                     <Button
                       text
@@ -216,18 +216,12 @@ export default function DetailMain() {
             </div>
             <div className="col-6">
               <Panel>
-                <BidList
-                  user={user}
-                  auction={auctionDetail!}
-                />
+                <BidList user={user} auction={auctionDetail!} />
               </Panel>
             </div>
             <div className="col-12">
               <Panel>
-                <DetailedSpec
-                  auction={auctionDetail!}
-                  user={user}
-                />
+                <DetailedSpec auction={auctionDetail!} user={user} />
               </Panel>
             </div>
           </div>

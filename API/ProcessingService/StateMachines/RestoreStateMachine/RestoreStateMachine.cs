@@ -175,7 +175,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Очищаем данные в 6 базах данных чтения...",
+                            message = "Очищаем данные во всех 6 базах чтения...",
                             percent = context.Saga.ProgressCurrent = 5
                         })
                     })
@@ -329,7 +329,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 lock (locker)
                 {
                     context.Saga.ItemsCount++;
-                    context.Saga.ProgressCurrent = 10 + context.Saga.ItemsCount * 65 / context.Saga.AllItemsCount;
+                    context.Saga.ProgressCurrent = 10 + context.Saga.ItemsCount * 80 / context.Saga.AllItemsCount;
                 }
             })
             //прогресс выполнения операции
@@ -402,7 +402,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление ставок аукционов...",
-                            percent = context.Saga.ProgressCurrent = 90
+                            percent = context.Saga.ProgressCurrent = 91
                         })
                     })
             //Обновление ставок (если есть) в сервисе BiddingService
@@ -449,7 +449,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей финансов...",
-                            percent = context.Saga.ProgressCurrent = 91
+                            percent = context.Saga.ProgressCurrent = 92
                         })
                     })
             //Обновление денег (если есть) в сервисе FinanceService
@@ -496,7 +496,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей аукционов...",
-                            percent = context.Saga.ProgressCurrent = 92
+                            percent = context.Saga.ProgressCurrent = 93
                         })
                     })
             //Обновление записей аукционов (если есть) в сервисе SearchService
@@ -544,7 +544,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей уведомлений...",
-                            percent = context.Saga.ProgressCurrent = 93
+                            percent = context.Saga.ProgressCurrent = 94
                         })
                     })
             //Обновление записей уведомлений (если есть) в сервисе NotifyService
@@ -592,7 +592,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Восстановление записей сообщений пользователей...",
-                            percent = context.Saga.ProgressCurrent = 94
+                            percent = context.Saga.ProgressCurrent = 95
                         })
                     })
             //Обновление записей уведомлений (если есть) в сервисе CommunicationService
@@ -636,7 +636,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Переиндексация...",
-                            percent = context.Saga.ProgressCurrent = 95
+                            percent = context.Saga.ProgressCurrent = 96
                         })
                     })
             // Переиндексация
@@ -723,7 +723,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Фиксация транзакции восстановления...",
-                            percent = context.Saga.ProgressCurrent = 96
+                            percent = context.Saga.ProgressCurrent = 97
                         })
                     })
             // посылаем через Кафку в EventSourcingService - для подтверждения транзакции
@@ -776,7 +776,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         Data = JsonSerializer.Serialize(new
                         {
                             message = "Запускаем сервис проверки завершеия аукционов...",
-                            percent = context.Saga.ProgressCurrent = 97
+                            percent = context.Saga.ProgressCurrent = 98
                         })
                     })
                     // запускаем сервис завершения аукционов 

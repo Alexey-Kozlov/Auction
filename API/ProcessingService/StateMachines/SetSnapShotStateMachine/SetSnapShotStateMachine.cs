@@ -163,13 +163,6 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             //обновляем счетчик прогресса
             .If(context => context.Message.AllItemsCount == -2,
             p => p
-                .Then(context =>
-                {
-                    lock (locker)
-                    {
-                        context.Saga.ProgressCurrent += float.Parse("0.1");
-                    }
-                })
                 //прогресс выполнения операции
                 .Send(
                     new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
@@ -181,7 +174,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                             UserLogin = context.Saga.UserLogin,
                             Data = JsonSerializer.Serialize(new
                             {
-                                message = "Восстановление изображений...",
+                                message = "Сохранение изображений...",
                                 percent = context.Saga.ProgressCurrent
                             })
                         })
@@ -244,7 +237,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Восстановление ставок...",
+                            message = "Сохранение ставок...",
                             percent = context.Saga.ProgressCurrent += 2
                         })
                     })
@@ -292,7 +285,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Восстановление платежей...",
+                            message = "Сохранение платежей...",
                             percent = context.Saga.ProgressCurrent += 2
                         })
                     })
@@ -340,7 +333,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Восстановление записей аукционов...",
+                            message = "Сохранение записей аукционов...",
                             percent = context.Saga.ProgressCurrent += 2
                         })
                     })
@@ -388,7 +381,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Восстановление уведомлений...",
+                            message = "Сохранение уведомлений...",
                             percent = context.Saga.ProgressCurrent += 2
                         })
                     })
@@ -436,7 +429,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Восстановление сообщений пользователей...",
+                            message = "Сохранение сообщений пользователей...",
                             percent = context.Saga.ProgressCurrent += 2
                         })
                     })
@@ -451,7 +444,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 })
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса CommunicationService 
-        When(FaultNotifyEvent)
+        When(FaultCommunicationEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
