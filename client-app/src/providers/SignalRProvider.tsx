@@ -325,8 +325,8 @@ export default function SignalRProvider() {
             //убираем иконку ожидания
             dispatch(
               setEventFlag({
-                eventName: SignalREvents[SignalREvents.ElkSearch],
-                ready: false,
+                eventName: SignalREvents[SignalREvents.ErrorMessage],
+                ready: true,
               }),
             );
             toastMessage!.show({

@@ -81,11 +81,6 @@ export default function TabChatTable({ auction, user }: Props) {
   };
 
   useEffect(() => {
-    dispatch(setEventFlag({ eventName: 'CommunicationChanged', ready: true }));
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
     //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
     setCurrentPage('/communication/' + auction.itemId);
     //сортируем при первоначальной загрузке

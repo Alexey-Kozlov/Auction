@@ -9,6 +9,7 @@ import Waiter from '../Waiter';
 import { Message } from 'primereact/message';
 import { InputNumber } from 'primereact/inputnumber';
 import { CheckEventReady } from '../../utils/CheckEvent';
+import { Button } from 'primereact/button';
 
 type Props = {
   auctionId: string;
@@ -86,6 +87,9 @@ export default function BidForm({ auctionId, highBid }: Props) {
                 onChange={(e) => handleBidChanged(e.value)}
                 value={bidValue}
               />
+              <Button text raised rounded className="CustomButton ml-4 w-18rem">
+                Сделать ставку
+              </Button>
             </div>
             <Message
               className="mt-2"

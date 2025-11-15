@@ -1,9 +1,25 @@
-import { ProgressSpinner } from "primereact/progressspinner";
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { CheckEventNotReady } from '../utils/CheckEvent';
+import { ProcessingState, SignalREvents } from '../types';
+import { RootState } from '../store/store';
+import { useSelector } from 'react-redux';
 
 export default function Waiter() {
-	return (
-		<div className="Absolute-Center">
-			<ProgressSpinner style={{ width: "50px", height: "50px" }} />
-		</div>
-	);
+  const procState: ProcessingState[] = useSelector(
+    (state: RootState) => state.processingStore,
+  );
+  return (
+    <>
+      {CheckEventNotReady(
+        procState,
+        SignalREvents[SignalREvents.ErrorMessage],
+      ) ? (
+        <div className="Absolute-Center">
+          <ProgressSpinner style={{ width: '50px', height: '50px' }} />
+        </div>
+      ) : (
+        <div></div>
+      )}
+    </>
+  );
 }

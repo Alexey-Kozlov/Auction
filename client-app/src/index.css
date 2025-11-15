@@ -429,14 +429,11 @@ a.p-menuitem-link > svg {
 	justify-content: space-between;
 }
 
-.BidInputControl {
-	width: 8rem;
-	margin-left: 4rem;
-	height: 6rem;
-}
-
 .BidInputControl > input {
 	font-size: x-large;
+	width: 14rem;
+	margin-left: 2rem;
+	height: 4rem;
 }
 
 .BidInputLabel {
