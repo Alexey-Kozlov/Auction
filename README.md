@@ -64,6 +64,9 @@ dotnet pack -o /home/alex/Projects/Auction/Packages/
 -для arch: dotnet nuget add source /home/alex/Projects/Auction/Packages/ -n AuctionContracts
 dotnet add package AuctionContracts
 
+получение релиза:
+dotnet build --configuration Release
+
 очистка кешей NuGet-пакетов
 Если нужно изменить пакет, то из-за кеширования делаем так:
 

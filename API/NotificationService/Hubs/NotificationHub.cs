@@ -1,4 +1,5 @@
 ﻿using Common.Contracts.Communication;
+using Common.Contracts.Logging;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.DTO;
@@ -52,6 +53,23 @@ public class NotificationHub : Hub
                     ParentId = string.IsNullOrEmpty(comment.ParentId) ? null : Guid.Parse(comment.ParentId),
                     UserLogin = comment.UserLogin,
                 });
+                //логируем создание нового комментария
+                await _publishEndpoint.Publish(new ItemLoggingContract
+                {
+                    LogType = LogType.Audit,
+                    RequestDate = DateTime.UtcNow,
+                    RequestLoggingContract = new RequestLoggingContract { },
+                    RequestType = "CommentCreated",
+                    ResponseLoggingContract = new ResponseLoggingContract
+                    {
+                        IsSuccess = true,
+                        StatusCode = System.Net.HttpStatusCode.OK,
+                        Result = comment.Message
+                    },
+                    TraceId = Guid.NewGuid().ToString(),
+                    UserLogin = comment.UserLogin,
+
+                });
                 break;
             case ActionType.delete:
                 //удаление комментария к аукциону. Запускаем процесс удаления
@@ -60,6 +78,22 @@ public class NotificationHub : Hub
                     ItemId = Guid.Parse(comment.ItemId),
                     AuctionId = Guid.Parse(comment.AuctionId),
                     CorrelationId = Guid.NewGuid(),
+                    UserLogin = comment.UserLogin,
+                });
+                //логируем удаление комментария
+                await _publishEndpoint.Publish(new ItemLoggingContract
+                {
+                    LogType = LogType.Audit,
+                    RequestDate = DateTime.UtcNow,
+                    RequestLoggingContract = new RequestLoggingContract { },
+                    RequestType = "CommentDeleted",
+                    ResponseLoggingContract = new ResponseLoggingContract
+                    {
+                        IsSuccess = true,
+                        StatusCode = System.Net.HttpStatusCode.OK,
+                        Result = $"AuctionID - {Guid.Parse(comment.AuctionId)}, CommentID - {Guid.Parse(comment.ItemId)}"
+                    },
+                    TraceId = Guid.NewGuid().ToString(),
                     UserLogin = comment.UserLogin,
                 });
                 break;
@@ -71,6 +105,22 @@ public class NotificationHub : Hub
                     AuctionId = Guid.Parse(comment.AuctionId),
                     Message = comment.Message,
                     CorrelationId = Guid.NewGuid(),
+                    UserLogin = comment.UserLogin,
+                });
+                //логируем редактирование комментария
+                await _publishEndpoint.Publish(new ItemLoggingContract
+                {
+                    LogType = LogType.Audit,
+                    RequestDate = DateTime.UtcNow,
+                    RequestLoggingContract = new RequestLoggingContract { },
+                    RequestType = "CommentUpdated",
+                    ResponseLoggingContract = new ResponseLoggingContract
+                    {
+                        IsSuccess = true,
+                        StatusCode = System.Net.HttpStatusCode.OK,
+                        Result = comment.Message
+                    },
+                    TraceId = Guid.NewGuid().ToString(),
                     UserLogin = comment.UserLogin,
                 });
                 break;

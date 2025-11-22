@@ -27,6 +27,7 @@ public class GatewayConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
             {
                 throw new Exception("Не передано значение AuctionId для обновления кеша");
             }
+            //удаляем переданный объект из кеша
             var typedItem = JsonSerializer.Deserialize<AuctionItem>(context.Message.DataObjects[0].Data);
             var correlationId = context.Message.CorrelationId;
             await _cacheService.DeleteCacheItem(typedItem.ItemId.ToString());
