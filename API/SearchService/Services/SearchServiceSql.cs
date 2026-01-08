@@ -1,7 +1,6 @@
 using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SearchService.Data;
 using SearchService.DTO;
@@ -11,14 +10,11 @@ namespace SearchService.Services;
 public class SearchServiceSql
 {
     private readonly SearchDbContext _context;
-    private readonly IPublishEndpoint _publishEndpoint;
     private readonly GrpcElkClient _grpcElkClient;
 
-    public SearchServiceSql(SearchDbContext context, IPublishEndpoint publishEndpoint,
-        GrpcElkClient grpcElkClient)
+    public SearchServiceSql(SearchDbContext context, GrpcElkClient grpcElkClient)
     {
         _context = context;
-        _publishEndpoint = publishEndpoint;
         _grpcElkClient = grpcElkClient;
     }
 

@@ -27,5 +27,6 @@ public enum LogType
 {
     Audit,
     Error,
-    System
+    System,
+    Trace
 }
