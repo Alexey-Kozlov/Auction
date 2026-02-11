@@ -49,8 +49,8 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
 );
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["rd:config"];
-    options.InstanceName = builder.Configuration["rd:instance"];
+    options.Configuration = builder.Configuration["rd:config"]; //"localhost:6379"
+    options.InstanceName = builder.Configuration["rd:instance"]; //"auction"
 });
 builder.Services.AddGrpc();
 var app = builder.Build();

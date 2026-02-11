@@ -1,25 +1,25 @@
-import { AiFillTrophy, AiOutlineLogout } from "react-icons/ai";
-import { FaTrashRestoreAlt } from "react-icons/fa";
-import { RiRestartFill } from "react-icons/ri";
-import { RiAuctionFill } from "react-icons/ri";
-import { HiUser } from "react-icons/hi2";
-import { GoCodescanCheckmark, GoDatabase } from "react-icons/go";
-import { GrMoney } from "react-icons/gr";
-import { HiOutlineDocumentReport } from "react-icons/hi";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ModalTypes, ToastType, User } from "../../../types";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
-import { emptyUserState, setAuthUser } from "../../../store/authSlice";
-import { setParams } from "../../../store/paramSlice";
-import { setEventFlag } from "../../../store/processingSlice";
-import { useEffect, useRef, useState } from "react";
-import { useLogoutUserMutation } from "../../../api/AuthApi";
-import MessageToast from "../../signalRNotifications/MessageToast";
-import { Menu } from "primereact/menu";
-import { Toast } from "primereact/toast";
-import ModalYesNo from "../../modals/ModalYesNo";
-import ModalRestoreSnapShot from "../../modals/ModalRestoreSnapShot";
+import { AiFillTrophy, AiOutlineLogout } from 'react-icons/ai';
+import { FaTrashRestoreAlt } from 'react-icons/fa';
+import { RiRestartFill, RiAuctionFill } from 'react-icons/ri';
+import { FiSettings } from 'react-icons/fi';
+import { HiUser } from 'react-icons/hi2';
+import { GoCodescanCheckmark, GoDatabase } from 'react-icons/go';
+import { GrMoney } from 'react-icons/gr';
+import { HiOutlineDocumentReport } from 'react-icons/hi';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ModalTypes, ToastType, User } from '../../../types';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../store/store';
+import { emptyUserState, setAuthUser } from '../../../store/authSlice';
+import { setParams } from '../../../store/paramSlice';
+import { setEventFlag } from '../../../store/processingSlice';
+import { useEffect, useRef, useState } from 'react';
+import { useLogoutUserMutation } from '../../../api/AuthApi';
+import MessageToast from '../../signalRNotifications/MessageToast';
+import { Menu } from 'primereact/menu';
+import { Toast } from 'primereact/toast';
+import ModalYesNo from '../../modals/ModalYesNo';
+import ModalRestoreSnapShot from '../../modals/ModalRestoreSnapShot';
 
 export default function UserActions() {
   const user: User = useSelector((state: RootState) => state.authStore);
@@ -33,31 +33,31 @@ export default function UserActions() {
 
   const mainMenuItems = [
     {
-      label: "Ваши действия :",
-      className: "text-center text-4xl",
+      label: 'Ваши действия :',
+      className: 'text-center text-4xl',
       items: [
         {
-          label: "Мои аукционы",
+          label: 'Мои аукционы',
           icon: <HiUser size={30} />,
           command: () => handleSetSellerClick(),
         },
         {
-          label: "Аукционы выигранные",
+          label: 'Аукционы выигранные',
           icon: <AiFillTrophy size={30} />,
           command: () => handleSetWinnerClick(),
         },
         {
-          label: "Создать аукцион",
+          label: 'Создать аукцион',
           icon: <RiAuctionFill size={30} />,
           command: () => handleCreateAuctionClick(),
         },
         {
-          label: "Финансы",
+          label: 'Финансы',
           icon: <GrMoney size={30} />,
           command: () => handleFinanceClick(),
         },
         {
-          label: "Отчеты",
+          label: 'Отчеты',
           icon: <HiOutlineDocumentReport size={30} />,
           command: () => handleReportClick(),
         },
@@ -69,29 +69,37 @@ export default function UserActions() {
       separator: true,
     },
     {
-      label: "Выход",
+      label: 'Выход',
       icon: <AiOutlineLogout size={30} />,
       command: () => handleLogoutClick(),
     },
   ];
   const adminMenus = [
     {
-      label: "Elk индексация",
+      separator: true,
+    },
+    {
+      label: 'Админский режим',
+      icon: <FiSettings size={30} />,
+      command: () => handleAdminCurrentSettingsClick(),
+    },
+    {
+      label: 'Elk индексация',
       icon: <GoCodescanCheckmark size={30} />,
       command: () => handleElkReindexClick(),
     },
     {
-      label: "Создать SnapShot",
+      label: 'Создать SnapShot',
       icon: <GoDatabase size={30} />,
       command: () => setShowConfirmSet(true),
     },
     {
-      label: "Восстановить из SnapShot",
+      label: 'Восстановить из SnapShot',
       icon: <FaTrashRestoreAlt size={30} />,
       command: () => setShowConfirmRestore(true),
     },
     {
-      label: "Сбросить Кеш изображений",
+      label: 'Сбросить Кеш изображений',
       icon: <RiRestartFill size={30} />,
       command: () => handleResetImageCacheClick(),
     },
@@ -99,14 +107,17 @@ export default function UserActions() {
   const [stateMenuItems, setStateMenuItems] = useState<any>();
 
   useEffect(() => {
+    //заполняем выпадающее меню основными позициями
     setStateMenuItems(mainMenuItems);
     if (user.isAdmin) {
+      //заполняем выпадающее меню админскими позициями
       setStateMenuItems((prev: any) => {
-        let menuItems: any = prev[0].items;
+        let menuItems: any = prev;
         menuItems.push(...adminMenus);
         return prev;
       });
     }
+    //заполняем выпадающее меню позицией выхода - logout
     setStateMenuItems((prev: any) => {
       let menuItems: any = prev;
       menuItems.push(...logoutMenuItem);
@@ -118,33 +129,37 @@ export default function UserActions() {
   const [logoutUser] = useLogoutUserMutation();
   const menuActionsRef = useRef<any>(null);
   const toastMessage: Toast | null = useSelector(
-    (state: RootState) => state.serviceStore
+    (state: RootState) => state.serviceStore,
   ).toast;
+
+  const handleAdminCurrentSettingsClick = () => {
+    dispatch(setEventFlag({ eventName: 'AdminCurrentEnable', ready: true }));
+  };
 
   const handleSetWinnerClick = () => {
     dispatch(setParams({ winner: user.login, seller: undefined }));
-    dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
-    if (location.pathname !== "/") navigate("/");
+    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
+    if (location.pathname !== '/') navigate('/');
   };
 
   const handleSetSellerClick = () => {
     dispatch(setParams({ seller: user.login, winner: undefined }));
-    dispatch(setEventFlag({ eventName: "CollectionChanged", ready: false }));
-    if (location.pathname !== "/") navigate("/");
+    dispatch(setEventFlag({ eventName: 'CollectionChanged', ready: false }));
+    if (location.pathname !== '/') navigate('/');
   };
 
   const handleLogoutClick = async () => {
     await logoutUser({ login: user.login });
-    localStorage.removeItem("Auction");
+    localStorage.removeItem('Auction');
     dispatch(setAuthUser(emptyUserState));
   };
 
   const handleElkReindexClick = () => {
-    dispatch(setEventFlag({ eventName: "ElkIndex", ready: true }));
+    dispatch(setEventFlag({ eventName: 'ElkIndex', ready: true }));
     toastMessage!.show({
-      severity: "success",
+      severity: 'success',
       life: 4000,
-      className: "bg-white",
+      className: 'bg-white',
       content: (props) => (
         <MessageToast
           toastType={ToastType.Info}
@@ -156,7 +171,7 @@ export default function UserActions() {
 
   const acceptSetSnapShotDialog = () => {
     //создаем снимок БД
-    dispatch(setEventFlag({ eventName: "SetSnapShot", ready: true }));
+    dispatch(setEventFlag({ eventName: 'SetSnapShot', ready: true }));
     setShowConfirmSet(false);
   };
 
@@ -168,10 +183,10 @@ export default function UserActions() {
     setResetLog(false);
     dispatch(
       setEventFlag({
-        eventName: "RestoreSnapShot",
+        eventName: 'RestoreSnapShot',
         ready: true,
         param: { dateValue: dateValue, resetLog: resetLog },
-      })
+      }),
     );
     setShowConfirmRestore(false);
   };
@@ -181,11 +196,11 @@ export default function UserActions() {
   };
 
   const handleResetImageCacheClick = () => {
-    dispatch(setEventFlag({ eventName: "ResetImageCache", ready: true }));
+    dispatch(setEventFlag({ eventName: 'ResetImageCache', ready: true }));
     toastMessage!.show({
-      severity: "success",
+      severity: 'success',
       life: 4000,
-      className: "bg-white",
+      className: 'bg-white',
       content: (props) => (
         <MessageToast
           toastType={ToastType.Info}
@@ -196,7 +211,7 @@ export default function UserActions() {
   };
 
   const handleFinanceClick = () => {
-    navigate("/finance/list");
+    navigate('/finance/list');
   };
 
   const handleReportClick = () => {
@@ -204,7 +219,7 @@ export default function UserActions() {
   };
 
   const handleCreateAuctionClick = () => {
-    navigate("/auctions/create");
+    navigate('/auctions/create');
   };
 
   return (
@@ -229,7 +244,7 @@ export default function UserActions() {
         accept={acceptSetSnapShotDialog}
         reject={rejectSetSnapShotDialog}
         header="Подтверждение создания снимка БД"
-        label={"Действительно создать снимок БД?"}
+        label={'Действительно создать снимок БД?'}
         visible={showConfirmSet}
         group="confirmSnapShot"
         modalType={ModalTypes.warning}
@@ -238,7 +253,7 @@ export default function UserActions() {
         accept={acceptRestoreSnapShot}
         reject={rejectRestoreSnapShot}
         header="Восстановление БД"
-        label={"Параметры восстановления БД"}
+        label={'Параметры восстановления БД'}
         visible={showConfirmRestore}
         group="editRestore"
         onChangeDate={(val) => setDateValue(val)}

@@ -335,3 +335,7 @@ export type RefreshLinkType = {
   value: any;
   setClear: boolean;
 };
+
+export type CurrentSettings = {
+  adminMode: boolean;
+};
