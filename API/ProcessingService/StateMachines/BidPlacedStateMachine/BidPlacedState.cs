@@ -1,17 +1,13 @@
-using MassTransit;
+using Common.Contracts.Processing;
 
 namespace ProcessingService.StateMachines.BidPlacedStateMachine;
 
-public class BidPlacedState : SagaStateMachineInstance
+public class BidPlacedState : BaseProcessingState
 {
-    public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; }
     public string Bidder { get; set; }
     public Guid AuctionId { get; set; }
     public int Amount { get; set; }
-    public Guid ItemId { get; set; }
     public int OldHighBid { get; set; }
     public string DataForProcessingServicesList { get; set; }
-    public bool IsError { get; set; }
     public int CommitCounter { get; set; }
 }

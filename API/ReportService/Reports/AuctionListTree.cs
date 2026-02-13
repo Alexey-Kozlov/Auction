@@ -16,17 +16,26 @@ public class AuctionListTree
         _client = client;
     }
 
-    public Task<string> GetAuctionTreeItems(ParamItemDTO[] param)
+    public Task<AuctionTreeItem[]> GetAuctionTreeItems(ParamItemDTO[] param)
     {
         var sellerPar = param.FirstOrDefault(p => p.Id == "Seller").Value;
+        var searchText = param.FirstOrDefault(p => p.Id == "SearchText").Value;
         var query = new SqlQuery();
         List<AuctionItem> auctionList;
         List<BidItem> bidList;
         //получаем список аукционов для заданного автора аукциона (или для всех, если никто не указан)
         query.Text = "select * from \"SearchItems\" where true";
+
+        if (!string.IsNullOrEmpty(searchText))
+        {
+            query.Text += " and (\"Title\" ilike {0} or \"Properties\" ilike {0} or \"Description\" ilike {0})";
+            query.Parameters.Add("%" + searchText + "%");
+        }
+
         if (!string.IsNullOrEmpty(sellerPar))
         {
-            query.Text += " and \"Seller\" ilike {0}";
+            var parNumber = string.IsNullOrEmpty(searchText) ? "0" : "1";
+            query.Text += " and \"Seller\" ilike {" + parNumber + "}";
             query.Parameters.Add("%" + sellerPar + "%");
         }
 
@@ -34,7 +43,7 @@ public class AuctionListTree
         auctionList = _client.GetAuctionReportItems(JsonSerializer.Serialize(query))
             .GetAwaiter().GetResult().Result;
 
-        if (auctionList.Count() == 0) return Task.FromResult("[]");
+        if (auctionList.Count() == 0) return Task.FromResult<AuctionTreeItem[]>(null);
 
         query.Text = "select * from \"BidItems\" where true";
         // если был параметр фильтрации - отбираем ставки по возвращенным id-никам, типа GUID
@@ -79,7 +88,7 @@ public class AuctionListTree
                     }).ToList()
         }).DistinctBy(p => p.key);
 
-        return Task.FromResult(JsonSerializer.Serialize(rezult));
+        return Task.FromResult(rezult.ToArray());
     }
 }
 

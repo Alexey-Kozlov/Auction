@@ -210,4 +210,19 @@ public class ProcessingController : ControllerBase
         //заглушка, смысл - на этот ендпойнт приходит служебный запрос по записи текущей страницы 
         // пользователя, сама запись осуществляется в GatewayService, где обрабатываются логи
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("SetCurrentSettings")]
+    public async Task SetCurrentSettings(SetCurrentSettingsDTO param)
+    {
+        //Выполняем обновление режима работы системы - админский или обычный
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        //корректируем время - приходит по Гринвичу, прибавляем 3 часа - для Московского
+        await _publishEndpoint.Publish(new RequestSetCurrentSettings
+        {
+            AdminMode = param.AdminMode,
+            UserLogin = userLogin,
+            CorrelationId = Guid.NewGuid()
+        });
+    }
 }

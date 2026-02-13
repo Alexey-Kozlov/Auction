@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Common.Contracts.Report;
 using ReportService.DTO;
+using ReportService.DTO.ResultDTO;
 using ReportService.Services;
 
 namespace ReportService.Reports;
@@ -13,7 +14,7 @@ public class Diagrams
         _client = client;
     }
 
-    public Task<string> GetDiagrams(ParamItemDTO[] param)
+    public Task<DiagramItemsDTO[]> GetDiagrams(ParamItemDTO[] param)
     {
         var BeginDatePar = param.FirstOrDefault(p => p.Id == "BeginDate").Value;
         var EndDatePar = param.FirstOrDefault(p => p.Id == "EndDate").Value;
@@ -29,12 +30,12 @@ public class Diagrams
         query.Text += " group by \"Seller\"";
         List<DiagramData> diagramData = _client.GetDiagramReportItems(JsonSerializer.Serialize(query))
              .GetAwaiter().GetResult().Result;
-        if (diagramData.Count() == 0) return Task.FromResult("[]");
-        var resultDiagram = diagramData.Select(p => new
+        if (diagramData.Count() == 0) return Task.FromResult<DiagramItemsDTO[]>(null);
+        var resultDiagram = diagramData.Select(p => new DiagramItemsDTO
         {
             Seller = p.Seller,
             ItemsCount = p.ItemsCount
         });
-        return Task.FromResult(JsonSerializer.Serialize(resultDiagram));
+        return Task.FromResult(resultDiagram.ToArray());
     }
 }

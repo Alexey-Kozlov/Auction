@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReportService.DTO;
+using ReportService.DTO.ResultDTO;
 using ReportService.Reports;
 
 namespace ReportService.Controllers;
@@ -27,31 +28,31 @@ public class ReportController : ControllerBase
     }
 
     [HttpPost("auctionlist")]
-    public async Task<string> AuctionList([FromBody] ParamItemDTO[] param)
+    public async Task<AuctionTreeItemsDTO[]> AuctionList([FromBody] ParamItemDTO[] param)
     {
         return await _auctionList.GetAuctionItems(param);
     }
 
     [HttpPost("auctionlisttree")]
-    public async Task<string> AuctionListTree([FromBody] ParamItemDTO[] param)
+    public async Task<AuctionTreeItem[]> AuctionListTree([FromBody] ParamItemDTO[] param)
     {
         return await _auctionListTree.GetAuctionTreeItems(param);
     }
 
     [HttpPost("notifylist")]
-    public async Task<string> NotificationList([FromBody] ParamItemDTO[] param)
+    public async Task<NotificationItemsDTO[]> NotificationList([FromBody] ParamItemDTO[] param)
     {
         return await _notificationList.GetNotificationItems(param);
     }
 
     [HttpPost("diagrams")]
-    public async Task<string> Diagrams([FromBody] ParamItemDTO[] param)
+    public async Task<DiagramItemsDTO[]> Diagrams([FromBody] ParamItemDTO[] param)
     {
         return await _diagrams.GetDiagrams(param);
     }
 
     [HttpPost("comments")]
-    public async Task<string> Comments([FromBody] ParamItemDTO[] param)
+    public async Task<AuctionTreeItemCommunication[]> Comments([FromBody] ParamItemDTO[] param)
     {
         return await _comments.GetCommentsItems(param);
     }

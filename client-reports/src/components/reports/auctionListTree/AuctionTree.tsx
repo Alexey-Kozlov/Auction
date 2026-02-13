@@ -10,7 +10,7 @@ import { NavLink } from "react-router-dom";
 import { classNames } from "primereact/utils";
 
 type Props = {
-  items: AuctionTreeItem[] | undefined;
+  items: AuctionTreeItem[] | undefined | null;
 };
 
 export default function AuctionTree({ items }: Props) {
@@ -43,7 +43,7 @@ export default function AuctionTree({ items }: Props) {
 
   const TitleTemplate = (
     node: TreeNode,
-    options: TreeTableTogglerTemplateOptions
+    options: TreeTableTogglerTemplateOptions,
   ) => {
     if (!node) {
       return;
@@ -63,10 +63,7 @@ export default function AuctionTree({ items }: Props) {
           tabIndex={-1}
           onClick={options.onClick}
         >
-          <span
-            className={iconClassName}
-            aria-hidden="true"
-          ></span>
+          <span className={iconClassName} aria-hidden="true"></span>
         </button>
         <NavLink
           to={process.env.REACT_APP_API_URL! + "/auctions/" + node.data.itemid}
@@ -126,14 +123,8 @@ export default function AuctionTree({ items }: Props) {
           body={EndDateTemplate}
           sortable
         ></Column>
-        <Column
-          field="bidder"
-          header="Автор ставки"
-        ></Column>
-        <Column
-          field="amount"
-          header="Ставка"
-        ></Column>
+        <Column field="bidder" header="Автор ставки"></Column>
+        <Column field="amount" header="Ставка"></Column>
       </TreeTable>
     </>
   );

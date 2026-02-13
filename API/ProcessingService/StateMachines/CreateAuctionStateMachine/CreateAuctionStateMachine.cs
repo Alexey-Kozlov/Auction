@@ -139,7 +139,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                             {
                                 CRUD = CRUD.Create,
                                 Data = "CRUD",
-                                MessagePartId = context.Saga.ItemId,
+                                MessagePartId = context.Saga.ItemId.Value,
                                 DataType = context.Saga.UserLogin //костыль - передаем UserLogin через это неиспользуемое поле
                             }
                         },

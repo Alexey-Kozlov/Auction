@@ -12,7 +12,7 @@ import { classNames } from "primereact/utils";
 import { Button } from "primereact/button";
 
 type Props = {
-  items: CommentTreeItem[] | undefined;
+  items: CommentTreeItem[] | undefined | null;
 };
 
 export default function Comments({ items }: Props) {
@@ -38,7 +38,7 @@ export default function Comments({ items }: Props) {
 
   const TitleTemplate = (
     node: TreeNode,
-    options: TreeTableTogglerTemplateOptions
+    options: TreeTableTogglerTemplateOptions,
   ) => {
     if (!node) {
       return;
@@ -58,10 +58,7 @@ export default function Comments({ items }: Props) {
           tabIndex={-1}
           onClick={options.onClick}
         >
-          <span
-            className={iconClassName}
-            aria-hidden="true"
-          ></span>
+          <span className={iconClassName} aria-hidden="true"></span>
         </button>
         <NavLink
           to={process.env.REACT_APP_API_URL! + "/auctions/" + node.data.itemid}

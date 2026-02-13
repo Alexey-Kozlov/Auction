@@ -4,6 +4,7 @@ using Common.Contracts.Bid;
 using Common.Contracts.Report;
 using Common.Utils.Extentions;
 using ReportService.DTO;
+using ReportService.DTO.ResultDTO;
 using ReportService.Services;
 
 namespace ReportService.Reports;
@@ -16,19 +17,28 @@ public class AuctionList
         _client = client;
     }
 
-    public Task<string> GetAuctionItems(ParamItemDTO[] param)
+    public Task<AuctionTreeItemsDTO[]> GetAuctionItems(ParamItemDTO[] param)
     {
         var sellerPar = param.FirstOrDefault(p => p.Id == "Seller").Value;
         var bidsPar = param.FirstOrDefault(p => p.Id == "Bids").Value;
+        var searchText = param.FirstOrDefault(p => p.Id == "SearchText").Value;
         var query = new SqlQuery();
         List<AuctionItem> auctionList;
         List<BidItem> bidList;
         //получаем список аукционов для заданного автора аукциона (или для всех, если никто не указан)
 
         query.Text = "select * from \"SearchItems\" where true";
+
+        if (!string.IsNullOrEmpty(searchText))
+        {
+            query.Text += " and (\"Title\" ilike {0} or \"Properties\" ilike {0} or \"Description\" ilike {0})";
+            query.Parameters.Add("%" + searchText + "%");
+        }
+
         if (!string.IsNullOrEmpty(sellerPar))
         {
-            query.Text += " and \"Seller\" ilike {0}";
+            var parNumber = string.IsNullOrEmpty(searchText) ? "0" : "1";
+            query.Text += " and \"Seller\" ilike {" + parNumber + "}";
             query.Parameters.Add("%" + sellerPar + "%");
         }
 
@@ -50,7 +60,7 @@ public class AuctionList
         auctionList = _client.GetAuctionReportItems(JsonSerializer.Serialize(query))
             .GetAwaiter().GetResult().Result;
 
-        if (auctionList.Count() == 0) return Task.FromResult("[]");
+        if (auctionList.Count() == 0) return Task.FromResult<AuctionTreeItemsDTO[]>(null);
         // если был указан параметр "Со ставками" или "Все" - делаем дополнительный запрос к 
         // микросервису ставок для получения - кто ставил и размера ставок
         if (bidsPar != "NoBids")
@@ -71,7 +81,7 @@ public class AuctionList
                 bidList,
                 leftKey => leftKey.ItemId,
                 rightKey => rightKey.AuctionId,
-                (auction, bid) => new
+                (auction, bid) => new AuctionTreeItemsDTO
                 {
                     ItemId = auction.ItemId,
                     Seller = auction.Seller,
@@ -82,10 +92,10 @@ public class AuctionList
                     EndDate = auction.AuctionEnd
                 }
             ).OrderBy(p => p.Seller).ThenByDescending(p => p.StartDate).ThenByDescending(p => p.Amount);
-            return Task.FromResult(JsonSerializer.Serialize(resultWithBids));
+            return Task.FromResult(resultWithBids.ToArray());
         }
 
-        var resultAuctions = auctionList.Select(p => new
+        var resultAuctions = auctionList.Select(p => new AuctionTreeItemsDTO
         {
             ItemId = p.ItemId,
             Seller = p.Seller,
@@ -94,7 +104,7 @@ public class AuctionList
             EndDate = p.AuctionEnd
         }
         ).OrderBy(p => p.Seller).ThenByDescending(p => p.StartDate);
-        return Task.FromResult(JsonSerializer.Serialize(resultAuctions));
+        return Task.FromResult(resultAuctions.ToArray());
     }
 }
 

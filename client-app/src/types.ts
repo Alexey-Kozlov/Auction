@@ -203,6 +203,7 @@ export enum RequestType {
   Communications,
   UsersCurrentPage,
   RefreshToken,
+  CurrentSettings,
 }
 
 export type State = {

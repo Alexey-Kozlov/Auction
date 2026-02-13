@@ -22,26 +22,27 @@ const settingsApi = createApi({
   }),
   tagTypes: ['settings'],
   endpoints: (builder) => ({
-    setCurrentSettings: builder.mutation<ApiResponseNet<{}>, CurrentSettings>({
-      query: (params) => ({
-        url: '/editcurrent',
-        method: 'post',
+    getCurrentSettings: builder.query<ApiResponseNet<CurrentSettings>, {}>({
+      query: () => ({
+        url: '/current',
         headers: {
-          RequestType: RequestType[RequestType.Notification],
+          RequestType: RequestType[RequestType.CurrentSettings],
         },
-        body: JSON.stringify(params),
       }),
-      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+      transformResponse: (
+        response: ApiResponseNet<CurrentSettings>,
+        meta: any,
+      ) => {
         PostApiProcess(response);
         return response;
       },
       transformErrorResponse: (response: any, meta: any) => {
         PostErrorApiProcess(response);
       },
-      invalidatesTags: ['settings'],
+      providesTags: ['settings'],
     }),
   }),
 });
 
-export const { useSetCurrentSettingsMutation } = settingsApi;
+export const { useGetCurrentSettingsQuery } = settingsApi;
 export default settingsApi;

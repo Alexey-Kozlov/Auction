@@ -24,7 +24,7 @@ public class ESLogActivity : IStateMachineActivity<BidPlacedState, RequestBidPla
         await _sendEventToES.SendItemToEventSourcing(
             new BidItem
             {
-                ItemId = context.Saga.ItemId,
+                ItemId = context.Saga.ItemId.Value,
                 AuctionId = context.Saga.AuctionId,
                 Bidder = context.Saga.Bidder,
                 BidTime = DateTime.UtcNow,

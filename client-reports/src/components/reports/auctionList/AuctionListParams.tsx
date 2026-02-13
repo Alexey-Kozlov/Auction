@@ -9,13 +9,19 @@ export default function AuctionListParams() {
       <SlidePanel
         params={[
           {
+            Label: "Описание аукциона (часть)",
+            Type: ParameterType.Text,
+            Value: "",
+            Id: "SearchText",
+          } as ParameterItem,
+          {
             Label: "Автор аукциона (логин)",
             Type: ParameterType.Text,
             Value: "",
             Id: "Seller",
           } as ParameterItem,
           {
-            Label: "Ставки:",
+            Label: "Наличие ставок:",
             Type: ParameterType.Select,
             Value: JSON.stringify([
               {

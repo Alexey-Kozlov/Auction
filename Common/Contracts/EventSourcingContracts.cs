@@ -310,3 +310,10 @@ public class StopFinishService
     public Guid CorrelationId { get; set; }
     public string CallBackType { get; set; }
 }
+
+public class RequestSetCurrentSettings
+{
+    public string UserLogin { get; set; }
+    public Guid CorrelationId { get; set; }
+    public bool AdminMode { get; set; }
+}

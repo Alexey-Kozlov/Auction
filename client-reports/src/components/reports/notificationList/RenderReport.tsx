@@ -61,7 +61,7 @@ export default function RenderReport({ reportId }: Props) {
           <Waiter />
         </div>
       )}
-      {!reportStore.reportLoading && data && (
+      {!reportStore.reportLoading && (
         <div>
           <NotificationTable items={data!} />
         </div>

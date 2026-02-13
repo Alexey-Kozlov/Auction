@@ -1,14 +1,10 @@
-using MassTransit;
+using Common.Contracts.Processing;
 
 namespace ProcessingService.StateMachines.FinishAuctionStateMachine;
 
-public record FinishAuctionState : SagaStateMachineInstance
+public class FinishAuctionState : BaseProcessingState
 {
-    public Guid CorrelationId { get; set; }
-    public Guid? ItemId { get; set; }
-    public string CurrentState { get; set; }
     public int Amount { get; set; }
     public string DataForProcessingServicesList { get; set; }
-    public bool IsError { get; set; }
     public int CommitCounter { get; set; }
 }

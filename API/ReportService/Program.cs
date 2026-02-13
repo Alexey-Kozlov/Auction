@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Common.Utils;
 using Common.Utils.Logging;
 using Common.Utils.Vault;
@@ -40,6 +41,7 @@ builder.Services.AddAuthentication(p =>
 builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
 {
     jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
+    jsonOptions.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 builder.Services.AddResourceMonitoring();
 builder.Services.AddOpenTelemetry().WithMetrics(opt => opt

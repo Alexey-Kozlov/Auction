@@ -1,15 +1,8 @@
-using MassTransit;
+using Common.Contracts.Processing;
 
 namespace ProcessingService.StateMachines.ElkIndexStateMachine;
 
-public class ElkIndexState : SagaStateMachineInstance
+public class ElkIndexState : BaseProcessingState
 {
-    public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; }
-    public string UserLogin { get; set; }
     public int ItemNumber { get; set; }
-    public bool IsError { get; set; }
-    public string CallBackType { get; set; }
-    public bool ShowMessages { get; set; }
-    public Guid? ItemId { get; set; }
 }

@@ -400,3 +400,14 @@ public enum EventType
                             //подписка на конкретный аукцион (если открыт на странице ацукцион)
     UserLogin               //Рассылка для текущего пользователя
 }
+
+public class BaseProcessingState : SagaStateMachineInstance
+{
+    public Guid CorrelationId { get; set; }
+    public string CurrentState { get; set; }
+    public string UserLogin { get; set; }
+    public bool IsError { get; set; }
+    public string CallBackType { get; set; }
+    public bool ShowMessages { get; set; }
+    public Guid? ItemId { get; set; }
+}

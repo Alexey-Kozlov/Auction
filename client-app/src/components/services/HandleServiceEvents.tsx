@@ -9,8 +9,7 @@ import {
   useResetImageCacheMutation,
 } from '../../api/ServiceApi';
 import { CheckEventLastChangedReady } from '../../utils/CheckEvent';
-import { useSetCurrentSettingsMutation } from '../../api/SettingsApi';
-import { DataView } from 'primereact/dataview';
+import { useSetCurrentSettingsMutation } from '../../api/ProcessingApi';
 
 export default function HandleServiceEvents() {
   const procState: ProcessingState[] = useSelector(

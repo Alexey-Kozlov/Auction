@@ -1,22 +1,17 @@
-using MassTransit;
+using Common.Contracts.Processing;
 
 namespace ProcessingService.StateMachines.UpdateAuctionStateMachine;
 
-public record UpdateAuctionState : SagaStateMachineInstance
+public class UpdateAuctionState : BaseProcessingState
 {
-    public Guid CorrelationId { get; set; }
-    public string CurrentState { get; set; }
     public Guid AuctionId { get; set; }
-    public Guid? ItemId { get; set; }
     public string Title { get; set; }
     public string Properties { get; set; }
     public string Description { get; set; }
-    public string UserLogin { get; set; }
     public DateTime AuctionEnd { get; set; }
     public string Image { get; set; }
     public bool UsingImage { get; set; }
     public bool IsImageSplitted { get; set; }
     public string DataForProcessingServicesList { get; set; }
-    public bool IsError { get; set; }
     public int CommitCounter { get; set; }
 }

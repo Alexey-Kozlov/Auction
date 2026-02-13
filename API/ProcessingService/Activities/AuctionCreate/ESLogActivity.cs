@@ -25,7 +25,7 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
         await _sendEventToES.SendItemToEventSourcing(
             new AuctionItem
             {
-                ItemId = context.Saga.ItemId,
+                ItemId = context.Saga.ItemId.Value,
                 Title = context.Saga.Title,
                 Properties = context.Saga.Properties,
                 Description = context.Saga.Description,

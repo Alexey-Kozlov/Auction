@@ -6,11 +6,11 @@ import { FilterMatchMode } from "primereact/api";
 import { NavLink } from "react-router-dom";
 
 type Props = {
-  items: AuctionListTypes[] | undefined;
+  items: AuctionListTypes[] | null | undefined;
 };
 
 export default function AuctionBidsTable({ items }: Props) {
-  const [repItems, setRepItems] = useState<AuctionListTypes[] | null>();
+  const [repItems, setRepItems] = useState<AuctionListTypes[] | undefined>();
   // eslint-disable-next-line
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     Seller: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -22,7 +22,7 @@ export default function AuctionBidsTable({ items }: Props) {
   });
 
   useEffect(() => {
-    setRepItems(() => items);
+    setRepItems(() => items ?? []);
     // eslint-disable-next-line
   }, []);
 
@@ -61,7 +61,7 @@ export default function AuctionBidsTable({ items }: Props) {
   return (
     <>
       <DataTable
-        value={repItems!}
+        value={repItems}
         size="large"
         stripedRows
         paginator

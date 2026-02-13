@@ -226,7 +226,7 @@ public class DeleteAuctionStateMachine : MassTransitStateMachine<DeleteAuctionSt
                         {
                             CRUD = CRUD.Delete,
                             Data = "CRUD",
-                            MessagePartId = context.Saga.ItemId
+                            MessagePartId = context.Saga.ItemId.Value
                         }
                     },
                     CorrelationId = context.Saga.CorrelationId,

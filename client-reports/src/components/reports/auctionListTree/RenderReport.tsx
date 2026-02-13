@@ -61,9 +61,7 @@ export default function RenderReport({ reportId }: Props) {
           <Waiter />
         </div>
       )}
-      <div>
-        {!reportStore.reportLoading && data && <AuctionTree items={data} />}
-      </div>
+      <div>{!reportStore.reportLoading && <AuctionTree items={data} />}</div>
     </div>
   );
 }

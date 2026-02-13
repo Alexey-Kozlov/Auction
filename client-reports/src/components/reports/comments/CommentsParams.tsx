@@ -9,6 +9,12 @@ export default function CommentsParams() {
       <SlidePanel
         params={[
           {
+            Label: "Описание аукциона (часть)",
+            Type: ParameterType.Text,
+            Value: "",
+            Id: "SearchText",
+          } as ParameterItem,
+          {
             Label: "Автор аукциона (логин)",
             Type: ParameterType.Text,
             Value: "",

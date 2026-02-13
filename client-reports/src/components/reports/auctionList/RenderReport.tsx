@@ -69,10 +69,10 @@ export default function RenderReport({ reportId }: Props) {
         </div>
       )}
       <div>
-        {!reportStore.reportLoading && data && bidderReportType && (
+        {!reportStore.reportLoading && bidderReportType && (
           <AuctionBidsTable items={data} />
         )}
-        {!reportStore.reportLoading && data && !bidderReportType && (
+        {!reportStore.reportLoading && !bidderReportType && (
           <AuctionTable items={data} />
         )}
       </div>

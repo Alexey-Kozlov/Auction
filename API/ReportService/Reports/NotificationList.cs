@@ -3,6 +3,7 @@ using Common.Contracts.Auction;
 using Common.Contracts.Notification;
 using Common.Contracts.Report;
 using ReportService.DTO;
+using ReportService.DTO.ResultDTO;
 using ReportService.Services;
 
 namespace ReportService.Reports;
@@ -15,7 +16,7 @@ public class NotificationList
         _client = client;
     }
 
-    public Task<string> GetNotificationItems(ParamItemDTO[] param)
+    public Task<NotificationItemsDTO[]> GetNotificationItems(ParamItemDTO[] param)
     {
         var userLoginPar = param.FirstOrDefault(p => p.Id == "UserLogin").Value;
         var auctionPar = param.FirstOrDefault(p => p.Id == "Auction").Value;
@@ -32,7 +33,7 @@ public class NotificationList
             ids = auctionList.Select(p => p.ItemId);
             if (ids.Count() == 0)
             {
-                return Task.FromResult("[]");
+                return Task.FromResult<NotificationItemsDTO[]>(null);
             }
             //фильтруем по полученным id-никам
             notifyList = GetNotifyItemsById(userLoginPar, ids, query).GetAwaiter().GetResult().Result;
@@ -43,7 +44,7 @@ public class NotificationList
             ids = notifyList.Select(p => p.ItemId);
             if (ids.Count() == 0)
             {
-                return Task.FromResult("[]");
+                return Task.FromResult<NotificationItemsDTO[]>(null);
             }
             //фильтруем по полученным id-никам
             auctionList = GetAuctionItemsById(auctionPar, ids, query).GetAwaiter().GetResult().Result;
@@ -53,13 +54,13 @@ public class NotificationList
         var result = from auction in auctionList
                      join notify in notifyList
                      on auction.ItemId equals notify.ItemId
-                     select new
+                     select new NotificationItemsDTO
                      {
-                         auction.ItemId,
-                         notify.UserLogin,
-                         auction.Title
+                         ItemId = auction.ItemId,
+                         UserLogin = notify.UserLogin,
+                         Title = auction.Title
                      };
-        return Task.FromResult(System.Text.Json.JsonSerializer.Serialize(result, result.GetType()));
+        return Task.FromResult(result.ToArray());
     }
 
     private async Task<ApiResponse<List<NotifyItem>>> GetNotifyItems(string userLoginPar, SqlQuery query)
