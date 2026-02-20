@@ -8,6 +8,7 @@ using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
+using Common.Contracts.Settings;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -217,7 +218,6 @@ public class ProcessingController : ControllerBase
     {
         //Выполняем обновление режима работы системы - админский или обычный
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
-        //корректируем время - приходит по Гринвичу, прибавляем 3 часа - для Московского
         await _publishEndpoint.Publish(new RequestSetCurrentSettings
         {
             AdminMode = param.AdminMode,

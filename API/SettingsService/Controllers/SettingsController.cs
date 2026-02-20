@@ -1,26 +1,27 @@
-﻿using MassTransit;
+﻿using Common.Contracts;
+using Common.Contracts.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SettingsService.Services;
 
 namespace SettingsService.Controllers;
 
 [ApiController]
-[Authorize]
 [Route("api/[controller]")]
 public class SettingsController : ControllerBase
 {
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly CurrentSettingsService _currentSettingsService;
 
-    public SettingsController(IPublishEndpoint publishEndpoint)
+    public SettingsController(CurrentSettingsService currentSettingsService)
     {
-        _publishEndpoint = publishEndpoint;
+        _currentSettingsService = currentSettingsService;
     }
 
 
-    [HttpPost("setuserscurrentpage")]
-    public void SetUserCurrentPage([FromBody] string fake)
+    [HttpGet("GetCurrentSettings")]
+    public async Task<ApiResponse<CurrentItem>> GetCurrentSettings()
     {
-        //заглушка, смысл - на этот ендпойнт приходит служебный запрос по записи текущей страницы 
-        // пользователя, сама запись осуществляется в GatewayService, где обрабатываются логи
+        //возвращаем текущие настройки системы
+        return await _currentSettingsService.GetCurrentSettings();
     }
 }

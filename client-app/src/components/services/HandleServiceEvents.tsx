@@ -15,6 +15,9 @@ export default function HandleServiceEvents() {
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
   );
+  const settings: CurrentSettings = useSelector(
+    (state: RootState) => state.settingsStore,
+  );
   const [elkIndex] = useElkIndexMutation();
   const [snapShotDb] = useSetSnapShotMutation();
   const [restoreSnapShot] = useRestoreSnapShotMutation();
@@ -49,9 +52,9 @@ export default function HandleServiceEvents() {
     }
 
     //запускаем установку админского режима
-    if (CheckEventLastChangedReady(procState, 'AdminCurrentEnable')) {
+    if (CheckEventLastChangedReady(procState, 'AdminCurrentChanged')) {
       const data: CurrentSettings = {
-        adminMode: true,
+        adminMode: !settings.adminMode,
       };
       setCurrentSettings(data);
     }

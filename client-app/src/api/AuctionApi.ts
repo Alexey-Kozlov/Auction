@@ -1,7 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { Auction, PagedResult, ApiResponseNet, RequestType } from '../types';
 import AddTokenHeader from './AddTokenHeader';
-import { PostApiProcess, PostErrorApiProcess } from '../utils/PostApiProcess';
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from '../utils/PostApiProcess';
 import uuid from 'react-native-uuid';
 import { GetCurrentUser } from '../utils/GetCurrentUser';
 
@@ -43,8 +47,8 @@ const auctionApi = createApi({
         }
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       providesTags: ['auctions'],
     }),
@@ -62,8 +66,8 @@ const auctionApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       providesTags: ['auctions'],
     }),

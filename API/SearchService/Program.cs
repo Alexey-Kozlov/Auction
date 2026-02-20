@@ -1,8 +1,12 @@
+using System.Text;
 using Common.Utils;
 using Common.Utils.Logging;
+using Common.Utils.Settings;
 using Common.Utils.Vault;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -19,6 +23,7 @@ builder.Configuration.AddVault(options =>
     options.Role = vaultOptions["VAULT_ROLE_ID"];
     options.SecretPathPg = vaultOptions["SecretPathPg"];
     options.SecretPathRt = vaultOptions["SecretPathRt"];
+    options.SecretPathApi = vaultOptions["SecretPathApi"];
     options.Secret = vaultOptions["VAULT_SECRET_ID"];
 });
 builder.Services.AddControllers();
@@ -32,6 +37,24 @@ builder.Services.AddDbContext<SearchDbContext>(options =>
     conStrBuilder.IncludeErrorDetail = true;
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
+});
+
+builder.Services.AddAuthentication(p =>
+{
+    p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    p.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(p =>
+{
+    p.RequireHttpsMetadata = false;
+    p.SaveToken = true;
+    p.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["api:secret"])),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        NameClaimType = "Login"
+    };
 });
 builder.Services.AddGrpc();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -69,18 +92,30 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .AddPrometheusExporter()
 );
 builder.Services.AddScoped<GrpcElkClient>();
+//запускаем сервис по получению настроек системы - получаем параметр AdminMode - в административном ли
+//режиме система. Если да - разрашаем работу с системой только администратору, остальным пользователям
+//отдаем уведомление о работах в системе
+builder.Services.AddSingleton<IsAdminModeService>();
+builder.Services.AddHostedService(p => p.GetRequiredService<IsAdminModeService>());
+
+builder.Services.AddHttpClient<SettingsHttpClient>(config =>
+{
+    config.Timeout = TimeSpan.FromSeconds(300);
+});
 var app = builder.Build();
-//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
-app.UseMiddleware<ExceptionMiddleware>();
+
 //для корректной работе с датами в PostgreSql
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 app.UseAuthentication();
 app.UseAuthorization();
+//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
+app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 app.MapGrpcService<GrpcFinanceService>();
 app.MapGrpcService<GrpcReportService>();
 //добавляет апи OTC к базовому эндпойнту, в деве это порт 7002
 app.MapPrometheusScrapingEndpoint();
+
 /*это не используется в функционале, для примера - подключение сервиса в конвейере,
 выполняется 1 раз при старте приложения - 
 app.Lifetime.ApplicationStarted.Register(async () =>

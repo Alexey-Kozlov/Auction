@@ -3,6 +3,7 @@ using Common.Contracts;
 using Common.Contracts.EventSourcing;
 using Common.Utils;
 using Common.Utils.Logging;
+using Common.Utils.Settings;
 using Common.Utils.Vault;
 using Confluent.Kafka;
 using MassTransit;
@@ -12,7 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using SettingsService.Consumers;
 using SettingsService.Data;
+using SettingsService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +27,6 @@ builder.Configuration.AddVault(options =>
     options.SecretPathPg = vaultOptions["SecretPathPg"];
     options.SecretPathRt = vaultOptions["SecretPathRt"];
     options.SecretPathApi = vaultOptions["SecretPathApi"];
-    options.SecretPathKafka = vaultOptions["SecretPathKafka"];
     options.Secret = vaultOptions["VAULT_SECRET_ID"];
 });
 builder.WebHost.ConfigureKestrel(options =>
@@ -32,10 +34,8 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = null;
 });
 
-builder.Services.AddControllers().AddJsonOptions(jsonOptions =>
-{
-    jsonOptions.JsonSerializerOptions.PropertyNamingPolicy = null;
-});
+builder.Services.AddControllers();
+
 builder.Services.AddDbContext<SettingsDbContext>(options =>
 {
     var conStrBuilder = new NpgsqlConnectionStringBuilder();
@@ -68,7 +68,8 @@ builder.Services.AddAuthentication(p =>
 //Шина для обработки сообщений RabbitMq
 builder.Services.AddMassTransit(p =>
 {
-    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("processing", false));
+    p.AddConsumersFromNamespaceContaining<SetSettingsConsumer>();
+    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("settings", false));
     p.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration["rt:host"], "/", p =>
@@ -81,27 +82,6 @@ builder.Services.AddMassTransit(p =>
     });
 });
 
-//добавляем шину для обработки сообщений Kafka
-builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
-{
-    busConfigurator.UsingInMemory((context, config) =>
-    {
-        config.ConfigureEndpoints(context, SnakeCaseEndpointNameFormatter.Instance);
-    });
-    busConfigurator.AddRider(r =>
-    {
-        r.AddProducer<ESContract>(builder.Configuration["kf:topic"], new ProducerConfig
-        {
-            MessageMaxBytes = 30485880,
-            QueueBufferingMaxKbytes = 40000
-        });
-        r.UsingKafka((context, k) =>
-        {
-            k.Host(builder.Configuration["kf:host"]);
-        });
-    });
-});
-
 
 builder.Services.AddResourceMonitoring();
 builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
@@ -111,9 +91,17 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
     .AddPrometheusExporter()
 );
+builder.Services.AddScoped<CurrentSettingsService>();
+//запускаем сервис по получению настроек системы - получаем параметр AdminMode - в административном ли
+//режиме система. Если да - разрашаем работу с системой только администратору, остальным пользователям
+//отдаем уведомление о работах в системе
+builder.Services.AddSingleton<IsAdminModeService>();
+builder.Services.AddHostedService(p => p.GetRequiredService<IsAdminModeService>());
 
-builder.Services.AddScoped<SendEventToES>();
-
+builder.Services.AddHttpClient<SettingsHttpClient>(config =>
+{
+    config.Timeout = TimeSpan.FromSeconds(300);
+});
 var app = builder.Build();
 
 //перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров

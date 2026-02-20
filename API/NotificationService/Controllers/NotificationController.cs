@@ -1,8 +1,6 @@
 ﻿using Common.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using NotificationService.Data;
 using NotificationService.Services;
 
 namespace NotificationService.Controllers;

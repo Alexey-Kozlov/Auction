@@ -53,6 +53,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = builder.Configuration["rd:instance"]; //"auction"
 });
 builder.Services.AddGrpc();
+
 var app = builder.Build();
 app.Use(async (context, next) =>
 {

@@ -1,13 +1,13 @@
 import { AiFillTrophy, AiOutlineLogout } from 'react-icons/ai';
 import { FaTrashRestoreAlt } from 'react-icons/fa';
 import { RiRestartFill, RiAuctionFill } from 'react-icons/ri';
-import { FiSettings } from 'react-icons/fi';
+import { TbSettings, TbSettingsOff } from 'react-icons/tb';
 import { HiUser } from 'react-icons/hi2';
 import { GoCodescanCheckmark, GoDatabase } from 'react-icons/go';
 import { GrMoney } from 'react-icons/gr';
 import { HiOutlineDocumentReport } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ModalTypes, ToastType, User } from '../../../types';
+import { CurrentSettings, ModalTypes, ToastType, User } from '../../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
 import { emptyUserState, setAuthUser } from '../../../store/authSlice';
@@ -26,10 +26,60 @@ export default function UserActions() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const [showConfirmSet, setShowConfirmSet] = useState(false);
+  const [showConfirmSetSnapShot, setShowConfirmSetSnapShot] = useState(false);
   const [showConfirmRestore, setShowConfirmRestore] = useState(false);
   const [dateValue, setDateValue] = useState<Date>(new Date());
   const [resetLog, setResetLog] = useState(false);
+  const [showConfirmSetSettings, setShowConfirmSetSettings] = useState(false);
+  const settings: CurrentSettings = useSelector(
+    (state: RootState) => state.settingsStore,
+  );
+
+  let adminModeLabel = '';
+  let adminModeIcon = <TbSettingsOff size={30} />;
+
+  let adminMenus: any = [];
+
+  useEffect(() => {
+    if (settings.adminMode) {
+      adminModeLabel = 'Перейти в обычный режим';
+      adminModeIcon = <TbSettingsOff size={30} />;
+    } else {
+      adminModeLabel = 'Перейти в админский режим';
+      adminModeIcon = <TbSettings size={30} />;
+    }
+
+    adminMenus = [
+      {
+        separator: true,
+      },
+      {
+        label: adminModeLabel,
+        icon: adminModeIcon,
+        command: () => setShowConfirmSetSettings(true),
+      },
+      {
+        label: 'Elk индексация',
+        icon: <GoCodescanCheckmark size={30} />,
+        command: () => handleElkReindexClick(),
+      },
+      {
+        label: 'Создать SnapShot',
+        icon: <GoDatabase size={30} />,
+        command: () => setShowConfirmSetSnapShot(true),
+      },
+      {
+        label: 'Восстановить из SnapShot',
+        icon: <FaTrashRestoreAlt size={30} />,
+        command: () => setShowConfirmRestore(true),
+      },
+      {
+        label: 'Сбросить Кеш изображений',
+        icon: <RiRestartFill size={30} />,
+        command: () => handleResetImageCacheClick(),
+      },
+    ];
+  }, [settings.adminMode]);
 
   const mainMenuItems = [
     {
@@ -64,6 +114,7 @@ export default function UserActions() {
       ],
     },
   ];
+
   const logoutMenuItem = [
     {
       separator: true,
@@ -74,36 +125,7 @@ export default function UserActions() {
       command: () => handleLogoutClick(),
     },
   ];
-  const adminMenus = [
-    {
-      separator: true,
-    },
-    {
-      label: 'Админский режим',
-      icon: <FiSettings size={30} />,
-      command: () => handleAdminCurrentSettingsClick(),
-    },
-    {
-      label: 'Elk индексация',
-      icon: <GoCodescanCheckmark size={30} />,
-      command: () => handleElkReindexClick(),
-    },
-    {
-      label: 'Создать SnapShot',
-      icon: <GoDatabase size={30} />,
-      command: () => setShowConfirmSet(true),
-    },
-    {
-      label: 'Восстановить из SnapShot',
-      icon: <FaTrashRestoreAlt size={30} />,
-      command: () => setShowConfirmRestore(true),
-    },
-    {
-      label: 'Сбросить Кеш изображений',
-      icon: <RiRestartFill size={30} />,
-      command: () => handleResetImageCacheClick(),
-    },
-  ];
+
   const [stateMenuItems, setStateMenuItems] = useState<any>();
 
   useEffect(() => {
@@ -124,7 +146,7 @@ export default function UserActions() {
       return prev;
     });
     // eslint-disable-next-line
-  }, [user]);
+  }, [user, settings.adminMode]);
 
   const [logoutUser] = useLogoutUserMutation();
   const menuActionsRef = useRef<any>(null);
@@ -132,8 +154,13 @@ export default function UserActions() {
     (state: RootState) => state.serviceStore,
   ).toast;
 
-  const handleAdminCurrentSettingsClick = () => {
-    dispatch(setEventFlag({ eventName: 'AdminCurrentEnable', ready: true }));
+  const acceptCurrentSettingsClick = () => {
+    dispatch(setEventFlag({ eventName: 'AdminCurrentChanged', ready: true }));
+    setShowConfirmSetSettings(false);
+  };
+
+  const rejectCurrentSettingsClick = () => {
+    setShowConfirmSetSettings(false);
   };
 
   const handleSetWinnerClick = () => {
@@ -172,11 +199,11 @@ export default function UserActions() {
   const acceptSetSnapShotDialog = () => {
     //создаем снимок БД
     dispatch(setEventFlag({ eventName: 'SetSnapShot', ready: true }));
-    setShowConfirmSet(false);
+    setShowConfirmSetSnapShot(false);
   };
 
   const rejectSetSnapShotDialog = () => {
-    setShowConfirmSet(false);
+    setShowConfirmSetSnapShot(false);
   };
 
   const acceptRestoreSnapShot = () => {
@@ -245,7 +272,7 @@ export default function UserActions() {
         reject={rejectSetSnapShotDialog}
         header="Подтверждение создания снимка БД"
         label={'Действительно создать снимок БД?'}
-        visible={showConfirmSet}
+        visible={showConfirmSetSnapShot}
         group="confirmSnapShot"
         modalType={ModalTypes.warning}
       />
@@ -259,6 +286,23 @@ export default function UserActions() {
         onChangeDate={(val) => setDateValue(val)}
         dateValue={dateValue}
         onChangeResetLog={(val) => setResetLog(val)}
+      />
+      <ModalYesNo
+        accept={acceptCurrentSettingsClick}
+        reject={rejectCurrentSettingsClick}
+        header={
+          settings.adminMode
+            ? 'Подтверждение перехода в обычный режим'
+            : 'Подтверждение перехода в админский режим'
+        }
+        label={
+          settings.adminMode
+            ? 'Действительно перейти в обычный режим?'
+            : 'Действительно перейти в админский режим?'
+        }
+        visible={showConfirmSetSettings}
+        group="confirmCurrentSettings"
+        modalType={ModalTypes.warning}
       />
     </div>
   );

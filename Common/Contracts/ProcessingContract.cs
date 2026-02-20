@@ -375,7 +375,8 @@ public enum SignalRMethod
     ElkSearch,
     EditNotification,
     ResetImageCache,
-    OperationProgress
+    OperationProgress,
+    SetCurrentSettings
 }
 
 public class EventNotificationItem

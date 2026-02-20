@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Common.Utils;
 using Common.Utils.Logging;
+using Common.Utils.Settings;
 using Common.Utils.Vault;
 using IdentityService.Data;
 using IdentityService.Models;
@@ -77,14 +78,24 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
     .AddPrometheusExporter()
 );
+//запускаем сервис по получению настроек системы - получаем параметр AdminMode - в административном ли
+//режиме система. Если да - разрашаем работу с системой только администратору, остальным пользователям
+//отдаем уведомление о работах в системе
+builder.Services.AddSingleton<IsAdminModeService>();
+builder.Services.AddHostedService(p => p.GetRequiredService<IsAdminModeService>());
 
+builder.Services.AddHttpClient<SettingsHttpClient>(config =>
+{
+    config.Timeout = TimeSpan.FromSeconds(300);
+});
 var app = builder.Build();
-//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
-app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseRouting();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
 app.UseAuthorization();
+//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
+app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 

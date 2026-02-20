@@ -1,35 +1,39 @@
-import { FormEvent, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { reset } from "../../store/paramSlice";
-import { RootState } from "../../store/store";
+import { FormEvent, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { reset } from '../../store/paramSlice';
+import { RootState } from '../../store/store';
 import {
   FinanceTableItem,
   FormErrors,
   PagedResult,
   ProcessingState,
   State,
+  ToastType,
   User,
-} from "../../types";
+} from '../../types';
 import {
   useGetBalanceQuery,
   useGetFinanceItemQuery,
-} from "../../api/FinanceApi";
-import { setEventFlag } from "../../store/processingSlice";
-import { useFinanceCreateMutation } from "../../api/ProcessingApi";
+} from '../../api/FinanceApi';
+import { setEventFlag } from '../../store/processingSlice';
+import { useFinanceCreateMutation } from '../../api/ProcessingApi';
 
-import { useNavigate } from "react-router-dom";
-import { InputNumber } from "primereact/inputnumber";
-import { Button } from "primereact/button";
-import { Message } from "primereact/message";
-import FinRow from "./FinRow";
-import qs from "query-string";
-import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
-import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
-import { SelectItem } from "primereact/selectitem";
-import Waiter from "../Waiter";
-import Footer from "../layout/Footer";
-import { CheckEventReady } from "../../utils/CheckEvent";
-import { useSetUsersCurrentPageMutation } from "../../api/ServiceApi";
+import { useNavigate } from 'react-router-dom';
+import { InputNumber } from 'primereact/inputnumber';
+import { Button } from 'primereact/button';
+import { Message } from 'primereact/message';
+import FinRow from './FinRow';
+import qs from 'query-string';
+import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
+import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
+import { SelectItem } from 'primereact/selectitem';
+import Waiter from '../Waiter';
+import Footer from '../layout/Footer';
+import { CheckEventReady } from '../../utils/CheckEvent';
+import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
+import { Toast } from 'primereact/toast';
+import MessageToast from '../signalRNotifications/MessageToast';
+import { CustomError } from '../../utils/PostApiProcess';
 
 export default function FinListings() {
   const dispatch = useDispatch();
@@ -39,21 +43,21 @@ export default function FinListings() {
   const [editError, setEditError] = useState<FormErrors | null>(null);
   const editErrorList: FormErrors[] = [
     {
-      name: "NegativeAmount",
-      message: "Нужно указать платеж больше 0",
+      name: 'NegativeAmount',
+      message: 'Нужно указать платеж больше 0',
     },
   ];
   const [firstRecord, setFirstRecord] = useState(0);
   const [sortParam, setSortParam] = useState<State>({
     pageSize: 5,
     pageNumber: 1,
-    orderBy: "actionDateDesc",
+    orderBy: 'actionDateDesc',
   });
 
   const [addCredit] = useFinanceCreateMutation();
   const [setCurrentPage] = useSetUsersCurrentPageMutation();
   const sortUrl = qs.stringifyUrl({
-    url: "",
+    url: '',
     query: { ...sortParam },
   });
   const financeQuery = useGetFinanceItemQuery(sortUrl);
@@ -62,8 +66,11 @@ export default function FinListings() {
   const [financeItems, setFinanceItems] =
     useState<PagedResult<FinanceTableItem>>();
   const procState: ProcessingState[] = useSelector(
-    (state: RootState) => state.processingStore
+    (state: RootState) => state.processingStore,
   );
+  const toastMessage: Toast | null = useSelector(
+    (state: RootState) => state.serviceStore,
+  ).toast;
 
   // первоначальное получение всех записей по финансам данного пользователя
   useEffect(() => {
@@ -74,14 +81,14 @@ export default function FinListings() {
     ) {
       setFinanceItems(financeQuery.data.result);
       //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
-      setCurrentPage("/edit/");
+      setCurrentPage('/edit/');
     }
     // eslint-disable-next-line
   }, [financeQuery]);
 
   //при добавлении нового значения - обновляем таблицу
   useEffect(() => {
-    if (!CheckEventReady(procState, "FinanceCreate") && isWaiting) {
+    if (!CheckEventReady(procState, 'FinanceCreate') && isWaiting) {
       financeQuery.refetch();
       balance.refetch();
       setIsWaiting(() => false);
@@ -92,7 +99,7 @@ export default function FinListings() {
   //если вышли из пользователя - переход на начало сайта
   useEffect(() => {
     if (!balance.isLoading && !balance.isFetching && (!user || user.isGuest)) {
-      navigate("/");
+      navigate('/');
     }
     // eslint-disable-next-line
   }, [user]);
@@ -101,7 +108,7 @@ export default function FinListings() {
     e.preventDefault();
     setIsWaiting(() => true);
     dispatch(reset(null));
-    dispatch(setEventFlag({ eventName: "FinanceCreate", ready: true }));
+    dispatch(setEventFlag({ eventName: 'FinanceCreate', ready: true }));
     await addCredit({
       amount: amount as number,
       userlogin: user.login,
@@ -112,7 +119,7 @@ export default function FinListings() {
   const handleAmountChanged = (amount: number | null) => {
     if ((amount !== null && amount <= 0) || !Number.isInteger(amount)) {
       setEditError(
-        () => editErrorList.find((p) => p.name === "NegativeAmount")!
+        () => editErrorList.find((p) => p.name === 'NegativeAmount')!,
       );
       return;
     }
@@ -135,175 +142,110 @@ export default function FinListings() {
   // eslint-disable-next-line
   const [orderItem, setOrderItem] = useState<SelectItem[]>([
     {
-      label: "Наименование",
-      icon: (
-        <i
-          className="pi pi-sort"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "title",
+      label: 'Наименование',
+      icon: <i className="pi pi-sort" style={{ fontSize: '2rem' }} />,
+      value: 'title',
     },
     {
-      label: "Наименование",
+      label: 'Наименование',
       icon: (
-        <i
-          className="pi pi-sort-alpha-down"
-          style={{ fontSize: "2rem" }}
-        />
+        <i className="pi pi-sort-alpha-down" style={{ fontSize: '2rem' }} />
       ),
-      value: "titleAsc",
+      value: 'titleAsc',
     },
     {
-      label: "Наименование",
-      icon: (
-        <i
-          className="pi pi-sort-alpha-up"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "titleDesc",
+      label: 'Наименование',
+      icon: <i className="pi pi-sort-alpha-up" style={{ fontSize: '2rem' }} />,
+      value: 'titleDesc',
     },
     {
-      label: "Автор аукциона",
-      icon: (
-        <i
-          className="pi pi-sort"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "seller",
+      label: 'Автор аукциона',
+      icon: <i className="pi pi-sort" style={{ fontSize: '2rem' }} />,
+      value: 'seller',
     },
     {
-      label: "Автор аукциона",
+      label: 'Автор аукциона',
       icon: (
-        <i
-          className="pi pi-sort-alpha-down"
-          style={{ fontSize: "2rem" }}
-        />
+        <i className="pi pi-sort-alpha-down" style={{ fontSize: '2rem' }} />
       ),
-      value: "sellerAsc",
+      value: 'sellerAsc',
     },
     {
-      label: "Автор аукциона",
-      icon: (
-        <i
-          className="pi pi-sort-alpha-up"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "sellerDesc",
+      label: 'Автор аукциона',
+      icon: <i className="pi pi-sort-alpha-up" style={{ fontSize: '2rem' }} />,
+      value: 'sellerDesc',
     },
     {
-      label: "Дата операции",
-      icon: (
-        <i
-          className="pi pi-sort"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "actionDate",
+      label: 'Дата операции',
+      icon: <i className="pi pi-sort" style={{ fontSize: '2rem' }} />,
+      value: 'actionDate',
     },
     {
-      label: "Дата операции",
+      label: 'Дата операции',
       icon: (
-        <i
-          className="pi pi-sort-amount-down"
-          style={{ fontSize: "2rem" }}
-        />
+        <i className="pi pi-sort-amount-down" style={{ fontSize: '2rem' }} />
       ),
-      value: "actionDateAsc",
+      value: 'actionDateAsc',
     },
     {
-      label: "Дата операции",
-      icon: (
-        <i
-          className="pi pi-sort-amount-up"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "actionDateDesc",
+      label: 'Дата операции',
+      icon: <i className="pi pi-sort-amount-up" style={{ fontSize: '2rem' }} />,
+      value: 'actionDateDesc',
     },
     {
-      label: "Тип операции",
-      icon: (
-        <i
-          className="pi pi-sort"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "status",
+      label: 'Тип операции',
+      icon: <i className="pi pi-sort" style={{ fontSize: '2rem' }} />,
+      value: 'status',
     },
     {
-      label: "Тип операции",
+      label: 'Тип операции',
       icon: (
-        <i
-          className="pi pi-sort-amount-down"
-          style={{ fontSize: "2rem" }}
-        />
+        <i className="pi pi-sort-amount-down" style={{ fontSize: '2rem' }} />
       ),
-      value: "statusAsc",
+      value: 'statusAsc',
     },
     {
-      label: "Тип операции",
-      icon: (
-        <i
-          className="pi pi-sort-amount-up"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "statusDesc",
+      label: 'Тип операции',
+      icon: <i className="pi pi-sort-amount-up" style={{ fontSize: '2rem' }} />,
+      value: 'statusDesc',
     },
     {
-      label: "Значение",
-      icon: (
-        <i
-          className="pi pi-sort"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "value",
+      label: 'Значение',
+      icon: <i className="pi pi-sort" style={{ fontSize: '2rem' }} />,
+      value: 'value',
     },
     {
-      label: "Значение",
+      label: 'Значение',
       icon: (
-        <i
-          className="pi pi-sort-amount-down"
-          style={{ fontSize: "2rem" }}
-        />
+        <i className="pi pi-sort-amount-down" style={{ fontSize: '2rem' }} />
       ),
-      value: "valueAsc",
+      value: 'valueAsc',
     },
     {
-      label: "Значение",
-      icon: (
-        <i
-          className="pi pi-sort-amount-up"
-          style={{ fontSize: "2rem" }}
-        />
-      ),
-      value: "valueDesc",
+      label: 'Значение',
+      icon: <i className="pi pi-sort-amount-up" style={{ fontSize: '2rem' }} />,
+      value: 'valueDesc',
     },
   ]);
   // #endregion
 
   const handleMenuClick = (e: SelectButtonChangeEvent) => {
     //если этот столбец был ранее выбран - меняем направление сортировки на противоположное
-    let order = "";
+    let order = '';
     const previousColumn = sortParam.orderBy
-      ?.replace("Asc", "")
-      .replace("Desc", "");
+      ?.replace('Asc', '')
+      .replace('Desc', '');
     if (!e.value) {
-      if (sortParam.orderBy!.indexOf("Asc") === -1) {
-        order = previousColumn + "Asc";
+      if (sortParam.orderBy!.indexOf('Asc') === -1) {
+        order = previousColumn + 'Asc';
       } else {
-        order = previousColumn + "Desc";
+        order = previousColumn + 'Desc';
       }
     } else {
       //если это другой столбец сортировки
       const columnValue = e.value.toString();
-      const currentColumn = columnValue.replace("Asc", "").replace("Desc", "");
-      order = currentColumn + "Asc";
+      const currentColumn = columnValue.replace('Asc', '').replace('Desc', '');
+      order = currentColumn + 'Asc';
     }
 
     setSortParam((prev) => {
@@ -343,13 +285,13 @@ export default function FinListings() {
                       className="AmountInput"
                       placeholder={`Укажите сумму`}
                       tooltip="Стрелки вверх/вниз - шаг 5 руб."
-                      tooltipOptions={{ position: "bottom" }}
+                      tooltipOptions={{ position: 'bottom' }}
                       onChange={(e) => handleAmountChanged(e.value)}
                       value={amount}
                     />
                   </div>
                   <div>
-                    {CheckEventReady(procState, "FinanceCreate") ? (
+                    {CheckEventReady(procState, 'FinanceCreate') ? (
                       <Waiter />
                     ) : (
                       <Button
@@ -372,9 +314,9 @@ export default function FinListings() {
                       root: {
                         className:
                           editError !== null &&
-                          editError.name === "NegativeAmount"
-                            ? ""
-                            : "hidden",
+                          editError.name === 'NegativeAmount'
+                            ? ''
+                            : 'hidden',
                       },
                     }}
                   />
@@ -406,9 +348,9 @@ export default function FinListings() {
                       options={orderItem.filter(
                         (p) =>
                           p.value ===
-                          (sortParam.orderBy!.indexOf("title") === -1
-                            ? "title"
-                            : sortParam.orderBy)
+                          (sortParam.orderBy!.indexOf('title') === -1
+                            ? 'title'
+                            : sortParam.orderBy),
                       )}
                       onChange={(e) => handleMenuClick(e)}
                       itemTemplate={filterTemplate}
@@ -421,9 +363,9 @@ export default function FinListings() {
                       options={orderItem.filter(
                         (p) =>
                           p.value ===
-                          (sortParam?.orderBy!.indexOf("seller") === -1
-                            ? "seller"
-                            : sortParam.orderBy)
+                          (sortParam?.orderBy!.indexOf('seller') === -1
+                            ? 'seller'
+                            : sortParam.orderBy),
                       )}
                       onChange={(e) => handleMenuClick(e)}
                       itemTemplate={filterTemplate}
@@ -436,9 +378,9 @@ export default function FinListings() {
                       options={orderItem.filter(
                         (p) =>
                           p.value ===
-                          (sortParam?.orderBy!.indexOf("actionDate") === -1
-                            ? "actionDate"
-                            : sortParam.orderBy)
+                          (sortParam?.orderBy!.indexOf('actionDate') === -1
+                            ? 'actionDate'
+                            : sortParam.orderBy),
                       )}
                       onChange={(e) => handleMenuClick(e)}
                       itemTemplate={filterTemplate}
@@ -451,9 +393,9 @@ export default function FinListings() {
                       options={orderItem.filter(
                         (p) =>
                           p.value ===
-                          (sortParam?.orderBy!.indexOf("status") === -1
-                            ? "status"
-                            : sortParam.orderBy)
+                          (sortParam?.orderBy!.indexOf('status') === -1
+                            ? 'status'
+                            : sortParam.orderBy),
                       )}
                       onChange={(e) => handleMenuClick(e)}
                       itemTemplate={filterTemplate}
@@ -466,9 +408,9 @@ export default function FinListings() {
                       options={orderItem.filter(
                         (p) =>
                           p.value ===
-                          (sortParam?.orderBy!.indexOf("value") === -1
-                            ? "value"
-                            : sortParam.orderBy)
+                          (sortParam?.orderBy!.indexOf('value') === -1
+                            ? 'value'
+                            : sortParam.orderBy),
                       )}
                       onChange={(e) => handleMenuClick(e)}
                       itemTemplate={filterTemplate}
@@ -480,11 +422,8 @@ export default function FinListings() {
                   financeItems.results &&
                   financeItems.results.map(
                     (item: FinanceTableItem, index: number) => (
-                      <FinRow
-                        key={index}
-                        item={item}
-                      />
-                    )
+                      <FinRow key={index} item={item} />
+                    ),
                   )}
               </div>
               <div className="ListPagination">

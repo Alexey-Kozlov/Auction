@@ -16,6 +16,9 @@ import { chatMessageReducer, chatResponseReducer } from './chatSlice';
 import communicationApi from '../api/CommunicationApi';
 import { serviceReducer } from './serviceSlice';
 import { cacheReducer } from './cacheSlice';
+import settingsApi from '../api/SettingsApi';
+import { settingsReducer } from './settingsSlice';
+import { rtkQueryErrorLogger } from '../api/test';
 
 const store = configureStore({
   reducer: {
@@ -29,6 +32,7 @@ const store = configureStore({
     serviceStore: serviceReducer,
     cacheStore: cacheReducer,
     refreshLink: refreshLinkReducer,
+    settingsStore: settingsReducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [bidApi.reducerPath]: bidApi.reducer,
@@ -38,6 +42,7 @@ const store = configureStore({
     [processingApi.reducerPath]: processingApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [communicationApi.reducerPath]: communicationApi.reducer,
+    [settingsApi.reducerPath]: settingsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -51,7 +56,8 @@ const store = configureStore({
       .concat(financeApi.middleware)
       .concat(processingApi.middleware)
       .concat(serviceApi.middleware)
-      .concat(communicationApi.middleware),
+      .concat(communicationApi.middleware)
+      .concat(settingsApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

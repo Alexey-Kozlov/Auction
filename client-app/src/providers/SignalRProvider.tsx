@@ -463,6 +463,31 @@ export default function SignalRProvider() {
             );
           },
         );
+
+        connection.on(
+          SignalREvents[SignalREvents.SetCurrentSettings],
+          (result: NotificationEvent) => {
+            dispatch(
+              setEventFlag({
+                eventName: SignalREvents[SignalREvents.SetCurrentSettings],
+                ready: false,
+              }),
+            );
+            if (result.show) {
+              toastMessage!.show({
+                severity: 'info',
+                life: 2000,
+                className: 'bg-white',
+                content: (props) => (
+                  <MessageToast
+                    toastType={ToastType.Info}
+                    message={result.data}
+                  />
+                ),
+              });
+            }
+          },
+        );
       }
     };
     con_execute();

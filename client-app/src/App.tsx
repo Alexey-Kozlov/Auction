@@ -18,6 +18,7 @@ import {
   LoginResponse,
   LogoutUser,
   RefreshLinkType,
+  ToastType,
 } from './types';
 import AddTokenHeader from './api/AddTokenHeader';
 import {
@@ -30,12 +31,15 @@ import { useLoginUserMutation, useRefreshTokenMutation } from './api/AuthApi';
 import { RootState } from './store/store';
 import { setParams } from './store/paramSlice';
 import { jwtDecode } from 'jwt-decode';
+import { CustomError } from './utils/PostApiProcess';
+import MessageToast from './components/signalRNotifications/MessageToast';
 
 function App() {
   const toastMessage = useRef<Toast>(null);
   const dispatch = useDispatch();
   const [loginUser] = useLoginUserMutation();
   const auth = useSelector((state: RootState) => state.authStore);
+  const settings = useSelector((state: RootState) => state.settingsStore);
   const [refreshTokenApi] = useRefreshTokenMutation();
   const refreshLink = useSelector((state: RootState) => state.refreshLink);
 
@@ -51,11 +55,25 @@ function App() {
   useEffect(() => {
     stopRefreshTokenTimer();
     //если уже входил в систему
-    if (AddTokenHeader()) {
+    if (AddTokenHeader() && settings) {
       const tokenData = localStorage.getItem('Auction');
       const token: LoginResponse = JSON.parse(tokenData!);
       dispatch(setAuthUser(token));
       dispatch(setParams({ userLogin: token.login }));
+      if (settings.adminMode && token.login !== 'admin') {
+        //если админский режим - работать можно только администратору
+        toastMessage.current!.show({
+          severity: 'success',
+          life: 4000,
+          className: 'bg-white',
+          content: (props) => (
+            <MessageToast
+              message="Система на обслуживании."
+              toastType={ToastType.Warning}
+            />
+          ),
+        });
+      }
     } else {
       //если еще не входил в систему - регистрируем пользователя в системе как гостя
       const _login = uuid.v4() as string;
@@ -75,11 +93,26 @@ function App() {
           );
           dispatch(setParams({ userLogin: rez.data.result.login }));
         }
+        //отображение уведомлений, если будут. Например, при работе когда включен админский режим
+        if (rez.error && toastMessage.current) {
+          toastMessage.current!.show({
+            severity: 'success',
+            life: 4000,
+            className: 'bg-white',
+            content: (props) => (
+              <MessageToast
+                message={(rez.error as CustomError).message}
+                toastType={ToastType.Warning}
+              />
+            ),
+          });
+        }
       });
     }
     // eslint-disable-next-line
-  }, []);
+  }, [toastMessage, settings]);
 
+  //запуск автоматического обновления токена доступа
   useEffect(() => {
     if (auth && auth.login) {
       startRefreshTokenTimer();

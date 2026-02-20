@@ -60,11 +60,11 @@ export default function DetailMain() {
 
   //инициализация данных
   useEffect(() => {
-    if (!data.isLoading && !data.isFetching && data.data!.result) {
+    if (!data.isLoading && !data.isFetching && data.data?.result) {
       setAuctionDetail(data.data!.result);
     }
     //если не нашли данных по указанному id - переход на страницу "Не найдено"
-    if (!data.isLoading && (!data || !data.data!.result)) {
+    if (!data.isLoading && (!data || !data.data?.result)) {
       navigate('/not-found');
     }
     // eslint-disable-next-line

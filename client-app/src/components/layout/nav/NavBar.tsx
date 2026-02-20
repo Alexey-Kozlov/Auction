@@ -1,11 +1,12 @@
-import Logo from "./Logo";
-import Search from "./Search";
-import UserActions from "./UserActions";
-import { User } from "../../../types";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
-import { useNavigate } from "react-router-dom";
-import { Button } from "primereact/button";
+import Logo from './Logo';
+import Search from './Search';
+import UserActions from './UserActions';
+import { User } from '../../../types';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store/store';
+import { useNavigate } from 'react-router-dom';
+import { Button } from 'primereact/button';
+import AdminMode from './AdminMode';
 
 export default function NavBar() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function NavBar() {
       <div className="NavBar">
         <Logo />
         <Search />
+        <AdminMode />
         {!user.isGuest ? (
           <UserActions />
         ) : (
@@ -27,7 +29,7 @@ export default function NavBar() {
               rounded
               severity="contrast"
               className="CustomButton mr-2"
-              onClick={() => navigate("/register")}
+              onClick={() => navigate('/register')}
             >
               Регистрация
             </Button>
@@ -36,7 +38,7 @@ export default function NavBar() {
               raised
               rounded
               severity="contrast"
-              onClick={() => navigate("/login")}
+              onClick={() => navigate('/login')}
               className="CustomButton"
             >
               Логин

@@ -6,7 +6,11 @@ import {
   LogoutUser,
   RequestType,
 } from '../types';
-import { PostApiProcess, PostErrorApiProcess } from '../utils/PostApiProcess';
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from '../utils/PostApiProcess';
 import uuid from 'react-native-uuid';
 import { GetCurrentUser } from '../utils/GetCurrentUser';
 
@@ -35,8 +39,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
     loginUser: builder.mutation<any, LoginUser>({
@@ -52,8 +56,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
     logoutUser: builder.mutation<any, LogoutUser>({
@@ -69,8 +73,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
     getUserName: builder.query<ApiResponseNet<string>, string>({
@@ -83,8 +87,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
     setNewPassword: builder.mutation<any, CreateUser>({
@@ -100,8 +104,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
     refreshToken: builder.mutation<any, LogoutUser>({
@@ -117,8 +121,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
   }),

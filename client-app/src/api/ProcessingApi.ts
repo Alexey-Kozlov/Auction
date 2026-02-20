@@ -9,7 +9,11 @@ import {
   PlaceBidParams,
   RequestType,
 } from '../types';
-import { PostApiProcess, PostErrorApiProcess } from '../utils/PostApiProcess';
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from '../utils/PostApiProcess';
 import AddTokenHeader from './AddTokenHeader';
 import uuid from 'react-native-uuid';
 import { GetCurrentUser } from '../utils/GetCurrentUser';
@@ -44,8 +48,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),
@@ -62,8 +66,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),
@@ -80,8 +84,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),
@@ -98,8 +102,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),
@@ -116,8 +120,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),
@@ -134,8 +138,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),
@@ -152,8 +156,8 @@ const processingApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ['processing'],
     }),

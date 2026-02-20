@@ -1,6 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { ApiResponseNet, CurrentSettings, RequestType } from '../types';
-import { PostApiProcess, PostErrorApiProcess } from '../utils/PostApiProcess';
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from '../utils/PostApiProcess';
 import AddTokenHeader from './AddTokenHeader';
 import uuid from 'react-native-uuid';
 import { GetCurrentUser } from '../utils/GetCurrentUser';
@@ -24,7 +28,7 @@ const settingsApi = createApi({
   endpoints: (builder) => ({
     getCurrentSettings: builder.query<ApiResponseNet<CurrentSettings>, {}>({
       query: () => ({
-        url: '/current',
+        url: '/GetCurrentSettings',
         headers: {
           RequestType: RequestType[RequestType.CurrentSettings],
         },
@@ -36,8 +40,8 @@ const settingsApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       providesTags: ['settings'],
     }),

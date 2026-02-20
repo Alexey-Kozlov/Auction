@@ -751,3 +751,11 @@ a.p-menuitem-link > svg {
 	border: none;
 }
 
+.AdminMode {
+	font-size: 2rem;
+	background-color: #e0e7f7;
+	border-radius: 2rem;
+	border: black 0.2rem solid;
+	padding: 0.5rem;
+}
+

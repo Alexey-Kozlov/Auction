@@ -12,6 +12,7 @@ import {
   Auction,
   ProcessingState,
   SignalREvents,
+  ToastType,
   UrlCacheList,
 } from '../../types';
 import Waiter from '../Waiter';
@@ -19,6 +20,10 @@ import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
 import { CheckEventLastChangedNotReady } from '../../utils/CheckEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import { setCacheQuery } from '../../store/cacheSlice';
+import { SerializedError } from '@reduxjs/toolkit';
+import { Toast } from 'primereact/toast';
+import MessageToast from '../signalRNotifications/MessageToast';
+import { CustomError } from '../../utils/PostApiProcess';
 
 export default function Listings() {
   const dispatch = useDispatch();
@@ -32,6 +37,9 @@ export default function Listings() {
   );
   const [isWait, setIsWait] = useState(true);
   const [currentPageNumber, setCurrentPageNumber] = useState(0);
+  const toastMessage: Toast | null = useSelector(
+    (state: RootState) => state.serviceStore,
+  ).toast;
 
   //автоматически запускается при изменении url
   let auctionsData = useGetAuctionsQuery(url, {
@@ -56,6 +64,7 @@ export default function Listings() {
     if (
       !auctionsData.isLoading &&
       !auctionsData.isFetching &&
+      !auctionsData.isError &&
       auctionsData.data
     ) {
       //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь

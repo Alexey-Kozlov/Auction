@@ -322,6 +322,7 @@ export enum SignalREvents {
   RestoreSnapShot,
   CommunicationChanged,
   CollectionChanged,
+  SetCurrentSettings,
 }
 
 export type UrlCacheList = {

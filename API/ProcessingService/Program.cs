@@ -3,6 +3,7 @@ using Common.Contracts;
 using Common.Contracts.EventSourcing;
 using Common.Utils;
 using Common.Utils.Logging;
+using Common.Utils.Settings;
 using Common.Utils.Vault;
 using Confluent.Kafka;
 using MassTransit;
@@ -48,6 +49,7 @@ builder.Services.AddDbContext<ProcessingDbContext>(options =>
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
 });
+
 builder.Services.AddAuthentication(p =>
 {
     p.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -83,6 +85,7 @@ builder.Services.AddMassTransit(p =>
     p.AddCommunicationCreateMassTransitConfigurator();
     p.AddCommunicationDeleteMassTransitConfigurator();
     p.AddCommunicationUpdateMassTransitConfigurator();
+    p.CurrentStateMassTransitConfigurator();
 
     p.UsingRabbitMq((context, config) =>
     {
@@ -129,13 +132,22 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
 
 builder.Services.AddScoped<SendEventToES>();
 builder.Services.AddScoped<SplitImages>();
+//запускаем сервис по получению настроек системы - получаем параметр AdminMode - в административном ли
+//режиме система. Если да - разрашаем работу с системой только администратору, остальным пользователям
+//отдаем уведомление о работах в системе
+builder.Services.AddSingleton<IsAdminModeService>();
+builder.Services.AddHostedService(p => p.GetRequiredService<IsAdminModeService>());
 
+builder.Services.AddHttpClient<SettingsHttpClient>(config =>
+{
+    config.Timeout = TimeSpan.FromSeconds(300);
+});
 var app = builder.Build();
 
-//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
-app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
+app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт
