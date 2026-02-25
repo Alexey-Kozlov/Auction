@@ -97,7 +97,6 @@ builder.Services.AddScoped<GrpcElkClient>();
 //отдаем уведомление о работах в системе
 builder.Services.AddSingleton<IsAdminModeService>();
 builder.Services.AddHostedService(p => p.GetRequiredService<IsAdminModeService>());
-
 builder.Services.AddHttpClient<SettingsHttpClient>(config =>
 {
     config.Timeout = TimeSpan.FromSeconds(300);

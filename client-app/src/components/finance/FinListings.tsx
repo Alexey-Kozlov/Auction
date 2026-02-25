@@ -8,7 +8,6 @@ import {
   PagedResult,
   ProcessingState,
   State,
-  ToastType,
   User,
 } from '../../types';
 import {
@@ -29,11 +28,9 @@ import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { SelectItem } from 'primereact/selectitem';
 import Waiter from '../Waiter';
 import Footer from '../layout/Footer';
-import { CheckEventReady } from '../../utils/CheckEvent';
+import { CheckEventReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import { Toast } from 'primereact/toast';
-import MessageToast from '../signalRNotifications/MessageToast';
-import { CustomError } from '../../utils/PostApiProcess';
 
 export default function FinListings() {
   const dispatch = useDispatch();
@@ -68,15 +65,13 @@ export default function FinListings() {
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
   );
-  const toastMessage: Toast | null = useSelector(
-    (state: RootState) => state.serviceStore,
-  ).toast;
 
   // первоначальное получение всех записей по финансам данного пользователя
   useEffect(() => {
     if (
       !financeQuery.isFetching &&
       !financeQuery.isLoading &&
+      !financeQuery.isError &&
       financeQuery.data
     ) {
       setFinanceItems(financeQuery.data.result);

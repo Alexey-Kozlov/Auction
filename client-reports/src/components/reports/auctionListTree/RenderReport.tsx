@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../store/Store";
+import { RootState } from "../../../store/store";
 import { ParameterItem } from "../../../types";
 import { useReactToPrint } from "react-to-print";
-import { setEvent } from "../../../store/EventSlice";
+import { setEvent } from "../../../store/eventSlice";
 import { useDownloadExcel } from "react-export-table-to-excel";
 import Waiter from "../../Waiter";
-import { setReportLoaded } from "../../../store/ReportSlice";
+import { setReportLoaded } from "../../../store/reportSlice";
 import { useAuctionListTreeMutation } from "../../../api/ReportApiAuction";
 import { AuctionTreeItem } from "./AuctionListTypes";
 import AuctionTree from "./AuctionTree";

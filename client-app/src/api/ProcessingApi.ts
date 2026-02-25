@@ -13,10 +13,10 @@ import {
   CustomError,
   PostApiProcess,
   PostErrorApiProcess,
-} from '../utils/PostApiProcess';
+} from '../utils/postApiProcess';
 import AddTokenHeader from './AddTokenHeader';
 import uuid from 'react-native-uuid';
-import { GetCurrentUser } from '../utils/GetCurrentUser';
+import { GetCurrentUser } from '../utils/getCurrentUser';
 
 const processingApi = createApi({
   reducerPath: 'processingApi',

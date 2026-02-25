@@ -3,7 +3,7 @@ import { useGetCurrentSettingsQuery } from '../../../api/SettingsApi';
 import { ProcessingState, SignalREvents } from '../../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
-import { CheckEventReady } from '../../../utils/CheckEvent';
+import { CheckEventReady } from '../../../utils/checkEvent';
 import { setSettingsData } from '../../../store/settingsSlice';
 
 export default function AdminMode() {

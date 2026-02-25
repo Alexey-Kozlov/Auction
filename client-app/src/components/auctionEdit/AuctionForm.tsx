@@ -30,7 +30,7 @@ import {
 import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import Waiter from '../Waiter';
-import { CheckEventReady } from '../../utils/CheckEvent';
+import { CheckEventReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 
 export default function AuctionForm() {

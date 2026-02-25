@@ -1,6 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, ParameterItem, RequestType } from "../types";
-import { PostApiProcess, PostErrorApiProcess } from "../api/PostResponse";
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from "../utils/postApiProcess";
 import { AuctionListTypes } from "../components/reports/auctionList/AuctionListTypes";
 import { DiagramTypes } from "../components/reports/diagrams/DiagramTypes";
 import uuid from "react-native-uuid";
@@ -30,13 +34,13 @@ export const ReportApi = createApi({
       }),
       transformResponse: (
         response: ApiResponseNet<AuctionListTypes[]>,
-        meta: any
+        meta: any,
       ) => {
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ["report"],
     }),
@@ -48,13 +52,13 @@ export const ReportApi = createApi({
       }),
       transformResponse: (
         response: ApiResponseNet<DiagramTypes[]>,
-        meta: any
+        meta: any,
       ) => {
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ["report"],
     }),

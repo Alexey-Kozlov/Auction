@@ -17,7 +17,9 @@ import {
   ApiResponse,
   LoginResponse,
   LogoutUser,
+  ProcessingState,
   RefreshLinkType,
+  SignalREvents,
   ToastType,
 } from './types';
 import AddTokenHeader from './api/AddTokenHeader';
@@ -31,8 +33,9 @@ import { useLoginUserMutation, useRefreshTokenMutation } from './api/AuthApi';
 import { RootState } from './store/store';
 import { setParams } from './store/paramSlice';
 import { jwtDecode } from 'jwt-decode';
-import { CustomError } from './utils/PostApiProcess';
+import { CustomError } from './utils/postApiProcess';
 import MessageToast from './components/signalRNotifications/MessageToast';
+import { CheckEventLastChangedNotReady } from './utils/checkEvent';
 
 function App() {
   const toastMessage = useRef<Toast>(null);
@@ -42,17 +45,29 @@ function App() {
   const settings = useSelector((state: RootState) => state.settingsStore);
   const [refreshTokenApi] = useRefreshTokenMutation();
   const refreshLink = useSelector((state: RootState) => state.refreshLink);
+  const procState: ProcessingState[] = useSelector(
+    (state: RootState) => state.processingStore,
+  );
 
-  //инициализируем выпадающее сообщение для вызова в любом месте приложения
+  //обновление приложения при поступлении сигнала об установке или выходе из админ.режима
   useEffect(() => {
+    if (
+      CheckEventLastChangedNotReady(
+        procState,
+        SignalREvents[SignalREvents.SetCurrentSettings],
+      )
+    ) {
+      window.location.reload();
+    }
+  }, [procState]);
+
+  //инициализация пользователя
+  useEffect(() => {
+    //инициализируем выпадающее сообщение для вызова в любом месте приложения
     if (toastMessage) {
       dispatch(setServiceData({ toast: toastMessage.current }));
     }
     // eslint-disable-next-line
-  }, [toastMessage]);
-
-  //инициализация пользователя
-  useEffect(() => {
     stopRefreshTokenTimer();
     //если уже входил в систему
     if (AddTokenHeader() && settings) {
@@ -64,7 +79,7 @@ function App() {
         //если админский режим - работать можно только администратору
         toastMessage.current!.show({
           severity: 'success',
-          life: 4000,
+          life: 5000,
           className: 'bg-white',
           content: (props) => (
             <MessageToast
@@ -97,7 +112,7 @@ function App() {
         if (rez.error && toastMessage.current) {
           toastMessage.current!.show({
             severity: 'success',
-            life: 4000,
+            life: 5000,
             className: 'bg-white',
             content: (props) => (
               <MessageToast

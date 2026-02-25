@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ParameterItem, ParameterSelect, ParameterType } from "../types";
 import { useDispatch, useSelector } from "react-redux";
-import { setReportLoading } from "../store/ReportSlice";
-import { RootState } from "../store/Store";
+import { setReportLoading } from "../store/reportSlice";
+import { RootState } from "../store/store";
 import { Button } from "primereact/button";
 import { Sidebar } from "primereact/sidebar";
 import { InputText } from "primereact/inputtext";
@@ -34,7 +34,7 @@ export default function SlidePanel({ params, reportName }: Props) {
   const convertSelectItem = (ind: any) => {
     //создаем option объект без свойства Default - иначе не работает контрол DropDown
     let item = JSON.parse(paramValue[ind]).find(
-      (p: any) => p.Default === true
+      (p: any) => p.Default === true,
     ) as ParameterSelect;
     return { Label: item.Label, Value: item.Value };
   };
@@ -46,7 +46,7 @@ export default function SlidePanel({ params, reportName }: Props) {
       (JSON.parse(item.Value as string) as ParameterSelect[]).forEach(
         (item) => {
           selectOptions.push({ Label: item.Label, Value: item.Value });
-        }
+        },
       );
       return (
         <Dropdown
@@ -138,7 +138,7 @@ export default function SlidePanel({ params, reportName }: Props) {
       try {
         //извлекаем выбранное значение (если было перечисление значений)
         tmp[index].Value = JSON.parse(paramList[index]).find(
-          (p: ParameterSelect) => p.Default
+          (p: ParameterSelect) => p.Default,
         ).Value;
       } catch {
         //здесь если не было выбора из перечисления - просто текстовое поле или булево значение
@@ -151,7 +151,7 @@ export default function SlidePanel({ params, reportName }: Props) {
   const reportSubmit = async (
     e:
       | React.MouseEvent<HTMLButtonElement, MouseEvent>
-      | React.KeyboardEvent<HTMLDivElement>
+      | React.KeyboardEvent<HTMLDivElement>,
   ) => {
     e.preventDefault();
     dispatch(setReportLoading({ param: SetParams(paramValue) }));
@@ -164,10 +164,7 @@ export default function SlidePanel({ params, reportName }: Props) {
 
   return (
     <div onKeyDown={(e) => hitEnter(e)}>
-      <div
-        className="ParameterButton"
-        onClick={() => setShowPanel(true)}
-      >
+      <div className="ParameterButton" onClick={() => setShowPanel(true)}>
         Параметры отчета
       </div>
       <Sidebar

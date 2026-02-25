@@ -1,23 +1,22 @@
 import { Panel } from "primereact/panel";
 import { ReportItem } from "../../types";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setCurrentReport } from "../../store/reportSlice";
 
 export default function Card(props: ReportItem) {
   const nav = useNavigate();
+  const dispatch = useDispatch();
+
   const clickHandler = () => {
+    dispatch(setCurrentReport({ currentReport: props }));
     nav(`/reports/${props.Id}`, { replace: true });
   };
   return (
     <>
-      <Panel
-        onClick={clickHandler}
-        className="ReportCardContainer"
-      >
+      <Panel onClick={clickHandler} className="ReportCardContainer">
         <div className="CenterItem">
-          <props.Icon
-            size={22}
-            className="ReportCardIconTitle"
-          />
+          <props.Icon size={22} className="ReportCardIconTitle" />
           <h5 className="ReportCardTitle">{props.Name}</h5>
         </div>
 

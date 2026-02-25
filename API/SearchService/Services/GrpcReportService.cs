@@ -4,12 +4,14 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.Report;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ReportService;
 using SearchService.Data;
 
 namespace SearchService.Services;
 
+[Authorize]
 public class GrpcReportService : GrpcReports.GrpcReportsBase
 {
     private readonly SearchDbContext _dbContext;

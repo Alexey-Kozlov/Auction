@@ -1,4 +1,4 @@
-import NumberWithSpaces from '../../utils/NumberWithSpaces';
+import NumberWithSpaces from '../../utils/numberWithSpaces';
 import { usePlaceBidForAuctionMutation } from '../../api/ProcessingApi';
 import { FormErrors, ProcessingState, SignalREvents } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,7 +8,7 @@ import { setEventFlag } from '../../store/processingSlice';
 import Waiter from '../Waiter';
 import { Message } from 'primereact/message';
 import { InputNumber } from 'primereact/inputnumber';
-import { CheckEventReady } from '../../utils/CheckEvent';
+import { CheckEventReady } from '../../utils/checkEvent';
 import { Button } from 'primereact/button';
 
 type Props = {

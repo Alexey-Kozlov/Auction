@@ -1,5 +1,9 @@
 import { ApiResponseNet, ParameterItem } from "../types";
-import { PostApiProcess, PostErrorApiProcess } from "./PostResponse";
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from "../utils/postApiProcess";
 import { AuctionListTypes } from "../components/reports/auctionList/AuctionListTypes";
 import { ReportApi } from "./ReportApi";
 import { AuctionTreeItem } from "../components/reports/auctionListTree/AuctionListTypes";
@@ -15,13 +19,13 @@ const ReportApiAuction = ReportApi.injectEndpoints({
       }),
       transformResponse: (
         response: ApiResponseNet<AuctionListTypes[]>,
-        meta: any
+        meta: any,
       ) => {
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ["report"],
     }),
@@ -35,8 +39,8 @@ const ReportApiAuction = ReportApi.injectEndpoints({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ["report"],
     }),
@@ -50,8 +54,8 @@ const ReportApiAuction = ReportApi.injectEndpoints({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
       invalidatesTags: ["report"],
     }),

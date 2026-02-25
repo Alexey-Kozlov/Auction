@@ -1,5 +1,5 @@
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { CheckEventNotReady } from '../utils/CheckEvent';
+import { CheckEventNotReady } from '../utils/checkEvent';
 import { ProcessingState, SignalREvents } from '../types';
 import { RootState } from '../store/store';
 import { useSelector } from 'react-redux';

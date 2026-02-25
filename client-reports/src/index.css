@@ -245,3 +245,11 @@ body {
 .p-inputtext {
 	font-size: 1.6rem;
 }
+
+.AdminMode {
+	font-size: 2rem;
+	background-color: #e0e7f7;
+	border-radius: 2rem;
+	border: black 0.2rem solid;
+	padding: 0.5rem;
+}

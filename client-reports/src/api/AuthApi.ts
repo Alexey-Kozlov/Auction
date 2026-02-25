@@ -2,7 +2,11 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { ApiResponseNet, LoginUser, LogoutUser, RequestType } from "../types";
 import uuid from "react-native-uuid";
 import { GetCurrentUser } from "../utils";
-import { PostApiProcess, PostErrorApiProcess } from "./PostResponse";
+import {
+  CustomError,
+  PostApiProcess,
+  PostErrorApiProcess,
+} from "../utils/postApiProcess";
 
 const authApi = createApi({
   reducerPath: "authApi",
@@ -29,8 +33,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
     loginUser: builder.mutation<any, LoginUser>({
@@ -46,8 +50,8 @@ const authApi = createApi({
         PostApiProcess(response);
         return response;
       },
-      transformErrorResponse: (response: any, meta: any) => {
-        PostErrorApiProcess(response);
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
       },
     }),
   }),

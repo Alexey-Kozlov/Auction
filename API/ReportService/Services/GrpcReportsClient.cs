@@ -13,14 +13,20 @@ namespace ReportService.Services;
 public class GrpcReportsClient
 {
     private readonly IConfiguration _config;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private Metadata headers = new();
 
-    public GrpcReportsClient(IConfiguration config)
+    public GrpcReportsClient(IConfiguration config, IHttpContextAccessor httpContextAccessor)
     {
         _config = config;
+        _httpContextAccessor = httpContextAccessor;
+        //добавляем авторизацию в GRPC-запрос из полученного http-контекста, иначе будет 401 ответ
+        headers.Add("Authorization", $"{_httpContextAccessor.HttpContext.Request.Headers["Authorization"]}");
     }
 
     public async Task<ApiResponse<List<AuctionItem>>> GetAuctionReportItems(string auctionRequest)
     {
+
         var channel = GrpcChannel.ForAddress(_config["GrpcAuctionReport"], new GrpcChannelOptions
         {
             MaxSendMessageSize = int.MaxValue,
@@ -31,7 +37,7 @@ public class GrpcReportsClient
 
         try
         {
-            var reply = await client.GetAuctionReportAsync(request);
+            var reply = await client.GetAuctionReportAsync(request, headers);
             return JsonSerializer.Deserialize<ApiResponse<List<AuctionItem>>>(reply.AuctionRezult);
         }
         catch (RpcException ex)
@@ -58,7 +64,7 @@ public class GrpcReportsClient
 
         try
         {
-            var reply = await client.GetBidReportAsync(request);
+            var reply = await client.GetBidReportAsync(request, headers);
             return JsonSerializer.Deserialize<ApiResponse<List<BidItem>>>(reply.BidRezult);
         }
         catch (RpcException ex)
@@ -85,7 +91,7 @@ public class GrpcReportsClient
 
         try
         {
-            var reply = await client.GetNotificationReportAsync(request);
+            var reply = await client.GetNotificationReportAsync(request, headers);
             return JsonSerializer.Deserialize<ApiResponse<List<NotifyItem>>>(reply.NotificationRezult);
         }
         catch (RpcException ex)
@@ -112,7 +118,7 @@ public class GrpcReportsClient
 
         try
         {
-            var reply = await client.GetDiagramDataAsync(request);
+            var reply = await client.GetDiagramDataAsync(request, headers);
             return JsonSerializer.Deserialize<ApiResponse<List<DiagramData>>>(reply.DiagramRezult);
         }
         catch (RpcException ex)
@@ -139,7 +145,7 @@ public class GrpcReportsClient
 
         try
         {
-            var reply = await client.GetCommunicationReportAsync(request);
+            var reply = await client.GetCommunicationReportAsync(request, headers);
             return JsonSerializer.Deserialize<ApiResponse<List<CommunicationItem>>>(reply.CommunicationRezult);
         }
         catch (RpcException ex)

@@ -17,14 +17,14 @@ import ChatUser from './ChatUser';
 import { setEventFlag } from '../../../store/processingSlice';
 import Waiter from '../../Waiter';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { DynamicDateSort, DynamicSort } from '../../../utils/DynamicSort';
+import { DynamicDateSort, DynamicSort } from '../../../utils/dynamicSort';
 import { ScrollPanel } from 'primereact/scrollpanel';
 import { ContextMenu } from 'primereact/contextmenu';
 import { MenuItem } from 'primereact/menuitem';
 import ModalEditText from '../../modals/ModalEditText';
 import ModalYesNo from '../../modals/ModalYesNo';
 import { Button } from 'primereact/button';
-import { CheckEventReady } from '../../../utils/CheckEvent';
+import { CheckEventReady } from '../../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../../api/ServiceApi';
 
 type Props = {

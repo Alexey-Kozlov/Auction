@@ -1,8 +1,10 @@
 import { Link, useParams } from "react-router-dom";
-import ReportListData from "../DataComponents/ListData";
 import { BreadCrumb } from "primereact/breadcrumb";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store/store";
 
 export default function BreadCrumbNav() {
+  const reportStore = useSelector((state: RootState) => state.reportStore);
   const { root, id } = useParams();
   const home = {
     icon: (
@@ -17,11 +19,8 @@ export default function BreadCrumbNav() {
   const items = [
     {
       template: () => (
-        <Link
-          className="BreadCrumbItem"
-          to={`/reports/${id}`}
-        >
-          {id && ReportListData().find((p) => p.Id === id)!.Name}
+        <Link className="BreadCrumbItem" to={`/reports/${id}`}>
+          {id && reportStore.currentReport?.Name}
         </Link>
       ),
     },
@@ -29,11 +28,7 @@ export default function BreadCrumbNav() {
 
   return (
     <>
-      <BreadCrumb
-        model={items}
-        home={home}
-        style={{ border: "none" }}
-      />
+      <BreadCrumb model={items} home={home} style={{ border: "none" }} />
     </>
   );
 }

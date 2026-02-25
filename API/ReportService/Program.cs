@@ -2,11 +2,14 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Common.Utils;
 using Common.Utils.Logging;
+using Common.Utils.Settings;
 using Common.Utils.Vault;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using ReportService.Consumers;
 using ReportService.Reports;
 using ReportService.Services;
 
@@ -17,6 +20,7 @@ builder.Configuration.AddVault(options =>
               options.Address = vaultOptions["Address"];
               options.Role = vaultOptions["VAULT_ROLE_ID"];
               options.SecretPathApi = vaultOptions["SecretPathApi"];
+              options.SecretPathRt = vaultOptions["SecretPathRt"];
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
 //конфигурация конвейера для работы с JWT-аутентификацией
@@ -58,13 +62,37 @@ builder.Services.AddScoped<NotificationList>();
 builder.Services.AddScoped<Diagrams>();
 builder.Services.AddScoped<Comments>();
 builder.Services.AddScoped<GrpcReportsClient>();
-
+//запускаем сервис по получению настроек системы - получаем параметр AdminMode - в административном ли
+//режиме система. Если да - разрашаем работу с системой только администратору, остальным пользователям
+//отдаем уведомление о работах в системе
+builder.Services.AddSingleton<IsAdminModeService>();
+builder.Services.AddHostedService(p => p.GetRequiredService<IsAdminModeService>());
+builder.Services.AddHttpClient<SettingsHttpClient>(config =>
+{
+    config.Timeout = TimeSpan.FromSeconds(300);
+});
+builder.Services.AddMassTransit(p =>
+{
+    p.AddConsumersFromNamespaceContaining<SetAdminModeConsumer>();
+    p.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("report_settings", false));
+    p.UsingRabbitMq((context, config) =>
+    {
+        config.Host(builder.Configuration["rt:host"], "/", p =>
+        {
+            p.Username(builder.Configuration["rt:username"]);
+            p.Password(builder.Configuration["rt:password"]);
+        });
+        config.ConfigureEndpoints(context);
+        config.ConcurrentMessageLimit = 1;
+    });
+});
+builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
-//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
-app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().WithExposedHeaders("*"));
 app.UseAuthentication();
 app.UseAuthorization();
+//перехватываем исключение в http-запроса и возвращаем http-ответ с ошибкой - только для контроллеров
+app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 //запускаем веб-сервер и пишем в консоль хост и порт

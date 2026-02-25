@@ -1,6 +1,7 @@
 using Common.Contracts.Processing;
 using Common.Contracts.Settings;
 using MassTransit;
+using ProcessingService.Activities.Processing;
 
 namespace ProcessingService.StateMachines.CurrentSettingsStateMachine;
 
@@ -71,18 +72,13 @@ public class CurrentSettingsStateMachine : MassTransitStateMachine<CurrentSettin
                     {
                         SignalRMethod = SignalRMethod.SetCurrentSettings,
                         Show = context.Saga.ShowMessages,
-                        EventType = EventType.UserLogin,
+                        EventType = EventType.All,
                         UserLogin = context.Saga.UserLogin,
                         Data = context.Saga.AdminMode ?
                                     $"Выполнен переход в административный режим"
                                     : "Выполнен переход в обычный режим"
                     })
-            //обновляем состояние AdminMode в остальных сервисах
-            .Publish(context => new SetAdminMode
-            {
-                CorrelationId = context.Saga.CorrelationId,
-                AdminMode = context.Saga.AdminMode
-            })
+            .Activity(p => p.OfType<AdminModeActivity>())
             .Finalize(),
         When(FaultCompleteEvent)
             .Send(

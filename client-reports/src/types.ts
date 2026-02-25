@@ -51,6 +51,7 @@ export enum RequestType {
   NotFound,
   TraceId,
   RefreshToken,
+  CurrentSettings,
 }
 
 export enum ReportType {
@@ -95,3 +96,49 @@ export type LoginUser = {
   password: string;
   isGuest: boolean;
 };
+
+export type CurrentSettings = {
+  adminMode: boolean;
+};
+
+export type ProcessingState = {
+  eventName: string;
+  ready: boolean;
+  itemId?: string;
+  param?: any;
+  lastChanged: boolean;
+};
+
+export enum SignalREvents {
+  BidPlaced,
+  FinanceCreate,
+  AuctionCreate,
+  AuctionUpdate,
+  AuctionDelete,
+  ResetImageCache,
+  ElkIndexReset,
+  ElkSearch,
+  SetSnapShot,
+  OperationProgress,
+  AuctionFinished,
+  ErrorMessage,
+  EditNotification,
+  CommunicationCreate,
+  CommunicationUpdate,
+  CommunicationDelete,
+  RestoreSnapShot,
+  CommunicationChanged,
+  CollectionChanged,
+  SetCurrentSettings,
+}
+
+export type NotificationEvent = {
+  show: boolean;
+  data: string;
+};
+
+export enum ToastType {
+  Info,
+  Warning,
+  Error,
+}

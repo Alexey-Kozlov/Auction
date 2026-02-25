@@ -1,6 +1,7 @@
 import Menu from "./MenuActions";
 import BreadCrumb from "./BreadCrumbNav";
 import Logo from "./Logo";
+import AdminMode from "./AdminMode";
 
 export default function Header() {
   return (
@@ -11,6 +12,9 @@ export default function Header() {
 
         <div className="text-center">
           <BreadCrumb />
+        </div>
+        <div>
+          <AdminMode />
         </div>
         <div className="mr-10">
           <Menu />

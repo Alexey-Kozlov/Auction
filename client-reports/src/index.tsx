@@ -3,14 +3,14 @@ import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { PrimeReactProvider } from "primereact/api";
 import { Provider } from "react-redux";
-import store from "./store/Store";
+import store from "./store/store";
 import "primereact/resources/themes/md-light-indigo/theme.css";
 import "/node_modules/primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import "./index.css";
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 
 root.render(
@@ -20,5 +20,5 @@ root.render(
         <App />
       </PrimeReactProvider>
     </BrowserRouter>
-  </Provider>
+  </Provider>,
 );

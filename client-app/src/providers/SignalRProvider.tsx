@@ -23,7 +23,7 @@ import MessageToast from '../components/signalRNotifications/MessageToast';
 import { setChatResponse } from '../store/chatSlice';
 import { Toast } from 'primereact/toast';
 import ImageToast from '../components/signalRNotifications/ImageToast';
-import CamelToSnake from '../utils/CamelToSnake';
+import CamelToSnake from '../utils/camelToSnake';
 import ProgressToast from '../components/signalRNotifications/ProgressToast';
 
 export default function SignalRProvider() {

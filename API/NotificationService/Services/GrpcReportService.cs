@@ -4,12 +4,14 @@ using Common.Contracts;
 using Common.Contracts.Notification;
 using Common.Contracts.Report;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Data;
 using ReportService;
 
 namespace NotificationService.Services;
 
+[Authorize]
 public class GrpcReportService : GrpcReports.GrpcReportsBase
 {
     private readonly NotificationDbContext _dbContext;

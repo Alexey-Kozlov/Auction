@@ -18,7 +18,6 @@ import { serviceReducer } from './serviceSlice';
 import { cacheReducer } from './cacheSlice';
 import settingsApi from '../api/SettingsApi';
 import { settingsReducer } from './settingsSlice';
-import { rtkQueryErrorLogger } from '../api/test';
 
 const store = configureStore({
   reducer: {

@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { State } from '../types';
-import { GetCurrentUser } from '../utils/GetCurrentUser';
+import { GetCurrentUser } from '../utils/getCurrentUser';
 
 const initialState: State = {
   pageNumber: 1,

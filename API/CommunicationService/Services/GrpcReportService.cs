@@ -5,11 +5,13 @@ using Common.Contracts.Communication;
 using Common.Contracts.Report;
 using CommunicationService.Data;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ReportService;
 
 namespace CommunicationService.Services;
 
+[Authorize]
 public class GrpcReportService : GrpcReports.GrpcReportsBase
 {
     private readonly CommunicationDbContext _dbContext;

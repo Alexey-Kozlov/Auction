@@ -8,7 +8,7 @@ import {
   useRestoreSnapShotMutation,
   useResetImageCacheMutation,
 } from '../../api/ServiceApi';
-import { CheckEventLastChangedReady } from '../../utils/CheckEvent';
+import { CheckEventLastChangedReady } from '../../utils/checkEvent';
 import { useSetCurrentSettingsMutation } from '../../api/ProcessingApi';
 
 export default function HandleServiceEvents() {

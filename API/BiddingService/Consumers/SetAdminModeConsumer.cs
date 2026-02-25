@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using Common.Contracts.Processing;
-using Common.Contracts.Settings;
-using Common.Utils.Logging;
+﻿using Common.Contracts.Settings;
 using Common.Utils.Settings;
 using MassTransit;
 
@@ -9,15 +6,10 @@ namespace BiddingService.Consumers;
 
 public class SetAdminModeConsumer : IConsumer<SetAdminMode>
 {
-    private readonly IPublishEndpoint _publishEndpoint;
-    private readonly IConfiguration _configuration;
     private readonly IsAdminModeService _isAdminModeService;
 
-    public SetAdminModeConsumer(IPublishEndpoint publishEndpoint, IConfiguration configuration,
-        IsAdminModeService isAdminModeService)
+    public SetAdminModeConsumer(IsAdminModeService isAdminModeService)
     {
-        _publishEndpoint = publishEndpoint;
-        _configuration = configuration;
         _isAdminModeService = isAdminModeService;
     }
     public async Task Consume(ConsumeContext<SetAdminMode> context)

@@ -1,23 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/store";
-import Heading from "../auctionList/Heading";
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import Heading from '../auctionList/Heading';
 import {
   Auction,
   Bid,
   ProcessingState,
   SignalREvents,
   User,
-} from "../../types";
-import BidItem from "./BidItem";
-import BidForm from "./BidForm";
-import { useGetBidsForAuctionQuery } from "../../api/BidApi";
-import { setBids, setOpen } from "../../store/bidSlice";
-import NumberWithSpaces from "../../utils/NumberWithSpaces";
-import { Panel } from "primereact/panel";
-import { useIsNotifyUserQuery } from "../../api/NotificationApi";
-import { useGetAuctionsQuery } from "../../api/AuctionApi";
-import { CheckEventLastChangedNotReady } from "../../utils/CheckEvent";
+} from '../../types';
+import BidItem from './BidItem';
+import BidForm from './BidForm';
+import { useGetBidsForAuctionQuery } from '../../api/BidApi';
+import { setBids, setOpen } from '../../store/bidSlice';
+import NumberWithSpaces from '../../utils/numberWithSpaces';
+import { Panel } from 'primereact/panel';
+import { useIsNotifyUserQuery } from '../../api/NotificationApi';
+import { useGetAuctionsQuery } from '../../api/AuctionApi';
+import { CheckEventLastChangedNotReady } from '../../utils/checkEvent';
 
 type Props = {
   user: User | null;
@@ -26,7 +26,7 @@ type Props = {
 
 export default function BidList({ user, auction }: Props) {
   const dispatch = useDispatch();
-  const [lastBidId, setLastBidId] = useState("");
+  const [lastBidId, setLastBidId] = useState('');
   const bidList = useGetBidsForAuctionQuery(auction?.itemId);
   const bidStore = useSelector((state: RootState) => state.bidStore);
   const bids = bidStore.bids;
@@ -38,7 +38,7 @@ export default function BidList({ user, auction }: Props) {
   });
   const auctionList = useGetAuctionsQuery(cacheStore.urlAuction);
   const procState: ProcessingState[] = useSelector(
-    (state: RootState) => state.processingStore
+    (state: RootState) => state.processingStore,
   );
 
   //вычисляем самую большую ставку. Делать ставку меньше нельзя
@@ -85,12 +85,12 @@ export default function BidList({ user, auction }: Props) {
   useEffect(() => {
     if (lastBidId && itemsRef && itemsRef.current) {
       itemsRef.current.scrollIntoView({
-        behavior: "auto",
-        block: "start",
-        inline: "nearest",
+        behavior: 'auto',
+        block: 'start',
+        inline: 'nearest',
       });
       setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 1000);
     }
 
@@ -102,7 +102,7 @@ export default function BidList({ user, auction }: Props) {
     if (
       CheckEventLastChangedNotReady(
         procState,
-        SignalREvents[SignalREvents.BidPlaced]
+        SignalREvents[SignalREvents.BidPlaced],
       )
     ) {
       //ставим признак по обновлению переключателя по уведомлениям рассылки аукциона
@@ -132,7 +132,7 @@ export default function BidList({ user, auction }: Props) {
         ) : (
           <Heading
             title={`Текущее лучшее предложение - ${NumberWithSpaces(
-              bidRestriction()
+              bidRestriction(),
             )} руб`}
           />
         )}
@@ -140,11 +140,7 @@ export default function BidList({ user, auction }: Props) {
       <div>
         <div className="BidListHeight">
           {bids?.map((bid, index) => (
-            <div
-              key={index}
-              ref={itemsRef}
-              className="BidListItem"
-            >
+            <div key={index} ref={itemsRef} className="BidListItem">
               <Panel className="mt-2 PanelItem">
                 <BidItem bid={bid} />
               </Panel>
@@ -160,10 +156,7 @@ export default function BidList({ user, auction }: Props) {
         ) : user!.login === auction?.seller ? (
           <div>Невозможно сделать заявку для собственного аукциона</div>
         ) : (
-          <BidForm
-            auctionId={auction?.itemId}
-            highBid={bidRestriction()}
-          />
+          <BidForm auctionId={auction?.itemId} highBid={bidRestriction()} />
         )}
       </div>
     </div>

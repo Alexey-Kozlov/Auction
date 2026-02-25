@@ -1,9 +1,9 @@
 import { TfiPrinter } from "react-icons/tfi";
 import { RiFileExcel2Line } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
-import { setEvent } from "../../../store/EventSlice";
+import { setEvent } from "../../../store/eventSlice";
 import { User } from "../../../types";
-import { RootState } from "../../../store/Store";
+import { RootState } from "../../../store/store";
 import { Menu } from "primereact/menu";
 import { useRef } from "react";
 
@@ -25,22 +25,12 @@ export default function MenuActions() {
       items: [
         {
           label: "Экспорт в PDF",
-          icon: (
-            <TfiPrinter
-              size={30}
-              className="mr-3"
-            />
-          ),
+          icon: <TfiPrinter size={30} className="mr-3" />,
           command: () => ExportPdf(),
         },
         {
           label: "Экспорт в Excel",
-          icon: (
-            <RiFileExcel2Line
-              size={30}
-              className="mr-3"
-            />
-          ),
+          icon: <RiFileExcel2Line size={30} className="mr-3" />,
           command: () => ExportExcel(),
         },
       ],

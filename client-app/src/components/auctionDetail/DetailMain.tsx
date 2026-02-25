@@ -29,7 +29,7 @@ import { useGetUserNameQuery } from '../../api/AuthApi';
 import Waiter from '../Waiter';
 import Footer from '../layout/Footer';
 import ModalYesNo from '../modals/ModalYesNo';
-import { CheckEventReady } from '../../utils/CheckEvent';
+import { CheckEventReady } from '../../utils/checkEvent';
 
 export default function DetailMain() {
   const { id } = useParams();

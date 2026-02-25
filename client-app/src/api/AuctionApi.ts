@@ -5,9 +5,9 @@ import {
   CustomError,
   PostApiProcess,
   PostErrorApiProcess,
-} from '../utils/PostApiProcess';
+} from '../utils/postApiProcess';
 import uuid from 'react-native-uuid';
-import { GetCurrentUser } from '../utils/GetCurrentUser';
+import { GetCurrentUser } from '../utils/getCurrentUser';
 
 const auctionApi = createApi({
   reducerPath: 'auctionApi',

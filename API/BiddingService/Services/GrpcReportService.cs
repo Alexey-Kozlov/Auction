@@ -5,11 +5,13 @@ using Common.Contracts;
 using Common.Contracts.Bid;
 using Common.Contracts.Report;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ReportService;
 
 namespace BiddingService.Services;
 
+[Authorize]
 public class GrpcReportService : GrpcReports.GrpcReportsBase
 {
     private readonly BidDbContext _dbContext;

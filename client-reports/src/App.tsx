@@ -1,38 +1,64 @@
 import { Route, Routes } from "react-router-dom";
 import Header from "./components/layout/header/Header";
-import Main from "./components/layout/DataComponents/Main";
+import Main from "./components/layout/Main";
 import List from "./components/layout/List";
 import { useDispatch, useSelector } from "react-redux";
-import { setParamIsOpen } from "./store/ReportSlice";
-import { useEffect } from "react";
+import { setParamIsOpen } from "./store/reportSlice";
+import { useEffect, useRef } from "react";
 import {
   ApiResponse,
   LoginResponse,
   LogoutUser,
+  ProcessingState,
   RefreshLinkType,
+  SignalREvents,
+  ToastType,
 } from "./types";
 import {
   clearRefreshLink,
   setAuthUser,
   setRefreshLink,
 } from "./store/authSlice";
-import { RootState } from "./store/Store";
+import { RootState } from "./store/store";
 import { jwtDecode } from "jwt-decode";
 import { useLoginUserMutation, useRefreshTokenMutation } from "./api/AuthApi";
 import AddTokenHeader from "./api/AddTokenHeader";
 import uuid from "react-native-uuid";
 import { setParams } from "./store/paramSlice";
+import { checkEventLastChangedNotReady } from "./utils/checkEvent";
+import SignalRProvider from "./providers/SignalRProvider";
+import { Toast } from "primereact/toast";
+import { setServiceData } from "./store/serviceSlice";
+import MessageToast from "./components/signalRNotifications/MessageToast";
+import { CustomError } from "./utils/postApiProcess";
 
 function App() {
+  const toastMessage = useRef<Toast>(null);
   const dispatch = useDispatch();
   const refreshLink = useSelector((state: RootState) => state.refreshLink);
   const auth = useSelector((state: RootState) => state.authStore);
+  const settings = useSelector((state: RootState) => state.settingsStore);
   const [refreshTokenApi] = useRefreshTokenMutation();
   const [loginUser] = useLoginUserMutation();
+  const procState: ProcessingState[] = useSelector(
+    (state: RootState) => state.processingStore,
+  );
 
   const handleCloseParamWindow = () => {
     dispatch(setParamIsOpen({ isOpen: false }));
   };
+
+  //обновление приложения при поступлении сигнала об установке или выходе из админ.режима
+  useEffect(() => {
+    if (
+      checkEventLastChangedNotReady(
+        procState,
+        SignalREvents[SignalREvents.SetCurrentSettings],
+      )
+    ) {
+      window.location.reload();
+    }
+  }, [procState]);
 
   useEffect(() => {
     document.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -40,14 +66,32 @@ function App() {
         dispatch(setParamIsOpen({ isOpen: false }));
       }
     });
-
+    //инициализируем выпадающее сообщение для вызова в любом месте приложения
+    if (toastMessage) {
+      dispatch(setServiceData({ toast: toastMessage.current }));
+    }
+    // eslint-disable-next-line
     stopRefreshTokenTimer();
     //если уже входил в систему
-    if (AddTokenHeader()) {
+    if (AddTokenHeader() && settings) {
       const tokenData = localStorage.getItem("Auction");
       const token: LoginResponse = JSON.parse(tokenData!);
       dispatch(setAuthUser(token));
       dispatch(setParams({ userLogin: token.login }));
+      if (settings.adminMode && token.login !== "admin") {
+        //если админский режим - работать можно только администратору
+        toastMessage.current!.show({
+          severity: "success",
+          life: 4000,
+          className: "bg-white",
+          content: (props) => (
+            <MessageToast
+              message="Система на обслуживании."
+              toastType={ToastType.Warning}
+            />
+          ),
+        });
+      }
     } else {
       //если еще не входил в систему - регистрируем пользователя в системе как гостя
       const _login = uuid.v4() as string;
@@ -63,13 +107,27 @@ function App() {
               name: rez.data.result.name,
               login: rez.data.result.login,
               isGuest: rez.data.result.isGuest,
-            })
+            }),
           );
+        }
+        //отображение уведомлений, если будут. Например, при работе когда включен админский режим
+        if (rez.error && toastMessage.current) {
+          toastMessage.current!.show({
+            severity: "success",
+            life: 4000,
+            className: "bg-white",
+            content: (props) => (
+              <MessageToast
+                message={(rez.error as CustomError).message}
+                toastType={ToastType.Warning}
+              />
+            ),
+          });
         }
       });
     }
     // eslint-disable-next-line
-  }, []);
+  }, [toastMessage, settings]);
 
   useEffect(() => {
     if (auth && auth.login) {
@@ -95,7 +153,7 @@ function App() {
         setRefreshLink({
           value: setTimeout(refreshToken, timeOut),
           setClear: false,
-        } as RefreshLinkType)
+        } as RefreshLinkType),
       );
     }
   };
@@ -107,9 +165,8 @@ function App() {
       const user: LogoutUser = { login: token.login };
       stopRefreshTokenTimer();
       try {
-        const newToken: ApiResponse<LoginResponse> = await refreshTokenApi(
-          user
-        );
+        const newToken: ApiResponse<LoginResponse> =
+          await refreshTokenApi(user);
         if (newToken.data && newToken.data.isSuccess) {
           localStorage.setItem("Auction", JSON.stringify(newToken.data.result));
           dispatch(
@@ -117,7 +174,7 @@ function App() {
               name: newToken.data.result.name,
               login: newToken.data.result.login,
               isGuest: newToken.data.result.isGuest,
-            })
+            }),
           );
           console.log(new Date() + " Токен обновлен");
         }
@@ -136,20 +193,16 @@ function App() {
   return (
     <div>
       {auth.login && (
-        <div
-          className="container"
-          onClick={handleCloseParamWindow}
-        >
+        <div className="container" onClick={handleCloseParamWindow}>
           <Routes>
             <Route
               path="/:root"
               element={[<Header key={1} />, <List key={2} />]}
             ></Route>
-            <Route
-              path="/:root/:id"
-              element={<Main />}
-            ></Route>
+            <Route path="/:root/:id" element={<Main />}></Route>
           </Routes>
+          <SignalRProvider />
+          <Toast ref={toastMessage} position="bottom-right" />
         </div>
       )}
     </div>
