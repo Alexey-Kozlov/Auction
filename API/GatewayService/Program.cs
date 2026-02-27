@@ -95,7 +95,7 @@ builder.Services.AddCors(options =>
         p.AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
-            .WithOrigins(builder.Configuration["ClientApp"]);
+            .WithOrigins(builder.Configuration.GetSection("ClientAppUrls").Get<string[]>());
     });
 });
 
