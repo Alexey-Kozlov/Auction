@@ -18,7 +18,7 @@ export default function List() {
   const [reportList, setReportList] = useState<ReportItem[]>([]);
 
   useEffect(() => {
-    if (settings.adminMode && user.login !== "admin") {
+    if (settings.adminMode && !user.isAdmin) {
       setReportList(() => []);
     } else {
       setReportList([

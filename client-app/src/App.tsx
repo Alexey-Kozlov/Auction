@@ -76,7 +76,7 @@ function App() {
       dispatch(setAuthUser(token));
       dispatch(setParams({ userLogin: token.login }));
       if (settings.adminMode && token.login !== 'admin') {
-        //если админский режим - работать можно только администратору
+        //если админский режим - выдаем сообщение об админском режиме
         toastMessage.current!.show({
           severity: 'success',
           life: 5000,

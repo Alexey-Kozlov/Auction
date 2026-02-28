@@ -27,6 +27,7 @@ export default function AdminMode() {
         }),
       );
     }
+    // eslint-disable-next-line
   }, [settingsData]);
 
   //обновление видимости контрола
@@ -39,6 +40,7 @@ export default function AdminMode() {
     ) {
       settingsData.refetch();
     }
+    // eslint-disable-next-line
   }, [procState]);
   return (
     <div>

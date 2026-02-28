@@ -13,13 +13,13 @@ import {
   ProcessingState,
   SignalREvents,
   UrlCacheList,
+  User,
 } from '../../types';
 import Waiter from '../Waiter';
 import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
 import { CheckEventLastChangedNotReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import { setCacheQuery } from '../../store/cacheSlice';
-import { Toast } from 'primereact/toast';
 
 export default function Listings() {
   const dispatch = useDispatch();
@@ -33,6 +33,9 @@ export default function Listings() {
   );
   const [isWait, setIsWait] = useState(true);
   const [currentPageNumber, setCurrentPageNumber] = useState(0);
+  const [showListItems, setShowListItems] = useState(true);
+  const settings = useSelector((state: RootState) => state.settingsStore);
+  const user: User = useSelector((state: RootState) => state.authStore);
 
   //автоматически запускается при изменении url
   let auctionsData = useGetAuctionsQuery(url, {
@@ -102,6 +105,12 @@ export default function Listings() {
     // eslint-disable-next-line
   }, [procState]);
 
+  //отключение панели поиска для админского режима (кроме администраторов)
+  useEffect(() => {
+    setShowListItems(() => !(settings.adminMode && !user.isAdmin));
+    // eslint-disable-next-line
+  }, [settings, user]);
+
   function setPageNumber(e: PaginatorPageChangeEvent) {
     dispatch(
       setParams({
@@ -115,35 +124,40 @@ export default function Listings() {
 
   return (
     <div>
-      <div className="ListingFilter">
-        <Filters />
-      </div>
-
-      <div className="ListingContainer">
-        {isWait ? (
-          <Waiter />
-        ) : auctions.length === 0 ? (
-          <EmptyFilter showReset />
-        ) : (
-          <div>
-            <div className="ListItem">
-              {auctions.map((auction: Auction) => {
-                return <AuctionCard auction={auction} key={auction.itemId} />;
-              })}
-            </div>
-            <div className="ListPagination">
-              <Paginator
-                alwaysShow={true}
-                onPageChange={setPageNumber}
-                first={currentPageNumber}
-                rows={params.pageSize}
-                totalRecords={data.totalCount}
-                rowsPerPageOptions={[4, 8, 16]}
-              />
-            </div>
+      {showListItems && (
+        <>
+          <div className="ListingFilter">
+            <Filters />
           </div>
-        )}
-      </div>
+          <div className="ListingContainer">
+            {isWait ? (
+              <Waiter />
+            ) : auctions.length === 0 ? (
+              <EmptyFilter showReset />
+            ) : (
+              <div>
+                <div className="ListItem">
+                  {auctions.map((auction: Auction) => {
+                    return (
+                      <AuctionCard auction={auction} key={auction.itemId} />
+                    );
+                  })}
+                </div>
+                <div className="ListPagination">
+                  <Paginator
+                    alwaysShow={true}
+                    onPageChange={setPageNumber}
+                    first={currentPageNumber}
+                    rows={params.pageSize}
+                    totalRecords={data.totalCount}
+                    rowsPerPageOptions={[4, 8, 16]}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

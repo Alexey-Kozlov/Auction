@@ -6,15 +6,23 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { setEventFlag } from '../../../store/processingSlice';
 import { RootState } from '../../../store/store';
 import api from '../../../api/AuctionApi';
+import { ProcessingState, SignalREvents, User } from '../../../types';
+import { CheckEventReady } from '../../../utils/checkEvent';
+import { setAuthUser } from '../../../store/authSlice';
 
 export default function Search() {
   const [search, setSearch] = useState('');
   const [searchAdv, setSearchAdv] = useState('');
+  const [showSearch, setShowSearch] = useState(true);
+  const settings = useSelector((state: RootState) => state.settingsStore);
+  const user: User = useSelector((state: RootState) => state.authStore);
+  const procState: ProcessingState[] = useSelector(
+    (state: RootState) => state.processingStore,
+  );
+  const params = useSelector((state: RootState) => state.paramStore);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const params = useSelector((state: RootState) => state.paramStore);
 
   const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -73,38 +81,68 @@ export default function Search() {
     // eslint-disable-next-line
   }, [params.searchTerm, params.searchAdv]);
 
+  //отключение панели поиска для админского режима (кроме администраторов)
+  useEffect(() => {
+    setShowSearch(() => !(settings.adminMode && !user.isAdmin));
+    // eslint-disable-next-line
+  }, [settings, user]);
+
+  //обновление видимости контрола
+  useEffect(() => {
+    if (
+      !CheckEventReady(
+        procState,
+        SignalREvents[SignalREvents.SetCurrentSettings],
+      )
+    ) {
+      dispatch(
+        setAuthUser({
+          name: user.name,
+          login: user.login,
+          isGuest: user.isGuest,
+          isAdmin: user.isAdmin,
+        }),
+      );
+    }
+    // eslint-disable-next-line
+  }, [procState]);
+
   return (
-    <div className="SearchContainer">
-      <div className="SearchHeader">
-        <input
-          type="text"
-          placeholder="Поиск по точному совпадению"
-          className="SearchInput"
-          value={search}
-          onChange={(e) => onSearchChange(e)}
-          onKeyDown={(e: any) => {
-            if (e.key === 'Enter') Search();
-          }}
-        />
-        <button className="SearchButton" onClick={() => Search()}>
-          <FaSearch size={40} className="SearchIcon" />
-        </button>
-      </div>
-      <div className="SearchHeader">
-        <input
-          type="text"
-          placeholder="Расширенный поиск"
-          className="SearchInput"
-          value={searchAdv}
-          onChange={(e) => onAdvSearchChange(e)}
-          onKeyDown={(e: any) => {
-            if (e.key === 'Enter') AdvSearch();
-          }}
-        />
-        <button className="SearchButton" onClick={() => AdvSearch()}>
-          <FaSearch size={40} className="SearchIconAdv" />
-        </button>
-      </div>
-    </div>
+    <>
+      {showSearch && (
+        <div className="SearchContainer">
+          <div className="SearchHeader">
+            <input
+              type="text"
+              placeholder="Поиск по точному совпадению"
+              className="SearchInput"
+              value={search}
+              onChange={(e) => onSearchChange(e)}
+              onKeyDown={(e: any) => {
+                if (e.key === 'Enter') Search();
+              }}
+            />
+            <button className="SearchButton" onClick={() => Search()}>
+              <FaSearch size={40} className="SearchIcon" />
+            </button>
+          </div>
+          <div className="SearchHeader">
+            <input
+              type="text"
+              placeholder="Расширенный поиск"
+              className="SearchInput"
+              value={searchAdv}
+              onChange={(e) => onAdvSearchChange(e)}
+              onKeyDown={(e: any) => {
+                if (e.key === 'Enter') AdvSearch();
+              }}
+            />
+            <button className="SearchButton" onClick={() => AdvSearch()}>
+              <FaSearch size={40} className="SearchIconAdv" />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

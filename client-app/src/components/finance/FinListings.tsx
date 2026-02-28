@@ -30,7 +30,6 @@ import Waiter from '../Waiter';
 import Footer from '../layout/Footer';
 import { CheckEventReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
-import { Toast } from 'primereact/toast';
 
 export default function FinListings() {
   const dispatch = useDispatch();

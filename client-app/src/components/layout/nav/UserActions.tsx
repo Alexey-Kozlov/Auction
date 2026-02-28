@@ -35,12 +35,11 @@ export default function UserActions() {
     (state: RootState) => state.settingsStore,
   );
 
-  let adminModeLabel = '';
-  let adminModeIcon = <TbSettingsOff size={30} />;
-
   let adminMenus: any = [];
 
   useEffect(() => {
+    let adminModeLabel = '';
+    let adminModeIcon = <TbSettingsOff size={30} />;
     if (settings.adminMode) {
       adminModeLabel = 'Перейти в обычный режим';
       adminModeIcon = <TbSettingsOff size={30} />;
