@@ -1,6 +1,5 @@
 ﻿using Common.Contracts;
 using Common.Contracts.Settings;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SettingsService.Services;
 
