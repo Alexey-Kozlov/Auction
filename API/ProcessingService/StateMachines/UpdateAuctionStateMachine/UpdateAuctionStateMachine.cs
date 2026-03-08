@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Image;
-using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.AuctionUpdate;

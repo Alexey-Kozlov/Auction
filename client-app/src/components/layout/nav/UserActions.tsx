@@ -31,11 +31,11 @@ export default function UserActions() {
   const [dateValue, setDateValue] = useState<Date>(new Date());
   const [resetLog, setResetLog] = useState(false);
   const [showConfirmSetSettings, setShowConfirmSetSettings] = useState(false);
+  const [adminMenuItems, setAdminMenuItems] = useState<any[]>([]);
   const settings: CurrentSettings = useSelector(
     (state: RootState) => state.settingsStore,
   );
-
-  let adminMenus: any = [];
+  const [stateMenuItems, setStateMenuItems] = useState<any>();
 
   useEffect(() => {
     let adminModeLabel = '';
@@ -48,7 +48,7 @@ export default function UserActions() {
       adminModeIcon = <TbSettings size={30} />;
     }
 
-    adminMenus = [
+    const adminMenus = [
       {
         separator: true,
       },
@@ -78,6 +78,12 @@ export default function UserActions() {
         command: () => handleResetImageCacheClick(),
       },
     ];
+    setAdminMenuItems((prev: any) => {
+      let menuItems: any = prev;
+      menuItems.push(...adminMenus);
+      return prev;
+    });
+    // eslint-disable-next-line
   }, [settings.adminMode]);
 
   const mainMenuItems = [
@@ -125,8 +131,6 @@ export default function UserActions() {
     },
   ];
 
-  const [stateMenuItems, setStateMenuItems] = useState<any>();
-
   useEffect(() => {
     //заполняем выпадающее меню основными позициями
     setStateMenuItems(mainMenuItems);
@@ -134,7 +138,7 @@ export default function UserActions() {
       //заполняем выпадающее меню админскими позициями
       setStateMenuItems((prev: any) => {
         let menuItems: any = prev;
-        menuItems.push(...adminMenus);
+        menuItems.push(...adminMenuItems);
         return prev;
       });
     }

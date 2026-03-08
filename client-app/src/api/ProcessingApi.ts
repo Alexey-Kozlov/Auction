@@ -5,6 +5,7 @@ import {
   AuctionUpdated,
   CurrentSettings,
   FinanceCreate,
+  ModifyTag,
   NotifyUser,
   PlaceBidParams,
   RequestType,
@@ -148,7 +149,43 @@ const processingApi = createApi({
         url: '/setcurrentsettings',
         method: 'post',
         headers: {
-          RequestType: RequestType[RequestType.Notification],
+          RequestType: RequestType[RequestType.CurrentSettings],
+        },
+        body: JSON.stringify(params),
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
+      },
+      invalidatesTags: ['processing'],
+    }),
+    addTag: builder.mutation<ApiResponseNet<{}>, ModifyTag>({
+      query: (params) => ({
+        url: '/createtag',
+        method: 'post',
+        headers: {
+          RequestType: RequestType[RequestType.Tag],
+        },
+        body: JSON.stringify(params),
+      }),
+      transformResponse: (response: ApiResponseNet<{}>, meta: any) => {
+        PostApiProcess(response);
+        return response;
+      },
+      transformErrorResponse: (response: any, meta: any): CustomError => {
+        return PostErrorApiProcess(response, meta);
+      },
+      invalidatesTags: ['processing'],
+    }),
+    deleteTag: builder.mutation<ApiResponseNet<{}>, ModifyTag>({
+      query: (params) => ({
+        url: '/deletetag',
+        method: 'post',
+        headers: {
+          RequestType: RequestType[RequestType.Tag],
         },
         body: JSON.stringify(params),
       }),
@@ -172,5 +209,7 @@ export const {
   useFinanceCreateMutation,
   useSetNotifyUserMutation,
   useSetCurrentSettingsMutation,
+  useAddTagMutation,
+  useDeleteTagMutation,
 } = processingApi;
 export default processingApi;

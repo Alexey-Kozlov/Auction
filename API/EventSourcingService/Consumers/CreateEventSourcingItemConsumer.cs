@@ -19,6 +19,8 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
     private readonly CommunicationCreateProcessing _communicationCreateProcessing;
     private readonly CommunicationDeleteProcessing _communicationDeleteProcessing;
     private readonly CommunicationUpdateProcessing _communicationUpdateProcessing;
+    private readonly TagCreateProcessing _tagCreateProcessing;
+    private readonly TagDeleteProcessing _tagDeleteProcessing;
 
     public CreateEventSourcingItemConsumer(AuctionDeleteProcessing auctionDeleteProcessing,
         ESLogCommitProcessing eSLogCommitProcessing,
@@ -31,7 +33,9 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         RestoreSnapShotProcessing restoreSnapShotProcessing,
         CommunicationCreateProcessing communicationCreateProcessing,
         CommunicationDeleteProcessing communicationDeleteProcessing,
-        CommunicationUpdateProcessing communicationUpdateProcessing)
+        CommunicationUpdateProcessing communicationUpdateProcessing,
+        TagCreateProcessing tagCreateProcessing,
+        TagDeleteProcessing tagDeleteProcessing)
     {
         _auctionDeleteProcessing = auctionDeleteProcessing;
         _eSLogCommitProcessing = eSLogCommitProcessing;
@@ -45,6 +49,8 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
         _communicationCreateProcessing = communicationCreateProcessing;
         _communicationDeleteProcessing = communicationDeleteProcessing;
         _communicationUpdateProcessing = communicationUpdateProcessing;
+        _tagCreateProcessing = tagCreateProcessing;
+        _tagDeleteProcessing = tagDeleteProcessing;
     }
 
     public async Task Consume(ConsumeContext<ESContract> context)
@@ -91,6 +97,12 @@ public class CreateEventSourcingItemConsumer : IConsumer<ESContract>
                     break;
                 case Command.CommunicationUpdate:
                     await _communicationUpdateProcessing.ProcessESLog(context);
+                    break;
+                case Command.TagCreate:
+                    await _tagCreateProcessing.ProcessESLog(context);
+                    break;
+                case Command.TagDelete:
+                    await _tagDeleteProcessing.ProcessESLog(context);
                     break;
                 default:
                     break;

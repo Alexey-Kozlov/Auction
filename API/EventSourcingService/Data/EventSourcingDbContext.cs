@@ -105,6 +105,20 @@ public class EventSourcingDbContext : DbContext
         string eventdata,
         string userLogin) =>
         FromExpression(() => communication_update(correlationid, itemid, auctionid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> tag_create(
+        Guid correlationid,
+        Guid itemid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => tag_create(correlationid, itemid, auctionid, eventdata, userLogin));
+    public IQueryable<ReturnResultSql> tag_delete(
+        Guid correlationid,
+        Guid itemid,
+        Guid auctionid,
+        string eventdata,
+        string userLogin) =>
+        FromExpression(() => tag_delete(correlationid, itemid, auctionid, eventdata, userLogin));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -126,6 +140,8 @@ public class EventSourcingDbContext : DbContext
         modelBuilder.HasDbFunction(() => communication_create(default, default, default, default, default));
         modelBuilder.HasDbFunction(() => communication_delete(default, default, default, default, default));
         modelBuilder.HasDbFunction(() => communication_update(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => tag_create(default, default, default, default, default));
+        modelBuilder.HasDbFunction(() => tag_delete(default, default, default, default, default));
         modelBuilder.Entity<ReturnResultSql>().HasNoKey();
         modelBuilder.Entity<ImageReturnTypeSql>().HasNoKey();
     }

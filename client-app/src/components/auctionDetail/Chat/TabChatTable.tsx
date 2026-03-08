@@ -222,7 +222,8 @@ export default function TabChatTable({ auction, user }: Props) {
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,
     chatItem: ChatComment,
   ) => {
-    if (cm.current && !user.isGuest) {
+    //показываем меню редактирования для админов или для автора записи
+    if (cm.current && (user.isAdmin || user.login === chatItem.userLogin)) {
       setChatSelected(() => chatItem);
       cm.current.show(event);
     }

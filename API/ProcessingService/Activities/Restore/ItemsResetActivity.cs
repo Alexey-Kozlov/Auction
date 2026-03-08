@@ -5,6 +5,7 @@ using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
+using Common.Contracts.Tag;
 using MassTransit;
 using ProcessingService.StateMachines.RestoreStateMachine;
 
@@ -52,6 +53,11 @@ public class ItemsResetActivity : IStateMachineActivity<RestoreState, SendStopFi
             CallBackType = "Common.Contracts.Processing.ResetItems"
         });
         await _publishEndpoint.Publish(new CommunicationReset
+        {
+            CorrelationId = context.Saga.CorrelationId,
+            CallBackType = "Common.Contracts.Processing.ResetItems"
+        });
+        await _publishEndpoint.Publish(new TagReset
         {
             CorrelationId = context.Saga.CorrelationId,
             CallBackType = "Common.Contracts.Processing.ResetItems"

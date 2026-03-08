@@ -127,6 +127,20 @@ public class SearchRestoreSnapShot : IFaultMessage
     public bool IsError { get; set; }
 }
 
+public class TagRestoreSnapShot : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public Guid? ItemId { get; set; }
+    public bool IsError { get; set; }
+}
+
+
 public class RestoreSnapShotESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
@@ -245,6 +259,21 @@ public class CommunicationSetSnapShot : IFaultMessage
     public Guid? ItemId { get; set; }
     public bool IsError { get; set; }
 }
+
+public class TagSetSnapShot : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public int AllItemsCount { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? ItemId { get; set; }
+    public bool IsError { get; set; }
+}
+
 public class SetSnapShotESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }

@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Common.Contracts.EventSourcing;
-using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.SetSnapShot;
@@ -15,6 +14,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public State SearchState { get; }
     public State NotifyState { get; }
     public State CommunicationState { get; }
+    public State TagState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
@@ -27,6 +27,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public Event<SearchSetSnapShot> SearchEvent { get; }
     public Event<NotifySetSnapShot> NotifyEvent { get; }
     public Event<CommunicationSetSnapShot> CommunicationEvent { get; }
+    public Event<TagSetSnapShot> TagEvent { get; }
     public Event<SetSnapShotESCommit> CommitEvent { get; }
     public Event<NotifyUISetSnapShot> NotifyUIEvent { get; }
     public Event<BaseServiceError> FaultEvent { get; }
@@ -36,6 +37,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public Event<Fault<SearchSetSnapShot>> FaultSearchEvent { get; }
     public Event<Fault<NotifySetSnapShot>> FaultNotifyEvent { get; }
     public Event<Fault<CommunicationSetSnapShot>> FaultCommunicationEvent { get; }
+    public Event<Fault<TagSetSnapShot>> FaultTagEvent { get; }
     public Event<Fault<SetSnapShotESCommit>> FaultCommitEvent { get; }
     public Event<Fault<NotifyUISetSnapShot>> FaultNotifyUIEvent { get; }
 
@@ -54,6 +56,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         ConfigureSearchState();
         ConfigureNotifyState();
         ConfigureCommunicationState();
+        ConfigureTagState();
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompletedState();
@@ -68,6 +71,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         Event(() => NotifyEvent);
         Event(() => CommunicationEvent);
         Event(() => CommitEvent);
+        Event(() => TagEvent);
         Event(() => FaultEvent);
         Event(() => NotifyUIEvent);
         Event(() => FaultImageEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
@@ -76,6 +80,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommunicationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultTagEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
     }
@@ -438,13 +443,60 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 new Uri(configuration["QueuePaths:CommunicationsSetSnapShotConsumer"]),
                 context => new ESContract
                 {
+                    CallBackType = "Common.Contracts.EventSourcing.TagSetSnapShot",
+                    EventData = context.Saga.ActionDate.ToString(),
+                    CorrelationId = context.Saga.CorrelationId
+                })
+            .TransitionTo(TagState),
+        //обрабатываем ошибки из сервиса CommunicationService 
+        When(FaultCommunicationEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    private void ConfigureTagState()
+    {
+        During(TagState,
+        When(TagEvent)
+           .Then(context =>
+            {
+                context.Saga.NotifyMessage += $", Сообщений пользователей - {context.Message.DataItems.DataObjects.Count()}";
+            })
+            //прогресс выполнения операции
+            .Send(
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Сохранение записей аукционов...",
+                            percent = context.Saga.ProgressCurrent += 1
+                        })
+                    })
+            //получение записей аукционов из сервиса TagService
+            .Send(
+                new Uri(configuration["QueuePaths:TagSetSnapShotConsumer"]),
+                context => new ESContract
+                {
                     CallBackType = "Common.Contracts.EventSourcing.SetSnapShotESCommit",
                     EventData = context.Saga.ActionDate.ToString(),
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(PreCommitState),
-        //обрабатываем ошибки из сервиса CommunicationService 
-        When(FaultCommunicationEvent)
+        When(FaultTagEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {

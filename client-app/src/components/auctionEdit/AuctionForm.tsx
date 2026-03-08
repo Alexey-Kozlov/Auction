@@ -6,6 +6,9 @@ import {
   AuctionUpdated,
   FormErrors,
   ProcessingState,
+  SignalREvents,
+  TagItem,
+  TagList,
 } from '../../types';
 
 import api, { useGetDetailedViewDataQuery } from '../../api/AuctionApi';
@@ -14,7 +17,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setEventFlag } from '../../store/processingSlice';
 import { RootState } from '../../store/store';
 import {
+  useAddTagMutation,
   useCreateAuctionMutation,
+  useDeleteTagMutation,
   useUpdateAuctionMutation,
 } from '../../api/ProcessingApi';
 import uuid from 'react-native-uuid';
@@ -32,6 +37,9 @@ import { Message } from 'primereact/message';
 import Waiter from '../Waiter';
 import { CheckEventReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
+import CreatableSelect from 'react-select/creatable';
+import { useGetAuctionTagsQuery, useGetTagListQuery } from '../../api/TagApi';
+import { setTagList } from '../../store/tagSlice';
 
 export default function AuctionForm() {
   let { id } = useParams();
@@ -39,12 +47,23 @@ export default function AuctionForm() {
     skip: id === '' || id === undefined,
   });
 
+  const tags = useGetTagListQuery({});
+  const auctionTags = useGetAuctionTagsQuery(id!, {
+    skip: id === '' || id === undefined,
+  });
+
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
+  );
+
+  const tagList: TagItem[] = useSelector(
+    (state: RootState) => state.tagStore.TagList,
   );
   const [createAuction] = useCreateAuctionMutation();
   const [updateAuction] = useUpdateAuctionMutation();
   const [setCurrentPage] = useSetUsersCurrentPageMutation();
+  const [addTag] = useAddTagMutation();
+  const [deleteTag] = useDeleteTagMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -67,6 +86,7 @@ export default function AuctionForm() {
   const [isWaiting, setIsWaiting] = useState(false);
   const [isFormChanged, setIsFormChanged] = useState(false);
   const [editError, setEditError] = useState<FormErrors | null>(null);
+  const [tagSelected, setTagSelected] = useState<TagItem[]>([]);
 
   const editErrorList: FormErrors[] = [
     {
@@ -148,8 +168,72 @@ export default function AuctionForm() {
       }
       navigate('/');
     }
+
+    if (!CheckEventReady(procState, SignalREvents[SignalREvents.TagDeleted])) {
+      tags.refetch();
+      auctionTags.refetch();
+    }
+
     // eslint-disable-next-line
   }, [procState]);
+
+  //получаем общий список тегов
+  useEffect(() => {
+    if (
+      tags &&
+      !tags.isLoading &&
+      !tags.isFetching &&
+      !tags.isError &&
+      tags.data &&
+      tags.data.isSuccess
+    ) {
+      dispatch(
+        setTagList({
+          tagList: tags.data.result.map((item: TagList) => {
+            return { label: item.name, value: item.name } as TagItem;
+          }),
+        }),
+      );
+    }
+  }, [tags]);
+
+  //получаем список тегов для текущего аукциона (запрос о тегах для данного аукциона)
+  useEffect(() => {
+    if (
+      auctionTags &&
+      !auctionTags.isFetching &&
+      !auctionTags.isLoading &&
+      auctionTags.data
+    ) {
+      setTagSelected(
+        auctionTags.data?.result.map((item: TagList) => {
+          return { label: item.name, value: item.name } as TagItem;
+        }),
+      );
+    }
+  }, [auctionTags]);
+
+  //если изменили общий список тегов - обновляем список тегов для данного аукциона
+  useEffect(() => {
+    auctionTags.refetch();
+  }, [tagList]);
+
+  //новый тег
+  const handleNewTag = async (val: string) => {
+    await addTag({ auctionId: id!, name: val });
+  };
+
+  //изменили тег
+  const handleDeleteTag = async (newValue: any, actionMeta: any) => {
+    //если удалили тег
+    if (actionMeta.removedValue) {
+      await deleteTag({ auctionId: id!, name: actionMeta.removedValue.value });
+    }
+    //если выбрали существующий тег
+    if (actionMeta.option) {
+      await addTag({ auctionId: id!, name: actionMeta.option.value });
+    }
+  };
 
   //хендлеры по изменению данных
   const handleTitleChanged = (value: string) => {
@@ -362,6 +446,19 @@ export default function AuctionForm() {
               placeholder="Примечание"
               value={newAuction.description}
               onChange={(e) => handleDescriptionChanged(e.target.value)}
+            />
+          </div>
+          <div className="col-3">Теги</div>
+          <div className="col-9">
+            <CreatableSelect
+              isMulti
+              isClearable
+              isSearchable
+              options={tagList}
+              onCreateOption={handleNewTag}
+              onChange={handleDeleteTag}
+              value={tagSelected}
+              classNamePrefix="react-select"
             />
           </div>
           <div className="col-12">

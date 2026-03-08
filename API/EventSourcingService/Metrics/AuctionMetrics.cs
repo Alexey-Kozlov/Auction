@@ -14,6 +14,8 @@ public class AuctionMetrics
     private Counter<int> CommunicationAddCounter { get; }
     private Counter<int> CommunicationUpdateCounter { get; }
     private Counter<int> CommunicationDeleteCounter { get; }
+    private Counter<int> TagCreateCounter { get; }
+    private Counter<int> TagDeleteCounter { get; }
 
     public AuctionMetrics(IMeterFactory meterFactory, IConfiguration configuration)
     {
@@ -28,6 +30,8 @@ public class AuctionMetrics
         CommunicationAddCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricCommunicationAdd"], "Auction");
         CommunicationUpdateCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricCommunicationUpdate"], "Auction");
         CommunicationDeleteCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricCommunicationDelete"], "Auction");
+        TagCreateCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricTagCreate"], "Auction");
+        TagDeleteCounter = meter.CreateCounter<int>(configuration["MetricConfig:MetricCustom:MetricTagDelete"], "Auction");
     }
 
     public void AddAuction() => AuctionAddCounter.Add(1);
@@ -40,5 +44,7 @@ public class AuctionMetrics
     public void AddCommunication() => CommunicationAddCounter.Add(1);
     public void UpdateCommunication() => CommunicationUpdateCounter.Add(1);
     public void DeleteCommunication() => CommunicationDeleteCounter.Add(1);
+    public void CreateTag() => TagCreateCounter.Add(1);
+    public void DeleteTag() => TagDeleteCounter.Add(1);
 
 }

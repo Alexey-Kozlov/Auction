@@ -8,6 +8,7 @@ using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using MassTransit;
 using ProcessingService.Activities.Restore;
 
@@ -23,6 +24,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public State SearchState { get; }
     public State NotifyState { get; }
     public State CommunicationState { get; }
+    public State TagState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State StartFinishServiceState { get; }
@@ -40,6 +42,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<SearchRestoreSnapShot> SearchEvent { get; }
     public Event<NotifyRestoreSnapShot> NotifyEvent { get; }
     public Event<CommunicationRestoreSnapShot> CommunicationEvent { get; }
+    public Event<TagRestoreSnapShot> TagEvent { get; }
     public Event<RestoreSnapShotESCommit> CommitEvent { get; }
     public Event<NotifyUIRestoreSnapShot> NotifyUIEvent { get; }
     public Event<ReIndex> ReIndexEvent { get; }
@@ -54,6 +57,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public Event<Fault<SearchRestoreSnapShot>> FaultSearchEvent { get; }
     public Event<Fault<NotifyRestoreSnapShot>> FaultNotifyEvent { get; }
     public Event<Fault<CommunicationRestoreSnapShot>> FaultCommunicationEvent { get; }
+    public Event<Fault<TagRestoreSnapShot>> FaultTagEvent { get; }
     public Event<Fault<RestoreSnapShotESCommit>> FaultCommitEvent { get; }
     public Event<Fault<NotifyUIRestoreSnapShot>> FaultNotifyUIEvent { get; }
     public Event<Fault<ReIndex>> FaultReIndexEvent { get; }
@@ -76,6 +80,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         ConfigureGetImagesState();
         ConfigureNotifyState();
         ConfigureCommunicationState();
+        ConfigureTagState();
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureStartFinishServiceState();
@@ -95,6 +100,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         Event(() => SearchEvent);
         Event(() => NotifyEvent);
         Event(() => CommunicationEvent);
+        Event(() => TagEvent);
         Event(() => StartFinishServiceEvent);
         Event(() => ReIndexEvent);
         Event(() => CommitEvent);
@@ -109,6 +115,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         Event(() => FaultNotifyEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommunicationEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultTagEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotifyUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultReIndexEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultStartFinishServiceEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
@@ -127,7 +134,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 context.Saga.AllItemsCount = -1;
                 context.Saga.ItemsCount = 0;
                 context.Saga.IsError = false;
-                context.Saga.CommitCounter = 6; //количество коллекций для сброса данных
+                context.Saga.CommitCounter = 7; //количество коллекций для сброса данных
             })
             //прогресс выполнения операции
             .Send(
@@ -175,12 +182,13 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Очищаем данные во всех 6 базах чтения...",
+                            message = "Очищаем данные во всех 7 базах чтения...",
                             percent = context.Saga.ProgressCurrent = 5
                         })
                     })
-            // посылаем через Ребит - подготовка для удаления всех записей в 
-            // BiddingService,FinanceService,NotificationService,SearchService,ImageService,CommunicationService
+            // посылаем через Rebbit - подготовка для удаления всех записей в 
+            // BiddingService,FinanceService,NotificationService,SearchService,ImageService,
+            // CommunicationService, TagService
             .Activity(p => p.OfType<ItemsResetActivity>())
             .TransitionTo(ResetItemsState),
         When(FaultStopFinishServiceEvent)
@@ -602,6 +610,54 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 {
                     DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "CommunicationItem").ToList(),
                     CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.EventSourcing.TagRestoreSnapShot",
+                    Props = context.Saga.NotifyMessage
+                })
+            .TransitionTo(TagState),
+        When(FaultNotifyEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    private void ConfigureTagState()
+    {
+        During(TagState,
+        When(TagEvent)
+            .Then(context =>
+            {
+                context.Saga.NotifyMessage += $", Тегов - {JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "TagItem").Count()}";
+            })
+            //прогресс выполнения операции
+            .Send(
+                new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
+                    context => new EventNotificationItem
+                    {
+                        SignalRMethod = SignalRMethod.OperationProgress,
+                        Show = true,
+                        EventType = EventType.UserLogin,
+                        UserLogin = context.Saga.UserLogin,
+                        Data = JsonSerializer.Serialize(new
+                        {
+                            message = "Восстановление записей тегов...",
+                            percent = context.Saga.ProgressCurrent = 96
+                        })
+                    })
+            //Обновление записей тегов (если есть) в сервисе TagService
+            .Send(
+                new Uri(configuration["QueuePaths:RestoreTagConsumer"]),
+                context => new DataForProcessingServicesList<TagItem>
+                {
+                    DataObjects = JsonSerializer.Deserialize<DataForProcessingServicesList>(context.Saga.DataForProcessingServicesList).DataObjects.Where(p => p.DataType == "TagItem").ToList(),
+                    CorrelationId = context.Saga.CorrelationId,
                     CallBackType = "Common.Contracts.Processing.ReIndex",
                     Props = context.Saga.NotifyMessage
                 })
@@ -619,6 +675,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .TransitionTo(PreCommitState)
         );
     }
+
 
     private void ConfigureReIndexState()
     {
@@ -710,7 +767,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(CommitState,
         When(CommitEvent)
-            .Then(context => context.Saga.CommitCounter = 6)
+            .Then(context => context.Saga.CommitCounter = 7)
             //прогресс выполнения операции
             .Send(
                 new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
@@ -736,7 +793,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     {
         During(StartFinishServiceState,
         When(StartFinishServiceEvent)
-            //ждем сообщений о завершении транзакцтт всех 5 коллекций с записями
+            //ждем сообщений о завершении транзакции всех 5 коллекций с записями
             .Then(context =>
             {
                 lock (locker)

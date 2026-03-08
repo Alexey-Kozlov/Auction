@@ -7,6 +7,7 @@ using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using Common.Utils;
 using Common.Utils.Extentions;
 using Common.Utils.Logging;
@@ -60,7 +61,7 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             CRUD = CRUD.Create
                         }
                     );
-                    //получаем Id аукциона (если это записи Bids,Communications, Finance)
+                    //получаем Id аукциона (если это записи Bids,Communications, Finance, Tag)
                     if (document.RootElement.TryGetProperty("AuctionId", out jsonElement))
                     {
                         var _tmpGuid = "";
@@ -101,6 +102,9 @@ public class SetSnapShotConsumer : IConsumer<DataForProcessingServicesList<strin
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
                             break;
                         case nameof(CommunicationItem):
+                            document.RootElement.TryGetProperty("UserLogin", out jsonElement);
+                            break;
+                        case nameof(TagItem):
                             document.RootElement.TryGetProperty("UserLogin", out jsonElement);
                             break;
                         case nameof(ImageItem):

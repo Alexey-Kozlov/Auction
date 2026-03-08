@@ -9,6 +9,7 @@ using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Settings;
+using Common.Contracts.Tag;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -221,6 +222,35 @@ public class ProcessingController : ControllerBase
         await _publishEndpoint.Publish(new RequestSetCurrentSettings
         {
             AdminMode = param.AdminMode,
+            UserLogin = userLogin,
+            CorrelationId = Guid.NewGuid()
+        });
+    }
+
+
+    [HttpPost("CreateTag")]
+    public async Task CreateTag(CreateTagDTO param)
+    {
+        //Добавляем тег к аукциону
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new RequestCreateTag
+        {
+            Name = param.Name,
+            AuctionId = param.AuctionId,
+            UserLogin = userLogin,
+            CorrelationId = Guid.NewGuid()
+        });
+    }
+
+    [HttpPost("DeleteTag")]
+    public async Task DeleteTag(DeleteTagDTO param)
+    {
+        //Удаляем тег у аукциона
+        var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
+        await _publishEndpoint.Publish(new RequestDeleteTag
+        {
+            Name = param.Name,
+            AuctionId = param.AuctionId,
             UserLogin = userLogin,
             CorrelationId = Guid.NewGuid()
         });

@@ -27,6 +27,8 @@ public class ProcessingDbContext : SagaDbContext
             yield return new DeleteCommunicationStateMap();
             yield return new UpdateCommunicationStateMap();
             yield return new CurrentSettingsStateMap();
+            yield return new CreateTagStateMap();
+            yield return new DeleteTagStateMap();
         }
     }
 }

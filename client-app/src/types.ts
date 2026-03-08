@@ -204,6 +204,7 @@ export enum RequestType {
   UsersCurrentPage,
   RefreshToken,
   CurrentSettings,
+  Tag,
 }
 
 export type State = {
@@ -323,6 +324,8 @@ export enum SignalREvents {
   CommunicationChanged,
   CollectionChanged,
   SetCurrentSettings,
+  TagCreated,
+  TagDeleted,
 }
 
 export type UrlCacheList = {
@@ -340,4 +343,18 @@ export type RefreshLinkType = {
 
 export type CurrentSettings = {
   adminMode: boolean;
+};
+
+export type ModifyTag = {
+  auctionId: string;
+  name: string;
+};
+
+export type TagItem = {
+  value: string;
+  label: string;
+};
+
+export type TagList = {
+  name: string;
 };

@@ -132,6 +132,8 @@ internal class Program
         builder.Services.AddScoped<CommunicationCreateProcessing>();
         builder.Services.AddScoped<CommunicationDeleteProcessing>();
         builder.Services.AddScoped<CommunicationUpdateProcessing>();
+        builder.Services.AddScoped<TagCreateProcessing>();
+        builder.Services.AddScoped<TagDeleteProcessing>();
         builder.Services.AddSingleton<RestoreImageService>();
 
         var app = builder.Build();

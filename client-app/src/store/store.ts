@@ -18,6 +18,8 @@ import { serviceReducer } from './serviceSlice';
 import { cacheReducer } from './cacheSlice';
 import settingsApi from '../api/SettingsApi';
 import { settingsReducer } from './settingsSlice';
+import { tagReducer } from './tagSlice';
+import tagApi from '../api/TagApi';
 
 const store = configureStore({
   reducer: {
@@ -32,6 +34,7 @@ const store = configureStore({
     cacheStore: cacheReducer,
     refreshLink: refreshLinkReducer,
     settingsStore: settingsReducer,
+    tagStore: tagReducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [bidApi.reducerPath]: bidApi.reducer,
@@ -42,6 +45,7 @@ const store = configureStore({
     [serviceApi.reducerPath]: serviceApi.reducer,
     [communicationApi.reducerPath]: communicationApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [tagApi.reducerPath]: tagApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -56,7 +60,8 @@ const store = configureStore({
       .concat(processingApi.middleware)
       .concat(serviceApi.middleware)
       .concat(communicationApi.middleware)
-      .concat(settingsApi.middleware),
+      .concat(settingsApi.middleware)
+      .concat(tagApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -1,4 +1,4 @@
-export const checkEventReady = (
+export const CheckEventReady = (
   eventCollection: any,
   name: string,
 ): boolean => {
@@ -8,7 +8,7 @@ export const checkEventReady = (
   return rezult ? true : false;
 };
 
-export const checkEventNotReady = (
+export const CheckEventNotReady = (
   eventCollection: any,
   name: string,
 ): boolean => {
@@ -18,7 +18,7 @@ export const checkEventNotReady = (
   return rezult ? true : false;
 };
 
-export const checkEventLastChangedNotReady = (
+export const CheckEventLastChangedNotReady = (
   eventCollection: any,
   name: string,
 ): boolean => {
@@ -30,7 +30,7 @@ export const checkEventLastChangedNotReady = (
   return rezult ? true : false;
 };
 
-export const checkEventLastChangedReady = (
+export const CheckEventLastChangedReady = (
   eventCollection: any,
   name: string,
 ): boolean => {

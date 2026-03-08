@@ -3,7 +3,7 @@ import { useGetCurrentSettingsQuery } from "../../../api/SettingsApi";
 import { ProcessingState, SignalREvents } from "../../../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
-import { checkEventReady } from "../../../utils/checkEvent";
+import { CheckEventReady } from "../../../utils/checkEvent";
 import { setSettingsData } from "../../../store/settingsSlice";
 
 export default function AdminMode() {
@@ -33,7 +33,7 @@ export default function AdminMode() {
   //обновление видимости контрола
   useEffect(() => {
     if (
-      !checkEventReady(
+      !CheckEventReady(
         procState,
         SignalREvents[SignalREvents.SetCurrentSettings],
       )
@@ -42,6 +42,7 @@ export default function AdminMode() {
     }
     // eslint-disable-next-line
   }, [procState]);
+
   return (
     <div>
       {adminMode && <div className="AdminMode">Административный режим</div>}

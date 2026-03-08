@@ -87,7 +87,9 @@ public enum Command
     AuctionFinished, //9
     CommunicationCreate, //10
     CommunicationUpdate, //11
-    CommunicationDelete //12
+    CommunicationDelete, //12
+    TagCreate, //13
+    TagDelete //14
 }
 
 public enum CRUD
@@ -376,7 +378,9 @@ public enum SignalRMethod
     EditNotification,
     ResetImageCache,
     OperationProgress,
-    SetCurrentSettings
+    SetCurrentSettings,
+    TagCreated,
+    TagDeleted
 }
 
 public class EventNotificationItem
@@ -410,5 +414,33 @@ public class BaseProcessingState : SagaStateMachineInstance
     public bool IsError { get; set; }
     public string CallBackType { get; set; }
     public bool ShowMessages { get; set; }
+    public Guid? ItemId { get; set; }
+}
+
+public class ESLogTagCreated : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
+    public Guid? ItemId { get; set; }
+}
+
+public class ESLogTagDeleted : IFaultMessage
+{
+    public Guid CorrelationId { get; set; }
+    public string ErrorMessage { get; set; }
+    public string ErrorExceptionMessage { get; set; }
+    public string ErrorServiceName { get; set; }
+    public string UserLogin { get; set; }
+    public string CallBackType { get; set; }
+    public Guid? AuctionId { get; set; }
+    public bool IsError { get; set; }
+    public DataForProcessingServicesList DataItems { get; set; }
     public Guid? ItemId { get; set; }
 }

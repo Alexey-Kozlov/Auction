@@ -759,3 +759,12 @@ a.p-menuitem-link > svg {
 	padding: 0.5rem;
 }
 
+.react-select__multi-value {
+	background-color: rgba(0, 82, 204, 0.1) !important;
+	border-radius: 0.5rem !important;
+}
+
+.react-select__multi-value__label {
+	color: rgb(0, 82, 204) !important;
+}
+

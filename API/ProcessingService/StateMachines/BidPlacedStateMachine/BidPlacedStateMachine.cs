@@ -46,7 +46,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureFinanceState();
-        ConfigureBidPState();
+        ConfigureBidState();
         ConfigureSearchState();
         ConfigureNotificationState();
         ConfigurePreCommitState();
@@ -135,7 +135,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         );
     }
 
-    private void ConfigureBidPState()
+    private void ConfigureBidState()
     {
         During(BidState,
         When(BidEvent)

@@ -1,11 +1,8 @@
 using System.Text;
-using Common.Contracts;
-using Common.Contracts.EventSourcing;
 using Common.Utils;
 using Common.Utils.Logging;
 using Common.Utils.Settings;
 using Common.Utils.Vault;
-using Confluent.Kafka;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;

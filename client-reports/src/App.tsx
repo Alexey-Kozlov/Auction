@@ -25,7 +25,7 @@ import { useLoginUserMutation, useRefreshTokenMutation } from "./api/AuthApi";
 import AddTokenHeader from "./api/AddTokenHeader";
 import uuid from "react-native-uuid";
 import { setParams } from "./store/paramSlice";
-import { checkEventLastChangedNotReady } from "./utils/checkEvent";
+import { CheckEventLastChangedNotReady } from "./utils/checkEvent";
 import SignalRProvider from "./providers/SignalRProvider";
 import { Toast } from "primereact/toast";
 import { setServiceData } from "./store/serviceSlice";
@@ -51,7 +51,7 @@ function App() {
   //обновление приложения при поступлении сигнала об установке или выходе из админ.режима
   useEffect(() => {
     if (
-      checkEventLastChangedNotReady(
+      CheckEventLastChangedNotReady(
         procState,
         SignalREvents[SignalREvents.SetCurrentSettings],
       )
