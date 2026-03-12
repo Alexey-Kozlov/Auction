@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Contracts.Auction;
 using Common.Contracts.Communication;
+using Common.Contracts.Tag;
 
 namespace ElasticSearchService;
 
@@ -21,6 +22,8 @@ public class MappingProfiles : Profile
         .ForMember(dest => dest.Seller, opt => opt.MapFrom(src => src.UserLogin))
         .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.AuctionCreated))
         .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.ItemSold ? src.Winner : ""));
+
+        CreateMap<TagItem, TagSearch>();
 
     }
 }

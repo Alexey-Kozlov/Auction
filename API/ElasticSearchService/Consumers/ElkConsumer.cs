@@ -4,6 +4,7 @@ using AutoMapper;
 using Common.Contracts.Auction;
 using Common.Contracts.Communication;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using Common.Utils;
 using Common.Utils.Logging;
 using Elastic.Clients.Elasticsearch;
@@ -98,6 +99,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                         }
                     }
 
+                    //сообщения пользователей
                     if (item.DataType == "CommunicationItem")
                     {
                         var typedItem = JsonSerializer.Deserialize<CommunicationItem>(item.Data);
@@ -129,6 +131,42 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                             {
                                 await _client.CommunicationClient.DeleteByQueryAsync<CommunicationSearch>(indices: "communication_index",
                                 p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(chatItem.ItemId)))
+                                .WaitForCompletion(true).Refresh());
+                            }
+                        }
+                    }
+
+                    //теги
+                    if (item.DataType == "TagItem")
+                    {
+                        var typedItem = JsonSerializer.Deserialize<TagItem>(item.Data);
+                        var searchTags = await _client.TagClient.SearchAsync<TagSearch>(indices: "tag_index",
+                            p => p.Query(q => q.Match(m => m.Field(f => f.AuctionId).Query(typedItem.ItemId))));
+                        if (item.CRUD == CRUD.Delete && searchTags != null)
+                        {
+                            foreach (var chatItem in searchTags.Documents)
+                            {
+                                var cacheDto = new CacheTagDTO
+                                {
+                                    Record = chatItem,
+                                    CRUD = item.CRUD
+                                };
+                                await _cache.SetStringAsync(correlationId.ToString(), JsonSerializer.Serialize(cacheDto, cacheDto.GetType()));
+                            }
+                        }
+                        var elkItem = _mapper.Map<TagSearch>(typedItem);
+                        //при переиндексации - добавляем в индекс tag_index
+                        if (item.CRUD == CRUD.Create)
+                        {
+                            await _client.TagClient.IndexAsync(elkItem, p => p.Index("tag_index"));
+                        }
+                        //при удалении аукциона - удаляем из индекса теги этого аукциона
+                        if (item.CRUD == CRUD.Delete && searchTags != null)
+                        {
+                            foreach (var tagItem in searchTags.Documents)
+                            {
+                                await _client.TagClient.DeleteByQueryAsync<TagSearch>(indices: "tag_index",
+                                p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(tagItem.ItemId)))
                                 .WaitForCompletion(true).Refresh());
                             }
                         }

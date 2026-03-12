@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Common.Contracts.Auction;
-using Common.Contracts.Bid;
 using Common.Contracts.Communication;
 using Common.Contracts.Report;
 using ReportService.DTO;

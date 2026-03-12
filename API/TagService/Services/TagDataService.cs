@@ -26,15 +26,21 @@ public class TagDataService
         };
     }
 
-    public async Task<ApiResponse<List<TagItem>>> GetAuctionTags(Guid auctionId)
+    public async Task<ApiResponse<List<TagList>>> GetAuctionTags(Guid auctionId)
     {
-        var auctionTagList = new List<TagItem>();
-        auctionTagList.AddRange(await _dbContext.TagItems.Where(p => p.AuctionId == auctionId).ToListAsync());
-        return new ApiResponse<List<TagItem>>
+        //список тегов с рейтингами для указанного аукциона
+        var result = await _dbContext.TagItems.Where(p => p.AuctionId == auctionId)
+            .Join(_dbContext.TagLists,
+                p => p.Tag,
+                c => c.Tag,
+                (p, c) => new TagList { Tag = p.Tag, Count = c.Count }
+            ).ToListAsync();
+
+        return new ApiResponse<List<TagList>>
         {
             StatusCode = System.Net.HttpStatusCode.OK,
             IsSuccess = true,
-            Result = auctionTagList
+            Result = result
         };
     }
 }

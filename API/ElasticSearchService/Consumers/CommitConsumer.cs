@@ -4,6 +4,7 @@ using Common.Contracts.Auction;
 using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using Common.Utils.Logging;
 using Elastic.Clients.Elasticsearch;
 using ElasticSearchService.DTO;
@@ -92,7 +93,34 @@ public class CommitConsumer : IConsumer<ElkCommit>
                     else
                     {
                         //если было создание - удаляем созданную запись из елки
-                        var response = await _client.Client.DeleteByQueryAsync<CommunicationSearch>(indices: context.Message.ElkIndex,
+                        var response = await _client.CommunicationClient.DeleteByQueryAsync<CommunicationSearch>(indices: context.Message.ElkIndex,
+                            p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.Record.ItemId)))
+                            .WaitForCompletion(true).Refresh());
+                    }
+                }
+            }
+
+            //для функционала тега
+            if (context.Message.ElkIndex == "tag_index")
+            {
+                if (!context.Message.Commited && !string.IsNullOrEmpty(search))
+                {
+                    var typedItem = JsonSerializer.Deserialize<CacheTagDTO>(search);
+                    if (typedItem.CRUD != CRUD.Create)
+                    {
+                        await _client.TagClient.UpdateByQueryAsync<TagSearch>(indices: context.Message.ElkIndex,
+                            p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.Record.ItemId)))
+                            .Script(s => s.Source(
+                            "ctx._source.tag = params.tag;"
+                        ).Params(p => p
+                        .Add("tag", typedItem.Record.Tag)))
+                        .Conflicts(Conflicts.Proceed)
+                        .WaitForCompletion(true).Refresh());
+                    }
+                    else
+                    {
+                        //если было создание - удаляем созданную запись из елки
+                        var response = await _client.TagClient.DeleteByQueryAsync<TagSearch>(indices: context.Message.ElkIndex,
                             p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.Record.ItemId)))
                             .WaitForCompletion(true).Refresh());
                     }

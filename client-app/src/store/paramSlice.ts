@@ -14,6 +14,8 @@ const initialState: State = {
   searchTerm: '',
   searchAdv: '',
   userLogin: '',
+  tag: '',
+  advSearchParam: [],
 };
 
 export const paramSlice = createSlice({
@@ -34,6 +36,10 @@ export const paramSlice = createSlice({
         state.seller = undefined;
         state.winner = undefined;
       }
+
+      state.tag = action.payload.tag;
+      state.advSearchParam = action.payload.advSearchParam;
+
       if (action.payload.seller) {
         state.seller = action.payload.seller;
         state.filterBy = '';
@@ -71,6 +77,8 @@ export const paramSlice = createSlice({
       state.winner = undefined;
       state.searchTerm = '';
       state.searchAdv = '';
+      state.tag = '';
+      state.advSearchParam = [];
     },
   },
 });

@@ -44,15 +44,16 @@ a.p-menuitem-link > svg {
 	position: sticky;
 	top: 6.5rem;
 	background-color: white;
-	height: 10rem;
 	display: flex;
 	z-index: 1;
+	padding-bottom: 2rem;
 }
 
 .ListingContainer {
 	padding: 2rem;
 	margin-left: auto;
 	margin-right: auto;
+	margin-top: 2rem;
 }
 
 .ListItem {
@@ -137,6 +138,22 @@ a.p-menuitem-link > svg {
 	height: 5rem;
 }
 
+.SearchHeaderAdv {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	border: none;
+	margin: 0 0.5rem 0 0.5rem;
+	width: 45rem;
+	height: 5rem;
+}
+
+.SearchHeaderAdvItem {
+	display: flex;
+	align-items: center;
+	margin-right: 2rem;
+}
+
 .SearchIcon {
 	border-radius: 9999px;
 	padding: 1rem;
@@ -160,10 +177,16 @@ a.p-menuitem-link > svg {
 	line-height: 2rem;
 	color: rgb(75 85 99);
 	background-color: initial;
-	border-color: transparent;
 	flex-grow: 1;
 	padding-left: 2rem;
 	outline: none;
+	border: none;
+	outline-style: none;
+}
+.SearchInput:focus {
+  border-color: inherit;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 
 .SearchButton {
@@ -175,9 +198,10 @@ a.p-menuitem-link > svg {
 	display: flex;
 	align-items: center;
 	justify-content: space-evenly;
-	margin-bottom: 2rem;
 	width: 100%;
 	flex-wrap: wrap;
+	height: 15rem;
+	background: white;
 }
 
 .FilterItem {
@@ -648,6 +672,14 @@ a.p-menuitem-link > svg {
 	max-width: 60%;
 }
 
+.EditFormShadow {
+	margin: 2rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-width: 60%;
+  	filter: blur(5px);
+}
 .Calendar {
 	left: 50% !important;
 }
@@ -766,5 +798,24 @@ a.p-menuitem-link > svg {
 
 .react-select__multi-value__label {
 	color: rgb(0, 82, 204) !important;
+}
+
+.FilterTag {
+	max-height: 11rem;
+	overflow:auto;
+	max-width: 50rem;
+	text-align: center;
+}
+
+.SearchToolTip  {
+	 border-radius: 0.9rem;
+	 border-color: #e5e7eb;
+	 border-style: solid;
+}
+
+.SearchToolTip > div {
+	 background-color: white;
+	 color:rgb(75 85 99);
+	 font-size: 1rem;
 }
 

@@ -9,7 +9,8 @@ public record ElkSearchRequest(
      int PageNumber,
      int PageSize,
      string UserLogin,
-     string OrderBy
+     string OrderBy,
+     string[] AdvSearchParam
 );
 
 

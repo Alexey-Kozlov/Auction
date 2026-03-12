@@ -380,7 +380,8 @@ public enum SignalRMethod
     OperationProgress,
     SetCurrentSettings,
     TagCreated,
-    TagDeleted
+    TagDeleted,
+    TagChanged
 }
 
 public class EventNotificationItem

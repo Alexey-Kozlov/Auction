@@ -9,6 +9,7 @@ namespace ProcessingService.StateMachines.CreateTagStateMachine;
 public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
 {
     public State AddTagState { get; }
+    public State SearchState { get; }
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State TagListState { get; }
@@ -16,11 +17,13 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
 
     public Event<RequestCreateTag> RequestCreateEvent { get; }
     public Event<ESLogTagCreated> EsLogEvent { get; }
+    public Event<TagCreateSearch> SearchEvent { get; }
     public Event<TagCreateESCommit> CommitEvent { get; }
     public Event<TagListCommit> TagListEvent { get; }
     public Event<TagCreateNotificationEvent> NotificationUIEvent { get; }
     public Event<Fault<ESLogTagCreated>> FaultEsLogEvent { get; }
     public Event<Fault<TagCreateESCommit>> FaultCommitEvent { get; }
+    public Event<Fault<TagCreateSearch>> FaultSearchEvent { get; }
     public Event<Fault<TagListCommit>> FaultTagListEvent { get; }
     public Event<BaseServiceError> FaultEvent { get; }
     public Event<Fault<TagCreateNotificationEvent>> FaultNotificationUIEvent { get; }
@@ -34,6 +37,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
         ConfigureEvents();
         ConfigureInitialState();
         ConfigureTagState();
+        ConfigureSearchState();
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureGetTagList();
@@ -47,10 +51,12 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
         });
         Event(() => EsLogEvent);
         Event(() => CommitEvent);
+        Event(() => SearchEvent);
         Event(() => NotificationUIEvent);
         Event(() => TagListEvent);
         Event(() => FaultEvent);
         Event(() => FaultEsLogEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+        Event(() => FaultSearchEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultCommitEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultNotificationUIEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
         Event(() => FaultTagListEvent, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
@@ -62,7 +68,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             When(RequestCreateEvent)
             .Then(context =>
             {
-                context.Saga.Name = context.Message.Name;
+                context.Saga.Tag = context.Message.Tag;
                 context.Saga.AuctionId = context.Message.AuctionId;
                 context.Saga.ItemId = Guid.NewGuid();
                 context.Saga.IsError = false;
@@ -80,20 +86,65 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
     {
         During(AddTagState,
         When(EsLogEvent)
+            .Then(context =>
+            {
+                context.Saga.ItemId = JsonSerializer.Deserialize<TagItem>(context.Message.DataItems.DataObjects[0].Data).ItemId;
+            })
         //посылаем сообщение на добавление тега в TagService
             .Send(
                 new Uri(configuration["QueuePaths:TagCreateConsumer"]),
                 context => new ModifyTag
                 {
                     AuctionId = context.Saga.AuctionId,
-                    Name = context.Saga.Name,
-                    ItemId = JsonSerializer.Deserialize<TagItem>(context.Message.DataItems.DataObjects[0].Data).ItemId,
+                    Tag = context.Saga.Tag,
+                    ItemId = context.Saga.ItemId.Value,
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Tag.TagCreateESCommit",
+                    CallBackType = "Common.Contracts.Tag.TagCreateSearch",
                     Commited = false
                 })
-            .TransitionTo(PreCommitState),
+            .TransitionTo(SearchState),
         When(FaultEsLogEvent)
+            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Publish(context => new BaseServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin
+            })
+            .TransitionTo(PreCommitState)
+        );
+    }
+
+    private void ConfigureSearchState()
+    {
+        During(SearchState,
+        When(SearchEvent)
+        //отправляем сообщение для обновления поиска
+            .Send(
+                new Uri(configuration["QueuePaths:ElkTagConsumer"]),
+                context => new DataForProcessingServicesList<TagItem>
+                {
+                    DataObjects = new List<DataForProcessingService>
+                    {
+                        new DataForProcessingService
+                        {
+                            Data = JsonSerializer.Serialize(new TagItem
+                            {
+                                AuctionId = context.Saga.AuctionId,
+                                CorrelationId = context.Saga.CorrelationId,
+                                Tag = context.Saga.Tag,
+                                ItemId = context.Saga.ItemId.Value
+                            }),
+                            CRUD = CRUD.Create,
+                        }
+                    },
+                    CorrelationId = context.Saga.CorrelationId,
+                    CallBackType = "Common.Contracts.Tag.TagCreateESCommit",
+                })
+            .TransitionTo(PreCommitState),
+        When(FaultSearchEvent)
             .Then(p => p.Saga.IsError = p.Message.Message.IsError)
             .Publish(context => new BaseServiceError
             {
@@ -234,7 +285,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 new Uri(configuration["QueuePaths:EventNotificationConsumer"]),
                 context => new EventNotificationItem
                 {
-                    SignalRMethod = SignalRMethod.TagCreated,
+                    SignalRMethod = SignalRMethod.TagChanged,
                     Show = true,
                     EventType = EventType.UserLogin,
                     UserLogin = context.Saga.UserLogin,

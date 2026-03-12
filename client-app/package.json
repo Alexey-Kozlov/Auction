@@ -8,6 +8,7 @@
     "@types/node": "^25.2.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/react-tagcloud": "^2.3.2",
     "date-fns": "^4.1.0",
     "jwt-decode": "^4.0.0",
     "prettier": "^3.6.2",

@@ -65,6 +65,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 //     config.Timeout = TimeSpan.FromSeconds(300);
 // });
 builder.Services.AddScoped<SearchServiceSql>();
+builder.Services.AddScoped<TagSearchService>();
 builder.Services.AddScoped<SearchProceduresService>();
 
 builder.Services.AddMassTransit(p =>
@@ -92,6 +93,7 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .AddPrometheusExporter()
 );
 builder.Services.AddScoped<GrpcElkClient>();
+builder.Services.AddScoped<GrpcTagClient>();
 //запускаем сервис по получению настроек системы - получаем параметр AdminMode - в административном ли
 //режиме система. Если да - разрашаем работу с системой только администратору, остальным пользователям
 //отдаем уведомление о работах в системе

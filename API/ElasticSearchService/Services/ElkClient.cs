@@ -1,5 +1,6 @@
 using Common.Contracts.Auction;
 using Common.Contracts.Communication;
+using Common.Contracts.Tag;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 
@@ -9,6 +10,7 @@ public class ElkClient
 {
     public ElasticsearchClient Client;
     public ElasticsearchClient CommunicationClient;
+    public ElasticsearchClient TagClient;
     public ElkClient(IConfiguration configuration)
     {
         var url = configuration["elk:host"];
@@ -50,6 +52,7 @@ public class ElkClient
                 )
             )
         );
+
         //клиент для поиска в чатах
         CommunicationClient = new ElasticsearchClient(settings);
         CommunicationClient.Indices.CreateAsync<CommunicationSearch>("communication_index", index =>
@@ -71,6 +74,31 @@ public class ElkClient
             .Mappings(m => m
                 .Properties(p => p
                     .Text(t => t.Message, t => t.Analyzer("rebuilt_russian"))
+                )
+            )
+        );
+
+        //клиент для поиска в тегах
+        TagClient = new ElasticsearchClient(settings);
+        TagClient.Indices.CreateAsync<TagSearch>("tag_index", index =>
+            index.Settings(s =>
+                s.Analysis(an => an
+                    .Analyzers(a =>
+                        a.Custom("rebuilt_russian", desc =>
+                            desc.Tokenizer("standard")
+                            .Filter(["lowercase", "russian_stemmer"])
+                        )
+                    )
+                    .TokenFilters(f =>
+                        f.Stemmer("russian_stemmer", desc =>
+                            desc.Language("russian")
+                        )
+                    )
+                )
+            )
+            .Mappings(m => m
+                .Properties(p => p
+                    .Text(t => t.Tag, t => t.Analyzer("rebuilt_russian"))
                 )
             )
         );

@@ -26,7 +26,7 @@ public class ESLogActivity : IStateMachineActivity<CreateTagState, RequestCreate
             {
                 ItemId = context.Saga.ItemId.Value,
                 AuctionId = context.Saga.AuctionId,
-                Name = context.Saga.Name,
+                Tag = context.Saga.Tag,
                 CorrelationId = context.Saga.CorrelationId
             },
             nameof(TagItem),

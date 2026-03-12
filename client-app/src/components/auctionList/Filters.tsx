@@ -7,6 +7,7 @@ import { SelectButton, SelectButtonChangeEvent } from 'primereact/selectbutton';
 import { State } from '../../types';
 import { SelectItem } from 'primereact/selectitem';
 import { RootState } from '../../store/store';
+import TagFilter from './TagFilter';
 
 const filterButtons = [
   {
@@ -182,6 +183,13 @@ export default function Filters() {
           itemTemplate={filterTemplate}
           value={orderBy}
         />
+      </div>
+
+      <div>
+        <div className="FilterItem">
+          <span>Облако тегов :</span>
+        </div>
+        <TagFilter />
       </div>
     </div>
   );

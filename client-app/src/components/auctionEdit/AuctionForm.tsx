@@ -35,7 +35,7 @@ import {
 import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import Waiter from '../Waiter';
-import { CheckEventReady } from '../../utils/checkEvent';
+import { CheckEventNotReady, CheckEventReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import CreatableSelect from 'react-select/creatable';
 import { useGetAuctionTagsQuery, useGetTagListQuery } from '../../api/TagApi';
@@ -87,6 +87,7 @@ export default function AuctionForm() {
   const [isFormChanged, setIsFormChanged] = useState(false);
   const [editError, setEditError] = useState<FormErrors | null>(null);
   const [tagSelected, setTagSelected] = useState<TagItem[]>([]);
+  const [formEditClass, setFormEditClass] = useState('EditForm');
 
   const editErrorList: FormErrors[] = [
     {
@@ -168,8 +169,13 @@ export default function AuctionForm() {
       }
       navigate('/');
     }
-
-    if (!CheckEventReady(procState, SignalREvents[SignalREvents.TagDeleted])) {
+    //если в режиме редактирования - обновляем наборы тегов (общий и для данного аукциона),
+    //выводим форму из режима редактирования
+    if (
+      id &&
+      CheckEventNotReady(procState, SignalREvents[SignalREvents.TagChanged])
+    ) {
+      setFormEditClass('EditForm');
       tags.refetch();
       auctionTags.refetch();
     }
@@ -177,7 +183,7 @@ export default function AuctionForm() {
     // eslint-disable-next-line
   }, [procState]);
 
-  //получаем общий список тегов
+  //получаем общий список тегов (после операции с тегами)
   useEffect(() => {
     if (
       tags &&
@@ -190,11 +196,12 @@ export default function AuctionForm() {
       dispatch(
         setTagList({
           tagList: tags.data.result.map((item: TagList) => {
-            return { label: item.name, value: item.name } as TagItem;
+            return { label: item.tag, value: item.tag } as TagItem;
           }),
         }),
       );
     }
+    // eslint-disable-next-line
   }, [tags]);
 
   //получаем список тегов для текущего аукциона (запрос о тегах для данного аукциона)
@@ -207,31 +214,50 @@ export default function AuctionForm() {
     ) {
       setTagSelected(
         auctionTags.data?.result.map((item: TagList) => {
-          return { label: item.name, value: item.name } as TagItem;
+          return { label: item.tag, value: item.tag } as TagItem;
         }),
       );
     }
   }, [auctionTags]);
 
-  //если изменили общий список тегов - обновляем список тегов для данного аукциона
-  useEffect(() => {
-    auctionTags.refetch();
-  }, [tagList]);
-
   //новый тег
   const handleNewTag = async (val: string) => {
-    await addTag({ auctionId: id!, name: val });
+    //форма в режиме редактирования
+    setFormEditClass('EditFormShadow');
+    dispatch(
+      setEventFlag({
+        eventName: SignalREvents[SignalREvents.TagChanged],
+        ready: true,
+      }),
+    );
+    await addTag({ auctionId: id!, tag: val });
   };
 
   //изменили тег
   const handleDeleteTag = async (newValue: any, actionMeta: any) => {
     //если удалили тег
     if (actionMeta.removedValue) {
-      await deleteTag({ auctionId: id!, name: actionMeta.removedValue.value });
+      //форма в режиме редактирования
+      setFormEditClass('EditFormShadow');
+      dispatch(
+        setEventFlag({
+          eventName: SignalREvents[SignalREvents.TagChanged],
+          ready: true,
+        }),
+      );
+      await deleteTag({ auctionId: id!, tag: actionMeta.removedValue.value });
     }
     //если выбрали существующий тег
     if (actionMeta.option) {
-      await addTag({ auctionId: id!, name: actionMeta.option.value });
+      //форма в режиме редактирования
+      setFormEditClass('EditFormShadow');
+      dispatch(
+        setEventFlag({
+          eventName: SignalREvents[SignalREvents.TagChanged],
+          ready: true,
+        }),
+      );
+      await addTag({ auctionId: id!, tag: actionMeta.option.value });
     }
   };
 
@@ -311,6 +337,8 @@ export default function AuctionForm() {
       return;
     }
     //обработка данных
+    //форма в режиме редактирования
+    setFormEditClass('EditFormShadow');
     setIsWaiting(() => true);
     const auctionUpdated: AuctionUpdated = {
       itemId: id!,
@@ -339,8 +367,16 @@ export default function AuctionForm() {
 
   return (
     <div className="CenterItem">
-      {CheckEventReady(procState, 'CollectionChanged') ? <Waiter /> : <></>}
-      <Panel className="EditForm">
+      {CheckEventReady(
+        procState,
+        SignalREvents[SignalREvents.CollectionChanged],
+      ) ||
+      CheckEventReady(procState, SignalREvents[SignalREvents.TagChanged]) ? (
+        <Waiter />
+      ) : (
+        <></>
+      )}
+      <Panel className={formEditClass}>
         <Heading
           title="Редактирование аукциона"
           subtitle="Отредактируйте данные ниже"

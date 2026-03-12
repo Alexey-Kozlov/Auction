@@ -1,11 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import {
-  ApiResponseNet,
-  CurrentSettings,
-  RequestType,
-  TagItem,
-  TagList,
-} from '../types';
+import { ApiResponseNet, RequestType, TagList } from '../types';
 import {
   CustomError,
   PostApiProcess,

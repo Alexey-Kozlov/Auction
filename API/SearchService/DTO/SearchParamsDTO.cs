@@ -11,4 +11,6 @@ public class SearchParamsDTO
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 16;
     public string UserLogin { get; set; }
+    public string Tag { get; set; }
+    public string[] AdvSearchParam { get; set; }
 }

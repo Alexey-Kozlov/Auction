@@ -25,7 +25,7 @@ public class TagController : ControllerBase
     }
 
     [HttpGet("GetAuctionTags/{auctionid}")]
-    public async Task<ApiResponse<List<TagItem>>> GetAuctionTags(Guid auctionid)
+    public async Task<ApiResponse<List<TagList>>> GetAuctionTags(Guid auctionid)
     {
         //возвращаем список тегов
         return await _tagDataService.GetAuctionTags(auctionid);

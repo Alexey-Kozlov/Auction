@@ -7,7 +7,13 @@ export default function Logo() {
   const dispatch = useDispatch();
   const handleClickHome = () => {
     dispatch(
-      setParams({ searchTerm: '', searchAdv: '', pageNumber: 1, firstPage: 0 }),
+      setParams({
+        searchTerm: '',
+        searchAdv: '',
+        pageNumber: 1,
+        firstPage: 0,
+        tag: '',
+      }),
     );
   };
 

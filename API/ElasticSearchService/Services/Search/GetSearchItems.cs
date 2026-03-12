@@ -1,6 +1,7 @@
 using Common.Contracts.Auction;
 using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
+using Common.Contracts.Tag;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
@@ -17,11 +18,12 @@ public class GetSearchItems
         _configuration = configuration;
     }
 
-    public async Task<Dictionary<Guid, string>> GetAuctionIds(ElkSearchRequest context)
+    //получение AuctionId в списке аукционов
+    public async Task<List<string>> GetAuctionIds(ElkSearchRequest context)
     {
         //запрос на получение списка всех найденных Id аукционов в индексе аукционов
         //получение всех идентификаторов необходимо чтобы потом объединить с результатами
-        //поиска в индексе чатов и исключить дубли
+        //поиска в индексе чатов и тегов и исключить дубли
 
         var docs = await _client.Client.SearchAsync<AuctionCreatingElk>(s => s
         //в запросе указываем получить только ID аукционов - это поле itemId в индексе
@@ -61,15 +63,13 @@ public class GetSearchItems
             )
         );
 
-        var rezult = new Dictionary<Guid, string>();
-        foreach (var auctionId in docs.Documents.Select(p => p.ItemId))
-        {
-            rezult.Add(auctionId, auctionId.ToString());
-        }
+        var rezult = new List<string>();
+        rezult.AddRange(docs.Documents.Select(p => p.ItemId.ToString()));
         return rezult;
     }
 
-    public async Task<List<string>> GetChatIds(ElkSearchRequest context, Dictionary<Guid, string> auctionIds)
+    //добавляем уникальные AuctionId из чатов
+    public async Task<List<string>> GetChatIds(ElkSearchRequest context, List<string> auctionIds)
     {
         //запрос на получение количества возвращаемых записей (в чатах)
         var docs = await _client.CommunicationClient.SearchAsync<CommunicationSearch>(s => s
@@ -92,15 +92,47 @@ public class GetSearchItems
             )
         );
 
-        foreach (var chatId in docs.Documents.Select(p => p.AuctionId))
+        foreach (var chatId in docs.Documents.Select(p => p.AuctionId.ToString()))
         {
-            if (!auctionIds.ContainsKey(chatId))
+            if (!auctionIds.Any(p => p == chatId))
             {
-                auctionIds.Add(chatId, chatId.ToString());
+                auctionIds.Add(chatId);
             }
         }
-        var rezult = new List<string>();
-        rezult.AddRange(auctionIds.Values);
-        return rezult;
+        return auctionIds;
+    }
+
+    //добавляем уникальные AuctionId из тегов
+    public async Task<List<string>> GetTagIds(ElkSearchRequest context, List<string> auctionIds)
+    {
+        //запрос на получение количества возвращаемых записей (в тегах)
+        var docs = await _client.TagClient.SearchAsync<TagSearch>(s => s
+            .Size(int.Parse(_configuration["SearchSizeLimit"]))
+            .Source(new SourceConfig(new SourceFilter
+            {
+                Includes = Fields.FromStrings(["auctionId"])
+            }))
+            .Query(q => q
+                .Bool(b => b
+                    .Should(s => s
+                       .Match(m => m
+                           .Field(f => f.Tag)
+                            .Fuzziness(new Fuzziness("AUTO"))
+                            .Query(context.SearchTerm)
+                            .Operator(Operator.And)
+                        )
+                    )
+                )
+            )
+        );
+
+        foreach (var tagId in docs.Documents.Select(p => p.AuctionId.ToString()))
+        {
+            if (!auctionIds.Any(p => p == tagId))
+            {
+                auctionIds.Add(tagId);
+            }
+        }
+        return auctionIds;
     }
 }

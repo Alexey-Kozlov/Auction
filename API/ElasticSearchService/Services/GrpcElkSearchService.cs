@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Common.Contracts;
 using Common.Contracts.ELKSearch;
 using ElasticSearchService.Services.Search;
 using ElkSearchService;
@@ -17,7 +16,7 @@ public class GrpcElkSearchService : GrpcElk.GrpcElkBase
         _searchElk = searchElk;
     }
 
-    // получили от ReportService запрос для выборки данных по аукционам
+    // получили запрос для выборки данных по аукционам
     public override Task<GetElkSearchResponse> GetElkSearch(GetElkSearchRequest request, ServerCallContext context)
     {
         var requestItems = JsonSerializer.Deserialize<ElkSearchRequest>(request.ElkSearchRequest);

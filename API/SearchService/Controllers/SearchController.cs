@@ -2,6 +2,7 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.DTO;
+using SearchService.Services;
 
 namespace SearchService.Controllers;
 
@@ -9,11 +10,13 @@ namespace SearchService.Controllers;
 [Route("api/search")]
 public class SearchController : ControllerBase
 {
-    private readonly Services.SearchServiceSql _search;
+    private readonly SearchServiceSql _search;
+    private readonly TagSearchService _tag;
 
-    public SearchController(Services.SearchServiceSql search)
+    public SearchController(SearchServiceSql search, TagSearchService tag)
     {
         _search = search;
+        _tag = tag;
     }
 
     [HttpGet("{id}")]
@@ -26,6 +29,11 @@ public class SearchController : ControllerBase
     [HttpGet]
     public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SearchItems([FromQuery] SearchParamsDTO searchParams)
     {
+        //если заполнен параметр Tag - реализуем поиск по тегам, это потребует выделенный сервис
+        if (!string.IsNullOrEmpty(searchParams.Tag))
+        {
+            return await _tag.GetTagAuctionItems(searchParams);
+        }
         //если заполнен параметр SearchAdv - это означает, что поступил запрос на поиск
         //в ElasticSearch. В этом случае направляем запрос через шину сообщений в сервис ElasticSearchService
         //и ничего не возвращаем

@@ -235,7 +235,7 @@ public class ProcessingController : ControllerBase
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new RequestCreateTag
         {
-            Name = param.Name,
+            Tag = param.Tag,
             AuctionId = param.AuctionId,
             UserLogin = userLogin,
             CorrelationId = Guid.NewGuid()
@@ -249,7 +249,7 @@ public class ProcessingController : ControllerBase
         var userLogin = ((ClaimsIdentity)User.Identity).Claims.Where(p => p.Type == "Login").Select(p => p.Value).FirstOrDefault();
         await _publishEndpoint.Publish(new RequestDeleteTag
         {
-            Name = param.Name,
+            Tag = param.Tag,
             AuctionId = param.AuctionId,
             UserLogin = userLogin,
             CorrelationId = Guid.NewGuid()

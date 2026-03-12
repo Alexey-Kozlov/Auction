@@ -3,6 +3,7 @@ using Common.Contracts.Auction;
 using Common.Contracts.Communication;
 using Common.Contracts.ELKSearch;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using Common.Utils.Logging;
 using ElasticSearchService.Services;
 using MassTransit;
@@ -36,6 +37,10 @@ public class ResetElkConsumer : IConsumer<ElkIndexResetRequest>
             await _client.CommunicationClient.DeleteByQueryAsync<CommunicationSearch>(indices: "communication_index",
                 p => p.Query(q => q.QueryString(f => f.Query("*"))));
 
+            //сбрасываем БД поиска тегов
+            await _client.TagClient.DeleteByQueryAsync<TagSearch>(indices: "tag_index",
+                p => p.Query(q => q.QueryString(f => f.Query("*"))));
+
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             sendObject.GetType().GetProperty("CorrelationId").SetValue(sendObject, correlationId);
@@ -49,7 +54,7 @@ public class ResetElkConsumer : IConsumer<ElkIndexResetRequest>
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
             messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
-            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "BidService_ResetBid");
+            messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_Reset");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
             var faultType = typeof(FaultMessage<>);

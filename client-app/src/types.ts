@@ -219,6 +219,8 @@ export type State = {
   searchTerm?: string;
   searchAdv?: string;
   userLogin?: string;
+  tag?: string;
+  advSearchParam?: string[];
 };
 
 export type FormErrors = {
@@ -326,6 +328,7 @@ export enum SignalREvents {
   SetCurrentSettings,
   TagCreated,
   TagDeleted,
+  TagChanged,
 }
 
 export type UrlCacheList = {
@@ -347,7 +350,7 @@ export type CurrentSettings = {
 
 export type ModifyTag = {
   auctionId: string;
-  name: string;
+  tag: string;
 };
 
 export type TagItem = {
@@ -356,5 +359,11 @@ export type TagItem = {
 };
 
 export type TagList = {
-  name: string;
+  tag: string;
+  count: number;
+};
+
+export type TagCloudItem = {
+  value: string;
+  count: number;
 };

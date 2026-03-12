@@ -37,7 +37,8 @@
   <ItemGroup>
     <Protobuf Include="Protos/finance.proto" GrpcServices="Server" />
     <Protobuf Include="Protos/report.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos/elk.proto" GrpcServices="Client" />    
+    <Protobuf Include="Protos/elk.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos/search.proto" GrpcServices="Client" />        
   </ItemGroup>
 
 </Project>

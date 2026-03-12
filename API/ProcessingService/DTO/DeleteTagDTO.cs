@@ -1,6 +1,6 @@
 namespace ProcessingService.DTO;
 
 public record DeleteTagDTO(
-    string Name,
+    string Tag,
     Guid AuctionId
 );

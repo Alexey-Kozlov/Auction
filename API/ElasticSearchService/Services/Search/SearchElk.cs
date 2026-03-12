@@ -3,6 +3,7 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Elastic.Clients.Elasticsearch;
+using Microsoft.VisualBasic;
 
 namespace ElasticSearchService.Services.Search;
 
@@ -22,13 +23,31 @@ public class SearchElk
     public async Task<ApiResponse<PagedResult<List<AuctionItem>>>> SearchItems(ElkSearchRequest context)
     {
 
-        //получаем идентификаторы аукционов, где встречается ичскомая фраза - в аукционах и чатах
-        var auctionIds = await _searchItems.GetAuctionIds(context);
-        var searchIds = await _searchItems.GetChatIds(context, auctionIds);
+        //получаем идентификаторы аукционов, где встречается искомая фраза - в аукционах, чатах и тегах
+        var auctionIds = new List<string>();
+        if (context.AdvSearchParam == null || context.AdvSearchParam.Length == 0) return new ApiResponse<PagedResult<List<AuctionItem>>>();
+
+        //если был отмечен параметр поиска - аукционы (Auction)
+        if (context.AdvSearchParam.Any(p => p == "Auction"))
+        {
+            auctionIds = await _searchItems.GetAuctionIds(context);
+        }
+
+        //если был отмечен параметр поиска - обсуждения (Comment)
+        if (context.AdvSearchParam.Any(p => p == "Comment"))
+        {
+            auctionIds = await _searchItems.GetChatIds(context, auctionIds);
+        }
+
+        //если был отмечен параметр поиска - теги (Tag)
+        if (context.AdvSearchParam.Any(p => p == "Tag"))
+        {
+            auctionIds = await _searchItems.GetTagIds(context, auctionIds);
+        }
 
         //итоговый запрос на получение записей - ищем по полученному списку AuctionId
         var elkCount = await _client.Client.CountAsync<AuctionCreatingElk>(s => s
-            .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(searchIds)
+            .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(auctionIds)
                 .MinimumShouldMatch(1))));
 
         //получаем наименование поля для сортировки и направление сортировки
@@ -54,7 +73,7 @@ public class SearchElk
              .From((context.PageNumber - 1) * context.PageSize)
              .Size(context.PageSize)
              .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
-             .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(searchIds)
+             .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(auctionIds)
                  .MinimumShouldMatch(1))
            //сортируем сначала по наименованию аукциона, потом по id (если одинаковые наименования)
            //Suffix - смотрим определение индекса - mappings в формате json, значение Suffix - keyword -

@@ -27,11 +27,11 @@ public class DeleteTagConsumer : IConsumer<ModifyTag>
         {
             var item = await _dbContext.TagItems.FirstOrDefaultAsync(p =>
                 p.AuctionId == context.Message.AuctionId &&
-                p.Name == context.Message.Name);
+                p.Tag == context.Message.Tag);
             if (item == null)
             {
                 throw new Exception($"Не найден тег для удаления, AuctionId - {context.Message.AuctionId}" +
-                $", Тэг - {context.Message.Name}");
+                $", Тэг - {context.Message.Tag}");
             }
             _dbContext.TagItems.Remove(item);
             await _dbContext.SaveChangesAsync();

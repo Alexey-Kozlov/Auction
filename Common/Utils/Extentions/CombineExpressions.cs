@@ -1,5 +1,7 @@
 using System.Linq.Expressions;
+
 namespace Common.Utils.Extentions;
+
 public static class CombineExpressions
 {
     public static Expression<Func<TInput, bool>> CombineWithAndAlso<TInput>(this Expression<Func<TInput, bool>> func1, Expression<Func<TInput, bool>> func2)

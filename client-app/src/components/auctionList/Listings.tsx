@@ -20,6 +20,7 @@ import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
 import { CheckEventLastChangedNotReady } from '../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../api/ServiceApi';
 import { setCacheQuery } from '../../store/cacheSlice';
+import TagFilter from './TagFilter';
 
 export default function Listings() {
   const dispatch = useDispatch();

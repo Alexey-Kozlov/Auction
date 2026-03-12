@@ -4,7 +4,7 @@ namespace ProcessingService.StateMachines.DeleteTagStateMachine;
 
 public class DeleteTagState : BaseProcessingState
 {
-    public string Name { get; set; }
+    public string Tag { get; set; }
     public Guid AuctionId { get; set; }
     public int CommitCounter { get; set; }
 }

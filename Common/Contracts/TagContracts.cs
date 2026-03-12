@@ -6,14 +6,15 @@ public class TagItem
 {
      public Guid AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public string Name { get; set; }
+     public string Tag { get; set; }
      public Guid CorrelationId { get; set; }
      public bool Commited { get; set; }
 }
 
 public class TagList
 {
-     public string Name { get; set; }
+     public string Tag { get; set; }
+     public int Count { get; set; }
 }
 
 public class RequestCreateTag
@@ -21,7 +22,7 @@ public class RequestCreateTag
      public Guid AuctionId { get; set; }
      public string UserLogin { get; set; }
      public Guid CorrelationId { get; set; }
-     public string Name { get; set; }
+     public string Tag { get; set; }
 }
 
 public class RequestDeleteTag
@@ -29,7 +30,7 @@ public class RequestDeleteTag
      public Guid AuctionId { get; set; }
      public string UserLogin { get; set; }
      public Guid CorrelationId { get; set; }
-     public string Name { get; set; }
+     public string Tag { get; set; }
 }
 
 public class ModifyTag
@@ -38,7 +39,7 @@ public class ModifyTag
      public Guid CorrelationId { get; set; }
      public Guid AuctionId { get; set; }
      public string CallBackType { get; set; }
-     public string Name { get; set; }
+     public string Tag { get; set; }
      public bool Commited { get; set; }
      public Guid ItemId { get; set; }
 }
@@ -169,5 +170,38 @@ public class TagListCommit : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
+     public bool IsError { get; set; }
+}
+
+public class TagSearch
+{
+     public Guid ItemId { get; set; }
+     public Guid AuctionId { get; set; }
+     public string Tag { get; set; }
+}
+
+public class TagCreateSearch : IFaultMessage
+{
+     public Guid CorrelationId { get; set; }
+     public string UserLogin { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid ItemId { get; set; }
+     public Guid? AuctionId { get; set; }
+     public bool IsError { get; set; }
+}
+
+public class TagDeleteSearch : IFaultMessage
+{
+     public Guid CorrelationId { get; set; }
+     public string UserLogin { get; set; }
+     public string ErrorMessage { get; set; }
+     public string ErrorExceptionMessage { get; set; }
+     public string ErrorServiceName { get; set; }
+     public string CallBackType { get; set; }
+     public Guid ItemId { get; set; }
+     public Guid? AuctionId { get; set; }
      public bool IsError { get; set; }
 }

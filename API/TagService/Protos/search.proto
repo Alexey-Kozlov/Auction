@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "TagService";
+
+service GrpcSearch {
+    rpc GetTagAuctions (GetTagAuctionsRequest) returns (GrpcTagAuctionsResponse);    
+}
+
+message GetTagAuctionsRequest {
+    string TagAuctionsRequest = 1;
+}
+
+message GrpcTagAuctionsResponse {
+    string Rezult = 1;
+}

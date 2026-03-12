@@ -95,7 +95,7 @@ public class SearchServiceSql
         //ищем в ELKе и возвращаем ответ
         return await _grpcElkClient.GetElkSearchItems(new ElkSearchRequest(Guid.NewGuid(),
             searchParams.SearchAdv, searchParams.PageNumber, searchParams.PageSize,
-            searchParams.UserLogin, searchParams.OrderBy));
+            searchParams.UserLogin, searchParams.OrderBy, searchParams.AdvSearchParam));
     }
 
     public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)

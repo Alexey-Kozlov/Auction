@@ -13,8 +13,6 @@ import {
   NotificationEvent,
   Progress,
   SignalREvents,
-  TagItem,
-  TagList,
   ToastType,
   User,
 } from '../types';
@@ -27,7 +25,6 @@ import { Toast } from 'primereact/toast';
 import ImageToast from '../components/signalRNotifications/ImageToast';
 import CamelToSnake from '../utils/camelToSnake';
 import ProgressToast from '../components/signalRNotifications/ProgressToast';
-import { setTagList } from '../store/tagSlice';
 
 export default function SignalRProvider() {
   const user: User = useSelector((state: RootState) => state.authStore);
@@ -493,26 +490,11 @@ export default function SignalRProvider() {
         );
 
         connection.on(
-          SignalREvents[SignalREvents.TagCreated],
+          SignalREvents[SignalREvents.TagChanged],
           (result: NotificationEvent) => {
-            const data = JSON.parse(result.data);
-            dispatch(
-              setTagList({
-                tagList: data.map((item: TagList) => {
-                  return { label: item.name, value: item.name };
-                }) as TagItem[],
-              }),
-            );
-          },
-        );
-
-        connection.on(
-          SignalREvents[SignalREvents.TagDeleted],
-          (result: NotificationEvent) => {
-            const data = JSON.parse(result.data);
             dispatch(
               setEventFlag({
-                eventName: SignalREvents[SignalREvents.TagDeleted],
+                eventName: SignalREvents[SignalREvents.TagChanged],
                 ready: false,
               }),
             );

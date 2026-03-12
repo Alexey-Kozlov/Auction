@@ -1,6 +1,6 @@
 namespace ProcessingService.DTO;
 
 public record CreateTagDTO(
-    string Name,
+    string Tag,
     Guid AuctionId
 );
