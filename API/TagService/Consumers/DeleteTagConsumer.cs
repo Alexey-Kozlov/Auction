@@ -25,15 +25,28 @@ public class DeleteTagConsumer : IConsumer<ModifyTag>
     {
         try
         {
-            var item = await _dbContext.TagItems.FirstOrDefaultAsync(p =>
-                p.AuctionId == context.Message.AuctionId &&
-                p.Tag == context.Message.Tag);
-            if (item == null)
+            //удаление аукциона - удаляем все теги для данного аукциона
+            if (string.IsNullOrEmpty(context.Message.Tag))
             {
-                throw new Exception($"Не найден тег для удаления, AuctionId - {context.Message.AuctionId}" +
-                $", Тэг - {context.Message.Tag}");
+                var items = await _dbContext.TagItems.Where(p =>
+                    p.AuctionId == context.Message.AuctionId).ToListAsync();
+                if (items.Any())
+                {
+                    _dbContext.TagItems.RemoveRange(items);
+                }
             }
-            _dbContext.TagItems.Remove(item);
+            else
+            {
+                var item = await _dbContext.TagItems.FirstOrDefaultAsync(p =>
+                    p.AuctionId == context.Message.AuctionId &&
+                    p.Tag == context.Message.Tag);
+                if (item == null)
+                {
+                    throw new Exception($"Не найден тег для удаления, AuctionId - {context.Message.AuctionId}" +
+                    $", Тэг - {context.Message.Tag}");
+                }
+                _dbContext.TagItems.Remove(item);
+            }
             await _dbContext.SaveChangesAsync();
             var sendObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);

@@ -1,5 +1,4 @@
 using Common.Contracts.Auction;
-using Common.Contracts.Finance;
 using Common.Contracts.Processing;
 using Common.Utils;
 using MassTransit;

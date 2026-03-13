@@ -25,7 +25,7 @@ public class EventConsumer : IConsumer<EventNotificationItem>
     public async Task Consume(ConsumeContext<EventNotificationItem> context)
     {
         var notifyList = new List<string>();
-
+        //await Task.Delay(3000);
         switch (context.Message.EventType)
         {
             //рассылка по всем пользователям

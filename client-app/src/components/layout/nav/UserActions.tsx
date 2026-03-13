@@ -7,7 +7,7 @@ import { GoCodescanCheckmark, GoDatabase } from 'react-icons/go';
 import { GrMoney } from 'react-icons/gr';
 import { HiOutlineDocumentReport } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CurrentSettings, ModalTypes, ToastType, User } from '../../../types';
+import { ModalTypes, ToastType, User } from '../../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
 import { emptyUserState, setAuthUser } from '../../../store/authSlice';
@@ -23,6 +23,7 @@ import ModalRestoreSnapShot from '../../modals/ModalRestoreSnapShot';
 
 export default function UserActions() {
   const user: User = useSelector((state: RootState) => state.authStore);
+  const settings = useSelector((state: RootState) => state.settingsStore);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -31,63 +32,52 @@ export default function UserActions() {
   const [dateValue, setDateValue] = useState<Date>(new Date());
   const [resetLog, setResetLog] = useState(false);
   const [showConfirmSetSettings, setShowConfirmSetSettings] = useState(false);
-  const [adminMenuItems, setAdminMenuItems] = useState<any[]>([]);
-  const settings: CurrentSettings = useSelector(
-    (state: RootState) => state.settingsStore,
-  );
   const [stateMenuItems, setStateMenuItems] = useState<any>();
+  const [logoutUser] = useLogoutUserMutation();
+  const menuActionsRef = useRef<any>(null);
+  const toastMessage: Toast | null = useSelector(
+    (state: RootState) => state.serviceStore,
+  ).toast;
 
-  useEffect(() => {
-    let adminModeLabel = '';
-    let adminModeIcon = <TbSettingsOff size={30} />;
-    if (settings.adminMode) {
-      adminModeLabel = 'Перейти в обычный режим';
-      adminModeIcon = <TbSettingsOff size={30} />;
-    } else {
-      adminModeLabel = 'Перейти в админский режим';
-      adminModeIcon = <TbSettings size={30} />;
-    }
-
-    const adminMenus = [
-      {
-        separator: true,
-      },
-      {
-        label: adminModeLabel,
-        icon: adminModeIcon,
-        command: () => setShowConfirmSetSettings(true),
-      },
-      {
-        label: 'Elk индексация',
-        icon: <GoCodescanCheckmark size={30} />,
-        command: () => handleElkReindexClick(),
-      },
-      {
-        label: 'Создать SnapShot',
-        icon: <GoDatabase size={30} />,
-        command: () => setShowConfirmSetSnapShot(true),
-      },
-      {
-        label: 'Восстановить из SnapShot',
-        icon: <FaTrashRestoreAlt size={30} />,
-        command: () => setShowConfirmRestore(true),
-      },
-      {
-        label: 'Сбросить Кеш изображений',
-        icon: <RiRestartFill size={30} />,
-        command: () => handleResetImageCacheClick(),
-      },
-    ];
-    setAdminMenuItems((prev: any) => {
-      let menuItems: any = prev;
-      menuItems.push(...adminMenus);
-      return prev;
-    });
-    // eslint-disable-next-line
-  }, [settings.adminMode]);
+  const adminMenuItems = [
+    {
+      separator: true,
+    },
+    {
+      label: settings.adminMode
+        ? 'Перейти в обычный режим'
+        : 'Перейти в админский режим',
+      icon: settings.adminMode ? (
+        <TbSettingsOff size={30} />
+      ) : (
+        <TbSettings size={30} />
+      ),
+      command: () => setShowConfirmSetSettings(true),
+    },
+    {
+      label: 'Elk индексация',
+      icon: <GoCodescanCheckmark size={30} />,
+      command: () => handleElkReindexClick(),
+    },
+    {
+      label: 'Создать SnapShot',
+      icon: <GoDatabase size={30} />,
+      command: () => setShowConfirmSetSnapShot(true),
+    },
+    {
+      label: 'Восстановить из SnapShot',
+      icon: <FaTrashRestoreAlt size={30} />,
+      command: () => setShowConfirmRestore(true),
+    },
+    {
+      label: 'Сбросить Кеш изображений',
+      icon: <RiRestartFill size={30} />,
+      command: () => handleResetImageCacheClick(),
+    },
+  ];
 
   const mainMenuItems = [
-    {
+    !settings.adminMode && {
       label: 'Ваши действия :',
       className: 'text-center text-4xl',
       items: [
@@ -139,23 +129,17 @@ export default function UserActions() {
       setStateMenuItems((prev: any) => {
         let menuItems: any = prev;
         menuItems.push(...adminMenuItems);
-        return prev;
+        return menuItems;
       });
     }
     //заполняем выпадающее меню позицией выхода - logout
     setStateMenuItems((prev: any) => {
       let menuItems: any = prev;
       menuItems.push(...logoutMenuItem);
-      return prev;
+      return menuItems;
     });
     // eslint-disable-next-line
   }, [user, settings.adminMode]);
-
-  const [logoutUser] = useLogoutUserMutation();
-  const menuActionsRef = useRef<any>(null);
-  const toastMessage: Toast | null = useSelector(
-    (state: RootState) => state.serviceStore,
-  ).toast;
 
   const acceptCurrentSettingsClick = () => {
     dispatch(setEventFlag({ eventName: 'AdminCurrentChanged', ready: true }));

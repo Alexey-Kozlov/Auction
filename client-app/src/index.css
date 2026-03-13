@@ -789,6 +789,7 @@ a.p-menuitem-link > svg {
 	border-radius: 2rem;
 	border: black 0.2rem solid;
 	padding: 0.5rem;
+	text-align: center;
 }
 
 .react-select__multi-value {
@@ -808,14 +809,23 @@ a.p-menuitem-link > svg {
 }
 
 .SearchToolTip  {
-	 border-radius: 0.9rem;
-	 border-color: #e5e7eb;
-	 border-style: solid;
+	border-radius: 0.9rem;
+	border-color: #e5e7eb;
+	border-style: solid;
+	background-color: white;
 }
 
 .SearchToolTip > div {
-	 background-color: white;
-	 color:rgb(75 85 99);
-	 font-size: 1rem;
+	background-color: white;
+	color:rgb(75 85 99);
+	font-size: 1rem;
 }
 
+.ChatEditMode {
+	filter: blur(5px);
+}
+
+.DetailScrollPanel {
+	width: 100%;
+	height: 32rem;
+}

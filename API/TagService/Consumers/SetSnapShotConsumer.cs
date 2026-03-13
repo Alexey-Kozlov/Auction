@@ -4,6 +4,7 @@ using AutoMapper;
 using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using Common.Utils.Logging;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -13,15 +14,13 @@ namespace TagService.Consumers;
 
 public class SetSnapShotConsumer : IConsumer<ESContract>
 {
-    private readonly IMapper _mapper;
     private readonly TagDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IConfiguration _configuration;
 
-    public SetSnapShotConsumer(IMapper mapper, TagDbContext context, IPublishEndpoint publishEndpoint,
+    public SetSnapShotConsumer(TagDbContext context, IPublishEndpoint publishEndpoint,
         IConfiguration configuration)
     {
-        _mapper = mapper;
         _context = context;
         _publishEndpoint = publishEndpoint;
         _configuration = configuration;
@@ -34,16 +33,13 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
             {
                 DataObjects = new List<DataForProcessingService>()
             };
-
-            var items = new List<AuctionItem>();
-            _mapper.Map(await _context.TagItems.ToListAsync(), items);
-            foreach (var item in items)
+            foreach (var item in await _context.TagItems.ToListAsync())
             {
                 listItems.DataObjects.Add
                 (
                     new DataForProcessingService
                     {
-                        DataType = nameof(AuctionItem),
+                        DataType = nameof(TagItem),
                         Data = JsonSerializer.Serialize(item, item.GetType()),
                         CRUD = CRUD.Create
                     }

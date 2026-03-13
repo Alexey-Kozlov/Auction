@@ -27,6 +27,18 @@ export default function AdminMode() {
         }),
       );
     }
+    if (
+      !settingsData.isLoading &&
+      !settingsData.isFetching &&
+      settingsData.isError
+    ) {
+      setAdminMode(true);
+      dispatch(
+        setSettingsData({
+          adminMode: true,
+        }),
+      );
+    }
     // eslint-disable-next-line
   }, [settingsData]);
 

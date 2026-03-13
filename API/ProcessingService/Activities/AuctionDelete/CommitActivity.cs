@@ -7,6 +7,7 @@ using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
 using Common.Contracts.Processing;
+using Common.Contracts.Tag;
 using Common.Utils;
 using MassTransit;
 using ProcessingService.StateMachines.DeleteAuctionStateMachine;
@@ -107,6 +108,16 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             UserLogin = context.Saga.UserLogin
         });
         await _publishEndpoint.Publish(new CommunicationCommit
+        {
+            Commited = !context.Saga.IsError,
+            CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
+            CorrelationId = context.Saga.CorrelationId,
+            ErrorMessage = context.Message.ErrorMessage,
+            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorServiceName = context.Message.ErrorServiceName,
+            UserLogin = context.Saga.UserLogin
+        });
+        await _publishEndpoint.Publish(new TagCommit
         {
             Commited = !context.Saga.IsError,
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",

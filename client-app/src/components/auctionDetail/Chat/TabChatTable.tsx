@@ -5,6 +5,7 @@ import {
   ChatComment,
   ModalTypes,
   ProcessingState,
+  SignalREvents,
   SortDirection,
   User,
 } from '../../../types';
@@ -41,6 +42,7 @@ export default function TabChatTable({ auction, user }: Props) {
   const [chatSelected, setChatSelected] = useState<ChatComment | null>();
   const [showConfirmEditDialog, setShowConfirmEditDialog] = useState(false);
   const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
+  const [chatEditClass, setChatEditClass] = useState('grid');
   const communication = useGetCommunicationItemsQuery(auction.itemId);
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
@@ -74,6 +76,8 @@ export default function TabChatTable({ auction, user }: Props) {
   const handleMessageSubmit = () => {
     // начало процесса создания нового сообщения - в UseEffect свойства "messageChat" в SignalRProvider
     if (!newMessage.message) return;
+    //отображаем страницу размыто - режим редактирования
+    setChatEditClass('grid ChatEditMode');
     let createMessage = newMessage;
     createMessage.actionType = ActionType.create;
     dispatch(setChatMessage(createMessage));
@@ -99,6 +103,7 @@ export default function TabChatTable({ auction, user }: Props) {
         setEventFlag({ eventName: 'CommunicationChanged', ready: false }),
       );
     }
+    setChatEditClass('grid');
     // eslint-disable-next-line
   }, [communication]);
 
@@ -160,7 +165,13 @@ export default function TabChatTable({ auction, user }: Props) {
     setNewMessage((prev) => {
       return { ...prev, message: '' };
     });
+    setChatEditClass('grid');
   }, [chatResponse]);
+
+  //первоначальная загрузка - ждем списка сообщений
+  useEffect(() => {
+    setChatEditClass('grid ChatEditMode');
+  }, []);
 
   const contextItems: MenuItem[] = [
     {
@@ -193,6 +204,7 @@ export default function TabChatTable({ auction, user }: Props) {
     let updateMessage = chatSelected!;
     updateMessage.actionType = ActionType.update;
     setShowConfirmEditDialog(false);
+    setChatEditClass('grid ChatEditMode');
     dispatch(setChatMessage(updateMessage));
     dispatch(setEventFlag({ eventName: 'CommunicationChanged', ready: true }));
   };
@@ -208,6 +220,7 @@ export default function TabChatTable({ auction, user }: Props) {
     let deleteMessage = chatSelected!;
     deleteMessage.actionType = ActionType.delete;
     setShowConfirmDeleteDialog(false);
+    setChatEditClass('grid ChatEditMode');
     dispatch(setChatMessage(deleteMessage));
     dispatch(setEventFlag({ eventName: 'CommunicationChanged', ready: true }));
   };
@@ -231,78 +244,84 @@ export default function TabChatTable({ auction, user }: Props) {
 
   return (
     <>
-      <div className="grid">
-        <div className="col-12 MessageInputItem">
-          <InputTextarea
-            variant="filled"
-            disabled={user.isGuest}
-            autoResize
-            placeholder="Новое сообщение (для отправления - нажмите Enter, для перевода строки нажмите Shift-Enter)"
-            value={newMessage.message}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.shiftKey) return;
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleMessageSubmit();
-              }
-            }}
-            onChange={(e) => handleMessageChanged(e.currentTarget.value)}
-            rows={5}
-            className="w-full text-4xl"
-          />
-          <Button
-            text
-            icon="pi pi-send"
-            size="large"
-            className="MessageInputButton"
-            onClick={handleMessageSubmit}
-          />
+      {CheckEventReady(
+        procState,
+        SignalREvents[SignalREvents.CommunicationChanged],
+      ) ? (
+        <div className="CenterItem">
+          <Waiter />
         </div>
-        {CheckEventReady(procState, 'CommunicationChanged') ? (
-          <div className="CenterItem">
-            <Waiter />
+      ) : (
+        <></>
+      )}
+      <>
+        <div className={chatEditClass}>
+          <div className="col-12 MessageInputItem">
+            <InputTextarea
+              variant="filled"
+              disabled={user.isGuest}
+              autoResize
+              placeholder="Новое сообщение (для отправления - нажмите Enter, для перевода строки нажмите Shift-Enter)"
+              value={newMessage.message}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.shiftKey) return;
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleMessageSubmit();
+                }
+              }}
+              onChange={(e) => handleMessageChanged(e.currentTarget.value)}
+              rows={5}
+              className="w-full text-4xl"
+            />
+            <Button
+              text
+              icon="pi pi-send"
+              size="large"
+              className="MessageInputButton"
+              onClick={handleMessageSubmit}
+            />
           </div>
-        ) : (
-          <></>
-        )}
-        <ScrollPanel
-          style={{ width: '100%', height: '27rem' }}
-          className="custombar1"
-        >
-          {communicationItems &&
-            communicationItems.map((item, index) => (
-              <div
-                key={index}
-                className="col-12 MessageItem"
-                onContextMenu={(event) => onRightClick(event, item)}
-              >
-                <div className="w-30rem border-right-2 px-2 py-2 CenterItem">
-                  <ChatUser userLogin={item.userLogin} />
-                </div>
-                <div className="flex flex-column text-4xl">
-                  <div className="px-6 ">
-                    {new Date(item.updateAt).toLocaleDateString('RU-ru', {
-                      timeZone: 'UTC',
-                    }) +
-                      ' ' +
-                      new Date(item.updateAt).toLocaleTimeString('RU-ru', {
+          <ScrollPanel
+            className="DetailScrollPanel"
+            style={{ height: '27rem' }}
+          >
+            {communicationItems &&
+              communicationItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="col-12 MessageItem"
+                  onContextMenu={(event) => onRightClick(event, item)}
+                >
+                  <div className="w-30rem border-right-2 px-2 py-2 CenterItem">
+                    <ChatUser userLogin={item.userLogin} />
+                  </div>
+                  <div className="flex flex-column text-3xl">
+                    <div className="px-6 ">
+                      {new Date(item.updateAt).toLocaleDateString('RU-ru', {
                         timeZone: 'UTC',
+                      }) +
+                        ' ' +
+                        new Date(item.updateAt).toLocaleTimeString('RU-ru', {
+                          timeZone: 'UTC',
+                        })}
+                    </div>
+                    <div className="px-6 py-4">
+                      {item.message.split('\n').map((line, index) => {
+                        return (
+                          <p key={index} className="p-0 m-0">
+                            {line}
+                          </p>
+                        );
                       })}
-                  </div>
-                  <div className="px-6 py-4">
-                    {item.message.split('\n').map((line, index) => {
-                      return (
-                        <p key={index} className="p-0 m-0">
-                          {line}
-                        </p>
-                      );
-                    })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-        </ScrollPanel>
-      </div>
+              ))}
+          </ScrollPanel>
+        </div>
+      </>
+
       <ContextMenu ref={cm} model={contextItems} className="w-18rem" />
 
       <ModalEditText

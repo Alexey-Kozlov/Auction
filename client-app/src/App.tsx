@@ -36,6 +36,7 @@ import { jwtDecode } from 'jwt-decode';
 import { CustomError } from './utils/postApiProcess';
 import MessageToast from './components/signalRNotifications/MessageToast';
 import { CheckEventLastChangedNotReady } from './utils/checkEvent';
+import AdminMode from './components/layout/nav/AdminMode';
 
 function App() {
   const toastMessage = useRef<Toast>(null);
@@ -192,6 +193,7 @@ function App() {
   return (
     <div>
       <NavBar />
+      <AdminMode />
       <div className="MainContainer">
         <Routes>
           <Route path="/" element={<Listings />}></Route>

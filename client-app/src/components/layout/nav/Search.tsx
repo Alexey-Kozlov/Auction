@@ -200,7 +200,7 @@ export default function Search() {
             <button className="SearchButton" onClick={() => Search()}>
               <FaSearch size={40} className="SearchIcon" />
             </button>
-            <Tooltip target="#sqlsearch" className="SearchToolTip">
+            <Tooltip target="#sqlsearch" className="SearchToolTip" event="both">
               Будет проводится поиск по частичному совпадению в описании
               аукционов
             </Tooltip>

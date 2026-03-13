@@ -44,6 +44,7 @@ docker build -f Auction/client-reports/Dockerfile -t kozlovas/auction-front-repo
 docker build -f Auction/API/CommunicationService/Dockerfile -t kozlovas/auction-communication .
 docker build -f Auction/API/CheckVaultUnblocked/Dockerfile -t kozlovas/auction-checkvault .
 docker build -f Auction/API/SettingsService/Dockerfile -t kozlovas/auction-settings .
+docker build -f Auction/API/TagService/Dockerfile -t kozlovas/auction-tag .
 
 !!!!!
 Если при создании образа будет ошибка вроде - ERROR: failed to build: failed to solve: failed to compute cache key /LocalNugetPackages": not found
@@ -52,6 +53,11 @@ docker build -f Auction/API/SettingsService/Dockerfile -t kozlovas/auction-setti
 cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net9.0/
 ./CollectNugetPackages
 Все, папка с нугет-пакетами обновлена, можно билдить образы
+
+!!!!!
+Работоспособность всех образов завязана на auction-checkvault - проверка, что Vault разблокирован
+и остальные сервисы могут запускаться. 
+ПОЭТОМУ если какой-то под не запускается - сперва проверяем, что auction-checkvault запущен.
 
 
 упаковка пакета с контрактами

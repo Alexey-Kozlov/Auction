@@ -239,6 +239,19 @@ public class AuctionDeletedCommunication : IFaultMessage
       public bool IsError { get; set; }
 };
 
+public class AuctionDeletedTag : IFaultMessage
+{
+
+      public Guid CorrelationId { get; set; }
+      public string ErrorMessage { get; set; }
+      public string ErrorExceptionMessage { get; set; }
+      public string ErrorServiceName { get; set; }
+      public string UserLogin { get; set; }
+      public string CallBackType { get; set; }
+      public Guid? ItemId { get; set; }
+      public bool IsError { get; set; }
+};
+
 public class AuctionDeletedNotificationEvent : IFaultMessage
 {
       public Guid CorrelationId { get; set; }

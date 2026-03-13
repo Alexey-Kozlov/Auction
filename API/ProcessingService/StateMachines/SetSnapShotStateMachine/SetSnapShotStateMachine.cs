@@ -482,7 +482,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         UserLogin = context.Saga.UserLogin,
                         Data = JsonSerializer.Serialize(new
                         {
-                            message = "Сохранение записей аукционов...",
+                            message = "Сохранение тегов...",
                             percent = context.Saga.ProgressCurrent += 1
                         })
                     })

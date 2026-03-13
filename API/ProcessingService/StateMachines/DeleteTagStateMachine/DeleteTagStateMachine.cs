@@ -141,7 +141,7 @@ public class DeleteTagStateMachine : MassTransitStateMachine<DeleteTagState>
                         }
                     },
                     CorrelationId = context.Saga.CorrelationId,
-                    CallBackType = "Common.Contracts.Tag.TagCreateESCommit",
+                    CallBackType = "Common.Contracts.Tag.TagDeleteESCommit",
                 })
             .TransitionTo(PreCommitState),
         When(FaultSearchEvent)

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { setParams } from '../../store/paramSlice';
+import { ScrollPanel } from 'primereact/scrollpanel';
 
 type Props = {
   auction: Auction;
@@ -57,19 +58,23 @@ export default function Tags({ auction }: Props) {
   );
 
   return (
-    <div>
-      <TagCloud
-        minSize={2}
-        maxSize={5}
-        tags={tagSelected}
-        renderer={customRenderer}
-        onClick={(tag: Tag) => {
-          let urlParam: State = structuredClone(params);
-          urlParam.tag = tag.value;
-          dispatch(setParams(urlParam));
-          return navigate('/');
-        }}
-      />
+    <div className="grid">
+      <div className="col-12">
+        <ScrollPanel className="DetailScrollPanel">
+          <TagCloud
+            minSize={2}
+            maxSize={5}
+            tags={tagSelected}
+            renderer={customRenderer}
+            onClick={(tag: Tag) => {
+              let urlParam: State = structuredClone(params);
+              urlParam.tag = tag.value;
+              dispatch(setParams(urlParam));
+              return navigate('/');
+            }}
+          />
+        </ScrollPanel>
+      </div>
     </div>
   );
 }
