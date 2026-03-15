@@ -484,19 +484,25 @@ export default function AuctionForm() {
               onChange={(e) => handleDescriptionChanged(e.target.value)}
             />
           </div>
-          <div className="col-3">Теги</div>
-          <div className="col-9">
-            <CreatableSelect
-              isMulti
-              isClearable
-              isSearchable
-              options={tagList}
-              onCreateOption={handleNewTag}
-              onChange={handleDeleteTag}
-              value={tagSelected}
-              classNamePrefix="react-select"
-            />
-          </div>
+          {id ? (
+            <>
+              <div className="col-3">Теги</div>
+              <div className="col-9">
+                <CreatableSelect
+                  isMulti
+                  isClearable
+                  isSearchable
+                  options={tagList}
+                  onCreateOption={handleNewTag}
+                  onChange={handleDeleteTag}
+                  value={tagSelected}
+                  classNamePrefix="react-select"
+                />
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
           <div className="col-12">
             <div className="CenterItem mt-10">
               <Button

@@ -43,7 +43,7 @@ public class SetSettingsConsumer : IConsumer<SetCurrentSettings>
             messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "SettingsService_Settings");
-            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
 
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

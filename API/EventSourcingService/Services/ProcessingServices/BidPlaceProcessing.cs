@@ -80,7 +80,6 @@ public class BidPlaceProcessing
                     ErrorExceptionMessage = e.Message,
                     UserLogin = context.Message.UserLogin,
                     AuctionId = context.Message.AuctionId,
-                    IsError = false
                 }
             );
             await _publishEndpoint.Publish(errorObj);
@@ -96,7 +95,7 @@ public class BidPlaceProcessing
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_BidPlace");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, context.Message.AuctionId);
-            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
 
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

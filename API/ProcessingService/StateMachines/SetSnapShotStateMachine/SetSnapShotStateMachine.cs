@@ -18,7 +18,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
-
+    public State AbortState { get; }
 
     public Event<RequestSetSnapShot> RequestEvent { get; }
     public Event<ImageSetSnapShot> ImageEvent { get; }
@@ -60,6 +60,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompletedState();
+        ConfigureAbortState();
     }
     private void ConfigureEvents()
     {
@@ -214,7 +215,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
 
         //обрабатываем ошибки из сервиса ImageService - получение изображений
         When(FaultImageEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -223,7 +224,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-            .TransitionTo(PreCommitState)
+            .TransitionTo(AbortState)
         );
     }
 
@@ -256,9 +257,9 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                     CorrelationId = context.Saga.CorrelationId
                 })
             .TransitionTo(FinanceState),
-        //обрабатываем ошибки из сервиса EventSourcingService - сохранение изображений в EsLog
+        //обрабатываем ошибки итоговой загрузки из сервиса ImageService
         When(FaultBidEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -306,7 +307,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса EventSourcingService - сохранение ставок в EsLog
         When(FaultFinanceEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -354,7 +355,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .TransitionTo(NotifyState),
         //обрабатываем ошибки из сервиса EventSourcingService 
         When(FaultSearchEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -402,7 +403,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .TransitionTo(CommunicationState),
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotifyEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -450,7 +451,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
             .TransitionTo(TagState),
         //обрабатываем ошибки из сервиса CommunicationService 
         When(FaultCommunicationEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -497,7 +498,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 })
             .TransitionTo(PreCommitState),
         When(FaultTagEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -532,7 +533,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new SetSnapShotESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -583,7 +584,6 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
@@ -609,9 +609,26 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                IsError = context.Saga.IsError
             })
             .Finalize()
         );
+    }
+
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+            })
+        .Finalize());
     }
 }

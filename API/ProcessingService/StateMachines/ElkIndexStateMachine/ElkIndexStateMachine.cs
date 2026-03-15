@@ -103,7 +103,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             .TransitionTo(ElkIndexState),
         //обрабатываем ошибки из сервиса ElasticSearchService            
         When(FaultResetIndexEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -171,7 +171,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             ),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -202,7 +202,7 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new ElkIndexESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -252,7 +252,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
@@ -296,7 +295,6 @@ public class ElkIndexStateMachine : MassTransitStateMachine<ElkIndexState>
                     ErrorServiceName = context.Message.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
                 })
         .Finalize()
         );

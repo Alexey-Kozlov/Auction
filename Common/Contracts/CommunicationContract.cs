@@ -49,181 +49,120 @@ public class RequestCommunicationDelete
 public class CommunicationCreateSearch : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string CallBackType { get; set; }
 
     public Guid? AuctionId { get; set; }
     public Guid ItemId { get; set; }
 
-    public bool IsError { get; set; }
+
 }
 
 public class CommunicationDeleteSearch : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string CallBackType { get; set; }
     public Guid? AuctionId { get; set; }
-
     public Guid ItemId { get; set; }
 
-    public bool IsError { get; set; }
 }
 
 public class CommunicationUpdateSearch : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid ItemId { get; set; }
     public Guid? AuctionId { get; set; }
 
-    public bool IsError { get; set; }
+
 }
 
 public class CommunicationCreateNotificationEvent : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid? AuctionId { get; set; }
-
-    public bool IsError { get; set; }
     public Guid ItemId { get; set; }
 }
 
 public class CommunicationDeleteNotificationEvent : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid ItemId { get; set; }
     public Guid? AuctionId { get; set; }
 
-    public bool IsError { get; set; }
+
 }
 
 public class CommunicationUpdateNotificationEvent : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid ItemId { get; set; }
     public Guid? AuctionId { get; set; }
 
-    public bool IsError { get; set; }
+
 }
 
 public class CommunicationCreateESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string UserLogin { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid? AuctionId { get; set; }
-
-    public bool IsError { get; set; }
     public Guid ItemId { get; set; }
 }
 
 public class CommunicationDeleteESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string UserLogin { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid AuctionId { get; set; }
-
-    public bool IsError { get; set; }
     public Guid ItemId { get; set; }
 }
 
 public class CommunicationUpdateESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string UserLogin { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid ItemId { get; set; }
     public Guid? AuctionId { get; set; }
 
-    public bool IsError { get; set; }
 }
 
 public class CommunicationSearch
@@ -236,17 +175,11 @@ public class CommunicationSearch
 public class CommunicationCommit
 {
     public Guid CorrelationId { get; set; }
-
     public bool Commited { get; set; }
-
     public string CallBackType { get; set; }
-
     public string UserLogin { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
     public Guid ItemId { get; set; }
 }
@@ -254,18 +187,11 @@ public class CommunicationCommit
 public class CommunicationReset : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
-
     public string ErrorMessage { get; set; }
-
     public string ErrorExceptionMessage { get; set; }
-
     public string ErrorServiceName { get; set; }
-
     public string UserLogin { get; set; }
-
     public string CallBackType { get; set; }
-
     public Guid ItemId { get; set; }
 
-    public bool IsError { get; set; }
 }

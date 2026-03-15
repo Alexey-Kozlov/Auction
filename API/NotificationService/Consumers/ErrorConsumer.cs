@@ -44,27 +44,15 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         //посылаем ошибку в UI через SignalR
         if (!string.IsNullOrEmpty(group))
         {
-            if (context.Message.IsError)
-            {
-                await _hubContext.Clients.Groups(_groups).SendAsync("ErrorMessage",
-                    new
-                    {
-                        messageType = 0, //Ошибка
-                        auctionId = context.Message.AuctionId ?? null,
-                        message = $"Ошибка - Id {context.Message.TraceId}"
 
-                    });
-            }
-            else
-            {
-                await _hubContext.Clients.Groups(_groups).SendAsync("ErrorMessage",
+            await _hubContext.Clients.Groups(_groups).SendAsync("ErrorMessage",
                 new
                 {
-                    messageType = 1, //Предупреждение
+                    messageType = 0, //Ошибка
                     auctionId = context.Message.AuctionId ?? null,
-                    message = $"{context.Message.ErrorMessage}"
+                    message = $"Ошибка - Id {context.Message.TraceId}"
+
                 });
-            }
         }
 
         //пишем ошибку сервисов в лог
@@ -79,7 +67,6 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         loggingServiceErrorItem.ErrorExceptionMessage = errorItem.ErrorExceptionMessage;
         loggingServiceErrorItem.ErrorServiceName = errorItem.ErrorServiceName;
         loggingServiceErrorItem.UserLogin = "SystemService";
-        loggingServiceErrorItem.IsError = errorItem.IsError;
         loggingServiceErrorItem.TraceId = errorItem.TraceId;
         loggingServiceErrorItem.ItemId = errorItem.ItemId;
         //посылаем сообщение об ошибке через RabbitMq в LoggingService -> Consumers -> LoggingServiceErrorConsumer

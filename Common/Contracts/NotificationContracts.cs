@@ -28,7 +28,6 @@ public class EditNotificationESCommit : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
 }
 
 public class EditNotificationComplete : IFaultMessage
@@ -41,8 +40,6 @@ public class EditNotificationComplete : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
-
-     public bool IsError { get; set; }
 }
 
 public class AuctionNotificationData
@@ -74,7 +71,6 @@ public class EditNotificationEvent : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
 };
 
 public class NotificationReset : IFaultMessage
@@ -86,7 +82,6 @@ public class NotificationReset : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
 };
 
 public class NotificationProgress

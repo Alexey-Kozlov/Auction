@@ -62,7 +62,7 @@ public class DeleteTagConsumer : IConsumer<ModifyTag>
             messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
             messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "TagService_DeleteTagConsumer");
-            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
 
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

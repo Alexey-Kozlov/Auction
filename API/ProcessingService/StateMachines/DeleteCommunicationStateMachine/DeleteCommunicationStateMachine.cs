@@ -13,6 +13,7 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
+    public State AbortState { get; }
 
 
     public Event<RequestCommunicationDelete> RequestEvent { get; }
@@ -40,6 +41,7 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
         ConfigurePreCommitState();
         ConfigureCommitState();
         ConfigureCompleteState();
+        ConfigureAbortState();
     }
 
     private void ConfigureEvents()
@@ -99,7 +101,7 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
         .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -108,6 +110,7 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
+            .TransitionTo(AbortState)
         );
     }
 
@@ -127,7 +130,7 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
                 })
             .TransitionTo(PreCommitState),
         When(FaultSearchEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -154,7 +157,7 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new CommunicationDeleteESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -215,7 +218,6 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
@@ -248,9 +250,26 @@ public class DeleteCommunicationStateMachine : MassTransitStateMachine<DeleteCom
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
                 ItemId = context.Saga.ItemId,
-                IsError = context.Saga.IsError
             })
             .Finalize()
         );
+    }
+
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+            })
+        .Finalize());
     }
 }

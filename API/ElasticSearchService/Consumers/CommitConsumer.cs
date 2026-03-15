@@ -152,7 +152,6 @@ public class CommitConsumer : IConsumer<ElkCommit>
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElasticSearch_Commit");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
-            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
 
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

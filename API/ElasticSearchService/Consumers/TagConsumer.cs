@@ -94,7 +94,7 @@ public class TagConsumer : IConsumer<DataForProcessingServicesList<TagItem>>
                 messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_Tag");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-                messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
                 var faultType = typeof(FaultMessage<>);
                 var typeParams = new Type[] { messageObject.GetType() };
                 var faultObjectType = faultType.MakeGenericType(typeParams);

@@ -30,6 +30,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
     public State StartFinishServiceState { get; }
     public State ReIndexState { get; }
     public State CompleteState { get; }
+    public State AbortState { get; }
 
 
     public Event<RequestRestoreItems> RequestEvent { get; }
@@ -86,7 +87,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
         ConfigureStartFinishServiceState();
         ConfigureReIndexState();
         ConfigureCompletedState();
-
+        ConfigureAbortState();
     }
     private void ConfigureEvents()
     {
@@ -192,7 +193,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .Activity(p => p.OfType<ItemsResetActivity>())
             .TransitionTo(ResetItemsState),
         When(FaultStopFinishServiceEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -201,7 +202,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-        .TransitionTo(PreCommitState));
+        .TransitionTo(AbortState));
     }
 
     private void ConfigureResetItemsState()
@@ -242,7 +243,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 .Activity(p => p.OfType<ESLogActivityGetRecords>())
                 .TransitionTo(GetImagesState)),
         When(FaultResetItemsEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -251,7 +252,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-            .TransitionTo(PreCommitState)
+            .TransitionTo(AbortState)
         );
     }
 
@@ -365,7 +366,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             .TransitionTo(BidState)),
         //ошибки обработки получения изображений из EsLog
         When(FaultEsLogImagesEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -374,10 +375,10 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-        .TransitionTo(PreCommitState),
+        .TransitionTo(AbortState),
         //ошибки обработки изображений при записи в таблицу в сервисе ImageService
         When(FaultProcessImagesEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -424,7 +425,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             .TransitionTo(FinanceState),
         When(FaultBidEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -471,7 +472,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             .TransitionTo(SearchState),
         When(FaultFinanceEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -519,7 +520,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             .TransitionTo(NotifyState),
         When(FaultSearchEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -567,7 +568,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             .TransitionTo(CommunicationState),
         When(FaultNotifyEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -615,7 +616,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             .TransitionTo(TagState),
         When(FaultNotifyEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -663,7 +664,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 })
             .TransitionTo(ReIndexState),
         When(FaultNotifyEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -706,7 +707,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             })
             .TransitionTo(PreCommitState),
         When(FaultReIndexEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -738,7 +739,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new RestoreSnapShotESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -817,7 +818,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //все прошло корректно, ошибок нет
@@ -846,7 +846,7 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                         })
             .TransitionTo(CompleteState))),
         When(FaultStartFinishServiceEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Send(
                 new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
                 context => new NotificationServiceError
@@ -857,7 +857,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     ErrorServiceName = context.Message.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
                 })
             .Finalize());
     }
@@ -879,7 +878,6 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                     ErrorServiceName = context.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
                 }).Finalize(),
             p => p
             //посылаем финальное сообщение для вывода сообщения об итогах восстановления
@@ -905,9 +903,26 @@ public class RestoreStateMachine : MassTransitStateMachine<RestoreState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                IsError = context.Saga.IsError
             })
             .Finalize()
         );
+    }
+
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+            })
+        .Finalize());
     }
 }

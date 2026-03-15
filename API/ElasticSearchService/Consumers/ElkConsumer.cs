@@ -188,7 +188,7 @@ public class ElkConsumer : IConsumer<DataForProcessingServicesList<AuctionItem>>
                 messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_ELK");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
-                messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
                 var faultType = typeof(FaultMessage<>);
                 var typeParams = new Type[] { messageObject.GetType() };
                 var faultObjectType = faultType.MakeGenericType(typeParams);

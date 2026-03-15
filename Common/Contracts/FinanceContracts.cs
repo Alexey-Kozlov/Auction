@@ -22,7 +22,6 @@ public class FinanceCreated : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
      public Guid ItemId { get; set; }
 };
 
@@ -36,7 +35,6 @@ public class FinanceCreateComplete : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
      public Guid ItemId { get; set; }
 };
 
@@ -50,7 +48,6 @@ public class FinanceNotificationCreated : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
      public Guid ItemId { get; set; }
 };
 
@@ -64,7 +61,6 @@ public class FinanceCreateESCommit : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
      public Guid ItemId { get; set; }
 };
 
@@ -129,6 +125,5 @@ public class FinanceReset : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
      public Guid ItemId { get; set; }
 };

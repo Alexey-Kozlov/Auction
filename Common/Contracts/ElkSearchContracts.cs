@@ -37,7 +37,7 @@ public class ElkIndexReset : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public bool IsError { get; set; }
+
 }
 
 
@@ -49,7 +49,7 @@ public class ElkIndexCompleted : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public bool IsError { get; set; }
+
 }
 
 
@@ -61,7 +61,7 @@ public class ElkIndexESCommit : IFaultMessage
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public bool IsError { get; set; }
+
 }
 
 public class ElkCommit
@@ -83,7 +83,7 @@ public class ElkSearchResult
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
-     public bool IsError { get; set; }
+
      public ApiResponse<PagedResult<List<AuctionCreatingElk>>> Result { get; set; }
 
 }

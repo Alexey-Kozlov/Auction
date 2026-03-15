@@ -81,7 +81,7 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "SearchService");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);
-            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };
             var faultObjectType = faultType.MakeGenericType(typeParams);

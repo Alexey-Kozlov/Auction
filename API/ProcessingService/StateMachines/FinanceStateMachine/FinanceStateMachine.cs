@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Common.Contracts.Finance;
-using Common.Contracts.Notification;
 using Common.Contracts.Processing;
 using MassTransit;
 using ProcessingService.Activities.Finance;
@@ -13,6 +12,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
+    public State AbortState { get; }
 
     public Event<RequestCreateFinance> RequestEvent { get; }
     public Event<ESLogFinanceCreated> EsLogEvent { get; }
@@ -36,6 +36,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
         ConfigureCompleteState();
         ConfigureCommitState();
         ConfigurePreCommitState();
+        ConfigureAbortState();
     }
     private void ConfigureEvents()
     {
@@ -85,7 +86,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -94,7 +95,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-            .TransitionTo(PreCommitState)
+            .TransitionTo(AbortState)
         );
     }
 
@@ -116,7 +117,7 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new FinanceCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -177,7 +178,6 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
@@ -204,9 +204,25 @@ public class FinanceStateMachine : MassTransitStateMachine<FinanceState>
                     ErrorServiceName = context.Message.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
                 }).Finalize()
         );
     }
 
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+            })
+        .Finalize());
+    }
 }

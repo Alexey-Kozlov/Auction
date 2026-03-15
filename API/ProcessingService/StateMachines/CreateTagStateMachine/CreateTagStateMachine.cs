@@ -14,6 +14,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
     public State CommitState { get; }
     public State TagListState { get; }
     public State CompleteState { get; }
+    public State AbortState { get; }
 
     public Event<RequestCreateTag> RequestCreateEvent { get; }
     public Event<ESLogTagCreated> EsLogEvent { get; }
@@ -42,6 +43,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
         ConfigureCommitState();
         ConfigureGetTagList();
         ConfigureCompletedState();
+        ConfigureAbortState();
     }
     private void ConfigureEvents()
     {
@@ -104,7 +106,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 })
             .TransitionTo(SearchState),
         When(FaultEsLogEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -113,7 +115,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-            .TransitionTo(PreCommitState)
+            .TransitionTo(AbortState)
         );
     }
 
@@ -145,7 +147,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 })
             .TransitionTo(PreCommitState),
         When(FaultSearchEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -168,7 +170,7 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new TagCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -229,7 +231,6 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                               ErrorServiceName = context.Message.ErrorServiceName,
                               UserLogin = context.Saga.UserLogin,
                               TraceId = Guid.NewGuid(),
-                              IsError = context.Saga.IsError
                           }).Finalize(),
                 //ошибок нет
                 p => p
@@ -253,7 +254,6 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                IsError = context.Saga.IsError
             })
             .Finalize()
         );
@@ -276,7 +276,6 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                     ErrorServiceName = context.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
-                    IsError = context.Saga.IsError
                 }).Finalize(),
             p => p
             //Создаем событие в сервис NotificationService для обновления интерфейса -
@@ -303,10 +302,27 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
-                IsError = context.Saga.IsError
             })
             .Finalize()
         );
+    }
+
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+            })
+        .Finalize());
     }
 
 }

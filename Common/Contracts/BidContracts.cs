@@ -22,7 +22,7 @@ public class BidPlaced : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 };
 
 
@@ -37,7 +37,7 @@ public class BidSearchPlaced : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 };
 public class BidNotification : IFaultMessage
 {
@@ -50,7 +50,7 @@ public class BidNotification : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 };
 
 public class BidNotificationEvent : IFaultMessage
@@ -64,7 +64,7 @@ public class BidNotificationEvent : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 };
 
 public class BidCreateESCommit : IFaultMessage
@@ -78,7 +78,7 @@ public class BidCreateESCommit : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 };
 
 public class BidItem
@@ -114,5 +114,5 @@ public class BidReset : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 };

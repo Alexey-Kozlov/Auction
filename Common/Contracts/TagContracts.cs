@@ -47,12 +47,8 @@ public class ModifyTag
 public class AddTagCompleted : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
-
      public string UserLogin { get; set; }
-
      public string CallBackType { get; set; }
-
-     public bool IsError { get; set; }
      public string ErrorMessage { get; set; }
      public string ErrorExceptionMessage { get; set; }
      public string ErrorServiceName { get; set; }
@@ -61,12 +57,8 @@ public class AddTagCompleted : IFaultMessage
 public class DeleteTagCompleted : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
-
      public string UserLogin { get; set; }
-
      public string CallBackType { get; set; }
-
-     public bool IsError { get; set; }
      public string ErrorMessage { get; set; }
      public string ErrorExceptionMessage { get; set; }
      public string ErrorServiceName { get; set; }
@@ -82,7 +74,6 @@ public class TagCreateESCommit : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
 }
 
 public class TagCreateNotificationEvent : IFaultMessage
@@ -95,7 +86,6 @@ public class TagCreateNotificationEvent : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public string Data { get; set; }
-     public bool IsError { get; set; }
 }
 
 public class TagDeleteESCommit : IFaultMessage
@@ -108,7 +98,6 @@ public class TagDeleteESCommit : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
 }
 
 public class TagDeleteNotificationEvent : IFaultMessage
@@ -121,7 +110,6 @@ public class TagDeleteNotificationEvent : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public string Data { get; set; }
-     public bool IsError { get; set; }
 }
 
 public class TagCommit
@@ -144,7 +132,7 @@ public class TagReset : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 }
 
 public class TagListRequest : IFaultMessage
@@ -157,7 +145,7 @@ public class TagListRequest : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 }
 
 public class TagListCommit : IFaultMessage
@@ -170,7 +158,7 @@ public class TagListCommit : IFaultMessage
      public string CallBackType { get; set; }
      public Guid? AuctionId { get; set; }
      public Guid ItemId { get; set; }
-     public bool IsError { get; set; }
+
 }
 
 public class TagSearch
@@ -190,7 +178,6 @@ public class TagCreateSearch : IFaultMessage
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
 }
 
 public class TagDeleteSearch : IFaultMessage
@@ -203,5 +190,4 @@ public class TagDeleteSearch : IFaultMessage
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
      public Guid? AuctionId { get; set; }
-     public bool IsError { get; set; }
 }

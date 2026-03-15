@@ -17,6 +17,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
     public State PreCommitState { get; }
     public State CommitState { get; }
     public State CompleteState { get; }
+    public State AbortState { get; }
 
 
     public Event<RequestAuctionCreate> RequestEvent { get; }
@@ -50,6 +51,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
         ConfigureCommitState();
         ConfigureNotificationState();
         ConfigureCompleteState();
+        ConfigureAbortState();
     }
     private void ConfigureEvents()
     {
@@ -150,7 +152,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -159,7 +161,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
-        .TransitionTo(PreCommitState)
+            .TransitionTo(AbortState)
         );
     }
 
@@ -182,7 +184,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .Finalize(),
         //обрабатываем ошибки из сервиса ImageService            
         When(FaultSearchEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -213,7 +215,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .TransitionTo(ElkState),
         //обрабатываем ошибки из сервиса SearchService            
         When(FaultNotificationEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -242,7 +244,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса NotificationService            
         When(FaultElkEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -273,7 +275,7 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new AuctionCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -335,7 +337,6 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
@@ -365,9 +366,26 @@ public class CreateAuctionStateMachine : MassTransitStateMachine<CreateAuctionSt
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.ItemId,
-                IsError = context.Saga.IsError
             })
         .Finalize()
         );
+    }
+
+    private void ConfigureAbortState()
+    {
+        During(AbortState,
+        When(FaultEvent)
+        .Send(
+            new Uri(configuration["QueuePaths:ErrorNotificationConsumer"]),
+            context => new NotificationServiceError
+            {
+                CorrelationId = context.Saga.CorrelationId,
+                ErrorMessage = context.Message.ErrorMessage,
+                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorServiceName = context.Message.ErrorServiceName,
+                UserLogin = context.Saga.UserLogin,
+                TraceId = Guid.NewGuid(),
+            })
+        .Finalize());
     }
 }

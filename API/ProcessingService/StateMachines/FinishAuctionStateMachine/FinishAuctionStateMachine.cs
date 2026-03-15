@@ -112,7 +112,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из EventSourcing при завершении аукционов            
         When(FaultElkEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -143,7 +143,7 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new AuctionFinishedCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -203,7 +203,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = "SystemService",
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //отправляем уведомление через Rabbit для логирования системного сервиса - успешно выполнен
@@ -249,7 +248,6 @@ public class FinishAuctionStateMachine : MassTransitStateMachine<FinishAuctionSt
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = "SystemService",
                 TraceId = Guid.NewGuid(),
-                IsError = context.Saga.IsError
             })
         .Finalize()
         );

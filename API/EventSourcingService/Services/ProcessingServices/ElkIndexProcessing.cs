@@ -91,7 +91,7 @@ public class ElkIndexProcessing
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_ElkIndex");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, context.Message.AuctionId);
-            messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
 
             var faultType = typeof(FaultMessage<>);
             var typeParams = new Type[] { messageObject.GetType() };

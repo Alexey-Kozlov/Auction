@@ -116,7 +116,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
         .TransitionTo(BidState),
         //обрабатываем ошибки из сервиса EventSourcingService            
         When(FaultEsLogEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -127,10 +127,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             })
             // если возникла предусмотренная ошибка - например, недостаточно денег, тогда IsError = false,
             // в этом случае прерываем процесс и отсылаем уведомление
-            .IfElse(p => !p.Message.Message.IsError,
-                t => t.TransitionTo(AbortState),
-                f => f.TransitionTo(PreCommitState)
-            )
+            .TransitionTo(AbortState)
 
         );
     }
@@ -150,7 +147,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(SearchState),
         //обрабатываем ошибки из сервиса FinanceService            
         When(FaultBidEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -180,7 +177,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(NotificationState),
         //обрабатываем ошибки из сервиса BidService
         When(FaultSearchEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -211,7 +208,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             .TransitionTo(PreCommitState),
         //обрабатываем ошибки из сервиса NotificationService
         When(FaultNotificationEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BaseServiceError
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -242,7 +239,7 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
             })
         .TransitionTo(CommitState),
         When(FaultCommitEvent)
-            .Then(p => p.Saga.IsError = p.Message.Message.IsError)
+            .Then(p => p.Saga.IsError = true)
             .Publish(context => new BidCreateESCommit
             {
                 CorrelationId = context.Saga.CorrelationId,
@@ -303,7 +300,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.Bidder,
                         TraceId = Guid.NewGuid(),
-                        IsError = context.Saga.IsError
                     }).Finalize(),
                 p => p
                 //Создаем событие в сервис NotificationService для обновления интерфейса
@@ -335,7 +331,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 UserLogin = context.Saga.Bidder,
                 TraceId = Guid.NewGuid(),
                 AuctionId = context.Saga.AuctionId,
-                IsError = context.Saga.IsError
             })
             .Finalize()
         );
@@ -355,7 +350,6 @@ public class BidPlacedStateMachine : MassTransitStateMachine<BidPlacedState>
                 ErrorServiceName = context.Message.ErrorServiceName,
                 UserLogin = context.Saga.Bidder,
                 TraceId = Guid.NewGuid(),
-                IsError = context.Saga.IsError
             })
         .Finalize());
     }

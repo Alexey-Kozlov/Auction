@@ -122,7 +122,7 @@ public class CheckAuctionFinished : IHostedService, IDisposable
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");
                 messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, auctionData.ItemId.Value);
-                messageObject.GetType().GetProperty("IsError").SetValue(messageObject, true);
+
 
                 var faultType = typeof(FaultMessage<>);
                 var typeParams = new Type[] { messageObject.GetType() };

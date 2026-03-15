@@ -49,7 +49,6 @@ public class ImageReset : IFaultMessage
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
     public Guid? ItemId { get; set; }
-    public bool IsError { get; set; }
 };
 
 public class ImageReturnTypeSql

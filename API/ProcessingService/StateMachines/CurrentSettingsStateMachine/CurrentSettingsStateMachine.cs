@@ -92,7 +92,6 @@ public class CurrentSettingsStateMachine : MassTransitStateMachine<CurrentSettin
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
                         AuctionId = null,
-                        IsError = context.Saga.IsError
                     })
                     .Finalize()
                 );
