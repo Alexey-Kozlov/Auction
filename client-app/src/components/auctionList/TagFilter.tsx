@@ -46,6 +46,7 @@ export default function TagFilter() {
         display: 'inline-block',
         color: 'blue',
         cursor: 'pointer',
+        backgroundColor: `${tag.value === params.tag ? '#e0e0e1' : 'white'}`,
       }}
     >
       {tag.value}
