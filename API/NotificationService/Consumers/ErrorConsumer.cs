@@ -44,13 +44,12 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
         //посылаем ошибку в UI через SignalR
         if (!string.IsNullOrEmpty(group))
         {
-
             await _hubContext.Clients.Groups(_groups).SendAsync("ErrorMessage",
                 new
                 {
                     messageType = 0, //Ошибка
                     auctionId = context.Message.AuctionId ?? null,
-                    message = $"Ошибка - Id {context.Message.TraceId}"
+                    message = $"{context.Message.ErrorMessage}, Id - {context.Message.TraceId}"
 
                 });
         }

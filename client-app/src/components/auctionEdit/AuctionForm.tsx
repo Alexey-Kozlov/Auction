@@ -172,8 +172,12 @@ export default function AuctionForm() {
     //если в режиме редактирования - обновляем наборы тегов (общий и для данного аукциона),
     //выводим форму из режима редактирования
     if (
-      id &&
-      CheckEventNotReady(procState, SignalREvents[SignalREvents.TagChanged])
+      (id &&
+        CheckEventNotReady(
+          procState,
+          SignalREvents[SignalREvents.TagChanged],
+        )) ||
+      CheckEventReady(procState, SignalREvents[SignalREvents.ErrorMessage])
     ) {
       setFormEditClass('EditForm');
       tags.refetch();

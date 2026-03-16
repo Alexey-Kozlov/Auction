@@ -77,7 +77,7 @@ public class BidPlaceProcessing
                     CorrelationId = context.Message.CorrelationId,
                     ErrorServiceName = "EventSourcingService_BidPlace",
                     ErrorMessage = e.MessageText,
-                    ErrorExceptionMessage = e.Message,
+                    ErrorExceptionMessage = e.StackTrace,
                     UserLogin = context.Message.UserLogin,
                     AuctionId = context.Message.AuctionId,
                 }
