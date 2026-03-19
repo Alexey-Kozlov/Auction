@@ -50,8 +50,6 @@ export default function Listings() {
     if (url) {
       dispatch(setCacheQuery({ urlAuction: url } as UrlCacheList));
     }
-    //для функционала сброса пагинатора на первую страницу при поиске
-    setCurrentPageNumber(params.firstPage!);
     // eslint-disable-next-line
   }, [params]);
 

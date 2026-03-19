@@ -1,10 +1,10 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { ProcessingState, SignalREvents } from '../types';
+import { createSlice } from "@reduxjs/toolkit";
+import { ProcessingState, SignalREvents } from "../types";
 
 export const initEventsState: ProcessingState[] = [];
 
 export const processingSlice = createSlice({
-  name: 'processing',
+  name: "processing",
   initialState: initEventsState,
   reducers: {
     setEventFlag: (state, action) => {
@@ -22,11 +22,11 @@ export const processingSlice = createSlice({
           (p) => p.eventName === SignalREvents[SignalREvents.ErrorMessage],
         );
         if (errorState) {
-          errorState.ready = !action.payload.ready;
+          errorState.ready = false;
         } else {
           state.push({
             eventName: SignalREvents[SignalREvents.ErrorMessage],
-            ready: !action.payload.ready,
+            ready: false,
             lastChanged: true,
           });
         }

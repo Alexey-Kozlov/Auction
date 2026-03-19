@@ -51,8 +51,7 @@ export default function Filters() {
     },
   ]);
   const [lastOrder, setLastOrder] = useState('newDesc');
-  const orderBy = useSelector((state: RootState) => state.paramStore).orderBy;
-  const filterBy = useSelector((state: RootState) => state.paramStore).filterBy;
+  const params = useSelector((state: RootState) => state.paramStore);
 
   const filterTemplate = (option: any) => {
     return (
@@ -69,7 +68,7 @@ export default function Filters() {
     };
     if (paramName !== 'filterBy') {
       if (!paramName) {
-        paramName = orderBy!;
+        paramName = params.orderBy!;
       }
       setOrderItem((prev) => {
         prev.forEach((item) => {
@@ -169,7 +168,7 @@ export default function Filters() {
           onChange={(e) => handleMenuClick(e, 'filterBy')}
           options={filterButtons}
           itemTemplate={filterTemplate}
-          value={filterBy}
+          value={params.filterBy}
         />
       </div>
 
@@ -181,7 +180,7 @@ export default function Filters() {
           options={orderItem}
           onChange={(e) => handleMenuClick(e, e.value)}
           itemTemplate={filterTemplate}
-          value={orderBy}
+          value={params.orderBy}
         />
       </div>
 

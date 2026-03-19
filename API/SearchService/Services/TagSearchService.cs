@@ -33,11 +33,20 @@ public class TagSearchService
         var auctionIdList = _auctionIdList.Result;
 
         //отбираем аукционы по полученным AuctionId
+        var queryAuction = _dbContext.AuctionItems.AsQueryable();
+        queryAuction = queryAuction.Where(p => auctionIdList.Contains(p.ItemId) && p.Commited);
+        //сортировка в зависимости от текстового параметра OrderBy
+        queryAuction = searchParams.OrderBy switch
+        {
+            "titleAsc" => queryAuction.OrderBy(p => p.Title).ThenBy(p => p.ItemId),
+            "titleDesc" => queryAuction.OrderByDescending(p => p.Title).ThenByDescending(p => p.ItemId),
+            "newAsc" => queryAuction.OrderBy(p => p.CreateAt).ThenBy(p => p.ItemId),
+            "newDesc" => queryAuction.OrderByDescending(p => p.CreateAt).ThenByDescending(p => p.ItemId),
+            "endAsc" => queryAuction.OrderBy(p => p.AuctionEnd).ThenBy(p => p.ItemId),
+            _ => queryAuction.OrderByDescending(p => p.AuctionEnd).ThenByDescending(p => p.ItemId)
+        };
 
-        var sqlQuery = _dbContext.AuctionItems.Where(p => auctionIdList.Contains(p.ItemId) && p.Commited)
-            .OrderBy(p => p.Title).ThenBy(p => p.ItemId);
-
-        var itemsCount = await sqlQuery.CountAsync();
+        var itemsCount = await queryAuction.CountAsync();
         var pageCount = 0;
         if (itemsCount > 0)
         {
@@ -47,7 +56,7 @@ public class TagSearchService
         {
             searchParams.PageNumber = pageCount == 0 ? 1 : pageCount;
         }
-        var result = await sqlQuery.Skip((searchParams.PageNumber - 1) * searchParams.PageSize)
+        var result = await queryAuction.Skip((searchParams.PageNumber - 1) * searchParams.PageSize)
         .Take(searchParams.PageSize)
         .ToListAsync();
 

@@ -1,11 +1,9 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using Common.Contracts.Communication;
 using Common.Contracts.Processing;
 using Common.Contracts.Tag;
 using Common.Utils;
 using Common.Utils.Logging;
-using Elastic.Clients.Elasticsearch;
 using ElasticSearchService.DTO;
 using ElasticSearchService.Services;
 using MassTransit;

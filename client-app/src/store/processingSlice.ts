@@ -22,11 +22,11 @@ export const processingSlice = createSlice({
           (p) => p.eventName === SignalREvents[SignalREvents.ErrorMessage],
         );
         if (errorState) {
-          errorState.ready = !action.payload.ready;
+          errorState.ready = false;
         } else {
           state.push({
             eventName: SignalREvents[SignalREvents.ErrorMessage],
-            ready: !action.payload.ready,
+            ready: false,
             lastChanged: true,
           });
         }

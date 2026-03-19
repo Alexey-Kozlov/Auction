@@ -180,6 +180,7 @@ export default function AuctionForm() {
       CheckEventReady(procState, SignalREvents[SignalREvents.ErrorMessage])
     ) {
       setFormEditClass('EditForm');
+      //обновить общий список тегов и теги на аукционе
       tags.refetch();
       auctionTags.refetch();
     }

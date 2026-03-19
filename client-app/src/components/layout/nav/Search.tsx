@@ -137,11 +137,27 @@ export default function Search() {
 
   //для сброса значений поиска при щелчке на сброс фильтров
   useEffect(() => {
-    dispatch(api.util.resetApiState());
-    setSearch(params.searchTerm ? params.searchTerm : '');
-    setSearchAdv(params.searchAdv ? params.searchAdv : '');
+    if (params.searchTerm || params.searchAdv || params.tag) {
+      dispatch(api.util.resetApiState());
+      setSearch(
+        params.searchTerm && params.tag === '' ? params.searchTerm : '',
+      );
+      setSearchAdv(
+        params.searchAdv && params.tag === '' ? params.searchAdv : '',
+      );
+    }
+    //если был сброс параметров поиска
+    if (
+      params.searchTerm === '' &&
+      params.searchAdv === '' &&
+      params.tag === ''
+    ) {
+      dispatch(api.util.resetApiState());
+      setSearch('');
+      setSearchAdv('');
+    }
     // eslint-disable-next-line
-  }, [params.searchTerm, params.searchAdv]);
+  }, [params]);
 
   //отключение панели поиска для админского режима (кроме администраторов)
   useEffect(() => {

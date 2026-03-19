@@ -3,7 +3,6 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Elastic.Clients.Elasticsearch;
-using Microsoft.VisualBasic;
 
 namespace ElasticSearchService.Services.Search;
 

@@ -8,7 +8,7 @@ import { setSettingsData } from '../../../store/settingsSlice';
 
 export default function AdminMode() {
   const [adminMode, setAdminMode] = useState(false);
-  const [reloadCounter, setReloadCounter] = useState(3);
+  const [reloadCounter, setReloadCounter] = useState(1);
   const settingsData = useGetCurrentSettingsQuery({});
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
@@ -37,7 +37,7 @@ export default function AdminMode() {
         setReloadCounter((prev) => {
           return prev - 1;
         });
-        window.location.reload();
+        setTimeout(() => window.location.reload(), 100);
       }
       setAdminMode(true);
       dispatch(

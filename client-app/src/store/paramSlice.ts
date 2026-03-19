@@ -9,13 +9,13 @@ const initialState: State = {
   firstPage: 0,
   orderBy: 'newDesc',
   filterBy: 'live',
-  seller: undefined,
-  winner: undefined,
+  seller: '',
+  winner: '',
   searchTerm: '',
   searchAdv: '',
   userLogin: '',
   tag: '',
-  advSearchParam: [],
+  advSearchParam: ['Auction', 'Comment', 'Tag'],
 };
 
 export const paramSlice = createSlice({
@@ -33,38 +33,56 @@ export const paramSlice = createSlice({
       if (action.payload.orderBy) state.orderBy = action.payload.orderBy;
       if (action.payload.filterBy) {
         state.filterBy = action.payload.filterBy;
-        state.seller = undefined;
-        state.winner = undefined;
+        state.seller = '';
+        state.winner = '';
+        state.tag = '';
       }
 
-      state.tag = action.payload.tag;
-      state.advSearchParam = action.payload.advSearchParam;
+      if (action.payload.tag) {
+        state.tag = action.payload.tag;
+        state.searchTerm = '';
+        state.searchAdv = '';
+        state.filterBy = '';
+        state.winner = '';
+        state.seller = '';
+      }
+
+      if (action.payload.advSearchParam) {
+        state.advSearchParam = action.payload.advSearchParam;
+      }
 
       if (action.payload.seller) {
         state.seller = action.payload.seller;
         state.filterBy = '';
         state.searchTerm = '';
         state.searchAdv = '';
-        state.winner = undefined;
+        state.tag = '';
+        state.winner = '';
       }
+
       if (action.payload.winner) {
         state.winner = action.payload.winner;
         state.filterBy = '';
         state.searchTerm = '';
         state.searchAdv = '';
-        state.seller = undefined;
+        state.tag = '';
+        state.seller = '';
       }
+
       if (action.payload.searchTerm || action.payload.searchTerm === '') {
         state.searchTerm = action.payload.searchTerm;
-        state.seller = undefined;
-        state.winner = undefined;
+        state.seller = '';
+        state.winner = '';
+        if (action.payload.searchTerm) state.tag = '';
       }
 
       if (action.payload.searchAdv || action.payload.searchAdv === '') {
         state.searchAdv = action.payload.searchAdv;
-        state.seller = undefined;
-        state.winner = undefined;
+        state.seller = '';
+        state.winner = '';
+        if (action.payload.searchAdv) state.tag = '';
       }
+
       state.userLogin = GetCurrentUser();
     },
     reset: (state, action) => {
@@ -73,12 +91,12 @@ export const paramSlice = createSlice({
       state.pageCount = 1;
       state.orderBy = 'newDesc';
       state.filterBy = 'live';
-      state.seller = undefined;
-      state.winner = undefined;
+      state.seller = '';
+      state.winner = '';
       state.searchTerm = '';
       state.searchAdv = '';
       state.tag = '';
-      state.advSearchParam = [];
+      state.advSearchParam = ['Auction', 'Comment', 'Tag'];
     },
   },
 });

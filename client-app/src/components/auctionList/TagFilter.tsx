@@ -65,6 +65,8 @@ export default function TagFilter() {
         onClick={(tag: Tag) => {
           let urlParam: State = structuredClone(params);
           urlParam.tag = tag.value;
+          urlParam.searchAdv = '';
+          urlParam.searchTerm = '';
           dispatch(setParams(urlParam));
         }}
       />
