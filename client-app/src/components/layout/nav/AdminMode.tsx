@@ -37,7 +37,7 @@ export default function AdminMode() {
         setReloadCounter((prev) => {
           return prev - 1;
         });
-        setTimeout(() => window.location.reload(), 100);
+        setTimeout(() => window.location.reload(), 1000);
       }
       setAdminMode(true);
       dispatch(

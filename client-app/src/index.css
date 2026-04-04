@@ -678,7 +678,7 @@ a.p-menuitem-link > svg {
 	flex-direction: column;
 	align-items: center;
 	max-width: 60%;
-  	filter: blur(5px);
+	filter: opacity(20%) blur(5px);
 }
 .Calendar {
 	left: 50% !important;
@@ -822,7 +822,7 @@ a.p-menuitem-link > svg {
 }
 
 .ChatEditMode {
-	filter: blur(5px);
+	filter: opacity(20%) blur(5px);
 }
 
 .DetailScrollPanel {
