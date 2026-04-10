@@ -1,10 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { CurrentSettings } from '../types';
 
-type State = {
-  adminMode: boolean;
-};
-
-const initialState: State = {
+const initialState: CurrentSettings = {
   adminMode: false,
 };
 

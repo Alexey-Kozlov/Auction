@@ -525,7 +525,7 @@ public class SetSnapShotStateMachine : MassTransitStateMachine<SetSnapShotState>
         When(CommitEvent)
         .Then(context =>
         {
-            context.Saga.NotifyMessage += $", Сообщений пользователей - {context.Message.DataItems.DataObjects.Count()}";
+            context.Saga.NotifyMessage += $", Тегов - {context.Message.DataItems.DataObjects.Count()}";
         })
         .Publish(context => new SetSnapShotESCommit
         {

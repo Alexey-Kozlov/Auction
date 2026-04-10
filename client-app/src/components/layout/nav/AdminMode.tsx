@@ -1,66 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useGetCurrentSettingsQuery } from '../../../api/SettingsApi';
-import { ProcessingState, SignalREvents } from '../../../types';
-import { useDispatch, useSelector } from 'react-redux';
+import { CurrentSettings } from '../../../types';
 import { RootState } from '../../../store/store';
-import { CheckEventReady } from '../../../utils/checkEvent';
-import { setSettingsData } from '../../../store/settingsSlice';
+import { useSelector } from 'react-redux';
 
 export default function AdminMode() {
   const [adminMode, setAdminMode] = useState(false);
-  const [reloadCounter, setReloadCounter] = useState(1);
-  const settingsData = useGetCurrentSettingsQuery({});
-  const procState: ProcessingState[] = useSelector(
-    (state: RootState) => state.processingStore,
+  const settingsState: CurrentSettings = useSelector(
+    (state: RootState) => state.settingsStore,
   );
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (
-      !settingsData.isLoading &&
-      !settingsData.isFetching &&
-      settingsData.data?.result
-    ) {
-      setAdminMode(settingsData.data!.result.adminMode);
-      dispatch(
-        setSettingsData({
-          adminMode: settingsData.data!.result.adminMode,
-        }),
-      );
-    }
-    if (
-      !settingsData.isLoading &&
-      !settingsData.isFetching &&
-      settingsData.isError
-    ) {
-      if (reloadCounter > 0) {
-        setReloadCounter((prev) => {
-          return prev - 1;
-        });
-        setTimeout(() => window.location.reload(), 1000);
-      }
-      setAdminMode(true);
-      dispatch(
-        setSettingsData({
-          adminMode: true,
-        }),
-      );
-    }
-    // eslint-disable-next-line
-  }, [settingsData]);
 
   //обновление видимости контрола
   useEffect(() => {
-    if (
-      !CheckEventReady(
-        procState,
-        SignalREvents[SignalREvents.SetCurrentSettings],
-      )
-    ) {
-      settingsData.refetch();
-    }
+    setAdminMode(settingsState.adminMode);
     // eslint-disable-next-line
-  }, [procState]);
+  }, [settingsState]);
   return (
     <div>
       {adminMode && <div className="AdminMode">Административный режим</div>}

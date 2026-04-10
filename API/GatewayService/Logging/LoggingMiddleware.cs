@@ -55,18 +55,6 @@ public class LoggingMiddleware
                     //пропускаем ошибку десериализации, если в ответе был не json а html
                     catch { }
                 }
-                if (context.Response.StatusCode > 399 && string.IsNullOrEmpty(rezult.ResponseLoggingContract.Result))
-                {
-                    //если пустой ответ в ошибке
-                    rezult.LogType = LogType.Error;
-                    rezult.ResponseLoggingContract.Result = JsonSerializer.Serialize(new ResponseLoggingContract
-                    {
-                        StatusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), context.Response.StatusCode.ToString()),
-                        IsSuccess = true,
-                        ErrorMessages = null,
-                        Result = $"Прочие ошибки контроллеров с пустым ответом, код - {context.Response.StatusCode}"
-                    }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-                }
                 await responseBody.CopyToAsync(originalBodyStream);
             }
             catch (Exception e)

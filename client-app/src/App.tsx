@@ -37,6 +37,8 @@ import { CustomError } from './utils/postApiProcess';
 import MessageToast from './components/signalRNotifications/MessageToast';
 import { CheckEventLastChangedNotReady } from './utils/checkEvent';
 import AdminMode from './components/layout/nav/AdminMode';
+import { useGetCurrentSettingsQuery } from './api/SettingsApi';
+import { setSettingsData } from './store/settingsSlice';
 
 function App() {
   const toastMessage = useRef<Toast>(null);
@@ -49,6 +51,7 @@ function App() {
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
   );
+  const settingsData = useGetCurrentSettingsQuery({});
 
   //обновление приложения при поступлении сигнала об установке или выходе из админ.режима
   useEffect(() => {
@@ -61,6 +64,34 @@ function App() {
       window.location.reload();
     }
   }, [procState]);
+
+  //обращение к серверу за настройкой админского режима, запоминаем полученное значение в хранилище
+  useEffect(() => {
+    if (
+      !settingsData.isLoading &&
+      !settingsData.isFetching &&
+      settingsData.data?.result
+    ) {
+      dispatch(
+        setSettingsData({
+          adminMode: settingsData.data!.result.adminMode,
+        }),
+      );
+    }
+    //если была ошибка - принудительно ставим админский режим
+    if (
+      !settingsData.isLoading &&
+      !settingsData.isFetching &&
+      settingsData.isError
+    ) {
+      dispatch(
+        setSettingsData({
+          adminMode: true,
+        }),
+      );
+    }
+    // eslint-disable-next-line
+  }, [settingsData]);
 
   //инициализация пользователя
   useEffect(() => {
@@ -108,20 +139,7 @@ function App() {
             }),
           );
           dispatch(setParams({ userLogin: rez.data.result.login }));
-        }
-        //отображение уведомлений, если будут. Например, при работе когда включен админский режим
-        if (rez.error && toastMessage.current) {
-          toastMessage.current!.show({
-            severity: 'success',
-            life: 5000,
-            className: 'bg-white',
-            content: (props) => (
-              <MessageToast
-                message={(rez.error as CustomError).message}
-                toastType={ToastType.Warning}
-              />
-            ),
-          });
+          window.location.reload();
         }
       });
     }
