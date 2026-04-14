@@ -18,5 +18,5 @@ RUN dotnet publish -c Release -o /app/API/out
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/API/out .
-#RUN rm -rf /tmp
+RUN apt update && apt install -y libgssapi-krb5-2
 ENTRYPOINT [ "dotnet", "SettingsService.dll" ]
