@@ -1,0 +1,32 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/API/">
+    <Project Path="API/BiddingService/BiddingService.csproj" />
+    <Project Path="API/CheckVaultUnblocked/CheckVaultUnblocked.csproj" />
+    <Project Path="API/CommunicationService/CommunicationService.csproj" />
+    <Project Path="API/ElasticSearchService/ElasticSearchService.csproj" />
+    <Project Path="API/EventSourcingService/EventSourcingService.csproj" />
+    <Project Path="API/FinanceService/FinanceService.csproj" />
+    <Project Path="API/GatewayService/GatewayService.csproj" />
+    <Project Path="API/IdentityService/IdentityService.csproj" />
+    <Project Path="API/ImageService/ImageService.csproj" />
+    <Project Path="API/LoggingService/LoggingService.csproj" />
+    <Project Path="API/NotificationService/NotificationService.csproj" />
+    <Project Path="API/ProcessingService/ProcessingService.csproj" />
+    <Project Path="API/ReportService/ReportService.csproj" />
+    <Project Path="API/RouteService/RouteService.csproj" />
+    <Project Path="API/SearchService/SearchService.csproj" />
+    <Project Path="API/SettingsService/SettingsService.csproj" />
+    <Project Path="API/TagService/TagService.csproj" />
+    <Project Path="API/TestService/TestService.csproj" />
+  </Folder>
+  <Folder Name="/Common/">
+    <Project Path="Common/CollectNugetPackages/CollectNugetPackages.csproj" />
+    <Project Path="Common/Contracts/Contracts.csproj" />
+    <Project Path="Common/Utils/Utils.csproj" />
+  </Folder>
+</Solution>

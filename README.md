@@ -17,7 +17,7 @@ Prometheus
 Grafana
 
 Перед билдом - обновляем кеш сборок, выполняем команды:
-cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net9.0/
+cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net10.0/
 ./CollectNugetPackages
 будет вывод - колько пакетов обновлены в кеше
 
@@ -50,7 +50,7 @@ docker build -f Auction/API/TagService/Dockerfile -t kozlovas/auction-tag .
 Если при создании образа будет ошибка вроде - ERROR: failed to build: failed to solve: failed to compute cache key /LocalNugetPackages": not found
 - это означает, что в папке LocalNugetPackages есть не все пакеты, что используются в проекте.
 Для исправления ошибки - обновляем кеш пакетов в папку LocalNugetPackages так:
-cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net9.0/
+cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net10.0/
 ./CollectNugetPackages
 Все, папка с нугет-пакетами обновлена, можно билдить образы
 

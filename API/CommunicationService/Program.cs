@@ -80,7 +80,7 @@ builder.Services.AddOpenTelemetry().WithMetrics(opt => opt
     .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
     .AddPrometheusExporter()
 );
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(p => { }, typeof(Program).Assembly);
 builder.Services.AddScoped<CommunicationProceduresService>();
 builder.Services.AddScoped<GetItemsService>();
 builder.Services.AddGrpc();

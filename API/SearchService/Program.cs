@@ -57,7 +57,7 @@ builder.Services.AddAuthentication(p =>
     };
 });
 builder.Services.AddGrpc();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(p => { }, typeof(Program).Assembly);
 
 //нигде не используется, оставлено для примера - это сервис синхронного вызова REST-сервиса
 // builder.Services.AddHttpClient<AuctionSvcHttpClient>(config =>

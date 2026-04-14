@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <NuspecFile>Utils.nuspec</NuspecFile>
@@ -9,11 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="AuctionContracts" Version="1.0.1" />   
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />  
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.12" />
     <PackageReference Include="VaultSharp" Version="1.17.5.1" />
     <PackageReference Include="MassTransit.Kafka" Version="8.5.7" />  
   </ItemGroup>

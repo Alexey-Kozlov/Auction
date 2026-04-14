@@ -3,6 +3,7 @@ using Common.Contracts;
 using Common.Contracts.Auction;
 using Common.Contracts.ELKSearch;
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace ElasticSearchService.Services.Search;
 
@@ -46,8 +47,8 @@ public class SearchElk
 
         //итоговый запрос на получение записей - ищем по полученному списку AuctionId
         var elkCount = await _client.Client.CountAsync<AuctionCreatingElk>(s => s
-            .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(auctionIds)
-                .MinimumShouldMatch(1))));
+             .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword"))
+             .Terms(auctionIds.Select(p => (FieldValue)p).ToList()).MinimumShouldMatch(1))));
 
         //получаем наименование поля для сортировки и направление сортировки
         var sortField = context.OrderBy.Replace("Asc", "").Replace("Desc", "");
@@ -72,8 +73,8 @@ public class SearchElk
              .From((context.PageNumber - 1) * context.PageSize)
              .Size(context.PageSize)
              .TrackTotalHits(new Elastic.Clients.Elasticsearch.Core.Search.TrackHits(true))
-             .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword")).Terms(auctionIds)
-                 .MinimumShouldMatch(1))
+             .Query(q => q.TermsSet(p => p.Field(r => r.ItemId.Suffix("keyword"))
+             .Terms(auctionIds.Select(p => (FieldValue)p).ToList()).MinimumShouldMatch(1))
            //сортируем сначала по наименованию аукциона, потом по id (если одинаковые наименования)
            //Suffix - смотрим определение индекса - mappings в формате json, значение Suffix - keyword -
            //наименование свойства после "fields"

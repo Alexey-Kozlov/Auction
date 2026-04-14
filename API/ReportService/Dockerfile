@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 ARG TARGETARCH
 WORKDIR /app
@@ -15,7 +15,7 @@ WORKDIR /app/API/ReportService
 RUN dotnet publish -c Release -o /app/API/out
 
 # #создание образа
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/API/out .
 ENTRYPOINT [ "dotnet", "ReportService.dll" ]

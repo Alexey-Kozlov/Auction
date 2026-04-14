@@ -32,7 +32,7 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 builder.Services.AddControllers();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(p => { }, typeof(Program).Assembly);
 builder.Services.AddDbContext<TagDbContext>(options =>
 {
     var conStrBuilder = new NpgsqlConnectionStringBuilder();

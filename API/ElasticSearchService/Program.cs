@@ -19,7 +19,7 @@ builder.Configuration.AddVault(options =>
     options.Secret = vaultOptions["VAULT_SECRET_ID"];
 });
 builder.Services.AddControllers();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(p => { }, typeof(Program).Assembly);
 builder.Services.AddMassTransit(p =>
 {
     p.AddConsumersFromNamespaceContaining<ElkConsumer>();
