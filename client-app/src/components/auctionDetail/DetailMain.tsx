@@ -119,6 +119,7 @@ export default function DetailMain() {
   }, [procState]);
 
   //обработчик переключения переключателя уведомлений пользователя по событиям данного аукциона
+
   const handleSetNotifyUser = async (checked: boolean) => {
     notifySetWaiting(() => true);
     dispatch(setEventFlag({ eventName: 'EditNotification', ready: true }));
@@ -144,6 +145,14 @@ export default function DetailMain() {
     setShowConfirmDelete(false);
   };
 
+  const setEditCSS = () => {
+    if (isNotifySetWaiting) {
+      return 'overflow-hidden ChatEditMode';
+    } else {
+      return 'overflow-hidden';
+    }
+  };
+
   return (
     <div>
       {CheckEventReady(procState, 'CollectionChanged') ||
@@ -153,7 +162,7 @@ export default function DetailMain() {
         <></>
       )}
       {auctionDetail && auctionDetail!.sellerName && (
-        <div className="overflow-hidden">
+        <div className={setEditCSS()}>
           <div className="grid">
             <div className="col-6 CenterItem">
               <div className="CenterItem flex-column w-full">
@@ -216,12 +225,12 @@ export default function DetailMain() {
             </div>
             <div className="col-6">
               <Panel>
-                <BidList user={user} auction={auctionDetail!} />
+                <BidList auction={auctionDetail!} />
               </Panel>
             </div>
             <div className="col-12">
               <Panel>
-                <DetailedSpec auction={auctionDetail!} user={user} />
+                <DetailedSpec auction={auctionDetail!} />
               </Panel>
             </div>
           </div>

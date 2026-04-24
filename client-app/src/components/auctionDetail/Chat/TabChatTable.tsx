@@ -27,13 +27,14 @@ import ModalYesNo from '../../modals/ModalYesNo';
 import { Button } from 'primereact/button';
 import { CheckEventReady } from '../../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../../api/ServiceApi';
+import { QueryStatus } from '@reduxjs/toolkit/query';
 
 type Props = {
   auction: Auction;
-  user: User;
 };
 
-export default function TabChatTable({ auction, user }: Props) {
+export default function TabChatTable({ auction }: Props) {
+  const user: User = useSelector((state: RootState) => state.authStore);
   const [setCurrentPage] = useSetUsersCurrentPageMutation();
   const cm = useRef<ContextMenu>(null);
   const [communicationItems, setCommunicationItems] = useState<ChatComment[]>(
@@ -81,12 +82,16 @@ export default function TabChatTable({ auction, user }: Props) {
     let createMessage = newMessage;
     createMessage.actionType = ActionType.create;
     dispatch(setChatMessage(createMessage));
-    dispatch(setEventFlag({ eventName: 'CommunicationChanged', ready: true }));
+    dispatch(
+      setEventFlag({
+        eventName: SignalREvents[SignalREvents.CommunicationChanged],
+        ready: true,
+      }),
+    );
   };
 
   useEffect(() => {
-    //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
-    setCurrentPage('/communication/' + auction.itemId);
+    setChatEditClass('grid');
     //сортируем при первоначальной загрузке
     if (
       !communication.isFetching &&
@@ -100,10 +105,12 @@ export default function TabChatTable({ auction, user }: Props) {
         _temp?.sort(DynamicSort('updateAt', SortDirection.descending)),
       );
       dispatch(
-        setEventFlag({ eventName: 'CommunicationChanged', ready: false }),
+        setEventFlag({
+          eventName: SignalREvents[SignalREvents.CommunicationChanged],
+          ready: false,
+        }),
       );
     }
-    setChatEditClass('grid');
     // eslint-disable-next-line
   }, [communication]);
 
@@ -111,7 +118,7 @@ export default function TabChatTable({ auction, user }: Props) {
   useEffect(() => {
     communication.refetch();
     // eslint-disable-next-line
-  }, [user]);
+  }, [user.login]);
 
   //изменилось хранилище ответов чата - обновляем состояние набора записей чата
   useEffect(() => {
@@ -171,6 +178,8 @@ export default function TabChatTable({ auction, user }: Props) {
   //первоначальная загрузка - ждем списка сообщений
   useEffect(() => {
     setChatEditClass('grid ChatEditMode');
+    //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
+    setCurrentPage('/communication/' + auction.itemId);
   }, []);
 
   const contextItems: MenuItem[] = [

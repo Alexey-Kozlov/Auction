@@ -62,6 +62,14 @@ export default function BidForm({ auctionId, highBid }: Props) {
     });
   };
 
+  const setEditCSS = () => {
+    if (CheckEventReady(procState, SignalREvents[SignalREvents.BidPlaced])) {
+      return 'ChatEditMode';
+    } else {
+      return '';
+    }
+  };
+
   return (
     <>
       {CheckEventReady(procState, SignalREvents[SignalREvents.BidPlaced]) ? (
@@ -69,7 +77,7 @@ export default function BidForm({ auctionId, highBid }: Props) {
       ) : (
         <></>
       )}
-      <div>
+      <div className={setEditCSS()}>
         <form onSubmit={(e) => handleSubmit(e)}>
           <div className="text-center">
             <div className="flex align-items-center mt-4">

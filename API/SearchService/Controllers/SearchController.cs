@@ -19,8 +19,8 @@ public class SearchController : ControllerBase
         _tag = tag;
     }
 
-    [HttpGet("{id}")]
-    public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)
+    [HttpGet("{id:guid}")]
+    public async Task<ApiResponse<AuctionItem>> SearchItemById([FromRoute] Guid id)
     {
         //поиск по id
         return await _search.SearchItemById(id);

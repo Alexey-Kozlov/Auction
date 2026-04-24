@@ -98,9 +98,9 @@ public class SearchServiceSql
             searchParams.UserLogin, searchParams.OrderBy, searchParams.AdvSearchParam));
     }
 
-    public async Task<ApiResponse<AuctionItem>> SearchItemById(string id)
+    public async Task<ApiResponse<AuctionItem>> SearchItemById(Guid id)
     {
-        var item = await _context.AuctionItems.Where(p => p.ItemId == Guid.Parse(id) && p.Commited).FirstOrDefaultAsync();
+        var item = await _context.AuctionItems.Where(p => p.ItemId == id && p.Commited).FirstOrDefaultAsync();
         return new ApiResponse<AuctionItem>
         {
             IsSuccess = true,

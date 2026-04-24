@@ -18,8 +18,8 @@ public class NotificationController : ControllerBase
 
 
     [Authorize]
-    [HttpGet("{id}")]
-    public async Task<ApiResponse<bool>> IsNotifyUser(Guid id)
+    [HttpGet("{id:guid}")]
+    public async Task<ApiResponse<bool>> IsNotifyUser([FromRoute] Guid id)
     {
         var userLogin = User.FindFirst("Login").Value;
 

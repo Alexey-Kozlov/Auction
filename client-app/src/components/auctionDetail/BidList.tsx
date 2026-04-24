@@ -20,11 +20,11 @@ import { useGetAuctionsQuery } from '../../api/AuctionApi';
 import { CheckEventLastChangedNotReady } from '../../utils/checkEvent';
 
 type Props = {
-  user: User | null;
   auction: Auction;
 };
 
-export default function BidList({ user, auction }: Props) {
+export default function BidList({ auction }: Props) {
+  const user: User = useSelector((state: RootState) => state.authStore);
   const dispatch = useDispatch();
   const [lastBidId, setLastBidId] = useState('');
   const bidList = useGetBidsForAuctionQuery(auction?.itemId);

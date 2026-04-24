@@ -17,10 +17,10 @@ public class GetItemsService
         _mapper = mapper;
     }
 
-    public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems(string auctionId)
+    public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems(Guid auctionId)
     {
         //сортируем записи потом, на клиенте
-        var items = await _dbContext.Communications.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
+        var items = await _dbContext.Communications.Where(p => p.Commited && p.AuctionId == auctionId)
             .ToListAsync();
         return new ApiResponse<List<CommunicationDTO>>()
         {

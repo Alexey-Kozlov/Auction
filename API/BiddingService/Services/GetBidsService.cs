@@ -17,9 +17,9 @@ public class GetBidsService
         _context = context;
     }
 
-    public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(string auctionId)
+    public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(Guid auctionId)
     {
-        var highBid = await _context.Bids.Where(p => p.Commited && p.AuctionId == Guid.Parse(auctionId))
+        var highBid = await _context.Bids.Where(p => p.Commited && p.AuctionId == auctionId)
                 .OrderBy(p => p.BidTime).ToListAsync();
 
         return new ApiResponse<List<BidDTO>>()

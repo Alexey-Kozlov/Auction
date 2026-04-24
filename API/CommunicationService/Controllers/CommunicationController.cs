@@ -17,8 +17,8 @@ public class CommunicationController : ControllerBase
     }
 
     //при первоначальном открытии на клиенте списка сообщений чата
-    [HttpGet("{auctionId}")]
-    public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems(string auctionId)
+    [HttpGet("{auctionId:guid}")]
+    public async Task<ApiResponse<List<CommunicationDTO>>> GetCommunicationItems([FromRoute] Guid auctionId)
     {
         return await _itemsService.GetCommunicationItems(auctionId);
     }

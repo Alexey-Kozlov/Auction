@@ -6,9 +6,8 @@ import Tags from './Tags';
 
 type Props = {
   auction: Auction;
-  user: User;
 };
-export default function DetailedSpec({ auction, user }: Props) {
+export default function DetailedSpec({ auction }: Props) {
   return (
     <div>
       <TabView>
@@ -28,7 +27,7 @@ export default function DetailedSpec({ auction, user }: Props) {
           }
           className="text-4xl"
         >
-          <TabChatTable auction={auction} user={user} />
+          <TabChatTable auction={auction} />
         </TabPanel>
         <TabPanel
           header="Теги"

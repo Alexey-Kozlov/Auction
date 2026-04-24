@@ -16,8 +16,8 @@ public class BidsController : ControllerBase
     }
 
     //получение списка ставок для аукциона
-    [HttpGet("{auctionId}")]
-    public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction(string auctionId)
+    [HttpGet("{auctionId:guid}")]
+    public async Task<ApiResponse<List<BidDTO>>> GetBidsForAuction([FromRoute] Guid auctionId)
     {
         return await _bidsService.GetBidsForAuction(auctionId);
     }
