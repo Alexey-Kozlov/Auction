@@ -37,7 +37,7 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
             "",
             context.Saga.ItemId,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -48,6 +48,6 @@ public class ESLogActivity : IStateMachineActivity<EditNotificationState, Reques
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

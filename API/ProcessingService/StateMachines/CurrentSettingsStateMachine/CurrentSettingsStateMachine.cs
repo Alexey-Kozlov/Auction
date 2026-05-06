@@ -87,7 +87,8 @@ public class CurrentSettingsStateMachine : MassTransitStateMachine<CurrentSettin
                     {
                         CorrelationId = context.Saga.CorrelationId,
                         ErrorMessage = context.Message.Message.ErrorMessage,
-                        ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                        ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                        ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                         ErrorServiceName = context.Message.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),

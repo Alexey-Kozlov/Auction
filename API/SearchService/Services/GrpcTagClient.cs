@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Common.Contracts;
 using Common.Contracts.Report;
-using Common.Contracts.Tag;
 using Grpc.Core;
 using Grpc.Net.Client;
 using TagService;

@@ -28,12 +28,11 @@ public class SetCurrentSettings
 public class SetCurrentSettingsCompleted : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
-
      public string UserLogin { get; set; }
-
      public string CallBackType { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
 }
 

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Common.Contracts;
 using Common.Contracts.Finance;

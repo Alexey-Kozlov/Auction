@@ -59,6 +59,7 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
                             item2.CorrelationId = correlationId;
                             _dbContext.AuctionItems.Update(item2);
                             typedItem.Commited = false;
+                            typedItem.CreateAt = item2.CreateAt;
                             await _dbContext.AuctionItems.AddAsync(typedItem);
                             break;
                     }
@@ -76,8 +77,9 @@ public class AuctionConsumer : IConsumer<DataForProcessingServicesList<AuctionIt
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
-            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetMessage(e));
+            messageObject.GetType().GetProperty("ErrorExceptionStack").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorExceptionInputData").SetValue(messageObject, GetErrorMessage.GetExceptionStringData(context.Message));
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "SearchService");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);

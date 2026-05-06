@@ -43,7 +43,7 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
             JsonSerializer.Serialize(context.Message),
             context.Saga.ItemId,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -54,6 +54,6 @@ public class ESLogActivity : IStateMachineActivity<CreateAuctionState, RequestAu
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-create");
+        context.CreateScope("scope");
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
 using System.Text.Json;
-using AutoMapper;
-using Common.Contracts.Auction;
 using Common.Contracts.EventSourcing;
 using Common.Contracts.Processing;
 using Common.Contracts.Tag;
@@ -61,8 +59,9 @@ public class SetSnapShotConsumer : IConsumer<ESContract>
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
-            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetMessage(e));
+            messageObject.GetType().GetProperty("ErrorExceptionStack").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorExceptionInputData").SetValue(messageObject, GetErrorMessage.GetExceptionStringData(context.Message));
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "TagService_SetSnapShot");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);

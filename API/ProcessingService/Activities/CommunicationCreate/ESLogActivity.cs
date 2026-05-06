@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Common.Contracts.Communication;
 using Common.Contracts.Processing;
 using Common.Utils;
@@ -42,7 +41,7 @@ public class ESLogActivity : IStateMachineActivity<CreateCommunicationState, Req
             "",
             context.Saga.AuctionId,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -53,6 +52,6 @@ public class ESLogActivity : IStateMachineActivity<CreateCommunicationState, Req
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-communication-create");
+        context.CreateScope("scope");
     }
 }

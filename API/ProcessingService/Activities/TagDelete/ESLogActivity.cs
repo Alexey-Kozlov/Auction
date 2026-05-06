@@ -37,7 +37,7 @@ public class ESLogActivity : IStateMachineActivity<DeleteTagState, RequestDelete
             "",
             context.Saga.AuctionId,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -48,6 +48,6 @@ public class ESLogActivity : IStateMachineActivity<DeleteTagState, RequestDelete
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

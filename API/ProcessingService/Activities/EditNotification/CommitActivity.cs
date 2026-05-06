@@ -37,7 +37,8 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
             context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
 
         await _publishEndpoint.Publish(new NotificationCommit
@@ -46,7 +47,8 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
             CallBackType = "Common.Contracts.Notification.EditNotificationEvent",
             CorrelationId = context.Message.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -60,6 +62,6 @@ public class CommitActivity : IStateMachineActivity<EditNotificationState, EditN
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("scope");
     }
 }

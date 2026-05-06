@@ -40,7 +40,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
 
         await _publishEndpoint.Publish(new ImageCommit
@@ -49,7 +50,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -59,7 +61,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -69,7 +72,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin,
             ElkIndex = "search_index"
@@ -80,7 +84,8 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
             CallBackType = "Common.Contracts.Auction.AuctionCreatedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -94,6 +99,6 @@ public class CommitActivity : IStateMachineActivity<CreateAuctionState, AuctionC
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("scope");
     }
 }

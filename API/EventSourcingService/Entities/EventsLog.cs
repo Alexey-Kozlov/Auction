@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Common.Contracts;
 using Common.Contracts.Processing;
 
 namespace EventSourcingService.Entities;

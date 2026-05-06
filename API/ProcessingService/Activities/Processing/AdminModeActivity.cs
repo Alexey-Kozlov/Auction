@@ -40,6 +40,6 @@ public class AdminModeActivity : IStateMachineActivity<CurrentSettingsState, Set
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

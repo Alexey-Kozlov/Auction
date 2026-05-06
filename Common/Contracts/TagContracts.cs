@@ -50,7 +50,8 @@ public class AddTagCompleted : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
 }
 
@@ -60,7 +61,8 @@ public class DeleteTagCompleted : IFaultMessage
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
 }
 
@@ -68,7 +70,8 @@ public class TagCreateESCommit : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -80,7 +83,8 @@ public class TagCreateNotificationEvent : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -92,7 +96,8 @@ public class TagDeleteESCommit : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -104,7 +109,8 @@ public class TagDeleteNotificationEvent : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -119,7 +125,8 @@ public class TagCommit
      public string CallBackType { get; set; }
      public string UserLogin { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
 }
 
@@ -127,7 +134,8 @@ public class TagReset : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -139,7 +147,8 @@ public class TagListRequest : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -152,7 +161,8 @@ public class TagListCommit : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -173,7 +183,8 @@ public class TagCreateSearch : IFaultMessage
      public Guid CorrelationId { get; set; }
      public string UserLogin { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }
@@ -185,7 +196,8 @@ public class TagDeleteSearch : IFaultMessage
      public Guid CorrelationId { get; set; }
      public string UserLogin { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string CallBackType { get; set; }
      public Guid ItemId { get; set; }

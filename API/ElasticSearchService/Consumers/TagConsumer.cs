@@ -44,8 +44,11 @@ public class TagConsumer : IConsumer<DataForProcessingServicesList<TagItem>>
                         ItemId = _typedItem.ItemId,
                         Tag = _typedItem.Tag
                     };
+                    //ищем имеющийся тег по наименованию и id аукциона
                     var search = await _client.TagClient.SearchAsync<TagSearch>(indices: "tag_index",
-                        p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId))));
+                        p => p.Query(q => q.QueryString(qs => qs
+                        .Query($"auctionId:{typedItem.AuctionId} AND tag:{typedItem.Tag}"))));
+
                     if (item.CRUD != CRUD.Create)
                     {
                         if (search == null) throw new Exception($"Ошибка обновления записи в елке - не найден тег с Id - {typedItem.ItemId}");
@@ -67,7 +70,8 @@ public class TagConsumer : IConsumer<DataForProcessingServicesList<TagItem>>
                         case CRUD.Delete:
                             //удаляем из индекса заданную запись
                             var response = await _client.TagClient.DeleteByQueryAsync<TagSearch>(indices: "tag_index",
-                                p => p.Query(q => q.Match(m => m.Field(f => f.ItemId).Query(typedItem.ItemId)))
+                                p => p.Query(q => q.QueryString(qs => qs
+                                    .Query($"auctionId:{typedItem.AuctionId} AND tag:{typedItem.Tag}")))
                                 .WaitForCompletion(true).Refresh());
                             break;
                         case CRUD.Create:
@@ -88,8 +92,9 @@ public class TagConsumer : IConsumer<DataForProcessingServicesList<TagItem>>
                 var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
-                messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetMessage(e));
+                messageObject.GetType().GetProperty("ErrorExceptionStack").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ErrorExceptionInputData").SetValue(messageObject, GetErrorMessage.GetExceptionStringData(context.Message));
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "ElkService_Tag");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
 

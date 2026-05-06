@@ -23,7 +23,8 @@ public class EditNotificationESCommit : IFaultMessage
 
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -35,7 +36,8 @@ public class EditNotificationComplete : IFaultMessage
 
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -55,7 +57,8 @@ public class NotificationCommit
      public bool Commited { get; set; }
      public string CallBackType { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public Guid ItemId { get; set; }
@@ -66,7 +69,8 @@ public class EditNotificationEvent : IFaultMessage
 
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -77,7 +81,8 @@ public class NotificationReset : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }

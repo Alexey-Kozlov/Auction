@@ -14,6 +14,7 @@
     <Project Path="API/GatewayService/GatewayService.csproj" />
     <Project Path="API/IdentityService/IdentityService.csproj" />
     <Project Path="API/ImageService/ImageService.csproj" />
+    <Project Path="API/LoadTesting/LoadTesting.csproj" />
     <Project Path="API/LoggingService/LoggingService.csproj" />
     <Project Path="API/NotificationService/NotificationService.csproj" />
     <Project Path="API/ProcessingService/ProcessingService.csproj" />

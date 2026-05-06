@@ -41,7 +41,8 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
 
         await _publishEndpoint.Publish(new FinanceCommit
@@ -50,7 +51,8 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.Bidder
         });
@@ -60,7 +62,8 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.Bidder
         });
@@ -70,7 +73,8 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.Bidder
         });
@@ -80,7 +84,8 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
             CallBackType = "Common.Contracts.Bid.BidNotificationEvent",
             CorrelationId = context.Message.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.Bidder
         });
@@ -95,6 +100,6 @@ public class CommitActivity : IStateMachineActivity<BidPlacedState, BidCreateESC
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("scope");
     }
 }

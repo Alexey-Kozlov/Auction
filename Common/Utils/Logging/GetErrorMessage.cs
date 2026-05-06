@@ -1,21 +1,46 @@
+using System.Text;
+using System.Text.Json;
+
 namespace Common.Utils.Logging;
 
 public class GetErrorMessage
 {
-    public static Exception GetMessage(Exception e)
+    private const int dataStringLength = 100000; //максимальная длина сериализованного объекта данных
+    public static string GetMessage(Exception e)
     {
-        return new Exception(GetInnerException(e).Message, e);
+        var exceptionMessage = new StringBuilder();
+        if (!string.IsNullOrEmpty(e.Message))
+        {
+            exceptionMessage.Append(e.Message);
+        }
+        GetInnerException(e, exceptionMessage);
+        return exceptionMessage.ToString();
     }
 
-    public static Exception GetInnerException(Exception e)
+    public static StringBuilder GetInnerException(Exception e, StringBuilder message)
     {
+
         if (e.InnerException != null)
         {
-            return GetInnerException(e.InnerException);
+            if (!string.IsNullOrEmpty(e.InnerException.Message))
+            {
+                message.Append($", InnerException - {e.InnerException.Message}");
+            }
+            return GetInnerException(e.InnerException, message);
         }
         else
         {
-            return e;
+            return message;
         }
+    }
+
+    public static string GetExceptionStringData(object data)
+    {
+        var dataString = JsonSerializer.Serialize(data);
+        if (dataString.Length > dataStringLength)
+        {
+            return "Слишком большой входной объект данных";
+        }
+        return dataString;
     }
 }

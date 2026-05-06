@@ -14,7 +14,8 @@ public class ESContract
     public Command Command { get; set; }
     public string Image { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public bool IsError { get; set; }
 }
@@ -58,7 +59,8 @@ public class BidRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -70,7 +72,8 @@ public class FinanceRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -82,7 +85,8 @@ public class NotifyRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -94,7 +98,8 @@ public class CommunicationRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -107,7 +112,8 @@ public class NotifyUIRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -119,7 +125,8 @@ public class SearchRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -131,7 +138,8 @@ public class TagRestoreSnapShot : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -145,7 +153,8 @@ public class RestoreSnapShotESCommit : IFaultMessage
 {
     public Guid CorrelationId { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -165,7 +174,8 @@ public class BidSetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -180,7 +190,8 @@ public class FinanceSetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -195,7 +206,8 @@ public class NotifySetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -209,7 +221,8 @@ public class NotifyUISetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -223,7 +236,8 @@ public class SearchSetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -237,7 +251,8 @@ public class ImageSetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -251,7 +266,8 @@ public class CommunicationSetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -266,7 +282,8 @@ public class TagSetSnapShot : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -280,7 +297,8 @@ public class SetSnapShotESCommit : IFaultMessage
     public DataForProcessingServicesList DataItems { get; set; }
     public int AllItemsCount { get; set; }
     public string ErrorMessage { get; set; }
-    public string ErrorExceptionMessage { get; set; }
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
     public string UserLogin { get; set; }
     public string CallBackType { get; set; }
@@ -299,16 +317,11 @@ public class SendStartFinishService : IFaultMessage
     public Guid CorrelationId { get; set; }
     public string CallBackType { get; set; }
     public string ErrorMessage { get; set; }
-
-    public string ErrorExceptionMessage { get; set; }
-
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
-
     public string UserLogin { get; set; }
-
     public Guid? ItemId { get; set; }
-
-
 }
 
 public class SendStopFinishService : IFaultMessage
@@ -316,16 +329,11 @@ public class SendStopFinishService : IFaultMessage
     public Guid CorrelationId { get; set; }
     public string CallBackType { get; set; }
     public string ErrorMessage { get; set; }
-
-    public string ErrorExceptionMessage { get; set; }
-
+    public string ErrorExceptionStack { get; set; }
+    public string ErrorExceptionInputData { get; set; }
     public string ErrorServiceName { get; set; }
-
     public string UserLogin { get; set; }
-
     public Guid? ItemId { get; set; }
-
-
 }
 
 public class StartFinishService

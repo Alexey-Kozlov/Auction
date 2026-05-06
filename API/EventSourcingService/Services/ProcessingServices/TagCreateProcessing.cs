@@ -67,7 +67,7 @@ public class TagCreateProcessing
                     CorrelationId = context.Message.CorrelationId,
                     ErrorServiceName = "EventSourcingService_CreateTag",
                     ErrorMessage = e.MessageText,
-                    ErrorExceptionMessage = e.StackTrace,
+                    ErrorExceptionStack = e.StackTrace,
                     UserLogin = context.Message.UserLogin,
                     AuctionId = context.Message.AuctionId,
                 }
@@ -80,8 +80,9 @@ public class TagCreateProcessing
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
-            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetMessage(e));
+            messageObject.GetType().GetProperty("ErrorExceptionStack").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorExceptionInputData").SetValue(messageObject, GetErrorMessage.GetExceptionStringData(context.Message));
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CreateTag");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, context.Message.UserLogin);
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, context.Message.AuctionId);

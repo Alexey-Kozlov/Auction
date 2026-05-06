@@ -52,7 +52,8 @@ public class AuctionCreatedSearch : IFaultMessage
       public Guid CorrelationId { get; set; }
       public string UserLogin { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string CallBackType { get; set; }
       public Guid? ItemId { get; set; }
@@ -72,7 +73,8 @@ public class AuctionCreatedNotification : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -83,7 +85,8 @@ public class AuctionCreatedNotificationEvent : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -112,7 +115,8 @@ public class AuctionCreatedElk : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -124,7 +128,8 @@ public class AuctionCreateESCommit : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -136,7 +141,8 @@ public class AuctionReset : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -166,7 +172,8 @@ public class AuctionDeletedBid : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -179,7 +186,8 @@ public class AuctionDeletedGateway : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -192,7 +200,8 @@ public class AuctionDeletedImage : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -205,7 +214,8 @@ public class AuctionDeletedSearch : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -218,7 +228,8 @@ public class AuctionDeletedNotification : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -231,7 +242,8 @@ public class AuctionDeletedCommunication : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -244,7 +256,8 @@ public class AuctionDeletedTag : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -256,7 +269,8 @@ public class AuctionDeletedNotificationEvent : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -269,7 +283,8 @@ public class AuctionDeletedElk : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -282,7 +297,8 @@ public class AuctionDeleteESCommit : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -315,7 +331,8 @@ public class AuctionUpdatedGateWay : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -328,7 +345,8 @@ public class AuctionUpdatedSearch : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -341,7 +359,8 @@ public class AuctionUpdatedNotification : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -353,7 +372,8 @@ public class AuctionUpdatedNotificationEvent : IFaultMessage
 {
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -366,7 +386,8 @@ public class AuctionUpdatedElk : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -379,7 +400,8 @@ public class AuctionUpdateESCommit : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -409,7 +431,8 @@ public class AuctionFinishedCommit : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -422,7 +445,8 @@ public class AuctionFinishedElk : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -435,7 +459,8 @@ public class AuctionFinishedNotification : IFaultMessage
 
       public Guid CorrelationId { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
       public string UserLogin { get; set; }
       public string CallBackType { get; set; }
@@ -452,6 +477,7 @@ public class AuctionCommit
       public string CallBackType { get; set; }
       public string UserLogin { get; set; }
       public string ErrorMessage { get; set; }
-      public string ErrorExceptionMessage { get; set; }
+      public string ErrorExceptionStack { get; set; }
+      public string ErrorExceptionInputData { get; set; }
       public string ErrorServiceName { get; set; }
 }

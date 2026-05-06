@@ -39,7 +39,8 @@ public class CommitActivity : IStateMachineActivity<DeleteCommunicationState, Co
             context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
 
         //фиксируем транзакцию в БД чтения CommunicationService
@@ -49,7 +50,8 @@ public class CommitActivity : IStateMachineActivity<DeleteCommunicationState, Co
             CallBackType = "Common.Contracts.Communication.CommunicationDeleteNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -61,7 +63,8 @@ public class CommitActivity : IStateMachineActivity<DeleteCommunicationState, Co
             CallBackType = "Common.Contracts.Communication.CommunicationDeleteNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin,
             ElkIndex = "communication_index"
@@ -77,6 +80,6 @@ public class CommitActivity : IStateMachineActivity<DeleteCommunicationState, Co
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-communication-delete");
+        context.CreateScope("scope");
     }
 }

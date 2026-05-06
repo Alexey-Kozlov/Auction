@@ -42,7 +42,8 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLogR
             null,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
         await next.Execute(context).ConfigureAwait(false);
     }
@@ -54,6 +55,6 @@ public class ESLogActivityGetImages : IStateMachineActivity<RestoreState, ESLogR
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

@@ -43,7 +43,7 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
             context.Saga.AuctionId,
             context.Saga.ItemId,
             false,
-            "", "", "");
+            "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -54,6 +54,6 @@ public class ESLogActivity : IStateMachineActivity<UpdateAuctionState, RequestAu
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

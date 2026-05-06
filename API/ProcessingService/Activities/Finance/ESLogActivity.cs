@@ -40,7 +40,7 @@ public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFi
             "",
             null,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -51,6 +51,6 @@ public class ESLogActivity : IStateMachineActivity<FinanceState, RequestCreateFi
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

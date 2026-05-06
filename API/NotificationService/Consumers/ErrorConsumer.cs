@@ -60,14 +60,17 @@ public class ErrorConsumer : IConsumer<NotificationServiceError>
 
     private async Task ErrorLogging(NotificationServiceError errorItem)
     {
-        var loggingServiceErrorItem = new LoggingServiceError();
-        loggingServiceErrorItem.AuctionId = errorItem.AuctionId;
-        loggingServiceErrorItem.ErrorMessage = errorItem.ErrorMessage;
-        loggingServiceErrorItem.ErrorExceptionMessage = errorItem.ErrorExceptionMessage;
-        loggingServiceErrorItem.ErrorServiceName = errorItem.ErrorServiceName;
-        loggingServiceErrorItem.UserLogin = "SystemService";
-        loggingServiceErrorItem.TraceId = errorItem.TraceId;
-        loggingServiceErrorItem.ItemId = errorItem.ItemId;
+        var loggingServiceErrorItem = new LoggingServiceError
+        {
+            AuctionId = errorItem.AuctionId,
+            ErrorMessage = errorItem.ErrorMessage,
+            ErrorExceptionStack = errorItem.ErrorExceptionStack,
+            ErrorServiceName = errorItem.ErrorServiceName,
+            ErrorExceptionInputData = errorItem.ErrorExceptionInputData,
+            UserLogin = "SystemService",
+            TraceId = errorItem.TraceId,
+            ItemId = errorItem.ItemId
+        };
         //посылаем сообщение об ошибке через RabbitMq в LoggingService -> Consumers -> LoggingServiceErrorConsumer
         await _publishEndpoint.Publish(loggingServiceErrorItem);
     }

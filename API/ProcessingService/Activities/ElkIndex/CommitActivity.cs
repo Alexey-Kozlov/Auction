@@ -35,7 +35,8 @@ public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCom
             null,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
         await next.Execute(context).ConfigureAwait(false);
     }
@@ -47,6 +48,6 @@ public class CommitActivity : IStateMachineActivity<ElkIndexState, ElkIndexESCom
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("scope");
     }
 }

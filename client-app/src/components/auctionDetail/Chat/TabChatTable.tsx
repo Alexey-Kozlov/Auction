@@ -27,7 +27,6 @@ import ModalYesNo from '../../modals/ModalYesNo';
 import { Button } from 'primereact/button';
 import { CheckEventReady } from '../../../utils/checkEvent';
 import { useSetUsersCurrentPageMutation } from '../../../api/ServiceApi';
-import { QueryStatus } from '@reduxjs/toolkit/query';
 
 type Props = {
   auction: Auction;
@@ -212,6 +211,7 @@ export default function TabChatTable({ auction }: Props) {
     // начало процесса редактирования сообщения чата - в UseEffect свойства "messageChat" в SignalRProvider
     let updateMessage = chatSelected!;
     updateMessage.actionType = ActionType.update;
+    updateMessage.userLogin = user.login;
     setShowConfirmEditDialog(false);
     setChatEditClass('grid ChatEditMode');
     dispatch(setChatMessage(updateMessage));
@@ -228,6 +228,7 @@ export default function TabChatTable({ auction }: Props) {
     // начало процесса удаления сообщения чата - в UseEffect свойства "messageChat" в SignalRProvider
     let deleteMessage = chatSelected!;
     deleteMessage.actionType = ActionType.delete;
+    deleteMessage.userLogin = user.login;
     setShowConfirmDeleteDialog(false);
     setChatEditClass('grid ChatEditMode');
     dispatch(setChatMessage(deleteMessage));

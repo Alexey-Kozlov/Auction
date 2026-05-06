@@ -117,8 +117,9 @@ public class CheckAuctionFinished : IHostedService, IDisposable
                 var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                     _configuration["CommonAssembly"]).CreateInstance("Common.Contracts.Processing.ESLogAuctionFinish");
                 messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, correlationId);
-                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
-                messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetMessage(e));
+                messageObject.GetType().GetProperty("ErrorExceptionStack").SetValue(messageObject, e.StackTrace);
+                messageObject.GetType().GetProperty("ErrorExceptionInputData").SetValue(messageObject, GetErrorMessage.GetExceptionStringData(auctionData));
                 messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "EventSourcingService_CheckAuctionFinish");
                 messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "SystemService");
                 messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, auctionData.ItemId.Value);

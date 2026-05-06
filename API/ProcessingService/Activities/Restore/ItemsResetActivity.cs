@@ -73,6 +73,6 @@ public class ItemsResetActivity : IStateMachineActivity<RestoreState, SendStopFi
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction");
+        context.CreateScope("scope");
     }
 }

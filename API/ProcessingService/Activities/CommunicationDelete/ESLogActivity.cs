@@ -38,7 +38,7 @@ public class ESLogActivity : IStateMachineActivity<DeleteCommunicationState, Req
             JsonSerializer.Serialize(context.Message),
             context.Saga.AuctionId,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -49,6 +49,6 @@ public class ESLogActivity : IStateMachineActivity<DeleteCommunicationState, Req
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-communication-delete");
+        context.CreateScope("scope");
     }
 }

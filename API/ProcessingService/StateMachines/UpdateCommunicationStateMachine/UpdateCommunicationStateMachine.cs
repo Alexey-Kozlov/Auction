@@ -63,7 +63,6 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
     }
     private void ConfigureInitialState()
     {
-        //поступил запрос на создание ставки
         Initially(
             When(RequestEvent)
             .Then(context =>
@@ -76,7 +75,6 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
                 context.Saga.IsError = false;
                 context.Saga.CommitCounter = 3;
             })
-            //посылаем через Кафку, выполнение всех операций в ES лог для создания ставки:
             .Activity(p => p.OfType<ESLogActivity>()
             .TransitionTo(MessageState))
         );
@@ -108,7 +106,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
@@ -137,7 +136,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
@@ -164,7 +164,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Message.Message.UserLogin
             })
@@ -175,7 +176,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
@@ -216,7 +218,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
                     {
                         CorrelationId = context.Saga.CorrelationId,
                         ErrorMessage = context.Message.ErrorMessage,
-                        ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                        ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                        ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                         ErrorServiceName = context.Message.ErrorServiceName,
                         UserLogin = context.Saga.UserLogin,
                         TraceId = Guid.NewGuid(),
@@ -247,7 +250,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
@@ -267,7 +271,8 @@ public class UpdateCommunicationStateMachine : MassTransitStateMachine<UpdateCom
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),

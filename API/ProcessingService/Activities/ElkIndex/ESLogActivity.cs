@@ -35,7 +35,7 @@ public class ESLogActivity : IStateMachineActivity<ElkIndexState, ElkIndexReset>
             "",
             null,
             null,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -46,6 +46,6 @@ public class ESLogActivity : IStateMachineActivity<ElkIndexState, ElkIndexReset>
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-create");
+        context.CreateScope("scope");
     }
 }

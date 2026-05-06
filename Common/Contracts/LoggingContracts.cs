@@ -9,7 +9,8 @@ public class RequestLoggingContract
 
 public class ResponseLoggingContract : ApiResponse<string>
 {
-
+    public string InputData { get; set; }
+    public string ServiceName { get; set; }
 }
 
 public class ItemLoggingContract

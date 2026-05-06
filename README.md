@@ -58,7 +58,9 @@ cd /home/alex/Projects/Auction/Common/CollectNugetPackages/bin/Debug/net10.0/
 Работоспособность всех образов завязана на auction-checkvault - проверка, что Vault разблокирован
 и остальные сервисы могут запускаться. 
 ПОЭТОМУ если какой-то под не запускается - сперва проверяем, что auction-checkvault запущен.
-
+!!!
+после запуска auction-checkvault - следующим должен быть запущен auction-settings - многие проекты ждут его запуска для чтения настроек.
+Остальные модули можно запускать в любом порядке.
 
 упаковка пакета с контрактами
 из папки Projects/Auction/Common/Contracts
@@ -77,7 +79,7 @@ dotnet build --configuration Release
 очистка кешей NuGet-пакетов
 Если нужно изменить пакет, то из-за кеширования делаем так:
 
-упаковка пакета с контрактами
+работа с пакетами из папок:
 из папки Projects/Auction/Common/Contracts
 из папки Projects/Auction/Common/Utils
 
@@ -95,3 +97,17 @@ kubectl apply -f front.yml
 добавление - dotnet ef migrations add "новая_миграция"
 удаление - dotnet ef migrations remove
 применение изменений в БД - dotnet ef database update
+
+создание нового проекта через CLI:
+
+просмотреть список наименований типов проектов - 
+dotnet new list
+
+создание нового проекта -
+dotnet new <наименование типа проекта> -n <наименование нового проекта>
+пример: dotnet new console -n LoadingTesting
+
+добавление нового проекта в имеющийся солюшен -
+перейти в папку с файлом *.slnx и выполнить - 
+dotnet sln add <путь к папке с файлом *.csproj>
+пример: dotnet sln add API/LoadTesting/LoadTesting.csproj

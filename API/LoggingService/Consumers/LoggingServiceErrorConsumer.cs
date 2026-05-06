@@ -26,9 +26,11 @@ public class LoggingServiceErrorConsumer : IConsumer<LoggingServiceError>
             ResponseLoggingContract = new ResponseLoggingContract
             {
                 IsSuccess = false,
-                ErrorMessages = [context.Message.ErrorServiceName, context.Message.ErrorMessage],
-                Result = context.Message.ErrorExceptionMessage,
-                StatusCode = System.Net.HttpStatusCode.InternalServerError
+                ErrorMessages = [context.Message.ErrorMessage],
+                ServiceName = context.Message.ErrorServiceName,
+                Result = context.Message.ErrorExceptionStack,
+                StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                InputData = context.Message.ErrorExceptionInputData
             },
             RequestLoggingContract = new RequestLoggingContract
             {

@@ -111,7 +111,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
@@ -152,7 +153,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
@@ -175,7 +177,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Message.Message.UserLogin
             })
@@ -186,7 +189,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin
             })
@@ -227,7 +231,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                           {
                               CorrelationId = context.Saga.CorrelationId,
                               ErrorMessage = context.Message.ErrorMessage,
-                              ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                              ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                              ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                               ErrorServiceName = context.Message.ErrorServiceName,
                               UserLogin = context.Saga.UserLogin,
                               TraceId = Guid.NewGuid(),
@@ -250,7 +255,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
@@ -272,7 +278,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
                 {
                     CorrelationId = context.Saga.CorrelationId,
                     ErrorMessage = context.Message.ErrorMessage,
-                    ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                    ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                    ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                     ErrorServiceName = context.Message.ErrorServiceName,
                     UserLogin = context.Saga.UserLogin,
                     TraceId = Guid.NewGuid(),
@@ -298,7 +305,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),
@@ -317,7 +325,8 @@ public class CreateTagStateMachine : MassTransitStateMachine<CreateTagState>
             {
                 CorrelationId = context.Saga.CorrelationId,
                 ErrorMessage = context.Message.ErrorMessage,
-                ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+                ErrorExceptionStack = context.Message.ErrorExceptionStack,
+                ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
                 ErrorServiceName = context.Message.ErrorServiceName,
                 UserLogin = context.Saga.UserLogin,
                 TraceId = Guid.NewGuid(),

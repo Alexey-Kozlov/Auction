@@ -57,6 +57,7 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
                         item2.CorrelationId = correlationId;
                         _dbContext.Communications.Update(item2);
                         typedItem.ItemId = item2.ItemId;
+                        typedItem.CreateAt = item2.CreateAt;
                         typedItem.Commited = false;
                         await _dbContext.Communications.AddAsync(typedItem);
                         break;
@@ -77,8 +78,9 @@ public class CommunicationConsumer : IConsumer<DataForProcessingServicesList<Com
             var messageObject = Assembly.LoadFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
                 _configuration["CommonAssembly"]).CreateInstance(context.Message.CallBackType);
             messageObject.GetType().GetProperty("CorrelationId").SetValue(messageObject, context.Message.CorrelationId);
-            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetInnerException(e).Message);
-            messageObject.GetType().GetProperty("ErrorExceptionMessage").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorMessage").SetValue(messageObject, GetErrorMessage.GetMessage(e));
+            messageObject.GetType().GetProperty("ErrorExceptionStack").SetValue(messageObject, e.StackTrace);
+            messageObject.GetType().GetProperty("ErrorExceptionInputData").SetValue(messageObject, GetErrorMessage.GetExceptionStringData(context.Message));
             messageObject.GetType().GetProperty("ErrorServiceName").SetValue(messageObject, "CommunicationService");
             messageObject.GetType().GetProperty("UserLogin").SetValue(messageObject, "");
             messageObject.GetType().GetProperty("ItemId").SetValue(messageObject, null);

@@ -17,7 +17,8 @@ public class FinanceCreated : IFaultMessage
 
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -30,7 +31,8 @@ public class FinanceCreateComplete : IFaultMessage
 
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -43,7 +45,8 @@ public class FinanceNotificationCreated : IFaultMessage
 
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -53,10 +56,10 @@ public class FinanceNotificationCreated : IFaultMessage
 
 public class FinanceCreateESCommit : IFaultMessage
 {
-
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }
@@ -70,7 +73,8 @@ public class FinanceCommit
      public bool Commited { get; set; }
      public string CallBackType { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public Guid ItemId { get; set; }
@@ -120,7 +124,8 @@ public class FinanceReset : IFaultMessage
 {
      public Guid CorrelationId { get; set; }
      public string ErrorMessage { get; set; }
-     public string ErrorExceptionMessage { get; set; }
+     public string ErrorExceptionStack { get; set; }
+     public string ErrorExceptionInputData { get; set; }
      public string ErrorServiceName { get; set; }
      public string UserLogin { get; set; }
      public string CallBackType { get; set; }

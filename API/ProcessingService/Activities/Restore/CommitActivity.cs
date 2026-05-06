@@ -33,7 +33,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             Commited = !context.Saga.IsError,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -43,7 +44,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -53,7 +55,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -63,7 +66,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -73,7 +77,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -83,7 +88,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -93,7 +99,8 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
             CallBackType = "Common.Contracts.EventSourcing.SendStartFinishService",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -107,6 +114,6 @@ public class CommitActivity : IStateMachineActivity<RestoreState, RestoreSnapSho
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("scope");
     }
 }

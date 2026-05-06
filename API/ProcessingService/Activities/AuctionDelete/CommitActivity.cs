@@ -44,7 +44,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             context.Saga.ItemId,
             context.Saga.IsError,
             context.Message.ErrorMessage,
-            context.Message.ErrorExceptionMessage,
+            context.Message.ErrorExceptionStack,
+            context.Message.ErrorExceptionInputData,
             context.Message.ErrorServiceName);
         await _publishEndpoint.Publish(new FinanceCommit
         {
@@ -52,7 +53,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -62,7 +64,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -72,7 +75,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -82,7 +86,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -92,7 +97,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin,
             ElkIndex = "search_index"
@@ -103,7 +109,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -113,7 +120,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -123,7 +131,8 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
             CallBackType = "Common.Contracts.Auction.AuctionDeletedNotificationEvent",
             CorrelationId = context.Saga.CorrelationId,
             ErrorMessage = context.Message.ErrorMessage,
-            ErrorExceptionMessage = context.Message.ErrorExceptionMessage,
+            ErrorExceptionStack = context.Message.ErrorExceptionStack,
+            ErrorExceptionInputData = context.Message.ErrorExceptionInputData,
             ErrorServiceName = context.Message.ErrorServiceName,
             UserLogin = context.Saga.UserLogin
         });
@@ -137,6 +146,6 @@ public class CommitActivity : IStateMachineActivity<DeleteAuctionState, AuctionD
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-auction-update");
+        context.CreateScope("scope");
     }
 }

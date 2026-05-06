@@ -40,7 +40,7 @@ public class ESLogActivity : IStateMachineActivity<UpdateCommunicationState, Req
             JsonSerializer.Serialize(context.Message),
             context.Saga.AuctionId,
             context.Saga.ItemId,
-            false, "", "", "");
+            false, "", "", "", "");
         await next.Execute(context).ConfigureAwait(false);
     }
 
@@ -51,6 +51,6 @@ public class ESLogActivity : IStateMachineActivity<UpdateCommunicationState, Req
 
     public void Probe(ProbeContext context)
     {
-        context.CreateScope("request-communication-update");
+        context.CreateScope("scope");
     }
 }
