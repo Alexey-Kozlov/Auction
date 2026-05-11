@@ -27,12 +27,14 @@ builder.Configuration.AddVault(options =>
           });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var conStrBuilder = new NpgsqlConnectionStringBuilder();
-    conStrBuilder.Password = builder.Configuration["pg:password"];
-    conStrBuilder.Username = builder.Configuration["pg:username"];
-    conStrBuilder.Database = builder.Configuration["pg:database"];
-    conStrBuilder.Host = builder.Configuration["pg:host"];
-    conStrBuilder.IncludeErrorDetail = true;
+    var conStrBuilder = new NpgsqlConnectionStringBuilder
+    {
+        Password = builder.Configuration["pg:password"],
+        Username = builder.Configuration["pg:username"],
+        Database = builder.Configuration["pg:database"],
+        Host = builder.Configuration["pg:host"],
+        IncludeErrorDetail = true
+    };
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
 });

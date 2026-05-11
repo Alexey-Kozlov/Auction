@@ -106,6 +106,12 @@
 			"type": "dotnet",
 			"request": "launch",
 			"projectPath": "/home/alex/Projects/Auction/API/TagService/TagService.csproj"
+		},
+		{
+			"name": "LoadTesting",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/LoadTesting/LoadTesting.csproj"
 		}	
 	]
 }

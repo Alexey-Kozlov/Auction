@@ -36,7 +36,9 @@ export default function BidList({ auction }: Props) {
   const isNotifyUser = useIsNotifyUserQuery(auction?.itemId, {
     skip: user?.isGuest,
   });
-  const auctionList = useGetAuctionsQuery(cacheStore.urlAuction);
+  const auctionList = useGetAuctionsQuery(cacheStore.urlAuction, {
+    skip: cacheStore.urlAuction === '',
+  });
   const procState: ProcessingState[] = useSelector(
     (state: RootState) => state.processingStore,
   );

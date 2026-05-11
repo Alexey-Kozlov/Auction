@@ -33,7 +33,6 @@ import { useLoginUserMutation, useRefreshTokenMutation } from './api/AuthApi';
 import { RootState } from './store/store';
 import { setParams } from './store/paramSlice';
 import { jwtDecode } from 'jwt-decode';
-import { CustomError } from './utils/postApiProcess';
 import MessageToast from './components/signalRNotifications/MessageToast';
 import { CheckEventLastChangedNotReady } from './utils/checkEvent';
 import AdminMode from './components/layout/nav/AdminMode';

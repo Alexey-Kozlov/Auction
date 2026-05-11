@@ -14,7 +14,6 @@
     <Project Path="API/GatewayService/GatewayService.csproj" />
     <Project Path="API/IdentityService/IdentityService.csproj" />
     <Project Path="API/ImageService/ImageService.csproj" />
-    <Project Path="API/LoadTesting/LoadTesting.csproj" />
     <Project Path="API/LoggingService/LoggingService.csproj" />
     <Project Path="API/NotificationService/NotificationService.csproj" />
     <Project Path="API/ProcessingService/ProcessingService.csproj" />
@@ -30,4 +29,5 @@
     <Project Path="Common/Contracts/Contracts.csproj" />
     <Project Path="Common/Utils/Utils.csproj" />
   </Folder>
+  <Project Path="LoadTesting/LoadTesting.csproj" />
 </Solution>
