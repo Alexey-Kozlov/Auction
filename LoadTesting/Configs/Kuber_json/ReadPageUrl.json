@@ -1,19 +1,70 @@
 [
-  { "Url": "https://auction/auctions/01d7bbd2-68d1-439b-a3ad-5875c9c66946" },
-  { "Url": "https://auction/auctions/02437d24-4d2e-4b02-b6e0-274acc588e1f" },
-  { "Url": "https://auction/auctions/044c659e-a834-41b7-a572-9a5b9f60d780" },
-  { "Url": "https://auction/auctions/04bee5e8-87bb-4f91-998a-c4301d194a71" },
-  { "Url": "https://auction/auctions/055e5516-492e-4b15-a6e4-dafb64673254" },
-  { "Url": "https://auction/auctions/07fbb759-35fc-4fa1-ab5d-2a3148ad0ea9" },
-  { "Url": "https://auction/auctions/08815552-d690-4a90-939a-6214539405be" },
-  { "Url": "https://auction/auctions/08a8c3fa-12e5-42ab-9220-3af920a749a5" },
-  { "Url": "https://auction/auctions/0a48fb39-b010-4ff7-8dc7-ecaf10a9a7fb" },
-  { "Url": "https://auction/auctions/0e5007c2-7b06-497e-98da-13e62f76ff2e" },
-  { "Url": "https://auction/auctions/131129e9-0978-46d8-bf40-c3ee01025df2" },
-  { "Url": "https://auction/auctions/13222167-e0c4-4067-b862-52f501d9b824" },
-  { "Url": "https://auction/auctions/13287e39-6d73-4d3b-b455-9b8732ca3cc3" },
-  { "Url": "https://auction/auctions/15de0811-cb8c-4490-b04e-915ad14eb7c0" },
-  { "Url": "https://auction/auctions/19e9036b-bc47-49a6-ae36-c1d47be7d0d6" },
-  { "Url": "https://auction/auctions/19fe7a54-d6aa-47fa-b427-54b69194dc3f" },
-  { "Url": "https://auction/auctions/1a4286fe-ec8b-4da2-aae8-a891ee5e5ae6" }
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "01d7bbd2-68d1-439b-a3ad-5875c9c66946"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "02437d24-4d2e-4b02-b6e0-274acc588e1f"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "044c659e-a834-41b7-a572-9a5b9f60d780"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "04bee5e8-87bb-4f91-998a-c4301d194a71"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "055e5516-492e-4b15-a6e4-dafb64673254"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "07fbb759-35fc-4fa1-ab5d-2a3148ad0ea9"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "08815552-d690-4a90-939a-6214539405be"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "08a8c3fa-12e5-42ab-9220-3af920a749a5"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "0a48fb39-b010-4ff7-8dc7-ecaf10a9a7fb"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "0e5007c2-7b06-497e-98da-13e62f76ff2e"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "131129e9-0978-46d8-bf40-c3ee01025df2"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "13222167-e0c4-4067-b862-52f501d9b824"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "13287e39-6d73-4d3b-b455-9b8732ca3cc3"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "15de0811-cb8c-4490-b04e-915ad14eb7c0"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "19e9036b-bc47-49a6-ae36-c1d47be7d0d6"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "19fe7a54-d6aa-47fa-b427-54b69194dc3f"
+  },
+  {
+    "Url": "https://auction/api/search/",
+    "Id": "1a4286fe-ec8b-4da2-aae8-a891ee5e5ae6"
+  }
 ]

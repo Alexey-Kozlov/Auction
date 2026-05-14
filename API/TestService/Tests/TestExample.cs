@@ -42,7 +42,12 @@ public class AuctionMetricsTest
     [Fact]
     public void Test2()
     {
-        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}");
+        var j = 0;
+        for (var i = 1; i <= 50; i++)
+        {
+            j = j + i;
+        }
+        Debug.WriteLine($"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")} - {j}");
 
     }
 }

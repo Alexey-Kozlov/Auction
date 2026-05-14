@@ -1,0 +1,5 @@
+{
+  "login": "admin",
+  "password": "admin",
+  "url": "https://auction/api/identity/login"
+}

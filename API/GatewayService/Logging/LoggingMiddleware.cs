@@ -30,9 +30,11 @@ public class LoggingMiddleware
             return;
         }
         var originalBodyStream = context.Response.Body;
-        var rezult = new ItemLoggingContract();
-        rezult.RequestDate = DateTime.UtcNow;
-        rezult.LogType = LogType.Audit;
+        var rezult = new ItemLoggingContract
+        {
+            RequestDate = DateTime.UtcNow,
+            LogType = LogType.Audit
+        };
         using (var responseBody = new MemoryStream())
         {
             try
