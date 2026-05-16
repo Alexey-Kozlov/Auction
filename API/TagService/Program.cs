@@ -33,14 +33,18 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(p => { }, typeof(Program).Assembly);
-builder.Services.AddDbContext<TagDbContext>(options =>
+builder.Services.AddDbContextPool<TagDbContext>(options =>
 {
-    var conStrBuilder = new NpgsqlConnectionStringBuilder();
-    conStrBuilder.Password = builder.Configuration["pg:password"];
-    conStrBuilder.Username = builder.Configuration["pg:username"];
-    conStrBuilder.Database = builder.Configuration["pg:database"];
-    conStrBuilder.Host = builder.Configuration["pg:host"];
-    conStrBuilder.IncludeErrorDetail = true;
+    var conStrBuilder = new NpgsqlConnectionStringBuilder
+    {
+        Password = builder.Configuration["pg:password"],
+        Username = builder.Configuration["pg:username"],
+        Database = builder.Configuration["pg:database"],
+        Host = builder.Configuration["pg:host"],
+        IncludeErrorDetail = true,
+        MaxPoolSize = int.Parse(builder.Configuration["pg:maxpoolsize"]),
+        CommandTimeout = int.Parse(builder.Configuration["pg:commandtimeout"])
+    };
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
 });

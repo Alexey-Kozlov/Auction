@@ -49,6 +49,8 @@ public class VaultConfigurationProvider : ConfigurationProvider
             Data.Add("pg:username", secrets.Data.Data["username"].ToString());
             Data.Add("pg:password", secrets.Data.Data["password"].ToString());
             Data.Add("pg:host", secrets.Data.Data["host"].ToString());
+            Data.Add("pg:maxpoolsize", secrets.Data.Data["maxpoolsize"].ToString());
+            Data.Add("pg:commandtimeout", secrets.Data.Data["commandtimeout"].ToString());
         }
     }
 

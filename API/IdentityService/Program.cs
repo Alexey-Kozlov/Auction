@@ -25,7 +25,8 @@ builder.Configuration.AddVault(options =>
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
               options.PasswordPolicy = vaultOptions["PasswordPolicy"];
           });
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+
+builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
 {
     var conStrBuilder = new NpgsqlConnectionStringBuilder
     {
@@ -33,7 +34,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         Username = builder.Configuration["pg:username"],
         Database = builder.Configuration["pg:database"],
         Host = builder.Configuration["pg:host"],
-        IncludeErrorDetail = true
+        IncludeErrorDetail = true,
+        MaxPoolSize = int.Parse(builder.Configuration["pg:maxpoolsize"]),
+        CommandTimeout = int.Parse(builder.Configuration["pg:commandtimeout"])
     };
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
@@ -70,7 +73,7 @@ builder.Services.AddAuthentication(p =>
 });
 builder.Services.AddControllers();
 builder.Services.AddCors();
-builder.Services.AddTransient<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddResourceMonitoring();
 builder.Services.AddOpenTelemetry().WithMetrics(opt => opt

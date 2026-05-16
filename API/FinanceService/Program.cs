@@ -26,14 +26,18 @@ builder.Configuration.AddVault(options =>
               options.Secret = vaultOptions["VAULT_SECRET_ID"];
           });
 builder.Services.AddControllers();
-builder.Services.AddDbContext<FinanceDbContext>(options =>
+builder.Services.AddDbContextPool<FinanceDbContext>(options =>
 {
-    var conStrBuilder = new NpgsqlConnectionStringBuilder();
-    conStrBuilder.Password = builder.Configuration["pg:password"];
-    conStrBuilder.Username = builder.Configuration["pg:username"];
-    conStrBuilder.Database = builder.Configuration["pg:database"];
-    conStrBuilder.Host = builder.Configuration["pg:host"];
-    conStrBuilder.IncludeErrorDetail = true;
+    var conStrBuilder = new NpgsqlConnectionStringBuilder
+    {
+        Password = builder.Configuration["pg:password"],
+        Username = builder.Configuration["pg:username"],
+        Database = builder.Configuration["pg:database"],
+        Host = builder.Configuration["pg:host"],
+        IncludeErrorDetail = true,
+        MaxPoolSize = int.Parse(builder.Configuration["pg:maxpoolsize"]),
+        CommandTimeout = int.Parse(builder.Configuration["pg:commandtimeout"])
+    };
 
     options.UseNpgsql(conStrBuilder.ConnectionString);
 });

@@ -35,7 +35,7 @@ internal class Program
         });
         builder.Services.AddControllers();
 
-        builder.Services.AddDbContext<EventSourcingDbContext>(options =>
+        builder.Services.AddDbContextPool<EventSourcingDbContext>(options =>
         {
             var conStrBuilder = new NpgsqlConnectionStringBuilder
             {
@@ -43,13 +43,13 @@ internal class Program
                 Username = builder.Configuration["pg:username"],
                 Database = builder.Configuration["pg:database"],
                 Host = builder.Configuration["pg:host"],
-                Timeout = 300,
-                CommandTimeout = 300,
-                IncludeErrorDetail = true
+                IncludeErrorDetail = true,
+                MaxPoolSize = int.Parse(builder.Configuration["pg:maxpoolsize"]),
+                CommandTimeout = int.Parse(builder.Configuration["pg:commandtimeout"])
             };
 
             options.UseNpgsql(conStrBuilder.ConnectionString);
-        }, ServiceLifetime.Transient, ServiceLifetime.Transient);
+        });
 
         builder.Services.AddMassTransit(busConfigurator =>
         {

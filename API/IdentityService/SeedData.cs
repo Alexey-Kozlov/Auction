@@ -7,6 +7,7 @@ namespace IdentityService;
 
 public class SeedData
 {
+    //для примера, не используется
     public static void EnsureSeedData(WebApplication app)
     {
         using var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
@@ -15,7 +16,7 @@ public class SeedData
 
         var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         logger.LogInformation("Seed started");
-        if(userMgr.Users.Any()) return;
+        if (userMgr.Users.Any()) return;
 
         var alice = userMgr.FindByNameAsync("alice").Result;
         if (alice == null)
