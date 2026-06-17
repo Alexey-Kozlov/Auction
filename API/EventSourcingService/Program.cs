@@ -83,6 +83,7 @@ internal class Program
                     {
                         e.ConfigureConsumer<CreateEventSourcingItemConsumer>(context);
                         e.CreateIfMissing();
+                        e.ConfigureFetch(p => p.MaxPartitionBytes = 30000000);
                     });
                 });
             });

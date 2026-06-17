@@ -81,6 +81,9 @@ const authApi = createApi({
       query: (login) => ({
         url: '',
         method: 'POST',
+        headers: {
+          RequestType: RequestType[RequestType.GetUserName],
+        },
         body: { login: login },
       }),
       transformResponse: (response: ApiResponseNet<string>, meta: any) => {

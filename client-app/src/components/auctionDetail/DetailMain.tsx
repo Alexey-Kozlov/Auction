@@ -7,6 +7,7 @@ import {
   ModalTypes,
   NotifyUser,
   ProcessingState,
+  SignalREvents,
   User,
 } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
@@ -117,6 +118,15 @@ export default function DetailMain() {
     }
     // eslint-disable-next-line
   }, [procState]);
+
+  useEffect(() => {
+    dispatch(
+      setEventFlag({
+        eventName: SignalREvents[SignalREvents.ErrorMessage],
+        ready: false,
+      }),
+    );
+  }, []);
 
   //обработчик переключения переключателя уведомлений пользователя по событиям данного аукциона
 

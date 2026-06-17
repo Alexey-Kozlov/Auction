@@ -32,7 +32,6 @@ export default function Listings() {
     (state: RootState) => state.processingStore,
   );
   const [isWait, setIsWait] = useState(true);
-  const [currentPageNumber, setCurrentPageNumber] = useState(0);
   const [showListItems, setShowListItems] = useState(true);
   const settings = useSelector((state: RootState) => state.settingsStore);
   const user: User = useSelector((state: RootState) => state.authStore);
@@ -117,7 +116,6 @@ export default function Listings() {
         firstPage: e.first === 0 ? 1 : e.first,
       }),
     );
-    setCurrentPageNumber(e.first === 0 ? 1 : e.first);
   }
 
   return (
@@ -145,7 +143,7 @@ export default function Listings() {
                   <Paginator
                     alwaysShow={true}
                     onPageChange={setPageNumber}
-                    first={currentPageNumber}
+                    first={params.firstPage}
                     rows={params.pageSize}
                     totalRecords={data.totalCount}
                     rowsPerPageOptions={[4, 8, 16]}

@@ -99,10 +99,10 @@ public class ReadPage : BasicScenario, IScenario
 
             return Response.Ok();
         })
-        .WithoutWarmUp()
+        .WithWarmUpDuration(TimeSpan.FromSeconds(30))
         .WithLoadSimulations(
             Simulation.RampingConstant(copies: 800,
-                                     during: TimeSpan.FromSeconds(30)),
+                                     during: TimeSpan.FromSeconds(50)),
             Simulation.RampingConstant(copies: 0,
                                      during: TimeSpan.FromSeconds(10))
         );

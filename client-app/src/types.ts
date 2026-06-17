@@ -205,6 +205,7 @@ export enum RequestType {
   RefreshToken,
   CurrentSettings,
   Tag,
+  GetUserName,
 }
 
 export type State = {

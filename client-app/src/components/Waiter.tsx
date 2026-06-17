@@ -10,16 +10,19 @@ export default function Waiter() {
   );
   return (
     <>
-      {CheckEventNotReady(
-        procState,
-        SignalREvents[SignalREvents.ErrorMessage],
-      ) ? (
-        <div className="Absolute-Center">
-          <ProgressSpinner style={{ width: '50px', height: '50px' }} />
-        </div>
-      ) : (
-        <div></div>
-      )}
+      {
+        //принудительно скрываем Waiter в случае ошибки
+        CheckEventNotReady(
+          procState,
+          SignalREvents[SignalREvents.ErrorMessage],
+        ) ? (
+          <div className="Absolute-Center">
+            <ProgressSpinner style={{ width: '50px', height: '50px' }} />
+          </div>
+        ) : (
+          <div></div>
+        )
+      }
     </>
   );
 }

@@ -58,7 +58,7 @@ export default function TabChatTable({ auction }: Props) {
     userLogin: '',
     auctionId: '',
   } as ChatComment);
-
+  const [showWaiter, setShowWaiter] = useState(true);
   const dispatch = useDispatch();
   const handleMessageChanged = (value: string | number | undefined) => {
     setNewMessage((prev) => {
@@ -109,6 +109,7 @@ export default function TabChatTable({ auction }: Props) {
           ready: false,
         }),
       );
+      setShowWaiter(() => false);
     }
     // eslint-disable-next-line
   }, [communication]);
@@ -177,6 +178,7 @@ export default function TabChatTable({ auction }: Props) {
   //первоначальная загрузка - ждем списка сообщений
   useEffect(() => {
     setChatEditClass('grid ChatEditMode');
+    setShowWaiter(() => true);
     //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
     setCurrentPage('/communication/' + auction.itemId);
   }, []);
@@ -257,7 +259,7 @@ export default function TabChatTable({ auction }: Props) {
       {CheckEventReady(
         procState,
         SignalREvents[SignalREvents.CommunicationChanged],
-      ) ? (
+      ) || showWaiter ? (
         <div className="CenterItem">
           <Waiter />
         </div>

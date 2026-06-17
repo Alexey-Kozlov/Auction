@@ -116,8 +116,9 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
     {
         r.AddProducer<ESContract>(builder.Configuration["kf:topic"], new ProducerConfig
         {
-            MessageMaxBytes = 30485880,
-            QueueBufferingMaxKbytes = 40000
+            MessageMaxBytes = 30485880, //максимальный размер сообщения - 30 Мб
+            QueueBufferingMaxKbytes = 100000, //буфер для ожидания передачи сообщений, максимум - 3 самых больших сообщения
+            Acks = Confluent.Kafka.Acks.Leader  //среднее быстродействие, подтверждение только от лидера репликации
         });
         r.UsingKafka((context, k) =>
         {

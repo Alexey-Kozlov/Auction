@@ -51,6 +51,7 @@ builder.Services.AddMassTransit<ISecondBus>(busConfigurator =>
                         {
                             e.ConfigureConsumer<LoggingConsumer>(context);
                             e.CreateIfMissing();
+                            e.ConfigureFetch(p => p.MaxPartitionBytes = 30000000);
                         });
                     });
                 });
