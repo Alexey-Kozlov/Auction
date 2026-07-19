@@ -181,6 +181,7 @@ export default function TabChatTable({ auction }: Props) {
     setShowWaiter(() => true);
     //посылаем вызов в апи процессинга - для записи в кеш редиса страницы, где находится пользователь
     setCurrentPage('/communication/' + auction.itemId);
+    // eslint-disable-next-line
   }, []);
 
   const contextItems: MenuItem[] = [

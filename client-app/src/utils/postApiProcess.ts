@@ -44,5 +44,11 @@ export const PostErrorApiProcess = (response: any, meta: any): CustomError => {
     console.log(response.data.errorMessages.join(','));
     return { message: meta.response.statusText, statusCode: response.status };
   }
-  return { message: meta.response.statusText, statusCode: response.status };
+
+  if (meta.response) {
+    return { message: meta.response.statusText, statusCode: response.status };
+  }
+  console.log('Прочие ошибки PostApiProcess - ' + meta);
+
+  return { message: '', statusCode: 0 };
 };

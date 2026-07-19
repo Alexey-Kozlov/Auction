@@ -92,6 +92,33 @@ public enum Command
     TagDelete //14
 }
 
+public class ProcessingServiceMethods
+{
+    public static string GetCommandName(Command cmd)
+    {
+        switch (cmd)
+        {
+            case Command.PlaceBid: return "Новая ставка";
+            case Command.AuctionDelete: return "Удаление аукциона";
+            case Command.AuctionCreate: return "Создание аукциона";
+            case Command.AuctionUpdate: return "Изменение аукциона";
+            case Command.FinanceCreate: return "Пополнение денежных средств";
+            case Command.MakeSnapShot: return "Создание снимка";
+            case Command.RestoreSnapShot: return "Восстановление снимка";
+            case Command.IndexELK: return "Индексирование контента";
+            case Command.EditNotification: return "Изменение уведомления";
+            case Command.AuctionFinished: return "Завершение аукциона";
+            case Command.CommunicationCreate: return "Создание сообщения";
+            case Command.CommunicationUpdate: return "Изменение сообщения";
+            case Command.CommunicationDelete: return "Удаление сообщения";
+            case Command.TagCreate: return "Создание тега";
+            case Command.TagDelete: return "Удаление тега";
+            default: return "";
+        }
+        ;
+    }
+}
+
 public enum CRUD
 {
     Create,     //0

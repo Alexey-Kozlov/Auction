@@ -4,36 +4,32 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <NoWarn>NU1701</NoWarn>       
   </PropertyGroup>
 
   <ItemGroup>
 		<PackageReference Include="AuctionUtils" Version="1.0.0" />    
     <PackageReference Include="AuctionContracts" Version="1.0.1" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.7" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.ResourceMonitoring" Version="10.4.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />   
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.15.1-beta.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.15.3-beta.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />    
     <PackageReference Include="VaultSharp" Version="1.17.5.1" /> 
-    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />    
     <PackageReference Include="Google.Protobuf" Version="3.35.1" />
     <PackageReference Include="Grpc.Net.Client" Version="2.80.0" />
     <PackageReference Include="Grpc.Tools" Version="2.82.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
-    </PackageReference>                      
+    </PackageReference>  
   </ItemGroup>
 
-    <ItemGroup>
-    <Protobuf Include="Protos/report.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos/notifyUsers.proto" GrpcServices="Client" />
+  <ItemGroup>
+    <Protobuf Include="Protos/sourcing.proto" GrpcServices="Client" />
   </ItemGroup>  
 
 </Project>

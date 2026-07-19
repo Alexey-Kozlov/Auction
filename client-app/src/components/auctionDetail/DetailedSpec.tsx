@@ -3,11 +3,15 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import TabDetailInfo from './TabDetailInfo';
 import TabChatTable from './Chat/TabChatTable';
 import Tags from './Tags';
+import History from './History';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
 
 type Props = {
   auction: Auction;
 };
 export default function DetailedSpec({ auction }: Props) {
+  const user: User = useSelector((state: RootState) => state.authStore);
   return (
     <div>
       <TabView>
@@ -38,6 +42,17 @@ export default function DetailedSpec({ auction }: Props) {
         >
           <Tags auction={auction} />
         </TabPanel>
+        {user.isAdmin && (
+          <TabPanel
+            header="История"
+            leftIcon={
+              <i className="pi pi-history mr-2" style={{ fontSize: '2rem' }} />
+            }
+            className="text-4xl"
+          >
+            <History auction={auction} />
+          </TabPanel>
+        )}
       </TabView>
     </div>
   );

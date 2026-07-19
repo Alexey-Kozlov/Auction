@@ -126,6 +126,7 @@ export default function DetailMain() {
         ready: false,
       }),
     );
+    // eslint-disable-next-line
   }, []);
 
   //обработчик переключения переключателя уведомлений пользователя по событиям данного аукциона

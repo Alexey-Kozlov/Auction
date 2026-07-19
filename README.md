@@ -4,7 +4,7 @@
 EventSourcing, Microservices, Microfrontend
 React + TailWind CSS, PrimeReact
 RTK Query
-.Net9
+.Net10
 PostgreSql, EF, AutoMapper, YARP
 RabbitMq, Kafka, MassTransit
 REST, GRPC
@@ -87,17 +87,14 @@ dotnet build --configuration Release
 - компилируем новый пакет командой - dotnet publish, пересоздаем пакет командой - dotnet pack -o /home/alex/Projects/Auction/Packages/
 - будет создан пакет, теперь снова компилируем нужный проект - теперь должны подтянутся изменения в пакете.
 
-прочие команды
-
-kubectl delete deployment auction-front
-kubectl apply -f front.yml
-
-миграции
+------------
+миграции (в этом проекте не используются)
 
 добавление - dotnet ef migrations add "новая_миграция"
 удаление - dotnet ef migrations remove
 применение изменений в БД - dotnet ef database update
 
+-------------
 создание нового проекта через CLI:
 
 просмотреть список наименований типов проектов - 

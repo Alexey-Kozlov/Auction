@@ -108,6 +108,12 @@
 			"projectPath": "/home/alex/Projects/Auction/API/TagService/TagService.csproj"
 		},
 		{
+			"name": "History",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "/home/alex/Projects/Auction/API/HistoryService/HistoryService.csproj"
+		},
+		{
 			"name": "LoadTesting",
 			"type": "dotnet",
 			"request": "launch",

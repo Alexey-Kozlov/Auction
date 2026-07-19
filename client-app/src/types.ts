@@ -206,6 +206,7 @@ export enum RequestType {
   CurrentSettings,
   Tag,
   GetUserName,
+  History,
 }
 
 export type State = {
@@ -330,6 +331,7 @@ export enum SignalREvents {
   TagCreated,
   TagDeleted,
   TagChanged,
+  HistoryUpdated,
 }
 
 export type UrlCacheList = {
@@ -367,4 +369,11 @@ export type TagList = {
 export type TagCloudItem = {
   value: string;
   count: number;
+};
+
+export type HistoryItem = {
+  correlationId: string;
+  createAt: Date;
+  entityType: string;
+  userLogin: string;
 };

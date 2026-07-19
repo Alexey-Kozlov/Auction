@@ -3,6 +3,7 @@ using System.Text.Json;
 using Common.Contracts.Auction;
 using Common.Contracts.Bid;
 using Common.Contracts.Communication;
+using Common.Contracts.EventSourcing;
 using Common.Contracts.Finance;
 using Common.Contracts.Image;
 using Common.Contracts.Notification;
@@ -12,7 +13,6 @@ using Common.Utils;
 using Common.Utils.Extentions;
 using Common.Utils.Logging;
 using EventSourcingService.Data;
-using EventSourcingService.Entities;
 using EventSourcingService.Services;
 using MassTransit;
 

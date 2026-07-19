@@ -12,6 +12,7 @@
     <Project Path="API/EventSourcingService/EventSourcingService.csproj" />
     <Project Path="API/FinanceService/FinanceService.csproj" />
     <Project Path="API/GatewayService/GatewayService.csproj" />
+    <Project Path="API/HistoryService/HistoryService.csproj" />
     <Project Path="API/IdentityService/IdentityService.csproj" />
     <Project Path="API/ImageService/ImageService.csproj" />
     <Project Path="API/LoggingService/LoggingService.csproj" />

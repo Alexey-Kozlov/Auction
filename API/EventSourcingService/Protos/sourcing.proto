@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "SourcingService";
+
+service GrpcSourcing {
+    rpc GetHistory (GetHistoryRequest) returns (GrpcHistoryResponse);    
+}
+
+message GetHistoryRequest {
+    string HistoryRequest = 1;
+}
+
+message GrpcHistoryResponse {
+    string HistoryResponse = 1;
+}

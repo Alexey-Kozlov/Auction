@@ -20,6 +20,7 @@ import settingsApi from '../api/SettingsApi';
 import { settingsReducer } from './settingsSlice';
 import { tagReducer } from './tagSlice';
 import tagApi from '../api/TagApi';
+import historyApi from '../api/HistoryApi';
 
 const store = configureStore({
   reducer: {
@@ -46,6 +47,7 @@ const store = configureStore({
     [communicationApi.reducerPath]: communicationApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
     [tagApi.reducerPath]: tagApi.reducer,
+    [historyApi.reducerPath]: historyApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -61,7 +63,8 @@ const store = configureStore({
       .concat(serviceApi.middleware)
       .concat(communicationApi.middleware)
       .concat(settingsApi.middleware)
-      .concat(tagApi.middleware),
+      .concat(tagApi.middleware)
+      .concat(historyApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

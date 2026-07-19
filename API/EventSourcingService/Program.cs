@@ -139,12 +139,14 @@ internal class Program
         builder.Services.AddScoped<TagDeleteProcessing>();
         builder.Services.AddSingleton<RestoreImageService>();
 
+        builder.Services.AddGrpc();
+
         var app = builder.Build();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
+        app.MapGrpcService<GrpcSourcingService>();
         app.MapPrometheusScrapingEndpoint();
         //запускаем веб-сервер и пишем в консоль хост и порт
         ConsoleLogging.RunApp(app);

@@ -28,7 +28,7 @@ export default function NavBar() {
         {!user.isGuest ? (
           <UserActions />
         ) : (
-          <div>
+          <div className="LoginAction">
             {showRegisterButton && (
               <Button
                 text

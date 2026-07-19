@@ -1,6 +1,5 @@
 ﻿using Common.Contracts.EventSourcing;
 using Common.Contracts.Image;
-using EventSourcingService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

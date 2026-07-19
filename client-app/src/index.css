@@ -70,7 +70,11 @@ a.p-menuitem-link > svg {
 .UserActionsPanel {
 	width: 35rem;
 	display: flex;
-	justify-content: end;
+	margin-left: auto;
+}
+
+.LoginAction {
+	margin-left: auto;
 }
 
 .p-menuitem-text {
@@ -93,7 +97,6 @@ a.p-menuitem-link > svg {
 .NavBar {
 	padding: 0 1rem 0 1rem;
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
 	background-color: white;
 	flex-wrap: wrap;
@@ -120,11 +123,11 @@ a.p-menuitem-link > svg {
 	font-size: 3rem;
 	line-height: 3.5rem;
 	color: rgb(240 82 82);
+	margin-right: 3rem;
 }
 
 .SearchContainer {
 	display: flex;
-	align-items: center;
 	flex-wrap: wrap;
 }
 
@@ -134,7 +137,7 @@ a.p-menuitem-link > svg {
 	border: 2px solid #e5e7eb;
 	border-radius: 9999px;
 	margin: 0 0.5rem 0 0.5rem;
-	width: 35rem;
+	width: 25rem;
 	height: 5rem;
 }
 
@@ -144,7 +147,6 @@ a.p-menuitem-link > svg {
 	align-items: center;
 	border: none;
 	margin: 0 0.5rem 0 0.5rem;
-	width: 45rem;
 	height: 5rem;
 }
 
@@ -182,6 +184,7 @@ a.p-menuitem-link > svg {
 	outline: none;
 	border: none;
 	outline-style: none;
+	width: 20rem;
 }
 .SearchInput:focus {
   border-color: inherit;
