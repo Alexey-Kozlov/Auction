@@ -45,6 +45,7 @@ docker build -f Auction/API/CommunicationService/Dockerfile -t kozlovas/auction-
 docker build -f Auction/API/CheckVaultUnblocked/Dockerfile -t kozlovas/auction-checkvault .
 docker build -f Auction/API/SettingsService/Dockerfile -t kozlovas/auction-settings .
 docker build -f Auction/API/TagService/Dockerfile -t kozlovas/auction-tag .
+docker build -f Auction/API/HistoryService/Dockerfile -t kozlovas/auction-history .
 
 !!!!!
 Если при создании образа будет ошибка вроде - ERROR: failed to build: failed to solve: failed to compute cache key /LocalNugetPackages": not found

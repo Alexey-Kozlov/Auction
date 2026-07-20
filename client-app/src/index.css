@@ -70,11 +70,6 @@ a.p-menuitem-link > svg {
 .UserActionsPanel {
 	width: 35rem;
 	display: flex;
-	margin-left: auto;
-}
-
-.LoginAction {
-	margin-left: auto;
 }
 
 .p-menuitem-text {
@@ -100,6 +95,7 @@ a.p-menuitem-link > svg {
 	align-items: center;
 	background-color: white;
 	flex-wrap: wrap;
+	justify-content: space-between;
 }
 
 .NavBarFooter1 {
@@ -123,7 +119,6 @@ a.p-menuitem-link > svg {
 	font-size: 3rem;
 	line-height: 3.5rem;
 	color: rgb(240 82 82);
-	margin-right: 3rem;
 }
 
 .SearchContainer {
