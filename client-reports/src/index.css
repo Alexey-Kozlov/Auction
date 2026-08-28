@@ -253,3 +253,14 @@ body {
 	border: black 0.2rem solid;
 	padding: 0.5rem;
 }
+
+.p-datepicker span,
+.p-datepicker-year,
+.p-datepicker-month {
+	font-size: 1.5rem;
+}
+
+.p-datepicker-header svg {
+	width: 2rem;
+	height: 2rem;
+}

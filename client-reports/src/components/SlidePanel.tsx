@@ -119,8 +119,14 @@ export default function SlidePanel({ params, reportName }: Props) {
       return (
         <DateInput
           value={paramValue![index] ? new Date(paramValue![index]) : null}
-          onChange={(p) => {
-            setParamValue((st) => {
+          onChange={(p: Date) => {
+            if (
+              p === null ||
+              (p ? p.toLocaleTimeString() : "00:00:00") === "00:00:00"
+            ) {
+              return;
+            }
+            setParamValue((st: string[]) => {
               st[index] = p ? p.toISOString() : "";
               return [...st];
             });

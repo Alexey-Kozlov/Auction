@@ -295,7 +295,10 @@ export default function AuctionForm() {
     setIsFormChanged(true);
     setEditError(() => null);
     setNewAuction((prev) => {
-      return { ...prev, auctionEnd: value };
+      if ((value ? value.toLocaleTimeString() : '00:00:00') !== '00:00:00') {
+        prev.auctionEnd = value ?? prev.auctionEnd;
+      }
+      return { ...prev };
     });
   };
 
